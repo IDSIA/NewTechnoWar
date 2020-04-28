@@ -1,37 +1,52 @@
-from core.agents import Agent, Parameters
+import math
+import random
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+from collections import namedtuple
 
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torch.nn.functional as F
+import torchvision.transforms as T
+
+from core.agents import Agent, Parameters
 from core.state import StateOfTheBoard
+from learningParameters import *
 
 done = False
+steps_done = 0 #counts total of actions while learning, over episodes and samples
+roundOfPlay = 0 #counts number of steps in the game
 
-stateOfTheBoard = StateOfTheBoard((4,4))
 
+#Building up a dummy scenario, called Scenario1
+shape=(10,10)
+stateOfTheBoard = StateOfTheBoard(shape)
+stateOfTheBoard.resetScenario1()
+
+
+#setting up basic agent features
 redParameters = Parameters('red', {})
-
 blueParameters = Parameters('blue', {})
 
-redAgent = Agent(stateOfTheBoard, 0, redParameters)
+redAgent = Agent(steps_done, roundOfPlay, redParameters)
+blueAgent = Agent(steps_done, roundOfPlay, blueParameters)
 
-blueAgent = Agent(stateOfTheBoard, 0, blueParameters)
 
+
+#here goes the main loop
 while not done:
 
-    redAction = redAgent.takeAction()
-
-    # ...update the board... 
-
-    # ...just change values in Dictionary... 
-
-    # ...change values in all red and all blue classes... 
-
+    #red agent chooses action
+    redAction, steps_done = redAgent.select_random_action(stateOfTheBoard, steps_done)
+    #Update board, observe state and reward, to be implemented
+    done = stateOfTheBoard.redStep(redAction.item())
     
+    #not sure if it makes sense but only the red agent updates step counter. Similarly, only win for blue is by time-out
+    blueAction, _ = blueAgent.select_random_action(stateOfTheBoard, steps_done)
+    #Update board, observe state and reward, to be implemented
+    __ = stateOfTheBoard.blueStep(blueAction.item())
 
-    blueAction = blueAgent.takeAction()
-
-    # ...update the board... 
-
-    # ...just change values in Dictionary... 
-
-    # ...change values in all red and all blue classes... 
-
-    # check if end
+    if(steps_done==TOTAL_STEPS):
+        done=True
