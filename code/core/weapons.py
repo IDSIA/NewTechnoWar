@@ -1,50 +1,73 @@
-class Weapon(object):
+"""
+This module contains a description of all weapons and their rules.
+"""
 
-    def __init__(self, id: str, name: str, max_range: int, attack_normal: int, attack_response: int, max_mamunition: int, dices_to_roll:int):
-        self.id = id
+class Weapon:
+    """
+    Generic class for weapons mechanics.
+    """
+
+    def __init__(self, _id: str, name: str, max_range: int, atk_normal: int, atk_response: int, max_ammo: int, dices: int):
+        self._id = _id
         self.name = name
         self.range = max_range
-        self.attack_normal = attack_normal
-        self.attack_response = attack_response
-        self.max_mamunition = max_mamunition
-        self.dices = dices_to_roll
+        self.atk_normal = atk_normal
+        self.atk_response = atk_response
+        self.max_ammo = max_ammo
+        self.dices = dices
 
 
 class Cannon(Weapon):
+    """Tank weapon"""
+
     def __init__(self, max_ammunition, dices_to_roll=1):
         super().__init__('CA', 'Cannon', 75, 8, 4, max_ammunition, dices_to_roll)
 
 
 class AssaultRifle(Weapon):
+    """Infantry weapon"""
+
     def __init__(self, max_ammunition, dices_to_roll=4):
         super().__init__('AR', 'Assault Rifle', 10, 6, 3, max_ammunition, dices_to_roll)
 
 
 class MachineGun(Weapon):
+    """Tank and infantry weapon"""
+
     def __init__(self, max_ammunition, dices_to_roll=1):
         super().__init__('MG', 'Machine gun', 24, 8, 4, max_ammunition, dices_to_roll)
 
 
 class AntiTank(Weapon):
+    """Infantry weapon"""
+
     def __init__(self, max_ammunition, dices_to_roll=1):
         super().__init__('AT', 'Anti-tank weapon', 18, 10,  5, max_ammunition, dices_to_roll)
 
 
 class Mortar(Weapon):
+    """Infantry weapon"""
+
     def __init__(self, max_ammunition, dices_to_roll=1):
         super().__init__('MT', 'Mortar', -1, 12, 6, max_ammunition, dices_to_roll)
 
 
 class Grenade(Weapon):
+    """Infantry weapon"""
+
     def __init__(self, max_ammunition, dices_to_roll=1):
         super().__init__('GR', 'Grenade', 3, 18, 9, max_ammunition, dices_to_roll)
 
 
 class SmokeGrenade(Weapon):
+    """Tank weapon"""
+
     def __init__(self, max_ammunition, dices_to_roll=1):
         super().__init__('SM', 'Smoke Grenade', 3, 20, 10, max_ammunition, dices_to_roll)
 
 
 class SniperRifle(Weapon):
+    """Infantry weapon, special case of Assault Rifle"""
+    
     def __init__(self, max_ammunition, dices_to_roll=4):
         super().__init__('SR', 'Sniper Rifle', 10, 6, 3, max_ammunition, dices_to_roll)

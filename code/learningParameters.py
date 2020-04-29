@@ -2,7 +2,7 @@ import torch
 
 #global parameters
 
-TOTAL_STEPS=20
+TOTAL_STEPS = 20
 
 #use cuda?
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")

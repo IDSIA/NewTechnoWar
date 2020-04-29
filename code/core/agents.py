@@ -8,20 +8,18 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
 
-
-
 from core.state import StateOfTheBoard
 from learningParameters import *
 
 
-class Parameters(object):
+class Parameters:
 
     def __init__(self, team: str, params: dict):
         self.team = team
         self.params = params
         # here well probably put a neural net or similar.
 
-class Agent(object):
+class Agent:
 
     def __init__(self, stateOfTheBoard: StateOfTheBoard, roundOfPlay: int, parameters: Parameters):
         self.stateOfTheBoard = stateOfTheBoard
