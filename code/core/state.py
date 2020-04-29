@@ -29,15 +29,16 @@ class StateOfTheBoard:
             'objective': np.zeros(shape, dtype='uint8')
         }
 
+        self.nextRedFigureId = 0
+        self.nextBlueFigureId = 0
         # dynamic properties of the board
-        self.redFigures = {
-            'tanks': {},
-            'infantries': {}
-        }
-        self.blueFigures = {
-            'tanks': {},
-            'infantries': {}
-        }
+
+
+        # we use the following convention for access keys#
+        # keys are integers that represent the figure, eg {0 : ['tank',(0,1), matrixWith1At (0,1)]}, {1:['infantry',....]}, ...
+        # this is to ensure that we can access figures by integer key, which encodes a figure selection action
+        self.redFigures = {}
+        self.blueFigures = {}
 
     def addObstacle(self, obstacles: np.array):
         self.board['obstacles'] = obstacles
@@ -54,25 +55,17 @@ class StateOfTheBoard:
     def addObjective(self, objective: np.array):
         self.board['objective'] = objective
 
-    def addRedTank(self, tankId: int, tankPosition: tuple):
-        tmp = np.np.zeros(self.shape, dtype='uint8')
-        tmp[tankPosition] = 1
-        self.redFigures['tanks'][tankId] = [tankPosition, tmp]
-
-    def addRedInfantry(self, infantryId: int, infantryPosition: tuple):
+    def addRedFigure(self, type : str, position: tuple):
         tmp = np.zeros(self.shape, dtype='uint8')
-        tmp[infantryPosition] = 1
-        self.redFigures['infantries'][infantryId] = [infantryPosition, tmp]
+        tmp[position] = 1
+        self.redFigures[self.nextRedFigureId] = [type, position, tmp]
+        self.nextRedFigureId+=1
 
-    def addBlueTank(self, tankId: int, tankPosition: tuple):
-        tmp = np.np.zeros(self.shape, dtype='uint8')
-        tmp[tankPosition] = 1
-        self.blueFigures['tanks'][tankId] = [tankPosition, tmp]
-
-    def addBlueInfantry(self, infantryId: int, infantryPosition: tuple):
+    def addBlueFigure(self, type : str, position: tuple):
         tmp = np.zeros(self.shape, dtype='uint8')
-        tmp[infantryPosition] = 1
-        self.blueFigures['infantries'][infantryId] = [infantryPosition, tmp]
+        tmp[position] = 1
+        self.blueFigures[self.nextBlueFigureId] = [type, position, tmp]
+        self.nextBlueFigureId+=1
 
     # sets up a specific scenario. reset to state of board to an initial state. Here this is just a dummy
 
@@ -89,16 +82,18 @@ class StateOfTheBoard:
         objective[9, 9] = 1
         self.addObjective(objective)
 
-        self.addRedInfantry(infantryId=1, infantryPosition=(4, 1))
-        self.addBlueInfantry(infantryId=1, infantryPosition=(5, 2))
+        self.addRedFigure( type='infantry', position=(4, 1))
+        self.addRedFigure( type='tank', position=(4, 3))
+        self.addBlueFigure( type='infantry', position=(5, 2))
     # applies action to the state of the board for both red and blue agents
     # the function is implemented twice, to be more easily called. also maybe there are different terminal conditions for red and blue. I am also
 
-    def redStep(self, action):
-        infantryId = 1  # this is just a dummy for now
-        oldState = self.redFigures['infantries'][infantryId][0]
-        newState = (self.redFigures['infantries'][infantryId][0][0] + self.actionMovesDict[action][0],
-                    self.redFigures['infantries'][infantryId][0][1] + self.actionMovesDict[action][1])
+    def redStep(self, chosenFigure, chosenAttackOrMove, chosenAction):
+        
+        #move the chosen figure, chosenAttackOrMove isnt implemented yet, does have no effect at the momment
+        oldState = self.redFigures[chosenFigure][1]
+        newState = (self.redFigures[chosenFigure][1][0] + self.actionMovesDict[chosenAction][0],
+                    self.redFigures[chosenFigure][1][1] + self.actionMovesDict[chosenAction][1])
 
         # if agent would jump off the board by some action it just remains at the hexagon
         if newState[0] < 0 or newState[0] >= self.shape[0]:
@@ -107,20 +102,22 @@ class StateOfTheBoard:
             newState = oldState
 
         # store things
-        self.redFigures['infantries'][infantryId][0] = newState
+        self.redFigures[chosenFigure][1] = newState
         tmp = np.zeros(self.shape, dtype='uint8')
         tmp[newState] = 1
-        self.redFigures['infantries'][infantryId][1] = tmp
+        self.redFigures[chosenFigure][2] = tmp
+        print(chosenFigure)
         print(tmp)
 
         done = False  # dummy
         return done
 
-    def blueStep(self, action):
-        infantryId = 1  # this is just a dummy for now
-        oldState = self.blueFigures['infantries'][infantryId][0]
-        newState = (self.blueFigures['infantries'][infantryId][0][0] + self.actionMovesDict[action][0],
-                    self.blueFigures['infantries'][infantryId][0][1] + self.actionMovesDict[action][1])
+    def blueStep(self, chosenFigure, chosenAttackOrMove, chosenAction):
+
+        #move the chosen figure, chosenAttackOrMove isnt implemented yet, does have no effect at the momment
+        oldState = self.redFigures[chosenFigure][1]
+        newState = (self.redFigures[chosenFigure][1][0] + self.actionMovesDict[chosenAction][0],
+                    self.redFigures[chosenFigure][1][1] + self.actionMovesDict[chosenAction][1])
 
         # if agent would jump off the board by some action it just remains at the hexagon
         if newState[0] < 0 or newState[0] >= self.shape[0]:
@@ -129,10 +126,10 @@ class StateOfTheBoard:
             newState = oldState
 
         # store things
-        self.blueFigures['infantries'][infantryId][0] = newState
+        self.blueFigures[chosenFigure][1] = newState
         tmp = np.zeros(self.shape, dtype='uint8')
         tmp[newState] = 1
-        self.blueFigures['infantries'][infantryId][1] = tmp
+        self.blueFigures[chosenFigure][2] = tmp
 
         done = False  # dummy
         return done

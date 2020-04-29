@@ -33,8 +33,8 @@ stateOfTheBoard.resetScenario1()
 redParameters = Parameters('red', {})
 blueParameters = Parameters('blue', {})
 
-redAgent = Agent(steps_done, roundOfPlay, redParameters)
-blueAgent = Agent(steps_done, roundOfPlay, blueParameters)
+redAgent = Agent(roundOfPlay, redParameters)
+blueAgent = Agent(roundOfPlay, blueParameters)
 
 
 if __name__ == "__main__":
@@ -43,16 +43,16 @@ if __name__ == "__main__":
     while not done:
 
         # red agent chooses action
-        redAction, steps_done = redAgent.select_random_action(
+        redChosenFigure, redChosenAttackOrMove, redChosenAction, steps_done = redAgent.select_random_action(
             stateOfTheBoard, steps_done)
         # Update board, observe state and reward, to be implemented
-        done = stateOfTheBoard.redStep(redAction.item())
+        done = stateOfTheBoard.redStep(redChosenFigure.item(), redChosenAttackOrMove.item(), redChosenAction.item())
 
         # not sure if it makes sense but only the red agent updates step counter. Similarly, only win for blue is by time-out
-        blueAction, _ = blueAgent.select_random_action(
+        blueChosenFigure, blueChosenAttackOrMove, blueChosenAction, _ = blueAgent.select_random_action(
             stateOfTheBoard, steps_done)
         # Update board, observe state and reward, to be implemented
-        __ = stateOfTheBoard.blueStep(blueAction.item())
+        __ = stateOfTheBoard.blueStep(blueChosenFigure.item(), blueChosenAttackOrMove.item(), blueChosenAction.item())
 
         if steps_done == TOTAL_STEPS:
             done = True

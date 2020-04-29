@@ -22,10 +22,10 @@ class Parameters:
 
 class Agent:
 
-    def __init__(self, stateOfTheBoard: StateOfTheBoard, roundOfPlay: int, parameters: Parameters):
-        self.stateOfTheBoard = stateOfTheBoard
+    def __init__(self, roundOfPlay: int, parameters: Parameters):
         self.roundOfPlay = roundOfPlay
         self.parameters = parameters
+        self.team = parameters.team
 
     # must implement an update method.
 
@@ -42,6 +42,24 @@ class Agent:
     #     return torch.tensor([[random.randrange(n_actions)]], device=device, dtype=torch.long), steps_done
 
     # select random action
-    def select_random_action(self, stateOfTheBoard, steps_done):
+    def select_random_action(self, stateOfTheBoard, steps_done):#steps_done is NOT a member for performance
+        #structure of action choice should be probably as follows:
+        #1) choose a figure.
+        #2) choose if to attack or move
+        #2a) if attack: choose whom to attack, according to game rules like line of sight and similar
+        #2b) if move: choose where to move, according to game rulse like roads and board boundaries
+
+        #at the moment all this is implemented in terms of fully random actions, in a dummy code
+        #in the real setup this is going to be too inefficient probably. will have to think of different representation
+        if(self.team=='red'):
+            figures = stateOfTheBoard.redFigures
+        elif(self.team=='blue'):
+            figures = stateOfTheBoard.blueFigures
+        else:
+            print(DEVICE +' vote for socialicm!')        
+        chosenFigure = torch.tensor([[random.randrange(max(figures.keys())+1)]], device=DEVICE, dtype=torch.long)
+        chosenAttackOrMove = torch.tensor([[random.randrange(2)]], device=DEVICE, dtype=torch.long)
+        chosenAction = torch.tensor([[random.randrange(6)]], device=DEVICE, dtype=torch.long)
         steps_done += 1
-        return torch.tensor([[random.randrange(6)]], device=DEVICE, dtype=torch.long), steps_done
+        #
+        return chosenFigure, chosenAttackOrMove, chosenAction, steps_done
