@@ -39,12 +39,12 @@ class Figure:
         self.int_atk = INTELLIGENCE_ATTACK
         self.int_def = INTELLIGENCE_DEFENSE
         self.endurance = ENDURANCE
-        
+
         self.stat = 0
-    
+
     def set_STAT(self, new_STAT: FigureStatus):
         self.stat = new_STAT
-    
+
     def get_STAT(self) -> FigureStatus:
         return self.stat
 
@@ -64,7 +64,7 @@ class Tank(Figure):
         super().__init__(position, name)
         self.move = 7
         self.load = 1
-        
+
         self.defense = {'basic': 5, 'armored': 18}
         self.equipment = {
             MachineGun(-1),
@@ -79,7 +79,7 @@ class APC(Figure):
         super().__init__(position, name)
         self.move = 7
         self.load = 1
-        
+
         self.defense = {'basic': 5, 'armored': 18},
         self.equipment = {
             MachineGun(-1),
@@ -113,7 +113,7 @@ class Exoskeleton(Infantry):
         super().__init__(position, name)
         self.move = 4
         self.load = 0
-        
+
         self.defense = {'basic': 1}
         self.equipment = [
             AssaultRifle(-1),
@@ -122,7 +122,7 @@ class Exoskeleton(Infantry):
             Mortar(5),
             Grenade(2)
         ]
-        
+
         self.endurance = [4] * TURNS
 
 
@@ -131,7 +131,7 @@ class Sniper(Infantry):
         Special unit based on scenario
         The sniper has a status advantage of +2 and an accuracy advantage of +3 (+5 in total) added to his hit score
     """
-    def __init__(self, position:tuple, name:str = 'Sniper'):
+    def __init__(self, position: tuple, name: str = 'Sniper'):
         super().__init__(position, name)
         self.move = 0
 
@@ -140,7 +140,7 @@ class Sniper(Infantry):
         ]
 
     def get_STAT(self):
-        return super().get_STAT +5
+        return super().get_STAT + 5
 
 
 class Civilian(Figure):

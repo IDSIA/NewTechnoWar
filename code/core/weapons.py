@@ -2,6 +2,7 @@
 This module contains a description of all weapons and their rules.
 """
 
+
 class Weapon:
     """
     Generic class for weapons mechanics.
@@ -68,6 +69,6 @@ class SmokeGrenade(Weapon):
 
 class SniperRifle(Weapon):
     """Infantry weapon, special case of Assault Rifle"""
-    
+
     def __init__(self, max_ammunition, dices_to_roll=4):
         super().__init__('SR', 'Sniper Rifle', 10, 6, 3, max_ammunition, dices_to_roll)
