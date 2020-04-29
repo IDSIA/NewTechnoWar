@@ -8,12 +8,11 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
 
-
 from core.state import StateOfTheBoard
-from learningParameters import *
+from learningParameters import DEVICE
 
 
-class Parameters(object):
+class Parameters:
 
     def __init__(self, team: str, params: dict):
         self.team = team
@@ -21,7 +20,7 @@ class Parameters(object):
         # here well probably put a neural net or similar.
 
 
-class Agent(object):
+class Agent:
 
     def __init__(self, stateOfTheBoard: StateOfTheBoard, roundOfPlay: int, parameters: Parameters):
         self.stateOfTheBoard = stateOfTheBoard
@@ -37,10 +36,10 @@ class Agent(object):
     #   math.exp(-1. * steps_done / EPS_DECAY)
     #   steps_done += 1
     # if sample > eps_threshold:
-       # with torch.no_grad():
-        # return pNN(state).max(1)[1].view(1, 1), steps_done
+    #     with torch.no_grad():
+    #         return pNN(state).max(1)[1].view(1, 1), steps_done
     # else:
-        # return torch.tensor([[random.randrange(n_actions)]], device=device, dtype=torch.long), steps_done
+    #     return torch.tensor([[random.randrange(n_actions)]], device=device, dtype=torch.long), steps_done
 
     # select random action
     def select_random_action(self, stateOfTheBoard, steps_done):

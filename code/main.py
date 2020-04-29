@@ -1,3 +1,6 @@
+"""
+Main program.
+"""
 import math
 import random
 import numpy as np
@@ -13,20 +16,20 @@ import torchvision.transforms as T
 
 from core.agents import Agent, Parameters
 from core.state import StateOfTheBoard
-from learningParameters import *
+from learningParameters import TOTAL_STEPS
 
 done = False
-steps_done = 0 #counts total of actions while learning, over episodes and samples
-roundOfPlay = 0 #counts number of steps in the game
+steps_done = 0  # counts total of actions while learning, over episodes and samples
+roundOfPlay = 0  # counts number of steps in the game
 
 
-#Building up a dummy scenario, called Scenario1
-shape=(10,10)
+# Building up a dummy scenario, called Scenario1
+shape = (10, 10)
 stateOfTheBoard = StateOfTheBoard(shape)
 stateOfTheBoard.resetScenario1()
 
 
-#setting up basic agent features
+# setting up basic agent features
 redParameters = Parameters('red', {})
 blueParameters = Parameters('blue', {})
 
@@ -34,19 +37,22 @@ redAgent = Agent(steps_done, roundOfPlay, redParameters)
 blueAgent = Agent(steps_done, roundOfPlay, blueParameters)
 
 
+if __name__ == "__main__":
 
-#here goes the main loop
-while not done:
+    # here goes the main loop
+    while not done:
 
-    #red agent chooses action
-    redAction, steps_done = redAgent.select_random_action(stateOfTheBoard, steps_done)
-    #Update board, observe state and reward, to be implemented
-    done = stateOfTheBoard.redStep(redAction.item())
-    
-    #not sure if it makes sense but only the red agent updates step counter. Similarly, only win for blue is by time-out
-    blueAction, _ = blueAgent.select_random_action(stateOfTheBoard, steps_done)
-    #Update board, observe state and reward, to be implemented
-    __ = stateOfTheBoard.blueStep(blueAction.item())
+        # red agent chooses action
+        redAction, steps_done = redAgent.select_random_action(
+            stateOfTheBoard, steps_done)
+        # Update board, observe state and reward, to be implemented
+        done = stateOfTheBoard.redStep(redAction.item())
 
-    if(steps_done==TOTAL_STEPS):
-        done=True
+        # not sure if it makes sense but only the red agent updates step counter. Similarly, only win for blue is by time-out
+        blueAction, _ = blueAgent.select_random_action(
+            stateOfTheBoard, steps_done)
+        # Update board, observe state and reward, to be implemented
+        __ = stateOfTheBoard.blueStep(blueAction.item())
+
+        if steps_done == TOTAL_STEPS:
+            done = True
