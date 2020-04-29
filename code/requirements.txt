@@ -1,3 +1,9 @@
-numpy
-torch
-gym
+# remember to use 
+#   pip install -r requirements.txt -f https://download.pytorch.org/whl/torch_stable.html
+
+numpy==1.18.3
+pandas==1.0.3
+gym==0.17.1
+PyYAML==5.3.1
+torch==1.5.0+cpu
+torchvision==0.6.0+cpu
