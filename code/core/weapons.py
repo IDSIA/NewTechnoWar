@@ -8,7 +8,7 @@ class Weapon:
     Generic class for weapons mechanics.
     """
 
-    def __init__(self, _id: str, name: str, max_range: int, atk_normal: int, atk_response: int, max_ammo: int, dices: int):
+    def __init__(self, _id: str, name: str, max_range: int, atk_normal: int, atk_response: int, max_ammo: int, dices: int, curved: bool = False, damage: int = 1):
         self._id = _id
         self.name = name
         self.range = max_range
@@ -16,6 +16,8 @@ class Weapon:
         self.atk_response = atk_response
         self.max_ammo = max_ammo
         self.dices = dices
+        self.curved = curved
+        self.damage = damage
 
 
 class Cannon(Weapon):
@@ -43,28 +45,28 @@ class AntiTank(Weapon):
     """Infantry weapon"""
 
     def __init__(self, max_ammunition, dices_to_roll=1):
-        super().__init__('AT', 'Anti-tank weapon', 18, 10,  5, max_ammunition, dices_to_roll)
+        super().__init__('AT', 'Anti-tank weapon', 18, 10, 5, max_ammunition, dices_to_roll)
 
 
 class Mortar(Weapon):
     """Infantry weapon"""
 
     def __init__(self, max_ammunition, dices_to_roll=1):
-        super().__init__('MT', 'Mortar', -1, 12, 6, max_ammunition, dices_to_roll)
+        super().__init__('MT', 'Mortar', -1, 12, 6, max_ammunition, dices_to_roll, True, 4)
 
 
 class Grenade(Weapon):
     """Infantry weapon"""
 
     def __init__(self, max_ammunition, dices_to_roll=1):
-        super().__init__('GR', 'Grenade', 3, 18, 9, max_ammunition, dices_to_roll)
+        super().__init__('GR', 'Grenade', 3, 18, 9, max_ammunition, dices_to_roll, True, 4)
 
 
 class SmokeGrenade(Weapon):
     """Tank weapon"""
 
     def __init__(self, max_ammunition, dices_to_roll=1):
-        super().__init__('SM', 'Smoke Grenade', 3, 20, 10, max_ammunition, dices_to_roll)
+        super().__init__('SM', 'Smoke Grenade', 3, 20, 10, max_ammunition, dices_to_roll, True)
 
 
 class SniperRifle(Weapon):

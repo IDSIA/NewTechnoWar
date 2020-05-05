@@ -6,6 +6,10 @@ from core import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, TURNS
 
 # TODO: miss matrix
 
+TYPE_OTHER = 0
+TYPE_VEHICLE = 1
+TYPE_INFANTRY = 2
+
 
 class FigureStatus:
     """Current status of a figure"""
@@ -26,12 +30,15 @@ FIGURE_STATUS = {
 class Figure:
     """Describe the actions and properties of a Unit."""
 
-    def __init__(self, position: tuple, name: str):
+    def __init__(self, position: tuple, name: str, kind: int):
         self.position = position
         self.name = name
 
+        self.kind = kind
+
         self.move = 0
         self.load = 0
+        self.hp = 0
 
         self.defense = {}
         self.equipment = []
@@ -60,10 +67,12 @@ class Figure:
 
 class Tank(Figure):
     """3 red tanks"""
+
     def __init__(self, position: tuple, name: str = 'Tank'):
-        super().__init__(position, name)
+        super().__init__(position, name, TYPE_VEHICLE)
         self.move = 7
         self.load = 1
+        self.hp = 1
 
         self.defense = {'basic': 5, 'armored': 18}
         self.equipment = {
@@ -75,10 +84,12 @@ class Tank(Figure):
 
 class APC(Figure):
     """1 blue armoured personnel carrier"""
+
     def __init__(self, position: tuple, name: str = 'APC'):
-        super().__init__(position, name)
+        super().__init__(position, name, TYPE_VEHICLE)
         self.move = 7
         self.load = 1
+        self.hp = 1
 
         self.defense = {'basic': 5, 'armored': 18},
         self.equipment = {
@@ -89,10 +100,12 @@ class APC(Figure):
 
 class Infantry(Figure):
     """6x4 red and 2x4 blue"""
+
     def __init__(self, position: tuple, name: str = 'Infantry'):
-        super().__init__(position, name)
+        super().__init__(position, name, TYPE_INFANTRY)
         self.move = 4
         self.load = 1
+        self.hp = 4
 
         self.defense = {'basic': 1}
         self.equipment = [
@@ -109,10 +122,12 @@ class Exoskeleton(Infantry):
         3 exoskeleton
         The exoskeleton is a device worn by soldiers to enhance their physical strength, endurance and ability to carry heavy loads.
     """
+
     def __init__(self, position: tuple, name: str = 'Exoskeleton'):
-        super().__init__(position, name)
+        super().__init__(position, name, TYPE_INFANTRY)
         self.move = 4
         self.load = 0
+        self.hp = 4
 
         self.defense = {'basic': 1}
         self.equipment = [
@@ -131,9 +146,11 @@ class Sniper(Infantry):
         Special unit based on scenario
         The sniper has a status advantage of +2 and an accuracy advantage of +3 (+5 in total) added to his hit score
     """
+
     def __init__(self, position: tuple, name: str = 'Sniper'):
-        super().__init__(position, name)
+        super().__init__(position, name, TYPE_INFANTRY)
         self.move = 0
+        self.hp = 4  # TODO: it is single?
 
         self.equipment = [
             SniperRifle(-1)
@@ -145,7 +162,9 @@ class Sniper(Infantry):
 
 class Civilian(Figure):
     """4 civilians"""
+
     def __init__(self, position: tuple, name: str = 'Civilian'):
-        super().__init__(position, name)
+        super().__init__(position, name, TYPE_OTHER)
         self.move = 0
         self.load = 0
+        self.hp = 1

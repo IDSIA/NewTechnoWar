@@ -33,7 +33,6 @@ class StateOfTheBoard:
         self.nextBlueFigureId = 0
         # dynamic properties of the board
 
-
         # we use the following convention for access keys#
         # keys are integers that represent the figure, eg {0 : ['tank',(0,1), matrixWith1At (0,1)]}, {1:['infantry',....]}, ...
         # this is to ensure that we can access figures by integer key, which encodes a figure selection action
@@ -55,21 +54,25 @@ class StateOfTheBoard:
     def addObjective(self, objective: np.array):
         self.board['objective'] = objective
 
-    def addRedFigure(self, type : str, position: tuple):
+    def addRedFigure(self, type: str, position: tuple):
         tmp = np.zeros(self.shape, dtype='uint8')
         tmp[position] = 1
         self.redFigures[self.nextRedFigureId] = [type, position, tmp]
-        self.nextRedFigureId+=1
+        self.nextRedFigureId += 1
 
-    def addBlueFigure(self, type : str, position: tuple):
+    def addBlueFigure(self, type: str, position: tuple):
         tmp = np.zeros(self.shape, dtype='uint8')
         tmp[position] = 1
         self.blueFigures[self.nextBlueFigureId] = [type, position, tmp]
-        self.nextBlueFigureId+=1
-
-    # sets up a specific scenario. reset to state of board to an initial state. Here this is just a dummy
+        self.nextBlueFigureId += 1
 
     def resetScenario1(self):
+        """
+        Sets up a specific scenario. reset to state of board to an initial state.
+        Here this is just a dummy.
+        """
+        # TODO: make StateOfTheBoard abstract, with "reset" method abstract and implement an update method
+
         obstacles = np.zeros(self.shape, dtype='uint8')
         obstacles[(5, 5)] = 1
         self.addObstacle(obstacles)
@@ -82,15 +85,16 @@ class StateOfTheBoard:
         objective[9, 9] = 1
         self.addObjective(objective)
 
-        self.addRedFigure( type='infantry', position=(4, 1))
-        self.addRedFigure( type='tank', position=(4, 3))
-        self.addBlueFigure( type='infantry', position=(5, 2))
+        self.addRedFigure(type='infantry', position=(4, 1))
+        self.addRedFigure(type='tank', position=(4, 3))
+        self.addBlueFigure(type='infantry', position=(5, 2))
+
     # applies action to the state of the board for both red and blue agents
     # the function is implemented twice, to be more easily called. also maybe there are different terminal conditions for red and blue. I am also
 
     def redStep(self, chosenFigure, chosenAttackOrMove, chosenAction):
-        
-        #move the chosen figure, chosenAttackOrMove isnt implemented yet, does have no effect at the momment
+
+        # move the chosen figure, chosenAttackOrMove isnt implemented yet, does have no effect at the momment
         oldState = self.redFigures[chosenFigure][1]
         newState = (self.redFigures[chosenFigure][1][0] + self.actionMovesDict[chosenAction][0],
                     self.redFigures[chosenFigure][1][1] + self.actionMovesDict[chosenAction][1])
@@ -114,7 +118,7 @@ class StateOfTheBoard:
 
     def blueStep(self, chosenFigure, chosenAttackOrMove, chosenAction):
 
-        #move the chosen figure, chosenAttackOrMove isnt implemented yet, does have no effect at the momment
+        # move the chosen figure, chosenAttackOrMove isnt implemented yet, does have no effect at the momment
         oldState = self.redFigures[chosenFigure][1]
         newState = (self.redFigures[chosenFigure][1][0] + self.actionMovesDict[chosenAction][0],
                     self.redFigures[chosenFigure][1][1] + self.actionMovesDict[chosenAction][1])
