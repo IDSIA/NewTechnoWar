@@ -1,5 +1,5 @@
 
-TURNS = 12
+TOTAL_TURNS = 12
 
 """From the turn Recorder:"""
 # the position in the array is equal to the current turn, starting from 0 (1st) up to 11 (12th) turn

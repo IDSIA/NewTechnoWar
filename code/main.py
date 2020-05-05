@@ -17,6 +17,7 @@ import torchvision.transforms as T
 from core.agents import Agent, Parameters
 from core.state import StateOfTheBoard
 from learningParameters import TOTAL_STEPS
+from core import TOTAL_TURNS
 
 done = False
 steps_done = 0  # counts total of actions while learning, over episodes and samples
@@ -26,7 +27,6 @@ roundOfPlay = 0  # counts number of steps in the game
 # Building up a dummy scenario, called Scenario1
 shape = (10, 10)
 stateOfTheBoard = StateOfTheBoard(shape)
-stateOfTheBoard.resetScenario1()
 
 
 # setting up basic agent features
@@ -42,17 +42,40 @@ if __name__ == "__main__":
     # here goes the main loop
     while not done:
 
-        # red agent chooses action
-        redChosenFigure, redChosenAttackOrMove, redChosenAction, steps_done = redAgent.select_random_action(
-            stateOfTheBoard, steps_done)
-        # Update board, observe state and reward, to be implemented
-        done = stateOfTheBoard.redStep(redChosenFigure.item(), redChosenAttackOrMove.item(), redChosenAction.item())
+        # initialize game
+        stateOfTheBoard.resetScenario1()
 
-        # not sure if it makes sense but only the red agent updates step counter. Similarly, only win for blue is by time-out
-        blueChosenFigure, blueChosenAttackOrMove, blueChosenAction, _ = blueAgent.select_random_action(
-            stateOfTheBoard, steps_done)
-        # Update board, observe state and reward, to be implemented
-        __ = stateOfTheBoard.blueStep(blueChosenFigure.item(), blueChosenAttackOrMove.item(), blueChosenAction.item())
+        # this loop is a single game
+        for turn in range(TOTAL_TURNS):
+
+            while stateOfTheBoard.red_inactive_figures() > 0 and stateOfTheBoard.blue_inactive_figures() > 0:
+                if stateOfTheBoard.red_inactive_figures() > 0:
+                    # red agent chooses action
+                    redFigure, redAction = redAgent.select_random_action(stateOfTheBoard, turn)
+                    stateOfTheBoard.red_activate(redFigure, redAction)
+
+                    # blue can choose to respond
+                    if stateOfTheBoard.blue_can_respond():
+                        blueFigureRespond, blueActionRespond = blueAgent.select_random_response(stateOfTheBoard, turn)
+                        stateOfTheBoard.blue_activate(blueFigureRespond, blueActionRespond)
+
+                if stateOfTheBoard.blue_inactive_figures() > 0:
+                    # blue agent chooses action
+                    blueFigure, blueAction = blueAgent.select_random_action(stateOfTheBoard, turn)
+
+                    # red can chose to respon:
+                    if stateOfTheBoard.red_can_respond():
+                        redFigureRespond, redActionRespond = redAgent.select_random_response(stateOfTheBoard, turn)
+                        stateOfTheBoard.red_activate(redFigureRespond, redActionRespond)
+
+            # observe state and reward, to be implemented
+            redAgent.update(stateOfTheBoard, turn)
+            blueAgent.update(stateOfTheBoard, turn)
+
+            if stateOfTheBoard.goal_achieved():
+                # TODO: implement rewards
+                done = True
+                break
 
         if steps_done == TOTAL_STEPS:
             done = True

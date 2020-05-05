@@ -1,5 +1,7 @@
 import numpy as np
 
+from core.figures import Figure, Infantry, Tank
+
 
 class StateOfTheBoard:
     """
@@ -36,8 +38,8 @@ class StateOfTheBoard:
         # we use the following convention for access keys#
         # keys are integers that represent the figure, eg {0 : ['tank',(0,1), matrixWith1At (0,1)]}, {1:['infantry',....]}, ...
         # this is to ensure that we can access figures by integer key, which encodes a figure selection action
-        self.redFigures = {}
-        self.blueFigures = {}
+        self.redFigures = []
+        self.blueFigures = []
 
     def addObstacle(self, obstacles: np.array):
         self.board['obstacles'] = obstacles
@@ -54,17 +56,11 @@ class StateOfTheBoard:
     def addObjective(self, objective: np.array):
         self.board['objective'] = objective
 
-    def addRedFigure(self, type: str, position: tuple):
-        tmp = np.zeros(self.shape, dtype='uint8')
-        tmp[position] = 1
-        self.redFigures[self.nextRedFigureId] = [type, position, tmp]
-        self.nextRedFigureId += 1
+    def addRedFigure(self, figure: Figure):
+        self.redFigures.append(figure)
 
-    def addBlueFigure(self, type: str, position: tuple):
-        tmp = np.zeros(self.shape, dtype='uint8')
-        tmp[position] = 1
-        self.blueFigures[self.nextBlueFigureId] = [type, position, tmp]
-        self.nextBlueFigureId += 1
+    def addBlueFigure(self, figure: Figure):
+        self.blueFigures.append(figure)
 
     def resetScenario1(self):
         """
@@ -85,9 +81,9 @@ class StateOfTheBoard:
         objective[9, 9] = 1
         self.addObjective(objective)
 
-        self.addRedFigure(type='infantry', position=(4, 1))
-        self.addRedFigure(type='tank', position=(4, 3))
-        self.addBlueFigure(type='infantry', position=(5, 2))
+        self.addRedFigure(Infantry(position=(4, 1), name='rInf1'))
+        self.addRedFigure(Tank(position=(4, 3), name='rTank1'))
+        self.addBlueFigure(Infantry(position=(5, 2), name='bInf1'))
 
     # applies action to the state of the board for both red and blue agents
     # the function is implemented twice, to be more easily called. also maybe there are different terminal conditions for red and blue. I am also
@@ -137,3 +133,32 @@ class StateOfTheBoard:
 
         done = False  # dummy
         return done
+
+    def _inactive_figures(self, figures):
+        return len([f for f in figures if not f.activated])
+
+    def red_inactive_figures(self):
+        return self._inactive_figures(self.redFigures)
+
+    def blue_inactive_figures(self):
+        return self._inactive_figures(self.blueFigures)
+
+    def red_activate(self, figure, action):
+        # TODO: perform action with figure
+        pass
+
+    def blue_activate(self, figure, action):
+        # TODO: perform action with figure
+        pass
+
+    def blue_can_respond(self):
+        # TODO:
+        return False
+
+    def red_can_respond(self):
+        # TODO:
+        return False
+
+    def goal_achieved(self):
+        # TODO:
+        return False

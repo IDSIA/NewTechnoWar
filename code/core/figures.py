@@ -2,7 +2,7 @@
 This module defines the available figuresadn their rules.
 """
 from core.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, SniperRifle
-from core import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, TURNS
+from core import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, TOTAL_TURNS
 
 # TODO: miss matrix
 
@@ -31,7 +31,6 @@ class Figure:
     """Describe the actions and properties of a Unit."""
 
     def __init__(self, position: tuple, name: str, kind: int):
-        self.position = position
         self.name = name
 
         self.kind = kind
@@ -48,6 +47,9 @@ class Figure:
         self.endurance = ENDURANCE
 
         self.stat = 0
+        self.position = position
+        self.activated = False
+        self.responded = False
 
     def set_STAT(self, new_STAT: FigureStatus):
         self.stat = new_STAT
@@ -138,7 +140,7 @@ class Exoskeleton(Infantry):
             Grenade(2)
         ]
 
-        self.endurance = [4] * TURNS
+        self.endurance = [4] * TOTAL_TURNS
 
 
 class Sniper(Infantry):

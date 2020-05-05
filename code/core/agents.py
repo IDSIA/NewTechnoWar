@@ -59,8 +59,16 @@ class Agent:
         else:
             print(DEVICE + ' vote for socialicm!')
         chosenFigure = torch.tensor([[random.randrange(max(figures.keys())+1)]], device=DEVICE, dtype=torch.long)
-        chosenAttackOrMove = torch.tensor([[random.randrange(2)]], device=DEVICE, dtype=torch.long)
+        #chosenAttackOrMove = torch.tensor([[random.randrange(2)]], device=DEVICE, dtype=torch.long)
         chosenAction = torch.tensor([[random.randrange(6)]], device=DEVICE, dtype=torch.long)
-        steps_done += 1
+        #steps_done += 1
         #
-        return chosenFigure, chosenAttackOrMove, chosenAction, steps_done
+        return chosenFigure, chosenAction
+
+    def select_random_response(self, stateOfTheBoard, turn):
+        # TODO
+        return None, None
+
+    def update(self, stateOfTheBoard, turn):
+        # TODO
+        pass
