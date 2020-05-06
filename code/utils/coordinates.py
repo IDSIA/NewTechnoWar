@@ -12,18 +12,21 @@ Cube = namedtuple('Cube', ['x', 'y', 'z'])
 
 # conversions
 
+def to_hex(pos: tuple):
+    return Hex(pos[0], pos[1])
+
 
 def cube_to_hex(cube: Cube):
     """Converts cube to offset coordinate system"""
     col = cube.x
-    row = cube.z + (cube.x - (cube.x % 2))/2
+    row = cube.z + (cube.x - (cube.x % 2)) // 2
     return Hex(col, row)
 
 
 def hex_to_cube(hex: Hex):
     """Converts offset to cube coordinate system"""
     x = hex.col
-    z = hex.row - (hex.col - (hex.col % 1))/2
+    z = hex.row - (hex.col - (hex.col % 1)) // 2
     y = -x-z
     return Cube(x, y, z)
 
@@ -97,7 +100,7 @@ def hex_neighbor(hex: Hex, direction):
 # Distances
 
 def cube_distance(a: Cube, b: Cube):
-    return (abs(a.x-b.x) + abs(a.y-b.y)+abs(a.z-b.z))/2
+    return int((abs(a.x - b.x) + abs(a.y - b.y) + abs(a.z - b.z)) // 2)
 
 
 def hex_distance(a: Hex, b: Hex):
@@ -132,11 +135,13 @@ def cube_linedraw(a: Cube, b: Cube):
     results = []
     for i in range(0, n + 1):
         results.append(cube_round(cube_lerp(A, B, 1.0 / n * i)))
+
     return results
 
 
 def hex_linedraw(a: Hex, b: Hex):
-    return cube_linedraw(hex_to_cube(a), hex_to_cube(b))
+    line = cube_linedraw(hex_to_cube(a), hex_to_cube(b))
+    return [cube_to_hex(hex) for hex in line]
 
 
 # Movement range

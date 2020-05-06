@@ -3,7 +3,7 @@ import numpy as np
 from core.figures import Figure, Infantry, Tank, TYPE_VEHICLE, TYPE_INFANTRY
 from core.actions import Action, Move, Shoot, Respond
 from utils.coordinates import Hex, hex_reachable
-from utils.colors import red, redBg, blue, blueBg, yellow, pinkBg, grayBg
+from utils.colors import red, blue, yellow, green, pinkBg, grayBg
 
 
 class StateOfTheBoard:
@@ -193,12 +193,20 @@ class StateOfTheBoard:
         # TODO:
         return False
 
-    def print(self, size=3):
+    def print(self, size=3, extra: list = None):
         cols, rows = self.shape
+
+        board_extra = np.zeros(self.shape, dtype='uint8')
+
+        if extra:
+            for e in extra:
+                board_extra[e] = 1
 
         sep_horizontal = '+'.join(['-' * size] * cols)
 
-        print('+', sep_horizontal, '+')
+        print('+' + '|'.join([f' {i} ' for i in range(0, rows)]), '+')
+        print('+' + sep_horizontal + '+')
+
         for i in range(rows):
             line = []
             for j in range(cols):
@@ -206,6 +214,9 @@ class StateOfTheBoard:
 
                 if self.board['objective'][i, j] > 0:
                     cell[1] = yellow('x')
+
+                if board_extra[i, j] > 0:
+                    cell[0] = green('x')
 
                 redFigure = self.board['figures']['red'][i, j]
                 if redFigure > 0:
@@ -219,16 +230,12 @@ class StateOfTheBoard:
 
                     cell[1] = blue('T') if figure.kind == TYPE_VEHICLE else blue('I')
 
-                cell = ''.join(cell)
-
                 if self.board['obstacles'][i, j] > 0:
-                    cell = pinkBg(cell)
+                    cell = [pinkBg(c) for c in cell]
                 if self.board['roads'][i, j] > 0:
-                    cell = grayBg(cell)
+                    cell = [grayBg(c) for c in cell]
 
-                line.append(cell)
+                line.append(''.join(cell))
 
-            mid = '|'.join([l for l in line])
-
-            print('|', mid, '|')
-        print('+', sep_horizontal, '+')
+            print('|' + '|'.join([l for l in line] + [f' {i}']))
+        print('+' + sep_horizontal + '+')
