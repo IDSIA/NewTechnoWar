@@ -1,11 +1,28 @@
-import numpy as np
 from core.figures import Figure
-from core.state import StateOfTheBoard
 
 
-def move_destinations(figure: Figure, state: StateOfTheBoard):
-    pass
+class Action:
+
+    def __init__(self, figure: Figure):
+        self.figure = figure
 
 
-def move_figure(figure: Figure, state: StateOfTheBoard):
-    pass
+class Move(Action):
+
+    def __init__(self, figure: Figure, destination: tuple):
+        super().__init__(figure)
+        self.destination = destination
+
+
+class Shoot(Action):
+
+    def __init__(self, figure: Figure, target: Figure):
+        super().__init__(figure)
+        self.target = target
+
+
+class Respond(Action):
+
+    def __init__(self, figure: Figure, target: Figure):
+        super().__init__(figure)
+        self.target = target

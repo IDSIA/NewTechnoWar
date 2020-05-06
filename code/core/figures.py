@@ -47,9 +47,12 @@ class Figure:
         self.endurance = ENDURANCE
 
         self.stat = 0
+
+        self.index = 0
         self.position = position
         self.activated = False
-        self.responded = False
+        self.responding = False
+        self.underFire = False
 
     def set_STAT(self, new_STAT: FigureStatus):
         self.stat = new_STAT
