@@ -12,10 +12,6 @@ Cube = namedtuple('Cube', ['x', 'y', 'z'])
 
 # conversions
 
-def to_hex(pos: tuple):
-    return Hex(pos[0], pos[1])
-
-
 def cube_to_hex(cube: Cube):
     """Converts cube to offset coordinate system"""
     col = cube.x
@@ -29,6 +25,16 @@ def hex_to_cube(hex: Hex):
     z = hex.row - (hex.col - (hex.col % 1)) // 2
     y = -x-z
     return Cube(x, y, z)
+
+
+def to_hex(pos: tuple):
+    """Converts tuple to Hey, [0] is consideret column, while [1] row"""
+    return Hex(col=pos[0], row=pos[1])
+
+
+def to_cube(pos: tuple):
+    """Converts tuple to Cube, [0] is consideret column, while [1] row"""
+    return hex_to_cube(to_hex(pos))
 
 
 # Operations
@@ -172,17 +178,17 @@ def cube_reachable(start: Cube, movement, obstacles: set()):
 
     for k in range(2, movement+1):
         fringes.append([])
-        for hex in fringes[k-1]:
-            for dir in (0, 6):
+        for hex in fringes[k-2]:
+            for dir in range(0, 6):
                 neighbor = cube_neighbor(hex, dir)
                 if neighbor not in visited and neighbor not in obstacles:
                     visited.add(neighbor)
-                    fringes[k].append(neighbor)
+                    fringes[k-1].append(neighbor)
 
     return visited
 
 
-def hex_reachable(start: Hex, movement, obstacles: set()):
+def hex_reachable(start: Hex, movement: int, obstacles: set()):
     visited = set()  # set of hexes
     visited.add(start)
 
@@ -191,11 +197,11 @@ def hex_reachable(start: Hex, movement, obstacles: set()):
 
     for k in range(2, movement+1):
         fringes.append([])
-        for hex in fringes[k-1]:
-            for dir in (0, 6):
+        for hex in fringes[k-2]:
+            for dir in range(0, 6):
                 neighbor = hex_neighbor(hex, dir)
                 if neighbor not in visited and neighbor not in obstacles:
                     visited.add(neighbor)
-                    fringes[k].append(neighbor)
+                    fringes[k-1].append(neighbor)
 
     return visited

@@ -3,6 +3,7 @@ This module defines the available figuresadn their rules.
 """
 from core.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, SniperRifle
 from core import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, TOTAL_TURNS
+from utils.coordinates import Cube, to_cube
 
 # TODO: miss matrix
 
@@ -32,6 +33,7 @@ class Figure:
 
     def __init__(self, position: tuple, name: str, kind: int):
         self.name = name
+        self.index = 0
 
         self.kind = kind
 
@@ -48,8 +50,9 @@ class Figure:
 
         self.stat = 0
 
-        self.index = 0
+        self.cube = to_cube(position)
         self.position = position
+
         self.activated = False
         self.responding = False
         self.underFire = False

@@ -17,7 +17,7 @@ import torchvision.transforms as T
 from core.agents import Agent, Parameters
 from core.state import StateOfTheBoard
 from learningParameters import TOTAL_STEPS
-from core import TOTAL_TURNS
+from core import TOTAL_TURNS, RED, BLUE
 
 done = False
 steps_done = 0  # counts total of actions while learning, over episodes and samples
@@ -25,15 +25,15 @@ roundOfPlay = 0  # counts number of steps in the game
 
 
 # setting up basic agent features
-redParameters = Parameters('red', {})
-blueParameters = Parameters('blue', {})
+redParameters = Parameters(RED, {})
+blueParameters = Parameters(BLUE, {})
 
 redAgent = Agent(roundOfPlay, redParameters)
 blueAgent = Agent(roundOfPlay, blueParameters)
 
 # Building up a dummy scenario, called Scenario1
 shape = (10, 10)
-stateOfTheBoard = StateOfTheBoard(shape, redAgent, blueAgent)
+stateOfTheBoard = StateOfTheBoard(shape)
 
 
 def activation(first: Agent, second: Agent, turn: int):

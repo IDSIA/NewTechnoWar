@@ -2,82 +2,126 @@ import numpy as np
 
 from core.figures import Figure, Infantry, Tank, TYPE_VEHICLE, TYPE_INFANTRY
 from core.actions import Action, Move, Shoot, Respond
-from utils.coordinates import Hex, hex_reachable
+from utils.coordinates import Hex, cube_reachable, to_cube, to_hex
 from utils.colors import red, blue, yellow, green, pinkBg, grayBg
+from core import RED, BLUE, TERRAIN_LEVEL_OF_PROTECTION
+
+
+class Hexagon:
+
+    def __init__(self, hex: Hex, pos: tuple, obstacle, terrain, road, geography, objective, figure):
+        self.hex = hex
+        self.pos = pos
+        self.obstacle = obstacle
+        self.terrain = terrain
+        self.road = road
+        self.objective = objective
+        self.figure = figure
+
+
+class Board:
+    """
+    Static parts of the board
+    """
+
+    def __init__(self, shape: tuple):
+        self.shape = shape
+
+        self.obstacles = np.zeros(shape, dtype='uint8')
+        self.terrain = np.zeros(shape, dtype='uint8')
+        self.roads = np.zeros(shape, dtype='uint8')
+        self.geography = np.zeros(shape, dtype='uint8')
+        self.objective = np.zeros(shape, dtype='uint8')
+        self.figures = {
+            RED: np.zeros(shape, dtype='uint8'),
+            BLUE: np.zeros(shape, dtype='uint8'),
+        }
+
+    def getHexagon(self, pos: tuple = None, hex: hex = None):
+        if pos:
+            hex = to_hex(pos)
+        elif hex:
+            pos = tuple(hex)
+        return Hexagon(
+            hex,
+            pos,
+            obstacle=self.obstacle[pos],
+            terrain=TERRAIN_LEVEL_OF_PROTECTION[self.terrain[pos]],
+            road=self.road[pos] > 0,
+            objective=self.objective[pos] > 0,
+            figure={
+                RED: self.figures[RED][pos],
+                BLUE: self.figures[BLUE][pos]
+            })
+
+    def getObstacleSet(self):
+        # tuples = self.obstacles.nonzero()
+        # obs = np.array([tuples[1], tuples[0]]).T
+
+        obs = np.array(self.obstacles.nonzero()).T
+        return set([to_cube(o) for o in obs])
 
 
 class StateOfTheBoard:
     """
-
-    state of the board of the game
-
+    State of the board of the game
     """
 
-    def __init__(self, shape: tuple, teamRed: str, teamBlue: str):
+    def __init__(self, shape: tuple):
         self.shape = shape
 
-        self.red = teamRed
-        self.blue = teamBlue
-
-        self.actionMovesDict = {
-            0: [0, 0],
-            1: [-1, 0],
-            2: [-1, -1],
-            3: [0, -1],
-            4: [1, 1],
-            5: [1, 0],
-            6: [1, 0]
-        }
-
         # static properties of the board
-        self.board = {
-            'obstacles': np.zeros(shape, dtype='uint8'),
-            'terrain': np.zeros(shape, dtype='uint8'),
-            'roads': np.zeros(shape, dtype='uint8'),
-            'geography': np.zeros(shape, dtype='uint8'),
-            'objective': np.zeros(shape, dtype='uint8'),
-            'figures': {
-                self.red: np.zeros(shape, dtype='uint8'),
-                self.blue: np.zeros(shape, dtype='uint8'),
-            }
-        }
-
-        self.nextRedFigureId = 0
-        self.nextBlueFigureId = 0
-        # dynamic properties of the board
+        self.board = Board(shape)
 
         # access to figures is done by index: [agent][figure]. Each figure know its own state
         self.figures = {
-            self.red: [],
-            self.blue: []
+            RED: [None],
+            BLUE: [None]
         }
 
+    # operations on board layout (static properties)
+
     def addObstacle(self, obstacles: np.array):
-        self.board['obstacles'] = obstacles
+        """Sum an obstacle matrix to the current board"""
+        self.board.obstacles += obstacles
 
     def addTerrain(self, terrain: np.array):
-        self.board['terrain'] = terrain
+        """Sum a terrain matrix to the current board"""
+        self.board.terrain += terrain
 
     def addRoads(self, roads: np.array):
-        self.board['roads'] = roads
+        """Sum a road matrix to the current board"""
+        self.board.roads += roads
 
     def addGeography(self, geography: np.array):
-        self.board['geography'] = geography
+        """Sum a geography matrix to the current board"""
+        self.board.geography += geography
 
     def addObjective(self, objective: np.array):
-        self.board['objective'] = objective
+        """Sum an objective matrix to the current board"""
+        self.board.objective += objective
+
+    # operations on figures (dynamic properties)
 
     def addFigure(self, agent: str, figure: Figure):
+        """Add a figures to the units of the given agent and it setup the index in the matric at the position of the figure."""
         figures = self.figures[agent]
+        index = len(figures)
 
         figures.append(figure)
-        index = len(figures)
         figure.index = index
-        self.board['figures'][agent][figure.position] = index
+        self.board.figures[agent][figure.position] = index
+
+    def getFigureByIndex(self, agent: str, index: int):
+        """Given an index of a figure, return the figure."""
+        return self.figures[agent][index]
 
     def getFigureByPos(self, agent: str, pos: tuple):
-        index = self.board['figures'][agent][pos]
-        return self.figures[agent][index - 1]
+        """Given a position of a figure, return the figure."""
+        index = self.board.figures[agent][pos]
+        return self.getFigureByIndex(agent, index)
+
+    # other operations
 
     def resetScenario1(self):
         """
@@ -102,81 +146,42 @@ class StateOfTheBoard:
         self.addFigure(self.red, Tank(position=(1, 2), name='rTank1'))
         self.addFigure(self.blue, Infantry(position=(3, 3), name='bInf1'))
 
-    # applies action to the state of the board for both red and blue agents
-    # the function is implemented twice, to be more easily called. also maybe there are different terminal conditions for red and blue. I am also
-
-    def redStep(self, chosenFigure, chosenAttackOrMove, chosenAction):
-
-        redFigures = self.figures[self.red]
-
-        # move the chosen figure, chosenAttackOrMove isnt implemented yet, does have no effect at the momment
-        oldState = redFigures[chosenFigure][1]
-        newState = (redFigures[chosenFigure][1][0] + self.actionMovesDict[chosenAction][0],
-                    redFigures[chosenFigure][1][1] + self.actionMovesDict[chosenAction][1])
-
-        # if agent would jump off the board by some action it just remains at the hexagon
-        if newState[0] < 0 or newState[0] >= self.shape[0]:
-            newState = oldState
-        if newState[1] < 0 or newState[1] >= self.shape[1]:
-            newState = oldState
-
-        # store things
-        redFigures[chosenFigure][1] = newState
-        tmp = np.zeros(self.shape, dtype='uint8')
-        tmp[newState] = 1
-        redFigures[chosenFigure][2] = tmp
-        print(chosenFigure)
-        print(tmp)
-
-        done = False  # dummy
-        return done
-
-    def blueStep(self, chosenFigure, chosenAttackOrMove, chosenAction):
-
-        blueFigures = self.figures[self.blue]
-
-        # move the chosen figure, chosenAttackOrMove isnt implemented yet, does have no effect at the momment
-        oldState = blueFigures[chosenFigure][1]
-        newState = (blueFigures[chosenFigure][1][0] + self.actionMovesDict[chosenAction][0],
-                    blueFigures[chosenFigure][1][1] + self.actionMovesDict[chosenAction][1])
-
-        # if agent would jump off the board by some action it just remains at the hexagon
-        if newState[0] < 0 or newState[0] >= self.shape[0]:
-            newState = oldState
-        if newState[1] < 0 or newState[1] >= self.shape[1]:
-            newState = oldState
-
-        # store things
-        blueFigures[chosenFigure][1] = newState
-        tmp = np.zeros(self.shape, dtype='uint8')
-        tmp[newState] = 1
-        blueFigures[chosenFigure][2] = tmp
-
-        done = False  # dummy
-        return done
-
     def activableFigures(self, team: str):
+        """Returns a list of figures that have not been activated."""
+        # TODO:
+        #   transform this in an array that is restored at the beginning of the turn with
+        #   the activable figures, when a figure is activated, remove it from such array
         return [f for f in self.figures[team] if not f.activated]
 
     def canActivate(self, team: str):
+        """Returns True if there are still figures that can be activated."""
         return len(self.activableFigures(team)) > 0
 
     def buildActions(self, team: str):
+        """Build a list with all the possible actions that can be executed by an agent with the current status of the board."""
         actions = []
+
+        obstacles = self.board.getObstacleSet()
 
         for figure in self.figures[team]:
 
-            pos = Hex(figure.pos, figure.col)
-            distance = figure.move - figure.load
-            if (figure.kind == TYPE_INFANTRY):
-                distance += 1
-            elif (figure.kind == TYPE_VEHICLE):
-                distance += 2
+            # build movement actions
 
-            # TODO: add obstacles
-            movements = hex_reachable(pos, distance, set())
+            distance = figure.move - figure.load
+
+            max_distance = distance
+            if (figure.kind == TYPE_INFANTRY):
+                max_distance += 1
+            elif (figure.kind == TYPE_VEHICLE):
+                max_distance += 2
+
+            movements = cube_reachable(figure.cube, distance, obstacles)
 
             for movement in movements:
+                # apply road rules
+                # TODO
+                set([self.board.getHexagon(hex)])
+
                 actions.append(Move(figure, movement))
 
         return actions
@@ -204,38 +209,39 @@ class StateOfTheBoard:
 
         sep_horizontal = '+'.join(['-' * size] * cols)
 
-        print('+' + '|'.join([f' {i} ' for i in range(0, rows)]), '+')
+        print('+' + '|'.join([f' {c} ' for c in range(0, rows)]), '+')
         print('+' + sep_horizontal + '+')
 
-        for i in range(rows):
+        for r in range(rows):
             line = []
-            for j in range(cols):
+            for c in range(cols):
+                p = (c, r)
                 cell = [' '] * size
 
-                if self.board['objective'][i, j] > 0:
+                if self.board.objective[p] > 0:
                     cell[1] = yellow('x')
 
-                if board_extra[i, j] > 0:
+                if board_extra[p] > 0:
                     cell[0] = green('x')
 
-                redFigure = self.board['figures']['red'][i, j]
+                redFigure = self.board.figures[RED][p]
                 if redFigure > 0:
-                    figure = self.getFigureByPos('red', (i, j))
+                    figure = self.getFigureByPos(RED, (c, r))
 
                     cell[1] = red('T') if figure.kind == TYPE_VEHICLE else red('I')
 
-                blueFigure = self.board['figures']['blue'][i, j]
+                blueFigure = self.board.figures[BLUE][p]
                 if blueFigure > 0:
-                    figure = self.getFigureByPos('blue', (i, j))
+                    figure = self.getFigureByPos(BLUE, (c, r))
 
                     cell[1] = blue('T') if figure.kind == TYPE_VEHICLE else blue('I')
 
-                if self.board['obstacles'][i, j] > 0:
+                if self.board.obstacles[p] > 0:
                     cell = [pinkBg(c) for c in cell]
-                if self.board['roads'][i, j] > 0:
+                if self.board.roads[p] > 0:
                     cell = [grayBg(c) for c in cell]
 
                 line.append(''.join(cell))
 
-            print('|' + '|'.join([l for l in line] + [f' {i}']))
+            print('|' + '|'.join([l for l in line] + [f' {r}']))
         print('+' + sep_horizontal + '+')

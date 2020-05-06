@@ -1,3 +1,6 @@
+RED = 'red'
+BLUE = 'blue'
+
 
 TOTAL_TURNS = 12
 
@@ -18,7 +21,7 @@ class Terrain:
         self.stop_vehicle = stop_vehicle
 
 
-TERRAIN = {
+TERRAIN_LEVEL_OF_PROTECTION = {
     0: Terrain('Open ground', 0),
     1: Terrain('Isolated tree cover', 2),
     2: Terrain('Forest', 4, True),  # stops all vehicle from moving, unless on a road

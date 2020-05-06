@@ -1,21 +1,21 @@
 # %%
-from utils.coordinates import hex_distance
-from utils.coordinates import hex_linedraw, to_hex
+from utils.coordinates import *  # cube_distance, cube_linedraw, cube_to_hex, to_hex, cube_movement
 import numpy as np
 from core.state import StateOfTheBoard
 from core.agents import Agent, Parameters
 from core.figures import Infantry, Tank
+from core import RED, BLUE
 
 # setting up basic agent features
-redParameters = Parameters('red', {})
-blueParameters = Parameters('blue', {})
+redParameters = Parameters(RED, {})
+blueParameters = Parameters(BLUE, {})
 
 redAgent = Agent(1, redParameters)
 blueAgent = Agent(1, blueParameters)
 
 # %%
 shape = (10, 10)
-board = StateOfTheBoard(shape, redAgent.team, blueAgent.team)
+board = StateOfTheBoard(shape)
 
 obstacles = np.zeros(shape, dtype='uint8')
 obstacles[4, 3:7] = 1
@@ -31,28 +31,36 @@ objective = np.zeros(shape, dtype='uint8')
 objective[5, 5] = 1
 board.addObjective(objective)
 
-board.addFigure('red', Infantry(position=(1, 1), name='rInf1'))
-board.addFigure('red', Infantry(position=(1, 2), name='rInf2'))
-board.addFigure('red', Tank(position=(0, 2), name='rTank1'))
-board.addFigure('blue', Infantry(position=(9, 8), name='bInf1'))
-board.addFigure('blue', Tank(position=(7, 7), name='bTank1'))
+board.addFigure(RED, Infantry(position=(1, 1), name='rInf1'))
+board.addFigure(RED, Infantry(position=(1, 2), name='rInf2'))
+board.addFigure(RED, Tank(position=(0, 2), name='rTank1'))
+board.addFigure(BLUE, Infantry(position=(9, 8), name='bInf1'))
+board.addFigure(BLUE, Tank(position=(5, 4), name='bTank1'))
 
-board.print()
-
-# %%
-
-redTank = board.getFigureByPos('red', (0, 2))
-blueTank = board.getFigureByPos('blue', (7, 7))
+# board.print()
 
 # %%
 
-hex_distance(to_hex(redTank.position), to_hex(blueTank.position))
+redTank = board.getFigureByPos(RED, (0, 2))
+blueTank = board.getFigureByPos(BLUE, (5, 4))
 
 # %%
 
-line = hex_linedraw(to_hex(redTank.position), to_hex(blueTank.position))
+cube_distance(redTank.cube, blueTank.cube)
 
-board.print(extra=line)
+# %%
+
+line = cube_linedraw(redTank.cube, blueTank.cube)
+
+board.print(extra=[cube_to_hex(l) for l in line])
+
+# %%
+obs = np.array(board.board.obstacles.nonzero()).T
+obs = {to_cube(o) for o in obs}
+
+
+# %%
+cube_reachable(blueTank.cube, 3, obs)
 
 # %%
 
