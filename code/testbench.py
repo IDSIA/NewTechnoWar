@@ -1,10 +1,18 @@
 # %%
+from core import RED, BLUE
+from core.figures import Infantry, Tank
+from core.agents import Agent, Parameters
+from core.state import StateOfTheBoard
 from utils.coordinates import *  # cube_distance, cube_linedraw, cube_to_hex, to_hex, cube_movement
 import numpy as np
-from core.state import StateOfTheBoard
-from core.agents import Agent, Parameters
-from core.figures import Infantry, Tank
-from core import RED, BLUE
+import matplotlib.pyplot as plt
+from matplotlib.patches import RegularPolygon
+from utils.coordinates import Hex
+from math import sqrt
+
+plt.rcParams['figure.dpi'] = 250
+
+shape = (10, 10)
 
 # setting up basic agent features
 redParameters = Parameters(RED, {})
@@ -13,8 +21,7 @@ blueParameters = Parameters(BLUE, {})
 redAgent = Agent(1, redParameters)
 blueAgent = Agent(1, blueParameters)
 
-# %%
-shape = (10, 10)
+
 board = StateOfTheBoard(shape)
 
 obstacles = np.zeros(shape, dtype='uint8')
@@ -38,6 +45,9 @@ board.addFigure(BLUE, Infantry(position=(9, 8), name='bInf1'))
 board.addFigure(BLUE, Tank(position=(5, 4), name='bTank1'))
 
 # board.print()
+fig, ax = board.draw_layout()
+plt.show()
+
 
 # %%
 
@@ -63,6 +73,6 @@ obs = {to_cube(o) for o in obs}
 cube_reachable(blueTank.cube, 3, obs)
 
 # %%
-
+board.draw_layout()
 
 # %%
