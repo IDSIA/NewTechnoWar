@@ -1,14 +1,14 @@
 # %%
+from utils.coordinates import *
 from core import RED, BLUE
 from core.figures import Infantry, Tank
 from core.agents import Agent, Parameters
 from core.state import StateOfTheBoard
-from utils.coordinates import *  # cube_distance, cube_linedraw, cube_to_hex, to_hex, cube_movement
+from utils.coordinates import cube_distance, cube_linedraw, cube_reachable, to_cube
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.patches import RegularPolygon
-from utils.coordinates import Hex
-from math import sqrt
+
+from utils.drawing import draw_state, draw_show, draw_lines
 
 plt.rcParams['figure.dpi'] = 250
 
@@ -21,6 +21,7 @@ blueParameters = Parameters(BLUE, {})
 redAgent = Agent(1, redParameters)
 blueAgent = Agent(1, blueParameters)
 
+# %%
 
 board = StateOfTheBoard(shape)
 
@@ -45,8 +46,8 @@ board.addFigure(BLUE, Infantry(position=(9, 8), name='bInf1'))
 board.addFigure(BLUE, Tank(position=(5, 4), name='bTank1'))
 
 # board.print()
-fig, ax = board.draw_layout()
-plt.show()
+fig, ax = draw_state(board)
+draw_show(fig, ax)
 
 
 # %%
@@ -62,17 +63,21 @@ cube_distance(redTank.cube, blueTank.cube)
 
 line = cube_linedraw(redTank.cube, blueTank.cube)
 
-board.print(extra=[cube_to_hex(l) for l in line])
+fig, ax = draw_state(board)
+ax = draw_lines(ax, line)
+draw_show(fig, ax)
+
+# %%
 
 # %%
 obs = np.array(board.board.obstacles.nonzero()).T
 obs = {to_cube(o) for o in obs}
 
+cubes = cube_reachable(blueTank.cube, 3, obs)
 
-# %%
-cube_reachable(blueTank.cube, 3, obs)
+fig, ax = draw_state(board)
+ax = draw_lines(ax, cubes)
+draw_show(fig, ax)
 
-# %%
-board.draw_layout()
 
 # %%

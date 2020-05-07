@@ -2,11 +2,10 @@
 Source: https://www.redblobgames.com/grids/hexagons/
 """
 from collections import namedtuple
-import math
 
-# we are using offset coordinates with oddq and flat hexs
+# we are using offset coordinates with even-q and flat hexs
 
-Hex = namedtuple('Hex', ['col', 'row'])
+Hex = namedtuple('Hex', ['q', 'r'])
 Cube = namedtuple('Cube', ['x', 'y', 'z'])
 
 
@@ -14,22 +13,22 @@ Cube = namedtuple('Cube', ['x', 'y', 'z'])
 
 def cube_to_hex(cube: Cube):
     """Converts cube to offset coordinate system"""
-    col = cube.x
-    row = cube.z + (cube.x - (cube.x % 2)) // 2
-    return Hex(col, row)
+    q = cube.x
+    r = cube.z + (cube.x + (cube.x % 2)) // 2
+    return Hex(q, r)
 
 
 def hex_to_cube(hex: Hex):
     """Converts offset to cube coordinate system"""
-    x = hex.col
-    z = hex.row - (hex.col - (hex.col % 1)) // 2
+    x = hex.q
+    z = hex.r - (hex.q + (hex.q % 2)) // 2
     y = -x-z
     return Cube(x, y, z)
 
 
 def to_hex(pos: tuple):
     """Converts tuple to Hey, [0] is consideret column, while [1] row"""
-    return Hex(col=pos[0], row=pos[1])
+    return Hex(q=pos[0], r=pos[1])
 
 
 def to_cube(pos: tuple):
@@ -39,7 +38,6 @@ def to_cube(pos: tuple):
 
 # Operations
 
-
 def cube_add(a: Cube, b: Cube):
     x = a.x + b.x
     y = a.y + b.y
@@ -48,24 +46,25 @@ def cube_add(a: Cube, b: Cube):
 
 
 def hex_add(a: Hex, b: Hex):
-    return Hex(a.col + b.col, a.row + b.row)
+    return Hex(a.q + b.q, a.r + b.r)
 
 
 def cube_round(c: Cube):
-    rx = round(c.x)
-    ry = round(c.y)
-    rz = round(c.z)
+    rx = int(round(c.x))
+    ry = int(round(c.y))
+    rz = int(round(c.z))
 
     x_diff = abs(rx - c.x)
     y_diff = abs(ry - c.y)
     z_diff = abs(rz - c.z)
 
     if x_diff > y_diff and x_diff > z_diff:
-        rx = -ry-rz
-    elif y_diff > z_diff:
-        ry = -rx-rz
+        rx = -ry - rz
     else:
-        rz = -rx-ry
+        if y_diff > z_diff:
+            ry = -rx - rz
+        else:
+            rz = -rx - ry
 
     return Cube(rx, ry, rz)
 
@@ -75,7 +74,6 @@ def hex_round(hex: Hex):
 
 
 # Neighbors
-
 
 cube_directions = [
     Cube(+1, -1, 0), Cube(+1, 0, -1), Cube(0, +1, -1),
@@ -98,7 +96,7 @@ hex_directions = [
 
 
 def hex_neighbor(hex: Hex, direction):
-    parity = hex.col % 2
+    parity = hex.q % 2
     d = hex_directions[parity][direction]
     return hex_add(hex, d)
 
@@ -116,7 +114,6 @@ def hex_distance(a: Hex, b: Hex):
 
 
 # Line drawing
-
 
 def lerp(a: int, b: int, t: int):  # for floats
     return a + (b - a) * t
@@ -151,7 +148,6 @@ def hex_linedraw(a: Hex, b: Hex):
 
 
 # Movement range
-
 
 def cube_movement(center: Cube, N: int):
     results = []

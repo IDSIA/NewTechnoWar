@@ -1,13 +1,10 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 from core.figures import Figure, Infantry, Tank, TYPE_VEHICLE, TYPE_INFANTRY
-from core.actions import Action, Move, Shoot, Respond
+from core.actions import Action, Move  # , Shoot, Respond
 from utils.coordinates import Hex, cube_reachable, to_cube, to_hex
 from utils.colors import red, blue, yellow, green, pinkBg, grayBg
 from core import RED, BLUE, TERRAIN_LEVEL_OF_PROTECTION
-from matplotlib.patches import RegularPolygon
-from math import sqrt
 
 
 class Hexagon:
@@ -248,50 +245,3 @@ class StateOfTheBoard:
 
             print('|' + '|'.join([l for l in line] + [f' {r}']))
         print('+' + sep_horizontal + '+')
-
-    def draw_layout(self, size: float = 2./3.):
-        cols, rows = self.shape
-
-        fig, ax = plt.subplots(1)
-        ax.set_aspect('equal')
-        ax.set_xlim((-1, cols))
-        ax.set_ylim((-1, rows+2))
-
-        for r in range(rows):
-            for q in range(cols):
-                p = (q, r)
-
-                # background color
-                color = 'white'
-                if self.board.roads[p] > 0:
-                    color = 'gray'
-                if self.board.obstacles[p] > 0:
-                    color = 'pink'
-
-                x = size * 3./2 * q
-                y = size * (sqrt(3)/2 * ((q+1) % 2) + sqrt(3) * r)
-
-                h = RegularPolygon((x, y), numVertices=6, radius=2./3., orientation=np.radians(30), edgecolor='k', facecolor=color, alpha=.5)
-                ax.add_patch(h)
-
-                ax.text(x, y+0.4, f'({q},{r})', ha='center', va='center', size=3)
-
-                self.draw_units(RED, p, ax, x, y)
-                self.draw_units(BLUE, p, ax, x, y)
-
-                if self.board.objective[p] > 0:
-                    ax.text(x, y+0.25, 'X', ha='center', va='center', color='orange', size=10)
-
-        ax.invert_yaxis()
-        plt.axis('off')
-
-        return fig, ax
-
-    def draw_units(self, agent: str, p: tuple, ax, x, y):
-        index = self.board.figures[agent][p]
-        if index > 0:
-            figure = self.getFigureByPos(agent, p)
-            txt = 'T' if figure.kind == TYPE_VEHICLE else 'I'
-
-            ax.text(x, y-0.25, figure.name, color=agent, ha='center', va='center', size=4)
-            ax.text(x, y, txt, color=agent, ha='center', va='center', size=5)
