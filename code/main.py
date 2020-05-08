@@ -47,7 +47,8 @@ def activation(first: Agent, second: Agent, turn: int):
             figureRespond, actionRespond = second.select_random_response(stateOfTheBoard, turn)
             stateOfTheBoard.activate(actionRespond)
 
-        stateOfTheBoard.print()
+        stateOfTheBoard.update()
+        # TODO: print board?
 
 
 def play():

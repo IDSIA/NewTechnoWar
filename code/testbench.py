@@ -7,7 +7,7 @@ from utils.coordinates import cube_distance, cube_linedraw, cube_reachable, to_c
 from core.state import StateOfTheBoard
 from core.agents import Agent, Parameters
 from core.figures import Infantry, Tank
-from core import RED, BLUE
+from core import RED, BLUE, Terrain
 
 # %% initialization
 
@@ -26,15 +26,12 @@ blueAgent = Agent(1, blueParameters)
 
 board = StateOfTheBoard(shape)
 
-obstacles = np.zeros(shape, dtype='uint8')
-obstacles[4, 3:7] = 1
-obstacles[5:7, 3] = 1
-board.addObstacle(obstacles)
-
-roads = np.zeros(shape, dtype='uint8')
-roads[0, :] = 1
-roads[:, 4] = 1
-board.addRoads(roads)
+terrain = np.zeros(shape, dtype='uint8')
+terrain[4, 3:7] = Terrain.CONCRETE_BUILDING
+terrain[5:7, 3] = Terrain.CONCRETE_BUILDING
+terrain[0, :] = Terrain.ROAD
+terrain[:, 4] = Terrain.ROAD
+board.addTerrain(terrain)
 
 objective = np.zeros(shape, dtype='uint8')
 objective[5, 5] = 1
@@ -44,14 +41,15 @@ board.addFigure(RED, Infantry(position=(1, 1), name='rInf1'))
 board.addFigure(RED, Infantry(position=(1, 2), name='rInf2'))
 board.addFigure(RED, Tank(position=(0, 2), name='rTank1'))
 board.addFigure(BLUE, Infantry(position=(9, 8), name='bInf1'))
-board.addFigure(BLUE, Tank(position=(5, 4), name='bTank1'))
+board.addFigure(BLUE, Tank(position=(7, 6), name='bTank1'))
 
-draw_show(*draw_state(board))
+# %% draw initial setup
+# draw_show(*draw_state(board))
 
 # %% select tanks
 
 redTank = board.getFigureByPos(RED, (0, 2))
-blueTank = board.getFigureByPos(BLUE, (5, 4))
+blueTank = board.getFigureByPos(BLUE, (7, 6))
 
 # %% compute distance between tanks
 
@@ -66,28 +64,25 @@ ax = draw_lines(ax, line)
 draw_show(fig, ax)
 
 # %% draw reachable area
-obs = np.array(board.board.obstacles.nonzero()).T.tolist()
-obs = {to_cube(o) for o in obs}
 
-cubes = cube_reachable(blueTank.position, 3, obs)
+movements = board.buildMovements(BLUE, blueTank)
 
 fig, ax = draw_state(board)
-draw_lines(ax, cubes)
+draw_lines(ax, [a.destination for a in movements])
 draw_show(fig, ax)
 
+# %% perform move action
+m = movements[0]
 
-# %% perform action
-
-actions = board.buildActions(BLUE)
-
-a = actions[0]
-
-board.activate(a)
+board.activate(m)
 
 draw_show(*draw_state(board))
 
-
 # %% action performed
-print('mmove', a.figure.name, 'to', cube_to_hex(a.destination))
+print('move', m.figure.name, 'to', cube_to_hex(m.destination))
 
-# %%
+# %% perform shoot action
+shoots = board.buildShoots(BLUE, blueTank)
+s = shoots[0]
+
+print(BLUE, 'shoots', s.figure.name, 'against', s.target.name, 'with', s.weapon.name)

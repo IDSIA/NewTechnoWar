@@ -60,6 +60,7 @@ class Figure:
         self.activated = False
         self.responding = False
         self.underFire = False
+        self.killed = False
 
     def set_STAT(self, new_STAT: FigureStatus):
         self.stat = new_STAT
@@ -79,6 +80,9 @@ class Figure:
     def goto(self, destination: Cube):
         self.position = destination
 
+    def __repr__(self):
+        return f'{self.name}({self.position})'
+
 
 class Tank(Figure):
     """3 red tanks"""
@@ -90,11 +94,11 @@ class Tank(Figure):
         self.hp = 1
 
         self.defense = {'basic': 5, 'armored': 18}
-        self.equipment = {
-            MachineGun(-1),
+        self.equipment = [
+            MachineGun(2e9),
             Cannon(8),
             SmokeGrenade(2)
-        }
+        ]
 
 
 class APC(Figure):
@@ -107,10 +111,10 @@ class APC(Figure):
         self.hp = 1
 
         self.defense = {'basic': 5, 'armored': 18},
-        self.equipment = {
-            MachineGun(-1),
+        self.equipment = [
+            MachineGun(2e9),
             SmokeGrenade(2)
-        }
+        ]
 
 
 class Infantry(Figure):
@@ -124,7 +128,7 @@ class Infantry(Figure):
 
         self.defense = {'basic': 1}
         self.equipment = [
-            AssaultRifle(-1),
+            AssaultRifle(2e9),
             MachineGun(5, 4),
             AntiTank(4),
             Mortar(2),
@@ -146,7 +150,7 @@ class Exoskeleton(Infantry):
 
         self.defense = {'basic': 1}
         self.equipment = [
-            AssaultRifle(-1),
+            AssaultRifle(2e9),
             MachineGun(2),
             AntiTank(3),
             Mortar(5),
@@ -168,7 +172,7 @@ class Sniper(Infantry):
         self.hp = 4  # TODO: it is single?
 
         self.equipment = [
-            SniperRifle(-1)
+            SniperRifle(2e9)
         ]
 
     def get_STAT(self):

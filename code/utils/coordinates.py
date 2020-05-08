@@ -165,37 +165,18 @@ def hex_movement(center: Hex, N: int):
 
 # Obstacles
 
-def cube_reachable(start: Cube, movement, obstacles: set()):
+def cube_reachable(start: Cube, movement, obstacles: set):
     visited = set()  # set of hexes
     visited.add(start)
 
     fringes = []  # array of array of hexes
     fringes.append([start])
 
-    for k in range(2, movement+1):
+    for k in range(2, movement+2):
         fringes.append([])
         for hex in fringes[k-2]:
             for dir in range(0, 6):
                 neighbor = cube_neighbor(hex, dir)
-                if neighbor not in visited and neighbor not in obstacles:
-                    visited.add(neighbor)
-                    fringes[k-1].append(neighbor)
-
-    return visited
-
-
-def hex_reachable(start: Hex, movement: int, obstacles: set()):
-    visited = set()  # set of hexes
-    visited.add(start)
-
-    fringes = []  # array of array of hexes
-    fringes.append([start])
-
-    for k in range(2, movement+1):
-        fringes.append([])
-        for hex in fringes[k-2]:
-            for dir in range(0, 6):
-                neighbor = hex_neighbor(hex, dir)
                 if neighbor not in visited and neighbor not in obstacles:
                     visited.add(neighbor)
                     fringes[k-1].append(neighbor)

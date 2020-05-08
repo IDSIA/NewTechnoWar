@@ -15,14 +15,23 @@ INTELLIGENCE_DEFENSE = [0, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 4]
 class Terrain:
     """Defines properties of a type of terrain"""
 
+    OPEN_GROUND = 0
+    ROAD = 1
+    ISOLATED_TREE = 2
+    # TODO: how to model 'edge of the forest'?
+    FOREST = 3
+    WOODEN_BUILDING = 4
+    CONCRETE_BUILDING = 5
+
     def __init__(self, name: str, protection_level: int, stop_vehicle: bool = False):
         self.name = name
         self.protection_level = protection_level
         self.stop_vehicle = stop_vehicle
 
 
-TERRAIN_LEVEL_OF_PROTECTION = [
+TYPES_TERRAIN = [
     Terrain('Open ground', 0),
+    Terrain('Road', 0),
     Terrain('Isolated tree cover', 2),
     Terrain('Forest', 4, True),  # stops all vehicle from moving, unless on a road
     Terrain('Wooden building', 6),

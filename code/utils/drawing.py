@@ -4,14 +4,14 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import RegularPolygon
 from math import sqrt
 
-from core import RED, BLUE
+from core import RED, BLUE, Terrain
 from core.figures import FigureType
 from core.state import StateOfTheBoard
 
-from utils.coordinates import cube_to_hex
+from utils.coordinates import cube_to_hex, to_cube
 
 
-def draw_state(state: StateOfTheBoard, size: float = 2./3.):
+def draw_state(state: StateOfTheBoard, size: float = 2./3., coord_qr=True, coord_xyz=False):
     cols, rows = state.shape
 
     fig, ax = plt.subplots(1)
@@ -22,12 +22,13 @@ def draw_state(state: StateOfTheBoard, size: float = 2./3.):
     for r in range(rows):
         for q in range(cols):
             p = (q, r)
+            c = to_cube(p)
 
             # background color
             color = 'white'
-            if state.board.roads[p] > 0:
+            if state.board.terrain[p] == Terrain.ROAD:
                 color = 'gray'
-            if state.board.obstacles[p] > 0:
+            if state.board.terrain[p] > Terrain.ROAD:
                 color = 'pink'
 
             # coordinates
@@ -35,7 +36,10 @@ def draw_state(state: StateOfTheBoard, size: float = 2./3.):
 
             # draw content
             draw_hex(ax, x, y, color)
-            draw_text(ax, x, y+0.4, f'({q},{r})')
+            if coord_qr:
+                draw_text(ax, x, y+0.4, f'({q},{r})')
+            if coord_xyz:
+                draw_text(ax, x, y+0.2, f'({c.x},{c.y},{c.z})')
             draw_units(ax, x, y, state, RED, p)
             draw_units(ax, x, y, state, BLUE, p)
 
@@ -57,7 +61,7 @@ def convert(q, r, size=2./3.):
     return x, y
 
 
-def draw_hex(ax, x, y, color, alpha=.5):
+def draw_hex(ax, x, y, color, alpha=.9):
     h = RegularPolygon((x, y), numVertices=6, radius=2./3., orientation=np.radians(30), edgecolor='k', facecolor=color, alpha=alpha)
     ax.add_patch(h)
 
@@ -72,12 +76,12 @@ def draw_units(ax, x, y, state: StateOfTheBoard, agent: str, p: tuple):
         figure = state.getFigureByPos(agent, p)
         txt = 'T' if figure.kind == FigureType.VEHICLE else 'I'
 
+        draw_hex(ax, x, y, agent, .5)
         draw_text(ax, x, y-0.25, figure.name, agent, 4)
         draw_text(ax, x, y, txt, agent, 5)
 
 
 def draw_lines(ax, line):
-
     for hex in line:
         if len(hex) > 2:
             hex = cube_to_hex(hex)
