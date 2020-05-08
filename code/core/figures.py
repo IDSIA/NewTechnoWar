@@ -7,9 +7,11 @@ from utils.coordinates import Cube, to_cube
 
 # TODO: miss matrix
 
-TYPE_OTHER = 0
-TYPE_VEHICLE = 1
-TYPE_INFANTRY = 2
+
+class FigureType:
+    OTHER = 0
+    VEHICLE = 1
+    INFANTRY = 2
 
 
 class FigureStatus:
@@ -20,20 +22,20 @@ class FigureStatus:
         self.value = value
 
 
-FIGURE_STATUS = {
-    0: FigureStatus('In motion', 3),  # the unit has already used its ability to move this turn
-    1: FigureStatus('Upstairs', 3),  # if the troops are on an upper flor of a house (scenario specified)
-    2: FigureStatus('Under fire', -1),  # if the troops have already been targeted by a shot this turn
-    3: FigureStatus('Cut off', 3)  # no friendly troop within 4 hexagons
-}
+FIGURE_STATUS = [
+    FigureStatus('In motion', 3),  # the unit has already used its ability to move this turn
+    FigureStatus('Upstairs', 3),  # if the troops are on an upper flor of a house (scenario specified)
+    FigureStatus('Under fire', -1),  # if the troops have already been targeted by a shot this turn
+    FigureStatus('Cut off', 3)  # no friendly troop within 4 hexagons
+]
 
 
 class Figure:
     """Describe the actions and properties of a Unit."""
 
-    def __init__(self, position: tuple, name: str, kind: int):
+    def __init__(self, position: Cube, name: str, kind: int = FigureType.INFANTRY):
         self.name = name
-        self.index = 0
+        self.index = -1
 
         self.kind = kind
 
@@ -50,8 +52,10 @@ class Figure:
 
         self.stat = 0
 
-        self.cube = to_cube(position)
-        self.position = position
+        if len(position) == 3:
+            self.position = position
+        else:
+            self.position = to_cube(position)
 
         self.activated = False
         self.responding = False
@@ -72,12 +76,15 @@ class Figure:
     def get_INT_DEF(self, turn):
         return self.int_def[turn]
 
+    def goto(self, destination: Cube):
+        self.position = destination
+
 
 class Tank(Figure):
     """3 red tanks"""
 
-    def __init__(self, position: tuple, name: str = 'Tank'):
-        super().__init__(position, name, TYPE_VEHICLE)
+    def __init__(self, position: Cube, name: str = 'Tank'):
+        super().__init__(position, name, FigureType.VEHICLE)
         self.move = 7
         self.load = 1
         self.hp = 1
@@ -93,8 +100,8 @@ class Tank(Figure):
 class APC(Figure):
     """1 blue armoured personnel carrier"""
 
-    def __init__(self, position: tuple, name: str = 'APC'):
-        super().__init__(position, name, TYPE_VEHICLE)
+    def __init__(self, position: Cube, name: str = 'APC'):
+        super().__init__(position, name, FigureType.VEHICLE)
         self.move = 7
         self.load = 1
         self.hp = 1
@@ -109,8 +116,8 @@ class APC(Figure):
 class Infantry(Figure):
     """6x4 red and 2x4 blue"""
 
-    def __init__(self, position: tuple, name: str = 'Infantry'):
-        super().__init__(position, name, TYPE_INFANTRY)
+    def __init__(self, position: Cube, name: str = 'Infantry'):
+        super().__init__(position, name)
         self.move = 4
         self.load = 1
         self.hp = 4
@@ -131,8 +138,8 @@ class Exoskeleton(Infantry):
         The exoskeleton is a device worn by soldiers to enhance their physical strength, endurance and ability to carry heavy loads.
     """
 
-    def __init__(self, position: tuple, name: str = 'Exoskeleton'):
-        super().__init__(position, name, TYPE_INFANTRY)
+    def __init__(self, position: Cube, name: str = 'Exoskeleton'):
+        super().__init__(position, name)
         self.move = 4
         self.load = 0
         self.hp = 4
@@ -155,8 +162,8 @@ class Sniper(Infantry):
         The sniper has a status advantage of +2 and an accuracy advantage of +3 (+5 in total) added to his hit score
     """
 
-    def __init__(self, position: tuple, name: str = 'Sniper'):
-        super().__init__(position, name, TYPE_INFANTRY)
+    def __init__(self, position: Cube, name: str = 'Sniper'):
+        super().__init__(position, name)
         self.move = 0
         self.hp = 4  # TODO: it is single?
 
@@ -171,8 +178,8 @@ class Sniper(Infantry):
 class Civilian(Figure):
     """4 civilians"""
 
-    def __init__(self, position: tuple, name: str = 'Civilian'):
-        super().__init__(position, name, TYPE_OTHER)
+    def __init__(self, position: Cube, name: str = 'Civilian'):
+        super().__init__(position, name, FigureType.OTHER)
         self.move = 0
         self.load = 0
         self.hp = 1

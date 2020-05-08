@@ -1,14 +1,15 @@
-# %%
-from utils.coordinates import *
-from core import RED, BLUE
-from core.figures import Infantry, Tank
-from core.agents import Agent, Parameters
-from core.state import StateOfTheBoard
-from utils.coordinates import cube_distance, cube_linedraw, cube_reachable, to_cube
-import numpy as np
-import matplotlib.pyplot as plt
+# %% imports
 
 from utils.drawing import draw_state, draw_show, draw_lines
+import matplotlib.pyplot as plt
+import numpy as np
+from utils.coordinates import cube_distance, cube_linedraw, cube_reachable, to_cube, cube_to_hex
+from core.state import StateOfTheBoard
+from core.agents import Agent, Parameters
+from core.figures import Infantry, Tank
+from core import RED, BLUE
+
+# %% initialization
 
 plt.rcParams['figure.dpi'] = 250
 
@@ -21,7 +22,7 @@ blueParameters = Parameters(BLUE, {})
 redAgent = Agent(1, redParameters)
 blueAgent = Agent(1, blueParameters)
 
-# %%
+# %% board setup
 
 board = StateOfTheBoard(shape)
 
@@ -45,39 +46,48 @@ board.addFigure(RED, Tank(position=(0, 2), name='rTank1'))
 board.addFigure(BLUE, Infantry(position=(9, 8), name='bInf1'))
 board.addFigure(BLUE, Tank(position=(5, 4), name='bTank1'))
 
-# board.print()
-fig, ax = draw_state(board)
-draw_show(fig, ax)
+draw_show(*draw_state(board))
 
-
-# %%
+# %% select tanks
 
 redTank = board.getFigureByPos(RED, (0, 2))
 blueTank = board.getFigureByPos(BLUE, (5, 4))
 
-# %%
+# %% compute distance between tanks
 
-cube_distance(redTank.cube, blueTank.cube)
+dx = cube_distance(redTank.position, blueTank.position)
 
-# %%
+# %% daraw line of sight
 
-line = cube_linedraw(redTank.cube, blueTank.cube)
+line = cube_linedraw(redTank.position, blueTank.position)
 
 fig, ax = draw_state(board)
 ax = draw_lines(ax, line)
 draw_show(fig, ax)
 
-# %%
-
-# %%
-obs = np.array(board.board.obstacles.nonzero()).T
+# %% draw reachable area
+obs = np.array(board.board.obstacles.nonzero()).T.tolist()
 obs = {to_cube(o) for o in obs}
 
-cubes = cube_reachable(blueTank.cube, 3, obs)
+cubes = cube_reachable(blueTank.position, 3, obs)
 
 fig, ax = draw_state(board)
-ax = draw_lines(ax, cubes)
+draw_lines(ax, cubes)
 draw_show(fig, ax)
 
+
+# %% perform action
+
+actions = board.buildActions(BLUE)
+
+a = actions[0]
+
+board.activate(a)
+
+draw_show(*draw_state(board))
+
+
+# %% action performed
+print('mmove', a.figure.name, 'to', cube_to_hex(a.destination))
 
 # %%

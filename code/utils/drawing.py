@@ -5,7 +5,7 @@ from matplotlib.patches import RegularPolygon
 from math import sqrt
 
 from core import RED, BLUE
-from core.figures import TYPE_VEHICLE
+from core.figures import FigureType
 from core.state import StateOfTheBoard
 
 from utils.coordinates import cube_to_hex
@@ -68,9 +68,9 @@ def draw_text(ax, x, y, text, color='black', size=3):
 
 def draw_units(ax, x, y, state: StateOfTheBoard, agent: str, p: tuple):
     index = state.board.figures[agent][p]
-    if index > 0:
+    if index > -1:
         figure = state.getFigureByPos(agent, p)
-        txt = 'T' if figure.kind == TYPE_VEHICLE else 'I'
+        txt = 'T' if figure.kind == FigureType.VEHICLE else 'I'
 
         draw_text(ax, x, y-0.25, figure.name, agent, 4)
         draw_text(ax, x, y, txt, agent, 5)

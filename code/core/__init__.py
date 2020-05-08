@@ -21,13 +21,13 @@ class Terrain:
         self.stop_vehicle = stop_vehicle
 
 
-TERRAIN_LEVEL_OF_PROTECTION = {
-    0: Terrain('Open ground', 0),
-    1: Terrain('Isolated tree cover', 2),
-    2: Terrain('Forest', 4, True),  # stops all vehicle from moving, unless on a road
-    3: Terrain('Wooden building', 6),
-    4: Terrain('Concrete building', 8)
-}
+TERRAIN_LEVEL_OF_PROTECTION = [
+    Terrain('Open ground', 0),
+    Terrain('Isolated tree cover', 2),
+    Terrain('Forest', 4, True),  # stops all vehicle from moving, unless on a road
+    Terrain('Wooden building', 6),
+    Terrain('Concrete building', 8)
+]
 
 
 def hit_score_calculator(
