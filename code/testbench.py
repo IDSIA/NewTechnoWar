@@ -89,3 +89,18 @@ print(BLUE, 'shoots', s.figure.name, 'against', s.target.name, 'with', s.weapon.
 
 
 # %%
+
+board.hashValue()
+
+
+# %%
+
+board.whoWon()
+
+# %%
+
+blueTank.goto(to_cube((5, 5)))
+board.whoWon()
+
+
+# %%

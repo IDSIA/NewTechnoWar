@@ -80,6 +80,11 @@ class Board:
         obs = np.argwhere(self.terrain > Terrain.ROAD)
         return set([to_cube(o) for o in obs] + self.limits)
 
+    def getGoals(self):
+        """Returns the position marked as goals"""
+        goals = np.argwhere(self.objective > 0).tolist()
+        return set([to_cube(g) for g in goals])
+
 
 class StateOfTheBoard:
     """
@@ -352,6 +357,30 @@ class StateOfTheBoard:
 
         # TODO: remove killed unit?
 
-    def goalAchieved(self):
-        # TODO:
-        return False
+    def whoWon(self) -> int:
+        """
+        Check whether either side has won the game and return the winner:
+            None = 0
+            RED = 1
+            BLUE = 2
+        """
+        # TODO: this should be something related to the scenario
+        goals = self.board.getGoals()
+
+        for agent in [RED, BLUE]:
+            for figure in self.figures[agent]:
+                if figure.position in goals:
+                    if agent == RED:
+                        return 1
+                    else:
+                        return 2
+
+        return 0
+
+    def hashValue(self) -> int:
+        """Encode the current state of the game (board positions) as an integer."""
+
+        # positive numbers are RED figures, negatives are BLUE figures
+        m = (self.board.figures[RED] + 1) - (self.board.figures[BLUE] + 1)
+
+        return hash(str(m))
