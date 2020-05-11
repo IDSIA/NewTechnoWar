@@ -1,6 +1,6 @@
 import numpy as np
 
-from core import RED, BLUE, Terrain, hitScoreCalculator
+from core import RED, BLUE, Terrain, hitScoreCalculator, TYPES_TERRAIN
 from core.figures import Figure, Infantry, Tank, StatusType, FigureType
 from core.weapons import Weapon
 from core.actions import Action, Move, Shoot, Respond, DoNothing
@@ -17,6 +17,7 @@ class Hexagon:
         self.hex = hex
         self.pos = pos
         self.terrain = terrain
+        self.geography = geography
         self.objective = objective > 0
         self.figure = figure
 
@@ -63,7 +64,7 @@ class Board:
         return Hexagon(
             to_cube(pos),
             pos,
-            terrain=self.terrain[pos],
+            terrain=TYPES_TERRAIN[self.terrain[pos]],
             geography=self.geography[pos],
             objective=self.objective[pos] > 0,
             figure={
@@ -71,19 +72,21 @@ class Board:
                 BLUE: self.figures[BLUE][pos]
             })
 
-    def getObstacleSet(self):
+    def getObstacleSet(self) -> set:
         """
         Returns a set of all obstacles. Obstacls are considered:
             - limit of the map
             - obstacles added to the map
         """
         obs = np.argwhere(self.terrain > Terrain.ROAD)
-        return set([to_cube(o) for o in obs] + self.limits)
+        s = set(map(to_cube, obs))
+        s.update(self.limits)
+        return s
 
     def getGoals(self):
         """Returns the position marked as goals"""
-        goals = np.argwhere(self.objective > 0).tolist()
-        return set([to_cube(g) for g in goals])
+        goals = np.argwhere(self.objective > 0)
+        return set(map(to_cube, goals))
 
 
 class StateOfTheBoard:
@@ -96,6 +99,7 @@ class StateOfTheBoard:
 
         # static properties of the board
         self.board = Board(shape)
+        self.obstacles = set()
 
         # support set
         self.turn = 0
@@ -228,10 +232,11 @@ class StateOfTheBoard:
             if any({self.board.getHexagon(cube_to_hex(h)).terrain > Terrain.ROAD for h in los}):
                 continue
 
-            terrain = self.board.getHexagon(to_hex(target.position))
+            terrain = self.board.getHexagon(to_hex(target.position)).terrain
+
             n = len(los)
 
-            for weapon in figure.equipment:
+            for weapon in figure.weapons:
                 if n <= weapon.max_range:
                     shoots.append(Shoot(agent, figure, target, weapon, terrain))
 
@@ -248,7 +253,7 @@ class StateOfTheBoard:
             if any({self.board.getHexagon(cube_to_hex(h)).terrain > Terrain.ROAD for h in los}):
                 return responses
 
-            terrain = self.board.getHexagon(to_hex(target.position))
+            terrain = self.board.getHexagon(to_hex(target.position)).terrain
             n = len(los)
 
             for weapon in figure.weapons:
@@ -322,7 +327,7 @@ class StateOfTheBoard:
                 DEF = t.defense['basic']
 
             TER = o.protection_level
-            STAT = f.get_STAT(self.turn)
+            STAT = f.get_STAT().value
             END = f.get_END(self.turn)
 
             hitScore = hitScoreCalculator(ATK, TER, DEF, STAT, END, INT)

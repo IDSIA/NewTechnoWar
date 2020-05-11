@@ -32,7 +32,7 @@ def draw_state(state: StateOfTheBoard, size: float = 2./3., coord_qr=True, coord
                 color = 'pink'
 
             # coordinates
-            x, y = convert(q, r)
+            x, y = convert(q, r, size)
 
             # draw content
             draw_hex(ax, x, y, color)
@@ -81,11 +81,11 @@ def draw_units(ax, x, y, state: StateOfTheBoard, agent: str, p: tuple):
         draw_text(ax, x, y, txt, agent, 5)
 
 
-def draw_lines(ax, line):
+def draw_lines(ax, line, size=2./3.):
     for hex in line:
         if len(hex) > 2:
             hex = cube_to_hex(hex)
-        x, y = convert(*(hex))
+        x, y = convert(*(hex), size)
         draw_hex(ax, x, y, 'green')
 
     return ax

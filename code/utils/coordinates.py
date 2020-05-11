@@ -115,11 +115,11 @@ def hex_distance(a: Hex, b: Hex):
 
 # Line drawing
 
-def lerp(a: int, b: int, t: int):  # for floats
+def lerp(a: int, b: int, t: float):  # for floats
     return a + (b - a) * t
 
 
-def cube_lerp(a: Cube, b: Cube, t: int):  # for hexes
+def cube_lerp(a: Cube, b: Cube, t: float):  # for hexes
     return Cube(
         lerp(a.x, b.x, t),
         lerp(a.y, b.y, t),
@@ -169,8 +169,7 @@ def cube_reachable(start: Cube, movement, obstacles: set):
     visited = set()  # set of hexes
     visited.add(start)
 
-    fringes = []  # array of array of hexes
-    fringes.append([start])
+    fringes = [[start]]  # array of array of hexes
 
     for k in range(2, movement+2):
         fringes.append([])

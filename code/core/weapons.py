@@ -56,7 +56,7 @@ class Mortar(Weapon):
     """Infantry weapon"""
 
     def __init__(self, max_ammunition, dices_to_roll=1):
-        super().__init__('MT', 'Mortar', 2e9, 12, 6, max_ammunition, dices_to_roll, True, 4)
+        super().__init__('MT', 'Mortar', 2000000000, 12, 6, max_ammunition, dices_to_roll, True, 4)
 
 
 class Grenade(Weapon):

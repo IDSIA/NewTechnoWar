@@ -45,13 +45,13 @@ class Figure:
         self.hp: int = 0
 
         self.defense: dict = {}
-        self.equipment: dict = []
+        self.weapons: list = []
 
         self.int_atk: list = INTELLIGENCE_ATTACK
         self.int_def: list = INTELLIGENCE_DEFENSE
         self.endurance: list = ENDURANCE
 
-        self.stat: FigureStatus = 0
+        self.stat: FigureStatus = StatusType.NO_EFFECT
 
         if len(position) == 3:
             self.position: Cube = position
@@ -62,7 +62,7 @@ class Figure:
         self.respondable: bool = False
         self.killed: bool = False
 
-        self.attackedBy: Figure = None
+        self.attackedBy = None
 
     # hit score functions
     def set_STAT(self, new_STAT: FigureStatus):
@@ -184,7 +184,9 @@ class Sniper(Infantry):
         ]
 
     def get_STAT(self):
-        return super().get_STAT + 5
+        # TODO: better management of this change
+        stat = super().get_STAT()
+        return FigureStatus(stat.name, stat.value+5)
 
 
 class Civilian(Figure):

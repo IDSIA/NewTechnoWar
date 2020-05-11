@@ -5,7 +5,7 @@ from core import RED, BLUE
 from utils.colors import yellow, green, red, blue, pinkBg, grayBg
 
 
-def print(state: StateOfTheBoard, size=3, extra: list = None):
+def printState(state: StateOfTheBoard, size=3, extra: list = None):
     cols, rows = state.shape
 
     board_extra = np.zeros(state.shape, dtype='uint8')
