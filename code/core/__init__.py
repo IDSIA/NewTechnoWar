@@ -39,7 +39,7 @@ TYPES_TERRAIN = [
 ]
 
 
-def hit_score_calculator(
+def hitScoreCalculator(
         attack: int,
         terrain: int,
         defense: int,

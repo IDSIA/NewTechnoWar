@@ -1,14 +1,17 @@
 import numpy as np
 
-from core import RED, BLUE, Terrain, hit_score_calculator
+from core import RED, BLUE, Terrain, hitScoreCalculator
 from core.figures import Figure, Infantry, Tank, StatusType, FigureType
 from core.weapons import Weapon
-from core.actions import Action, Move, Shoot, Respond
+from core.actions import Action, Move, Shoot, Respond, DoNothing
 
 from utils.coordinates import Hex, Cube, cube_reachable, to_cube, to_hex, cube_to_hex, cube_linedraw
 
 
 class Hexagon:
+    """
+    Description of a single Hexagon.
+    """
 
     def __init__(self, hex: Hex, pos: tuple, terrain, geography, objective, figure):
         self.hex = hex
@@ -23,7 +26,7 @@ class Hexagon:
 
 class Board:
     """
-    Static parts of the board
+    Static parts of the board.
     """
 
     def __init__(self, shape: tuple):
@@ -49,18 +52,14 @@ class Board:
             [to_cube((x, r)) for r in range(0, y)]
 
     def moveFigure(self, agent: str, index: int, curr: Cube = None, dst: Cube = None):
-        """
-        Moves a figure from current position to another destination.
-        """
+        """Moves a figure from current position to another destination."""
         if curr:
             self.figures[agent][cube_to_hex(curr)] = -1
         if dst:
             self.figures[agent][cube_to_hex(dst)] = index
 
     def getHexagon(self, pos: tuple):
-        """
-        Return the Hexagon descriptor object at the given position.
-        """
+        """Return the Hexagon descriptor object at the given position."""
         return Hexagon(
             to_cube(pos),
             pos,
@@ -78,13 +77,13 @@ class Board:
             - limit of the map
             - obstacles added to the map
         """
-        obs = np.argwhere(self.terrain[self.terrain > Terrain.ROAD])
+        obs = np.argwhere(self.terrain > Terrain.ROAD)
         return set([to_cube(o) for o in obs] + self.limits)
 
 
 class StateOfTheBoard:
     """
-    State of the board of the game
+    State of the board of the game.
     """
 
     def __init__(self, shape: tuple):
@@ -94,8 +93,7 @@ class StateOfTheBoard:
         self.board = Board(shape)
 
         # support set
-        self.obstacles = set()
-        self.turn = 0  # TODO: increase turn
+        self.turn = 0
 
         # access to figures is done by index: [agent][figure]. Each figure know its own state
         self.figures = {
@@ -191,13 +189,10 @@ class StateOfTheBoard:
         return len(self.activableFigures(agent)) > 0
 
     def buildMovements(self, agent: str, figure: Figure):
-        """
-        Build all the movement actions for a figure. All the other units are
-        considered as obstacles.
-        """
+        """Build all the movement actions for a figure. All the other units are considered as obstacles."""
 
         distance = figure.move - figure.load
-        obstacles = self.obstacles.copy()
+        obstacles = self.board.getObstacleSet()
 
         for f in self.figures[RED]:
             obstacles.add(f.position)
@@ -211,7 +206,6 @@ class StateOfTheBoard:
             max_distance += 1
         elif (figure.kind == FigureType.VEHICLE):
             max_distance += 2
-        # TODO: consider terrain type for obstacles
         """
 
         movements = cube_reachable(figure.position, distance, obstacles)
@@ -219,8 +213,7 @@ class StateOfTheBoard:
         return [Move(agent, figure, m) for m in movements]
 
     def buildShoots(self, agent: str, figure: Figure):
-        """
-        """
+        """Returns a list of all the possible shooting actions that can be performed."""
 
         tAgent = RED if agent == BLUE else BLUE
         shoots = []
@@ -239,10 +232,27 @@ class StateOfTheBoard:
 
         return shoots
 
+    def buildResponse(self, agent: str, figure: Figure):
+        """Returns a list of all possible response action that can be performed."""
+
+        responses = []
+
+        if figure.canRespond:
+            target = figure.attackedBy
+            los = cube_linedraw(figure.position, target.position)
+            if any({self.board.getHexagon(cube_to_hex(h)).terrain > Terrain.ROAD for h in los}):
+                return responses
+
+            terrain = self.board.getHexagon(to_hex(target.position))
+            n = len(los)
+
+            for weapon in figure.weapons:
+                if n <= weapon.max_range:
+                    responses.append(Respond(agent, figure, target, weapon, terrain))
+        return responses
+
     def buildActionForFigure(self, agent: str, figure: Figure):
-        """
-        Build all possible actions for a single figure.
-        """
+        """Build all possible actions for the given figure."""
         actions = []
 
         for movement in self.buildMovements(agent, figure):
@@ -250,6 +260,9 @@ class StateOfTheBoard:
 
         for shoot in self.buildShoots(agent, figure):
             actions.append(shoot)
+
+        for response in self.buildResponse(agent, figure):
+            actions.append(response)
 
         return actions
 
@@ -266,16 +279,18 @@ class StateOfTheBoard:
         return actions
 
     def activate(self, action: Action):
-        """
-        Apply the given action to the map.
-        """
+        """Apply the given action to the map."""
         action.figure.activated = True
+
+        print(action)
+
+        if isinstance(action, DoNothing):
+            return
 
         if isinstance(action, Move):
             self.board.moveFigure(action.agent, action.figure.index, action.figure.position, action.destination)
             action.figure.goto(action.destination)
             action.figure.set_STAT(StatusType.IN_MOTION)
-            # TODO: compute there cutoff status?
 
         if isinstance(action, Shoot):  # Respond *is* a shoot action
             f: Figure = action.figure
@@ -305,14 +320,14 @@ class StateOfTheBoard:
             STAT = f.get_STAT(self.turn)
             END = f.get_END(self.turn)
 
-            hitScore = hit_score_calculator(ATK, TER, DEF, STAT, END, INT)
+            hitScore = hitScoreCalculator(ATK, TER, DEF, STAT, END, INT)
 
             success = len([x for x in score if x <= hitScore])
 
             # target status changes for the _next_ hit
             t.set_STAT(StatusType.UNDER_FIRE)
             # target can now respond to the fire
-            t.canRespond = True
+            t.canRespond(f)
 
             print(f'{action.agent}\tSHOOT {t}({o}) with {f} using {w} (({success}) {score}/{hitScore})')
 
@@ -327,17 +342,15 @@ class StateOfTheBoard:
 
         for agent in [RED, BLUE]:
             for figure in self.figures[agent]:
+                # TODO: compute there cutoff status?
                 figure.set_STAT(StatusType.NO_EFFECT)
                 figure.activated = False
                 figure.canRespond = False
+                figure.attackedBy = None
                 if figure.hp <= 0:
                     figure.killed = True
 
         # TODO: remove killed unit?
-
-    def canRespond(self, team: str):
-        # TODO:
-        return False
 
     def goalAchieved(self):
         # TODO:

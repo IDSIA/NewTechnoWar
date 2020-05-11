@@ -24,7 +24,7 @@ class FigureStatus:
 
 
 class StatusType:
-    NO_EFFECT = FigureStatus('No effect', 0)  # TODO: no default status?
+    NO_EFFECT = FigureStatus('No effect', 0)
     IN_MOTION = FigureStatus('In motion', 3),  # the unit has already used its ability to move this turn
     UPSTAIRS = FigureStatus('Upstairs', 3),  # if the troops are on an upper flor of a house (scenario specified)
     UNDER_FIRE = FigureStatus('Under fire', -1),  # if the troops have already been targeted by a shot this turn
@@ -59,26 +59,34 @@ class Figure:
             self.position: Cube = to_cube(position)
 
         self.activated: bool = False
-        self.canRespond: bool = False
+        self.respondable: bool = False
         self.killed: bool = False
 
+        self.attackedBy: Figure = None
+
+    # hit score functions
     def set_STAT(self, new_STAT: FigureStatus):
         self.stat = new_STAT
 
     def get_STAT(self) -> FigureStatus:
         return self.stat
 
-    def get_END(self, turn) -> int:
+    def get_END(self, turn: int) -> int:
         return self.endurance[turn]
 
-    def get_INT_ATK(self, turn) -> int:
+    def get_INT_ATK(self, turn: int) -> int:
         return self.int_atk[turn]
 
-    def get_INT_DEF(self, turn) -> int:
+    def get_INT_DEF(self, turn: int) -> int:
         return self.int_def[turn]
 
+    # actions related methods
     def goto(self, destination: Cube):
         self.position = destination
+
+    def canRespond(self, attacker):
+        self.respondable = True
+        self.attackedBy = attacker
 
     def __repr__(self):
         return f'{self.name}({self.position})'

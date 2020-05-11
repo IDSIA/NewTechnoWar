@@ -8,7 +8,7 @@ class Weapon:
     Generic class for weapons mechanics.
     """
 
-    def __init__(self, _id: str, name: str, max_range: int, atk_normal: int, atk_response: int, max_ammo: int, dices: int, curved: bool = False, damage: int = 1, antitak: bool = False):
+    def __init__(self, _id: str, name: str, max_range: int, atk_normal: int, atk_response: int, max_ammo: int, dices: int, curved: bool = False, damage: int = 1, antitank: bool = False):
         self._id = _id
         self.name = name
         self.max_range = max_range
@@ -18,7 +18,7 @@ class Weapon:
         self.dices = dices
         self.curved = curved
         self.damage = damage
-        self.antitank = antitak
+        self.antitank = antitank
 
     def __repr__(self):
         return self.name
@@ -28,7 +28,7 @@ class Cannon(Weapon):
     """Tank weapon"""
 
     def __init__(self, max_ammunition, dices_to_roll=1):
-        super().__init__('CA', 'Cannon', 75, 8, 4, max_ammunition, dices_to_roll, antitak=True)
+        super().__init__('CA', 'Cannon', 75, 8, 4, max_ammunition, dices_to_roll, antitank=True)
 
 
 class AssaultRifle(Weapon):
@@ -49,7 +49,7 @@ class AntiTank(Weapon):
     """Infantry weapon"""
 
     def __init__(self, max_ammunition, dices_to_roll=1):
-        super().__init__('AT', 'Anti-tank weapon', 18, 10, 5, max_ammunition, dices_to_roll, antitak=True)
+        super().__init__('AT', 'Anti-tank weapon', 18, 10, 5, max_ammunition, dices_to_roll, antitank=True)
 
 
 class Mortar(Weapon):

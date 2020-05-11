@@ -5,15 +5,25 @@ from utils.coordinates import Cube
 
 
 class Action:
+    """Basic action class"""
 
     def __init__(self, agent: str, figure: Figure):
         self.agent = agent
         self.figure = figure
 
 
-# TODO: do nothing
+class DoNothing(Action):
+    """Action that just does nothing: used to mark a Figure as activated."""
+
+    def __init__(self, agent: str, figure: Figure):
+        super().__init__(agent, figure)
+
+    def __repr__(self):
+        return f'{self.agent}\t{self.figure.name}\tPass'
+
 
 class Move(Action):
+    """Action to move a Figure to the destination."""
 
     def __init__(self, agent: str, figure: Figure, destination: Cube):
         super().__init__(agent, figure)
@@ -24,6 +34,7 @@ class Move(Action):
 
 
 class Shoot(Action):
+    """Action to shoot at another Figure."""
 
     def __init__(self, agent: str, figure: Figure, target: Figure, weapon: Weapon, terrain: Terrain):
         super().__init__(agent, figure)
@@ -36,6 +47,7 @@ class Shoot(Action):
 
 
 class Respond(Shoot):
+    """Similar to Shoot, but created only after a Shoot Action."""
 
     def __init__(self, agent: str, figure: Figure, target: Figure, weapon: Weapon, terrain: Terrain):
         super().__init__(agent, figure, target, weapon, terrain)
