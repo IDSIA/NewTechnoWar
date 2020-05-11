@@ -36,19 +36,18 @@ shape = (10, 10)
 stateOfTheBoard = StateOfTheBoard(shape)
 
 
-def activation(first: Agent, second: Agent, turn: int):
+def round(first: Agent, second: Agent, turn: int):
     if stateOfTheBoard.canActivate(first):
         # red agent chooses action
         figure, action = first.select_random_action(stateOfTheBoard, turn)
         stateOfTheBoard.activate(action)
 
+        """
         # blue can choose to respond
         if stateOfTheBoard.canRespond(second):
             figureRespond, actionRespond = second.select_random_response(stateOfTheBoard, turn)
             stateOfTheBoard.activate(actionRespond)
-
-        stateOfTheBoard.update()
-        # TODO: print board?
+        """
 
 
 def play():
@@ -56,8 +55,11 @@ def play():
     for turn in range(TOTAL_TURNS):
 
         while stateOfTheBoard.canActivate(redAgent) and stateOfTheBoard.canActivate(blueAgent):
-            activation(redAgent, blueAgent, turn)
-            activation(blueAgent, redAgent, turn)
+            round(redAgent, blueAgent, turn)
+            round(blueAgent, redAgent, turn)
+
+        stateOfTheBoard.update()
+        # TODO: print board?
 
         # observe state and reward, to be implemented
         redAgent.update(stateOfTheBoard, turn)

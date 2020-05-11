@@ -44,7 +44,7 @@ board.addFigure(BLUE, Infantry(position=(9, 8), name='bInf1'))
 board.addFigure(BLUE, Tank(position=(7, 6), name='bTank1'))
 
 # %% draw initial setup
-# draw_show(*draw_state(board))
+draw_show(*draw_state(board))
 
 # %% select tanks
 
@@ -86,3 +86,6 @@ shoots = board.buildShoots(BLUE, blueTank)
 s = shoots[0]
 
 print(BLUE, 'shoots', s.figure.name, 'against', s.target.name, 'with', s.weapon.name)
+
+
+# %%

@@ -9,6 +9,7 @@ from utils.coordinates import Cube, to_cube
 
 
 class FigureType:
+    """Defines the possible states of a Figure"""
     OTHER = 0
     VEHICLE = 1
     INFANTRY = 2
@@ -22,45 +23,44 @@ class FigureStatus:
         self.value = value
 
 
-FIGURE_STATUS = [
-    FigureStatus('In motion', 3),  # the unit has already used its ability to move this turn
-    FigureStatus('Upstairs', 3),  # if the troops are on an upper flor of a house (scenario specified)
-    FigureStatus('Under fire', -1),  # if the troops have already been targeted by a shot this turn
-    FigureStatus('Cut off', 3)  # no friendly troop within 4 hexagons
-]
+class StatusType:
+    NO_EFFECT = FigureStatus('No effect', 0)  # TODO: no default status?
+    IN_MOTION = FigureStatus('In motion', 3),  # the unit has already used its ability to move this turn
+    UPSTAIRS = FigureStatus('Upstairs', 3),  # if the troops are on an upper flor of a house (scenario specified)
+    UNDER_FIRE = FigureStatus('Under fire', -1),  # if the troops have already been targeted by a shot this turn
+    CUT_OFF = FigureStatus('Cut off', 3)  # no friendly troop within 4 hexagons
 
 
 class Figure:
     """Describe the actions and properties of a Unit."""
 
     def __init__(self, position: Cube, name: str, kind: int = FigureType.INFANTRY):
-        self.name = name
-        self.index = -1
+        self.name: str = name
+        self.index: int = -1
 
-        self.kind = kind
+        self.kind: int = kind
 
-        self.move = 0
-        self.load = 0
-        self.hp = 0
+        self.move: int = 0
+        self.load: int = 0
+        self.hp: int = 0
 
-        self.defense = {}
-        self.equipment = []
+        self.defense: dict = {}
+        self.equipment: dict = []
 
-        self.int_atk = INTELLIGENCE_ATTACK
-        self.int_def = INTELLIGENCE_DEFENSE
-        self.endurance = ENDURANCE
+        self.int_atk: list = INTELLIGENCE_ATTACK
+        self.int_def: list = INTELLIGENCE_DEFENSE
+        self.endurance: list = ENDURANCE
 
-        self.stat = 0
+        self.stat: FigureStatus = 0
 
         if len(position) == 3:
-            self.position = position
+            self.position: Cube = position
         else:
-            self.position = to_cube(position)
+            self.position: Cube = to_cube(position)
 
-        self.activated = False
-        self.responding = False
-        self.underFire = False
-        self.killed = False
+        self.activated: bool = False
+        self.canRespond: bool = False
+        self.killed: bool = False
 
     def set_STAT(self, new_STAT: FigureStatus):
         self.stat = new_STAT
@@ -68,13 +68,13 @@ class Figure:
     def get_STAT(self) -> FigureStatus:
         return self.stat
 
-    def get_END(self, turn):
+    def get_END(self, turn) -> int:
         return self.endurance[turn]
 
-    def get_INT_ATK(self, turn):
+    def get_INT_ATK(self, turn) -> int:
         return self.int_atk[turn]
 
-    def get_INT_DEF(self, turn):
+    def get_INT_DEF(self, turn) -> int:
         return self.int_def[turn]
 
     def goto(self, destination: Cube):

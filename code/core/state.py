@@ -1,9 +1,9 @@
 import numpy as np
 
 from core import RED, BLUE, Terrain, hit_score_calculator
-from core.figures import Figure, Infantry, Tank
+from core.figures import Figure, Infantry, Tank, StatusType, FigureType
 from core.weapons import Weapon
-from core.actions import Action, Move, Shoot  # , Respond
+from core.actions import Action, Move, Shoot, Respond
 
 from utils.coordinates import Hex, Cube, cube_reachable, to_cube, to_hex, cube_to_hex, cube_linedraw
 
@@ -250,6 +250,7 @@ class StateOfTheBoard:
 
         for shoot in self.buildShoots(agent, figure):
             actions.append(shoot)
+
         return actions
 
     def buildActions(self, agent: str):
@@ -270,33 +271,69 @@ class StateOfTheBoard:
         """
         action.figure.activated = True
 
-        # TODO: perform action with figure
         if isinstance(action, Move):
             self.board.moveFigure(action.agent, action.figure.index, action.figure.position, action.destination)
             action.figure.goto(action.destination)
+            action.figure.set_STAT(StatusType.IN_MOTION)
+            # TODO: compute there cutoff status?
 
-        if isinstance(action, Shoot):
+        if isinstance(action, Shoot):  # Respond *is* a shoot action
             f: Figure = action.figure
             t: Figure = action.target
             w: Weapon = action.weapon
             o: Terrain = action.terrain
 
-            score = max(np.random.choice(range(1, 21), size=w.dices))
+            # TODO: curved weapons (mortar) have different hit computation
 
-            # TODO: defense should be baed on army
-            hitScore = hit_score_calculator(w.atk_normal, o.protection_level, t.defense['basic'], f.get_STAT(), f.get_END(self.turn), f.get_INT_ATK(self.turn))
+            score = np.random.choice(range(1, 21), size=w.dices)
 
-            print(f'{action.agent}\tSHOOT {t}({o}) with {f} using {w} ({score}/{hitScore})')
+            # shoot/response
+            if isinstance(action, Respond):
+                ATK = w.atk_response
+                INT = f.get_INT_DEF(self.turn)
+            else:
+                ATK = w.atk_normal
+                INT = f.get_INT_ATK(self.turn)
 
-            if score <= hitScore:
-                t.hp -= 1
+            # anti-tank rule
+            if w.antitank and t.kind == FigureType.VEHICLE:
+                DEF = 0
+            else:
+                DEF = t.defense['basic']
+
+            TER = o.protection_level
+            STAT = f.get_STAT(self.turn)
+            END = f.get_END(self.turn)
+
+            hitScore = hit_score_calculator(ATK, TER, DEF, STAT, END, INT)
+
+            success = len([x for x in score if x <= hitScore])
+
+            # target status changes for the _next_ hit
+            t.set_STAT(StatusType.UNDER_FIRE)
+            # target can now respond to the fire
+            t.canRespond = True
+
+            print(f'{action.agent}\tSHOOT {t}({o}) with {f} using {w} (({success}) {score}/{hitScore})')
+
+            if success > 0:
+                t.hp -= success
                 print(f'{action.agent}\tSHOOT {f} hit {w}')
                 # TODO: if zero, remove when update
 
     def update(self):
+        """End turn function that updates the status of all figures and moves forward the internal turn ticker."""
         self.turn += 1
-        # TODO: reset unit status (activated, STAT on terrain, response)
-        # TODO: remove killed unit
+
+        for agent in [RED, BLUE]:
+            for figure in self.figures[agent]:
+                figure.set_STAT(StatusType.NO_EFFECT)
+                figure.activated = False
+                figure.canRespond = False
+                if figure.hp <= 0:
+                    figure.killed = True
+
+        # TODO: remove killed unit?
 
     def canRespond(self, team: str):
         # TODO:
