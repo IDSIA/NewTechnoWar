@@ -1,13 +1,14 @@
 # %% imports
 
-from utils.drawing import draw_state, draw_show, draw_lines
 import matplotlib.pyplot as plt
 import numpy as np
-from utils.coordinates import cube_distance, cube_linedraw, cube_reachable, to_cube, cube_to_hex
-from core.state import StateOfTheBoard
+
+from core import RED, BLUE, Terrain
 from core.agents import Agent, Parameters
 from core.figures import Infantry, Tank
-from core import RED, BLUE, Terrain
+from core.game import StateOfTheBoard
+from utils.coordinates import cube_distance, cube_linedraw, to_cube, cube_to_hex
+from utils.drawing import draw_state, draw_show, draw_lines
 
 # %% initialization
 

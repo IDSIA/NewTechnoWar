@@ -8,6 +8,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
 
+from core import ACTION_MOVE
 from core.state import StateOfTheBoard
 from learningParameters import DEVICE
 
@@ -51,15 +52,17 @@ class Agent:
 
         #at the moment all this is implemented in terms of fully random actions, in a dummy code
         #in the real setup this is going to be too inefficient probably. will have to think of different representation
-        if(self.team=='red'):
-            figures = stateOfTheBoard.redFigures
-        elif(self.team=='blue'):
-            figures = stateOfTheBoard.blueFigures
-        else:
-            print(DEVICE +' vote for socialicm!')        
-        chosenFigure = torch.tensor([[random.randrange(len(figures))]], device=DEVICE, dtype=torch.long)
+        figures = len(stateOfTheBoard.figures[self.team])
+        moves = len(stateOfTheBoard.actionMoves)
+        attacks = len(stateOfTheBoard.actionAttacks[self.team])
+
+        chosenFigure = torch.tensor([[random.randrange(figures)]], device=DEVICE, dtype=torch.long)
         chosenAttackOrMove = torch.tensor([[random.randrange(2)]], device=DEVICE, dtype=torch.long)
-        chosenAction = torch.tensor([[random.randrange(6)]], device=DEVICE, dtype=torch.long)
+        if chosenAttackOrMove == ACTION_MOVE:
+            chosenAction = torch.tensor([[random.randrange(moves)]], device=DEVICE, dtype=torch.long)
+        else:
+            chosenAction = torch.tensor([[random.randrange(attacks)]], device=DEVICE, dtype=torch.long)
+
         steps_done += 1
         #
         return chosenFigure, chosenAttackOrMove, chosenAction, steps_done

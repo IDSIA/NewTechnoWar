@@ -1,5 +1,8 @@
 import numpy as np
 
+from core import RED, BLUE, ACTION_MOVE, ACTION_ATTACK
+from utils.coordinates import hex_movement, Hex, hex_linedraw, to_hex
+
 
 class StateOfTheBoard:
     """
@@ -10,17 +13,14 @@ class StateOfTheBoard:
 
     def __init__(self, shape: tuple):
         self.shape = shape
-        
-        #this dictionary should contain ALL POSSIBLE moves, so more moves have to be added here in appropriate representation
-        self.actionMovesDict = {
-            0: [0, 0],
-            1: [-1, 0],
-            2: [-1, -1],
-            3: [0, -1],
-            4: [1, 1],
-            5: [1, 0],
-            6: [1, 0]}
-        
+
+        # this dictionary should contain ALL POSSIBLE moves,
+        # so more moves have to be added here in appropriate representation
+        self.actionMoves = hex_movement(Hex(0, 0), N=3)  # TODO: N is hardcoded, it should be based on figure type
+        self.actionAttacks = {
+            RED: [],
+            BLUE: []
+        }
 
         # static properties of the board
         self.board = {
@@ -31,23 +31,46 @@ class StateOfTheBoard:
             'objective': np.zeros(shape, dtype='uint8')
         }
 
-
         # we use the following convention for access keys#
-        # keys are integers that represent the figure, eg {0 : ['tank',(0,1), matrixWith1At (0,1)]}, {1:['infantry',....]}, ...
+        # keys are integers that represent the figure,
+        # eg {0 : ['tank',(0,1), matrixWith1At (0,1)]}, {1:['infantry',....]}, ...
         # this is to ensure that we can access figures by integer key, which encodes a figure selection action
-        
+
         self.redFigures = []
         self.blueFigures = []
+        self.figures = {
+            RED: [],
+            BLUE: []
+        }
 
     def isLegalMove(self, newFigurePosition):
-        #check if position is still in the board
-        condition1 =  not (newFigurePosition[0] < 0 or newFigurePosition[0] >= self.shape[0])
-        condition2 = not (newFigurePosition[1] < 0 or newFigurePosition[1] >= self.shape[1])
-        return condition1 and condition2
-    
-    def isLegalAttack(self, newFigurePosition):
+        # check if position is still in the board
+        conditions1 = 0 <= newFigurePosition[0] < self.shape[0]
+        conditions2 = 0 <= newFigurePosition[1] < self.shape[1]
+
+        if not (conditions1 and conditions2):
+            return False
+
+        # check if position is an obstacle
+        c1 = self.board['obstacles'][newFigurePosition] > 0
+        # check if position is occupied by a figure
+        c2 = any([newFigurePosition == f[1] for f in self.figures[RED]])
+        c3 = any([newFigurePosition == f[1] for f in self.figures[BLUE]])
+
+        return not (c1 or c2 or c3)
+
+    def isLegalAttack(self, attackerPosition, targetPosition):
+        if attackerPosition == targetPosition:
+            return False
+
+        los = hex_linedraw(to_hex(attackerPosition), to_hex(targetPosition))
+
+        for h in los:
+            if self.board['obstacles'][h] > 0:
+                return False
+
         return True
-        
+
     def addObstacle(self, obstacles: np.array):
         self.board['obstacles'] = obstacles
 
@@ -63,21 +86,22 @@ class StateOfTheBoard:
     def addObjective(self, objective: np.array):
         self.board['objective'] = objective
 
-    def addFigure(self, team : str, figureType : str, position: tuple):
+    def addFigure(self, team: str, figureType: str, position: tuple):
         tmp = np.zeros(self.shape, dtype='uint8')
         tmp[position] = 1
-        if(team=='blue'):
-            self.redFigures.append([figureType, position, tmp])#here we add more attributes
-        elif(team=='red'):
-            self.blueFigures.append([figureType, position, tmp])#here we add more attributes
+        if team == RED:
+            self.actionAttacks[BLUE].append(len(self.figures[RED]))
+            self.figures[RED].append([figureType, position, tmp])  # here we add more attributes
         else:
-            print('error')
-
+            self.actionAttacks[RED].append(len(self.figures[BLUE]))
+            self.figures[BLUE].append([figureType, position, tmp])  # here we add more attributes
 
     # sets up a specific scenario. reset to state of board to an initial state. Here this is just a dummy
     def resetScenario1(self):
         obstacles = np.zeros(self.shape, dtype='uint8')
+        obstacles[(4, 5)] = 1
         obstacles[(5, 5)] = 1
+        obstacles[(5, 4)] = 1
         self.addObstacle(obstacles)
 
         roads = np.zeros(self.shape, dtype='uint8')
@@ -88,38 +112,56 @@ class StateOfTheBoard:
         objective[9, 9] = 1
         self.addObjective(objective)
 
-        self.addFigure( team='red', figureType='infantry', position=(4, 1))
-        self.addFigure( team='red', figureType='tank', position=(4, 3))
-        self.addFigure( team='blue', figureType='infantry', position=(5, 2))
-    # applies action to the state of the board for both red and blue agents
-    # the function is implemented twice, to be more easily called. also maybe there are different terminal conditions for red and blue. I am also
+        self.addFigure(RED, 'infantry', (4, 1))
+        self.addFigure(RED, 'tank', (4, 3))
+        self.addFigure(BLUE, 'infantry', (5, 2))
 
-    def redStep(self, chosenFigure, chosenAttackOrMove, chosenAction):
-        
-        #move the chosen figure, chosenAttackOrMove isnt implemented yet, does have no effect at the momment
-        if(chosenAttackOrMove==1): #this is a move
-            oldFigurePosition = self.redFigures[chosenFigure][1]
-            newFigurePosition = (oldFigurePosition[0] + self.actionMovesDict[chosenAction][0],
-                    oldFigurePosition[1] + self.actionMovesDict[chosenAction][1])
-            if(self.isLegalMove(newFigurePosition)):
+    # applies action to the state of the board for both red and blue agents
+    # the function is implemented twice, to be more easily called.
+    # also maybe there are different terminal conditions for red and blue. I am also
+
+    def step(self, team, chosenFigure, chosenAttackOrMove, chosenAction):
+        otherTeam = RED if team is BLUE else RED
+        figure = self.figures[team][chosenFigure]
+
+        # move the chosen figure, chosenAttackOrMove isnt implemented yet, does have no effect at the momment
+        if chosenAttackOrMove == ACTION_MOVE:
+            oldFigurePosition = figure[1]
+            newFigurePosition = (oldFigurePosition[0] + self.actionMoves[chosenAction][0],
+                                 oldFigurePosition[1] + self.actionMoves[chosenAction][1])
+
+            if self.isLegalMove(newFigurePosition):
                 # store things
-                self.redFigures[chosenFigure][1] = newFigurePosition
-                self.redFigures[chosenFigure][2][oldFigurePosition] = 0
-                self.redFigures[chosenFigure][2][newFigurePosition] = 1
-                print(self.redFigures[chosenFigure][2])
-        if(chosenAttackOrMove==0): #this is an attack
-            if(self.isLegalAttack(newFigurePosition)):
-                print('dummy')
+                figure[1] = newFigurePosition
+                figure[2][oldFigurePosition] = 0
+                figure[2][newFigurePosition] = 1
+                print(f"move from {oldFigurePosition} to {newFigurePosition}")
+            else:
+                print(f"invalid move from {oldFigurePosition} to {newFigurePosition}")
+
+        if chosenAttackOrMove == ACTION_ATTACK:
+            attackerPosition = figure[1]
+            targetPosition = self.figures[otherTeam][self.actionAttacks[team][chosenAction]][1]
+
+            if self.isLegalAttack(attackerPosition, targetPosition):
+                print(f"{attackerPosition} shoot at {targetPosition}")
+            else:
+                print(f"invalid {attackerPosition} shoot at {targetPosition}")
+
         done = False  # dummy
         return done
 
-    def blueStep(self, chosenFigure, chosenAttackOrMove, chosenAction):
+    def redStep(self, chosenFigure, chosenAttackOrMove, chosenAction):
+        return self.step(RED, chosenFigure, chosenAttackOrMove, chosenAction)
 
-        #move the chosen figure, chosenAttackOrMove isnt implemented yet, does have no effect at the momment
+    def blueStep(self, chosenFigure, chosenAttackOrMove, chosenAction):
+        # TODO: this function should be removed
+
+        # move the chosen figure, chosenAttackOrMove isnt implemented yet, does have no effect at the momment
         oldFigurePosition = self.blueFigures[chosenFigure][1]
-        newFigurePosition = (oldFigurePosition[0] + self.actionMovesDict[chosenAction][0],
-                    oldFigurePosition[1] + self.actionMovesDict[chosenAction][1])
-        if(self.isLegalAction(newFigurePosition)):
+        newFigurePosition = (oldFigurePosition[0] + self.actionMoves[chosenAction][0],
+                             oldFigurePosition[1] + self.actionMoves[chosenAction][1])
+        if self.isLegalAction(newFigurePosition):
             # store things
             self.blueFigures[chosenFigure][1] = newFigurePosition
             self.blueFigures[chosenFigure][2][oldFigurePosition] = 0
@@ -128,3 +170,16 @@ class StateOfTheBoard:
 
         done = False  # dummy
         return done
+
+    def __repr__(self):
+        board = np.zeros(self.shape, dtype="uint8")
+
+        for f in self.figures[RED]:
+            board += f[2]
+        for f in self.figures[BLUE]:
+            board += f[2] * 2
+
+        board += self.board['obstacles'] * 8
+        board += self.board['objective'] * 5
+
+        return str(board).replace("0", ".").replace("8", "X").replace("5", "G")

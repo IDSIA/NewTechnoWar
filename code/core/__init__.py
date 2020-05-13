@@ -1,6 +1,8 @@
 RED = 'red'
 BLUE = 'blue'
 
+ACTION_ATTACK = 0
+ACTION_MOVE = 1
 
 TOTAL_TURNS = 12
 
