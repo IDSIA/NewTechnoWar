@@ -1,401 +1,130 @@
 import numpy as np
 
-from core import RED, BLUE, Terrain, hitScoreCalculator
-from core.actions import Action, Move, Shoot, Respond, DoNothing
-from core.figures import Figure, Infantry, Tank, StatusType, FigureType
-from core.weapons import Weapon
-from utils.coordinates import Hex, Cube, cube_reachable, to_cube, to_hex, cube_to_hex, cube_linedraw
-
-
-class Hexagon:
-    """
-    Description of a single Hexagon.
-    """
-
-    def __init__(self, hex: Hex, pos: tuple, terrain, geography, objective, figure):
-        self.hex = hex
-        self.pos = pos
-        self.terrain = terrain
-        self.geography = geography
-        self.objective = objective > 0
-        self.figure = figure
-
-    def isObstructed(self):
-        return self.terrain > Terrain.ROAD
-
-
-class Board:
-    """
-    Static parts of the board.
-    """
-
-    def __init__(self, shape: tuple):
-        self.shape = shape
-
-        # matrices filled with -1 so we can use 0-based as index
-        # self.obstacles = np.zeros(shape, dtype='uint8')
-        self.terrain = np.zeros(shape, dtype='int8')
-        # self.roads = np.zeros(shape, dtype='uint8')
-        self.geography = np.zeros(shape, dtype='uint8')
-        self.objective = np.zeros(shape, dtype='uint8')
-        # convert to list of matrices, one for each figure
-        self.figures = {
-            RED: np.zeros(shape, dtype='uint8'),
-            BLUE: np.zeros(shape, dtype='uint8'),
-        }
-
-        x, y = shape
-
-        self.limits = \
-            [to_cube((q, -1)) for q in range(-1, y + 1)] + \
-            [to_cube((q, y)) for q in range(-1, y + 1)] + \
-            [to_cube((-1, r)) for r in range(0, y)] + \
-            [to_cube((x, r)) for r in range(0, y)]
-
-    def moveFigure(self, agent: str, index: int, curr: Cube = None, dst: Cube = None):
-        """Moves a figure from current position to another destination."""
-        if curr:
-            self.figures[agent][cube_to_hex(curr)] = -1
-        if dst:
-            self.figures[agent][cube_to_hex(dst)] = index
-
-    def getHexagon(self, pos: tuple):
-        """Return the Hexagon descriptor object at the given position."""
-        return Hexagon(
-            to_cube(pos),
-            pos,
-            terrain=self.terrain[pos],
-            geography=self.geography[pos],
-            objective=self.objective[pos] > 0,
-            figure={
-                RED: self.figures[RED][pos],
-                BLUE: self.figures[BLUE][pos]
-            })
-
-    def getObstacleSet(self) -> set:
-        """
-        Returns a set of all obstacles. Obstacls are considered:
-            - limit of the map
-            - obstacles added to the map
-        """
-        obs = np.argwhere(self.terrain > Terrain.ROAD)
-        s = set(map(to_cube, obs))
-        s.update(self.limits)
-        return s
-
-    def getGoals(self):
-        """Returns the position marked as goals"""
-        goals = np.argwhere(self.objective > 0)
-        return set(map(to_cube, goals))
-
 
 class StateOfTheBoard:
     """
-    State of the board of the game.
+
+    state of the board of the game
+
     """
 
     def __init__(self, shape: tuple):
         self.shape = shape
+        
+        #this dictionary should contain ALL POSSIBLE moves, so more moves have to be added here in appropriate representation
+        self.actionMovesDict = {
+            0: [0, 0],
+            1: [-1, 0],
+            2: [-1, -1],
+            3: [0, -1],
+            4: [1, 1],
+            5: [1, 0],
+            6: [1, 0]}
+        
 
         # static properties of the board
-        self.board = Board(shape)
-        self.obstacles = set()
-
-        # support set
-        self.turn = 0
-
-        # access to figures is done by index: [agent][figure]. Each figure know its own state
-        self.figures = {
-            RED: [],
-            BLUE: []
+        self.board = {
+            'obstacles': np.zeros(shape, dtype='uint8'),
+            'terrain': np.zeros(shape, dtype='uint8'),
+            'roads': np.zeros(shape, dtype='uint8'),
+            'geography': np.zeros(shape, dtype='uint8'),
+            'objective': np.zeros(shape, dtype='uint8')
         }
 
-    # operations on board layout (static properties)
 
-    # def addObstacle(self, obstacles: np.array):
-        # """Sum an obstacle matrix to the current board"""
-        # self.board.obstacles += obstacles
+        # we use the following convention for access keys#
+        # keys are integers that represent the figure, eg {0 : ['tank',(0,1), matrixWith1At (0,1)]}, {1:['infantry',....]}, ...
+        # this is to ensure that we can access figures by integer key, which encodes a figure selection action
+        
+        self.redFigures = []
+        self.blueFigures = []
+
+    def isLegalMove(self, newFigurePosition):
+        #check if position is still in the board
+        condition1 =  not (newFigurePosition[0] < 0 or newFigurePosition[0] >= self.shape[0])
+        condition2 = not (newFigurePosition[1] < 0 or newFigurePosition[1] >= self.shape[1])
+        return condition1 and condition2
+    
+    def isLegalAttack(self, newFigurePosition):
+        return True
+        
+    def addObstacle(self, obstacles: np.array):
+        self.board['obstacles'] = obstacles
 
     def addTerrain(self, terrain: np.array):
-        """
-        Sum a terrain matrix to the current board.
-        The values must be of core.Terrain Types.
-        Default '0' is 'open ground'.
-        """
-        self.board.terrain += terrain
+        self.board['terrain'] = terrain
 
-    # def addRoads(self, roads: np.array):
-        # """Sum a road matrix to the current board"""
-        # self.board.roads += roads
+    def addRoads(self, roads: np.array):
+        self.board['roads'] = roads
 
     def addGeography(self, geography: np.array):
-        """Sum a geography matrix to the current board"""
-        self.board.geography += geography
+        self.board['geography'] = geography
 
     def addObjective(self, objective: np.array):
-        """Sum an objective matrix to the current board"""
-        self.board.objective += objective
+        self.board['objective'] = objective
 
-    # operations on figures (dynamic properties)
+    def addFigure(self, team : str, figureType : str, position: tuple):
+        tmp = np.zeros(self.shape, dtype='uint8')
+        tmp[position] = 1
+        if(team=='blue'):
+            self.redFigures.append([figureType, position, tmp])#here we add more attributes
+        elif(team=='red'):
+            self.blueFigures.append([figureType, position, tmp])#here we add more attributes
+        else:
+            print('error')
 
-    def addFigure(self, agent: str, figure: Figure):
-        """
-        Add a figures to the units of the given agent and it setup the index
-        in the matrix at the position of the figure.
-        """
-        figures = self.figures[agent]
-        index = len(figures)  # to have 0-based index
 
-        figures.append(figure)
-        figure.index = index
-        self.board.moveFigure(agent, index, dst=figure.position)
-
-    def getFigureByIndex(self, agent: str, index: int):
-        """Given an index of a figure, return the figure."""
-        return self.figures[agent][index]
-
-    def getFigureByPos(self, agent: str, pos: tuple):
-        """Given a position of a figure, return the figure."""
-        index = self.board.figures[agent][pos]
-        return self.getFigureByIndex(agent, index)
-
-    # other operations
-
+    # sets up a specific scenario. reset to state of board to an initial state. Here this is just a dummy
     def resetScenario1(self):
-        """
-        Sets up a specific scenario. reset to state of board to an initial state.
-        Here this is just a dummy.
-        """
-        # TODO: make StateOfTheBoard abstract, with "reset" method abstract and implement it in a new class
+        obstacles = np.zeros(self.shape, dtype='uint8')
+        obstacles[(5, 5)] = 1
+        self.addObstacle(obstacles)
 
-        # obstacles = np.zeros(self.shape, dtype='uint8')
-        # obstacles[(4, 4)] = 1
-        # self.addObstacle(obstacles)
-
-        # roads = np.zeros(self.shape, dtype='uint8')
-        # roads[0, :] = 1
-        # self.addRoads(roads)
-
-        terrain = np.zeros(self.shape, dtype='uint8')
-        terrain[(4, 4)] = 1
-        terrain[0, :] = Terrain.ROAD
-        self.addTerrain(terrain)
+        roads = np.zeros(self.shape, dtype='uint8')
+        roads[0, :] = 1
+        self.addRoads(roads)
 
         objective = np.zeros(self.shape, dtype='uint8')
-        objective[4, 5] = 1
+        objective[9, 9] = 1
         self.addObjective(objective)
 
-        self.addFigure(RED, Infantry(to_cube((1, 1)), name='rInf1'))
-        self.addFigure(RED, Tank(to_cube((1, 2)), name='rTank1'))
-        self.addFigure(BLUE, Infantry(to_cube((3, 3)), name='bInf1'))
+        self.addFigure( team='red', figureType='infantry', position=(4, 1))
+        self.addFigure( team='red', figureType='tank', position=(4, 3))
+        self.addFigure( team='blue', figureType='infantry', position=(5, 2))
+    # applies action to the state of the board for both red and blue agents
+    # the function is implemented twice, to be more easily called. also maybe there are different terminal conditions for red and blue. I am also
 
-    def activableFigures(self, agent: str):
-        """Returns a list of figures that have not been activated."""
-        # TODO:
-        #   transform this in an array that is restored at the beginning of the turn with
-        #   the activable figures, when a figure is activated, remove it from such array
-        return [f for f in self.figures[agent] if not f.activated]
+    def redStep(self, chosenFigure, chosenAttackOrMove, chosenAction):
+        
+        #move the chosen figure, chosenAttackOrMove isnt implemented yet, does have no effect at the momment
+        if(chosenAttackOrMove==1): #this is a move
+            oldFigurePosition = self.redFigures[chosenFigure][1]
+            newFigurePosition = (oldFigurePosition[0] + self.actionMovesDict[chosenAction][0],
+                    oldFigurePosition[1] + self.actionMovesDict[chosenAction][1])
+            if(self.isLegalMove(newFigurePosition)):
+                # store things
+                self.redFigures[chosenFigure][1] = newFigurePosition
+                self.redFigures[chosenFigure][2][oldFigurePosition] = 0
+                self.redFigures[chosenFigure][2][newFigurePosition] = 1
+                print(self.redFigures[chosenFigure][2])
+        if(chosenAttackOrMove==0): #this is an attack
+            if(self.isLegalAttack(newFigurePosition)):
+                print('dummy')
+        done = False  # dummy
+        return done
 
-    def canActivate(self, agent: str):
-        """Returns True if there are still figures that can be activated."""
-        return len(self.activableFigures(agent)) > 0
+    def blueStep(self, chosenFigure, chosenAttackOrMove, chosenAction):
 
-    def buildMovements(self, agent: str, figure: Figure):
-        """Build all the movement actions for a figure. All the other units are considered as obstacles."""
+        #move the chosen figure, chosenAttackOrMove isnt implemented yet, does have no effect at the momment
+        oldFigurePosition = self.blueFigures[chosenFigure][1]
+        newFigurePosition = (oldFigurePosition[0] + self.actionMovesDict[chosenAction][0],
+                    oldFigurePosition[1] + self.actionMovesDict[chosenAction][1])
+        if(self.isLegalAction(newFigurePosition)):
+            # store things
+            self.blueFigures[chosenFigure][1] = newFigurePosition
+            self.blueFigures[chosenFigure][2][oldFigurePosition] = 0
+            self.blueFigures[chosenFigure][2][newFigurePosition] = 1
+            print(self.blueFigures[chosenFigure][2])
 
-        distance = figure.move - figure.load
-        obstacles = self.board.getObstacleSet()
-
-        for f in self.figures[RED]:
-            obstacles.add(f.position)
-        for f in self.figures[BLUE]:
-            obstacles.add(f.position)
-
-        """
-        # TODO: add movement enhanced on roads
-        max_distance = distance
-        if (figure.kind == FigureType.INFANTRY):
-            max_distance += 1
-        elif (figure.kind == FigureType.VEHICLE):
-            max_distance += 2
-        """
-
-        # TODO: move all cube functions to a single conversion point
-        movements = cube_reachable(figure.position, distance, obstacles)
-
-        return [Move(agent, figure, m) for m in movements]
-
-    def buildShoots(self, agent: str, figure: Figure):
-        """Returns a list of all the possible shooting actions that can be performed."""
-
-        tAgent = RED if agent == BLUE else BLUE
-        shoots = []
-
-        for target in self.figures[tAgent]:
-            los = cube_linedraw(figure.position, target.position)
-            if any({self.board.getHexagon(cube_to_hex(h)).terrain > Terrain.ROAD for h in los}):
-                continue
-
-            terrain = self.board.getHexagon(to_hex(target.position)).terrain
-
-            n = len(los)
-
-            for weapon in figure.weapons:
-                if weapon.canShoot() and weapon.max_range >= n:
-                    shoots.append(Shoot(agent, figure, target, weapon, terrain))
-
-        return shoots
-
-    def buildResponse(self, agent: str, figure: Figure):
-        """Returns a list of all possible response action that can be performed."""
-
-        responses = []
-
-        if figure.canRespond:
-            target = figure.attackedBy
-            los = cube_linedraw(figure.position, target.position)
-            if any({self.board.getHexagon(cube_to_hex(h)).terrain > Terrain.ROAD for h in los}):
-                return responses
-
-            terrain = self.board.getHexagon(to_hex(target.position)).terrain
-            n = len(los)
-
-            for weapon in figure.weapons:
-                if weapon.canShoot() and weapon.max_range >= n:
-                    responses.append(Respond(agent, figure, target, weapon, terrain))
-        return responses
-
-    def buildActionForFigure(self, agent: str, figure: Figure):
-        """Build all possible actions for the given figure."""
-        actions = []
-
-        for movement in self.buildMovements(agent, figure):
-            actions.append(movement)
-
-        for shoot in self.buildShoots(agent, figure):
-            actions.append(shoot)
-
-        for response in self.buildResponse(agent, figure):
-            actions.append(response)
-
-        return actions
-
-    def buildActions(self, agent: str):
-        """
-        Build a list with all the possible actions that can be executed by an agent
-        with the current status of the board.
-        """
-        actions = []
-
-        self.obstacles = self.board.getObstacleSet()
-
-        for figure in self.figures[agent]:
-            for action in self.buildActionForFigure(agent, figure):
-                actions.append(action)
-
-        return actions
-
-    def activate(self, action: Action):
-        """Apply the given action to the map."""
-        action.figure.activated = True
-
-        print(action)
-
-        if isinstance(action, DoNothing):
-            return
-
-        if isinstance(action, Move):
-            self.board.moveFigure(action.agent, action.figure.index, action.figure.position, action.destination)
-            action.figure.goto(action.destination)
-            action.figure.set_STAT(StatusType.IN_MOTION)
-
-        if isinstance(action, Shoot):  # Respond *is* a shoot action
-            f: Figure = action.figure
-            t: Figure = action.target
-            w: Weapon = action.weapon
-            o: Terrain = action.terrain
-
-            # TODO: curved weapons (mortar) have different hit computation
-
-            # consume ammunition
-            w.shoot()
-
-            score = np.random.choice(range(1, 21), size=w.dices)
-
-            # shoot/response
-            if isinstance(action, Respond):
-                ATK = w.atk_response
-                INT = f.get_INT_DEF(self.turn)
-            else:
-                ATK = w.atk_normal
-                INT = f.get_INT_ATK(self.turn)
-
-            # anti-tank rule
-            if w.antitank and t.kind == FigureType.VEHICLE:
-                DEF = 0
-            else:
-                DEF = t.defense['basic']
-
-            TER = o.protection_level
-            STAT = f.get_STAT().value
-            END = f.get_END(self.turn)
-
-            hitScore = hitScoreCalculator(ATK, TER, DEF, STAT, END, INT)
-
-            success = len([x for x in score if x <= hitScore])
-
-            # target status changes for the _next_ hit
-            t.set_STAT(StatusType.UNDER_FIRE)
-            # target can now respond to the fire
-            t.canRespond(f)
-
-            print(f'{action.agent}\tSHOOT {t}({o}) with {f} using {w} (({success}) {score}/{hitScore})')
-
-            if success > 0:
-                t.hp -= success
-                print(f'{action.agent}\tSHOOT {f} hit {w}')
-                # TODO: if zero, remove when update
-
-    def update(self):
-        """End turn function that updates the status of all figures and moves forward the internal turn ticker."""
-        self.turn += 1
-
-        for agent in [RED, BLUE]:
-            for figure in self.figures[agent]:
-                # TODO: compute there cutoff status?
-                figure.set_STAT(StatusType.NO_EFFECT)
-                figure.activated = False
-                figure.canRespond = False
-                figure.attackedBy = None
-                if figure.hp <= 0:
-                    figure.killed = True
-
-        # TODO: remove killed unit?
-
-    def whoWon(self) -> int:
-        """
-        Check whether either side has won the game and return the winner:
-            None = 0
-            RED = 1
-            BLUE = 2
-        """
-        # TODO: this should be something related to the scenario
-        goals = self.board.getGoals()
-
-        for agent in [RED, BLUE]:
-            for figure in self.figures[agent]:
-                if figure.position in goals:
-                    if agent == RED:
-                        return 1
-                    else:
-                        return 2
-
-        return 0
-
-    def hashValue(self) -> int:
-        """Encode the current state of the game (board positions) as an integer."""
-
-        # positive numbers are RED figures, negatives are BLUE figures
-        m = (self.board.figures[RED] + 1) - (self.board.figures[BLUE] + 1)
-
-        return hash(str(m))
+        done = False  # dummy
+        return done
