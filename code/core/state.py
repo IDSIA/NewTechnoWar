@@ -1,10 +1,9 @@
 import numpy as np
 
-from core import RED, BLUE, Terrain, hitScoreCalculator, TYPES_TERRAIN
+from core import RED, BLUE, Terrain, hitScoreCalculator
+from core.actions import Action, Move, Shoot, Respond, DoNothing
 from core.figures import Figure, Infantry, Tank, StatusType, FigureType
 from core.weapons import Weapon
-from core.actions import Action, Move, Shoot, Respond, DoNothing
-
 from utils.coordinates import Hex, Cube, cube_reachable, to_cube, to_hex, cube_to_hex, cube_linedraw
 
 
@@ -39,9 +38,10 @@ class Board:
         # self.roads = np.zeros(shape, dtype='uint8')
         self.geography = np.zeros(shape, dtype='uint8')
         self.objective = np.zeros(shape, dtype='uint8')
+        # convert to list of matrices, one for each figure
         self.figures = {
-            RED: np.full(shape, -1, dtype='int8'),
-            BLUE: np.full(shape, -1, dtype='int8'),
+            RED: np.zeros(shape, dtype='uint8'),
+            BLUE: np.zeros(shape, dtype='uint8'),
         }
 
         x, y = shape
@@ -64,7 +64,7 @@ class Board:
         return Hexagon(
             to_cube(pos),
             pos,
-            terrain=TYPES_TERRAIN[self.terrain[pos]],
+            terrain=self.terrain[pos],
             geography=self.geography[pos],
             objective=self.objective[pos] > 0,
             figure={
@@ -139,7 +139,10 @@ class StateOfTheBoard:
     # operations on figures (dynamic properties)
 
     def addFigure(self, agent: str, figure: Figure):
-        """Add a figures to the units of the given agent and it setup the index in the matric at the position of the figure."""
+        """
+        Add a figures to the units of the given agent and it setup the index
+        in the matrix at the position of the figure.
+        """
         figures = self.figures[agent]
         index = len(figures)  # to have 0-based index
 
@@ -182,9 +185,9 @@ class StateOfTheBoard:
         objective[4, 5] = 1
         self.addObjective(objective)
 
-        self.addFigure(RED, Infantry(position=(1, 1), name='rInf1'))
-        self.addFigure(RED, Tank(position=(1, 2), name='rTank1'))
-        self.addFigure(BLUE, Infantry(position=(3, 3), name='bInf1'))
+        self.addFigure(RED, Infantry(to_cube((1, 1)), name='rInf1'))
+        self.addFigure(RED, Tank(to_cube((1, 2)), name='rTank1'))
+        self.addFigure(BLUE, Infantry(to_cube((3, 3)), name='bInf1'))
 
     def activableFigures(self, agent: str):
         """Returns a list of figures that have not been activated."""
@@ -217,6 +220,7 @@ class StateOfTheBoard:
             max_distance += 2
         """
 
+        # TODO: move all cube functions to a single conversion point
         movements = cube_reachable(figure.position, distance, obstacles)
 
         return [Move(agent, figure, m) for m in movements]
@@ -237,7 +241,7 @@ class StateOfTheBoard:
             n = len(los)
 
             for weapon in figure.weapons:
-                if n <= weapon.max_range:
+                if weapon.canShoot() and weapon.max_range >= n:
                     shoots.append(Shoot(agent, figure, target, weapon, terrain))
 
         return shoots
@@ -257,7 +261,7 @@ class StateOfTheBoard:
             n = len(los)
 
             for weapon in figure.weapons:
-                if n <= weapon.max_range:
+                if weapon.canShoot() and weapon.max_range >= n:
                     responses.append(Respond(agent, figure, target, weapon, terrain))
         return responses
 
@@ -277,7 +281,10 @@ class StateOfTheBoard:
         return actions
 
     def buildActions(self, agent: str):
-        """Build a list with all the possible actions that can be executed by an agent with the current status of the board."""
+        """
+        Build a list with all the possible actions that can be executed by an agent
+        with the current status of the board.
+        """
         actions = []
 
         self.obstacles = self.board.getObstacleSet()
@@ -309,6 +316,9 @@ class StateOfTheBoard:
             o: Terrain = action.terrain
 
             # TODO: curved weapons (mortar) have different hit computation
+
+            # consume ammunition
+            w.shoot()
 
             score = np.random.choice(range(1, 21), size=w.dices)
 

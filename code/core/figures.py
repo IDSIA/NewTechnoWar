@@ -1,7 +1,8 @@
 """
 This module defines the available figuresadn their rules.
 """
-from core.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, SniperRifle
+from core.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, SniperRifle, \
+    INFINITE
 from core import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, TOTAL_TURNS
 from utils.coordinates import Cube, to_cube
 
@@ -33,6 +34,8 @@ class StatusType:
 
 class Figure:
     """Describe the actions and properties of a Unit."""
+
+    # TODO: conversion to status array, position is a matrix of zeros
 
     def __init__(self, position: Cube, name: str, kind: int = FigureType.INFANTRY):
         self.name: str = name
@@ -103,7 +106,7 @@ class Tank(Figure):
 
         self.defense = {'basic': 5, 'armored': 18}
         self.equipment = [
-            MachineGun(2e9),
+            MachineGun(INFINITE, 1),
             Cannon(8),
             SmokeGrenade(2)
         ]
@@ -120,7 +123,7 @@ class APC(Figure):
 
         self.defense = {'basic': 5, 'armored': 18},
         self.equipment = [
-            MachineGun(2e9),
+            MachineGun(INFINITE, 1),
             SmokeGrenade(2)
         ]
 
@@ -136,8 +139,8 @@ class Infantry(Figure):
 
         self.defense = {'basic': 1}
         self.equipment = [
-            AssaultRifle(2e9),
-            MachineGun(5, 4),
+            AssaultRifle(INFINITE),
+            MachineGun(5),
             AntiTank(4),
             Mortar(2),
             Grenade(2)
@@ -147,7 +150,8 @@ class Infantry(Figure):
 class Exoskeleton(Infantry):
     """
         3 exoskeleton
-        The exoskeleton is a device worn by soldiers to enhance their physical strength, endurance and ability to carry heavy loads.
+        The exoskeleton is a device worn by soldiers to enhance their physical strength,
+        endurance and ability to carry heavy loads.
     """
 
     def __init__(self, position: Cube, name: str = 'Exoskeleton'):
@@ -158,9 +162,9 @@ class Exoskeleton(Infantry):
 
         self.defense = {'basic': 1}
         self.equipment = [
-            AssaultRifle(2e9),
+            AssaultRifle(INFINITE),
             MachineGun(2),
-            AntiTank(3),
+            AntiTank(4),
             Mortar(5),
             Grenade(2)
         ]
@@ -180,7 +184,7 @@ class Sniper(Infantry):
         self.hp = 4  # TODO: it is single?
 
         self.equipment = [
-            SniperRifle(2e9)
+            SniperRifle(INFINITE)
         ]
 
     def get_STAT(self):
