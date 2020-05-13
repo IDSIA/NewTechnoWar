@@ -39,11 +39,14 @@ class StateOfTheBoard:
         self.redFigures = []
         self.blueFigures = []
 
-    def isLegalAction(self, newFigurePosition):
+    def isLegalMove(self, newFigurePosition):
         #check if position is still in the board
         condition1 =  not (newFigurePosition[0] < 0 or newFigurePosition[0] >= self.shape[0])
         condition2 = not (newFigurePosition[1] < 0 or newFigurePosition[1] >= self.shape[1])
         return condition1 and condition2
+    
+    def isLegalAttack(self, newFigurePosition):
+        return True
         
     def addObstacle(self, obstacles: np.array):
         self.board['obstacles'] = obstacles
@@ -94,16 +97,19 @@ class StateOfTheBoard:
     def redStep(self, chosenFigure, chosenAttackOrMove, chosenAction):
         
         #move the chosen figure, chosenAttackOrMove isnt implemented yet, does have no effect at the momment
-        oldFigurePosition = self.redFigures[chosenFigure][1]
-        newFigurePosition = (oldFigurePosition[0] + self.actionMovesDict[chosenAction][0],
+        if(chosenAttackOrMove==1): #this is a move
+            oldFigurePosition = self.redFigures[chosenFigure][1]
+            newFigurePosition = (oldFigurePosition[0] + self.actionMovesDict[chosenAction][0],
                     oldFigurePosition[1] + self.actionMovesDict[chosenAction][1])
-        if(self.isLegalAction(newFigurePosition)):
-            # store things
-            self.redFigures[chosenFigure][1] = newFigurePosition
-            self.redFigures[chosenFigure][2][oldFigurePosition] = 0
-            self.redFigures[chosenFigure][2][newFigurePosition] = 1
-            print(self.redFigures[chosenFigure][2])
-
+            if(self.isLegalMove(newFigurePosition)):
+                # store things
+                self.redFigures[chosenFigure][1] = newFigurePosition
+                self.redFigures[chosenFigure][2][oldFigurePosition] = 0
+                self.redFigures[chosenFigure][2][newFigurePosition] = 1
+                print(self.redFigures[chosenFigure][2])
+        if(chosenAttackOrMove==0): #this is an attack
+            if(self.isLegalAttack(newFigurePosition)):
+                print('dummy')
         done = False  # dummy
         return done
 
