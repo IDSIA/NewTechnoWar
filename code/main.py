@@ -51,6 +51,7 @@ if __name__ == "__main__":
         __ = stateOfTheBoard.step(BLUE, blueChosenFigure.item(), blueChosenAttackOrMove.item(), blueChosenAction.item())
 
         print(stateOfTheBoard)
+        stateOfTheBoard.update()
 
         if steps_done == TOTAL_STEPS:
             done = True

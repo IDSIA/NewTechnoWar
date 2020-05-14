@@ -1,6 +1,6 @@
 import numpy as np
 
-from core import RED, BLUE, ACTION_MOVE, ACTION_ATTACK
+from core import RED, BLUE, ACTION_MOVE, ACTION_ATTACK, TOTAL_TURNS
 from utils.coordinates import hex_movement, Hex, hex_linedraw, to_hex
 
 
@@ -13,6 +13,7 @@ class StateOfTheBoard:
 
     def __init__(self, shape: tuple):
         self.shape = shape
+        self.turn = 0
 
         # this dictionary should contain ALL POSSIBLE moves,
         # so more moves have to be added here in appropriate representation
@@ -36,8 +37,6 @@ class StateOfTheBoard:
         # eg {0 : ['tank',(0,1), matrixWith1At (0,1)]}, {1:['infantry',....]}, ...
         # this is to ensure that we can access figures by integer key, which encodes a figure selection action
 
-        self.redFigures = []
-        self.blueFigures = []
         self.figures = {
             RED: [],
             BLUE: []
@@ -91,10 +90,10 @@ class StateOfTheBoard:
         tmp[position] = 1
         if team == RED:
             self.actionAttacks[BLUE].append(len(self.figures[RED]))
-            self.figures[RED].append([figureType, position, tmp])  # here we add more attributes
+            self.figures[RED].append([figureType, position, tmp, True])  # here we add more attributes
         else:
             self.actionAttacks[RED].append(len(self.figures[BLUE]))
-            self.figures[BLUE].append([figureType, position, tmp])  # here we add more attributes
+            self.figures[BLUE].append([figureType, position, tmp, True])  # here we add more attributes
 
     # sets up a specific scenario. reset to state of board to an initial state. Here this is just a dummy
     def resetScenario1(self):
@@ -151,26 +150,6 @@ class StateOfTheBoard:
         done = False  # dummy
         return done
 
-    def redStep(self, chosenFigure, chosenAttackOrMove, chosenAction):
-        return self.step(RED, chosenFigure, chosenAttackOrMove, chosenAction)
-
-    def blueStep(self, chosenFigure, chosenAttackOrMove, chosenAction):
-        # TODO: this function should be removed
-
-        # move the chosen figure, chosenAttackOrMove isnt implemented yet, does have no effect at the momment
-        oldFigurePosition = self.blueFigures[chosenFigure][1]
-        newFigurePosition = (oldFigurePosition[0] + self.actionMoves[chosenAction][0],
-                             oldFigurePosition[1] + self.actionMoves[chosenAction][1])
-        if self.isLegalAction(newFigurePosition):
-            # store things
-            self.blueFigures[chosenFigure][1] = newFigurePosition
-            self.blueFigures[chosenFigure][2][oldFigurePosition] = 0
-            self.blueFigures[chosenFigure][2][newFigurePosition] = 1
-            print(self.blueFigures[chosenFigure][2])
-
-        done = False  # dummy
-        return done
-
     def __repr__(self):
         board = np.zeros(self.shape, dtype="uint8")
 
@@ -183,3 +162,34 @@ class StateOfTheBoard:
         board += self.board['objective'] * 5
 
         return str(board).replace("0", ".").replace("8", "X").replace("5", "G")
+
+    def update(self):
+        self.turn += 1
+
+        for agent in [RED, BLUE]:
+            for figure in self.figures[agent]:
+                figure[3] = True
+
+    def whoWon(self):
+        objectives = self.board['objectives']
+
+        for figure in self.figures[RED]:
+            if objectives[figure[1]] > 0:
+                return RED
+
+        if self.turn >= TOTAL_TURNS:
+            return BLUE
+
+        return None
+
+    def hashValue(self) -> int:
+        """Encode the current state of the game (board positions) as an integer."""
+
+        # positive numbers are RED figures, negatives are BLUE figures
+        m = np.zeros(self.shape, dtype='uint8')
+        for agent in [RED, BLUE]:
+            c = 1 if agent is RED else 2
+            for figure in self.figures[agent]:
+                m += figure[2] * c
+
+        return hash(str(m))
