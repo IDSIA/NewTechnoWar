@@ -17,7 +17,7 @@ class StateOfTheBoard:
 
         # this dictionary should contain ALL POSSIBLE moves,
         # so more moves have to be added here in appropriate representation
-        self.actionMoves = hex_movement(Hex(0, 0), N=3)  # TODO: N is hardcoded, it should be based on figure type
+        self.actionMoves = hex_movement(Hex(0, 0), N=4)  # TODO: N is hardcoded, it should be based on figure type
         self.actionAttacks = {
             RED: [],
             BLUE: []
@@ -42,7 +42,7 @@ class StateOfTheBoard:
             BLUE: []
         }
 
-    def isLegalMove(self, newFigurePosition):
+    def isLegalMove(self, oldFigurePosition, newFigurePosition):
         # check if position is still in the board
         conditions1 = 0 <= newFigurePosition[0] < self.shape[0]
         conditions2 = 0 <= newFigurePosition[1] < self.shape[1]
@@ -50,8 +50,16 @@ class StateOfTheBoard:
         if not (conditions1 and conditions2):
             return False
 
+        # check for los on destination
+        los = hex_linedraw(to_hex(oldFigurePosition), to_hex(newFigurePosition))
+        for h in los:
+            if self.board['obstacles'][h] > 0:
+                print(f"{newFigurePosition} hidden from {oldFigurePosition} ")
+                return False
+
         # check if position is an obstacle
         c1 = self.board['obstacles'][newFigurePosition] > 0
+
         # check if position is occupied by a figure
         c2 = any([newFigurePosition == f[1] for f in self.figures[RED]])
         c3 = any([newFigurePosition == f[1] for f in self.figures[BLUE]])
@@ -129,7 +137,7 @@ class StateOfTheBoard:
             newFigurePosition = (oldFigurePosition[0] + self.actionMoves[chosenAction][0],
                                  oldFigurePosition[1] + self.actionMoves[chosenAction][1])
 
-            if self.isLegalMove(newFigurePosition):
+            if self.isLegalMove(oldFigurePosition, newFigurePosition):
                 # store things
                 figure[1] = newFigurePosition
                 figure[2][oldFigurePosition] = 0
