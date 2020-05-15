@@ -130,7 +130,10 @@ def cube_lerp(a: Cube, b: Cube, t: float):  # for hexes
 def cube_linedraw(a: Cube, b: Cube):
     n = cube_distance(a, b)
 
-    eps = Cube(1e-6, 2e-6, 3e-6)
+    if n == 0:
+        return [a]
+
+    eps = Cube(3e-6, 2e-6, 1e-6)
 
     A = cube_add(a, eps)
     B = cube_add(b, eps)
