@@ -3,8 +3,6 @@ This module contains a description of all weapons and their rules.
 """
 
 # This is just a large number that can be considered an infinite amount of something
-from core.figures import Figure, FigureType
-
 INFINITE = 2000000000
 
 
@@ -33,14 +31,6 @@ class Weapon:
     def hasAmmo(self):
         return self.ammo > 0
 
-    def validTarget(self, target: Figure):
-        # TODO: verify this rule: can I use anti-tank against non-vehicles?
-        if self.antitank:
-            # can shoot only against vehicles
-            return target.kind == FigureType.VEHICLE
-        # can shoot against infantry and others only
-        return target.kind < FigureType.VEHICLE
-
     def isAvailable(self):
         return not self.no_effect
 
@@ -49,15 +39,6 @@ class Weapon:
 
     def disable(self):
         self.no_effect = True
-
-    def canShoot(self, target: Figure, n: int, nObstacles: int):
-        canHit = self.curved or nObstacles == 0
-        hasAmmo = self.hasAmmo()
-        available = self.isAvailable()
-        isInRange = self.max_range >= n
-        validTarget = self.validTarget(target)
-
-        return all([canHit, hasAmmo, available, isInRange, validTarget])
 
 
 class Cannon(Weapon):

@@ -38,10 +38,10 @@ def scenarioTestBench():
     gm = GameManager(shape)
 
     terrain = np.zeros(shape, dtype='uint8')
-    terrain[4, 3:7] = Terrain.CONCRETE_BUILDING
-    terrain[5:7, 3] = Terrain.CONCRETE_BUILDING
     terrain[0, :] = Terrain.ROAD
     terrain[:, 4] = Terrain.ROAD
+    terrain[4, 3:7] = Terrain.CONCRETE_BUILDING
+    terrain[5:7, 3] = Terrain.CONCRETE_BUILDING
     gm.addTerrain(terrain)
 
     objective = np.zeros(shape, dtype='uint8')

@@ -1,17 +1,15 @@
 # %% imports
 
 import matplotlib.pyplot as plt
-import numpy as np
 
-from core import RED, BLUE, Terrain
+from core import RED, BLUE
 from core.agents import Agent, Parameters
-from core.figures import Infantry, Tank
-from core.game.__init__ import GameManager
 from core.game.scenarios import scenarioTestBench
 from utils.coordinates import cube_distance, cube_linedraw, to_cube, cube_to_hex
 from utils.drawing import draw_state, draw_show, draw_lines
 
 # %% initialization
+from utils.pathfinding import findPath
 
 plt.rcParams['figure.dpi'] = 250
 
@@ -28,13 +26,12 @@ blueAgent = Agent(1, blueParameters)
 
 board = scenarioTestBench()
 
-# %% draw initial setup
-draw_show(*draw_state(board))
-
-# %% select tanks
-
 redTank = board.getFigureByPos(RED, (0, 2))
 blueTank = board.getFigureByPos(BLUE, (7, 6))
+
+# %% draw initial setup
+fig, ax = draw_state(board)
+draw_show(fig, ax)
 
 # %% compute distance between tanks
 
@@ -72,11 +69,9 @@ s = shoots[0]
 
 print(BLUE, 'shoots', s.figure.name, 'against', s.target.name, 'with', s.weapon.name)
 
-
 # %%
 
 board.hashValue()
-
 
 # %%
 
@@ -86,7 +81,6 @@ board.whoWon()
 
 blueTank.goto(to_cube((5, 5)))
 board.whoWon()
-
 
 # %%
 
@@ -105,6 +99,11 @@ borders = [
     (2, 9, 8, 9),
     (1, 0, 8, 0),
     (2, 0, 8, 0),
+
+    (8, 9, 2, 9),
+    (8, 9, 2, 9),
+    (8, 0, 1, 0),
+    (8, 0, 2, 0),
 ]
 
 for sx, sy, ex, ey in borders:
@@ -113,3 +112,12 @@ for sx, sy, ex, ey in borders:
     fig, ax = draw_state(board)
     ax = draw_lines(ax, line)
     draw_show(fig, ax)
+
+# %%
+
+path = findPath(redTank.position, blueTank.position, board.board)
+
+# %%
+fig, ax = draw_state(board)
+ax = draw_lines(ax, path)
+draw_show(fig, ax)

@@ -244,7 +244,7 @@ class Sniper(Infantry):
     def __init__(self, position: Cube, name: str = 'Sniper'):
         super().__init__(position, name)
         self.move = 0
-        self.hp = 4  # TODO: it is single?
+        self.hp = 4
 
         self.equipment = [
             SniperRifle(INFINITE)

@@ -3,95 +3,14 @@ import numpy as np
 from core import RED, BLUE, Terrain, hitScoreCalculator
 from core.actions import Action, Move, Shoot, Respond, DoNothing
 from core.figures import Figure, StatusType, FigureType, missMatrixRed, missMatrixBlue
+from core.game.board import GameBoard
 from core.weapons import Weapon
-from utils.coordinates import Hex, Cube, cube_reachable, to_cube, to_hex, cube_to_hex, cube_linedraw
+from utils.coordinates import cube_reachable, to_hex, cube_to_hex, cube_linedraw
 
 MISS_MATRIX = {
     RED: missMatrixRed,
     BLUE: missMatrixBlue
 }
-
-
-class Hexagon:
-    """
-    Description of a single Hexagon.
-    """
-
-    def __init__(self, hex: Hex, pos: tuple, terrain, geography, objective, figure):
-        self.hex = hex
-        self.pos = pos
-        self.terrain = terrain
-        self.geography = geography
-        self.objective = objective > 0
-        self.figure = figure
-
-    def isObstructed(self):
-        return self.terrain > Terrain.ROAD
-
-
-class GameBoard:
-    """
-    Static parts of the board.
-    """
-
-    def __init__(self, shape: tuple):
-        self.shape = shape
-
-        # matrices filled with -1 so we can use 0-based as index
-        # self.obstacles = np.zeros(shape, dtype='uint8')
-        self.terrain = np.zeros(shape, dtype='int8')
-        # self.roads = np.zeros(shape, dtype='uint8')
-        self.geography = np.zeros(shape, dtype='uint8')
-        self.objective = np.zeros(shape, dtype='uint8')
-        # convert to list of matrices, one for each figure
-        self.figures = {
-            RED: np.zeros(shape, dtype='uint8'),
-            BLUE: np.zeros(shape, dtype='uint8'),
-        }
-
-        x, y = shape
-
-        self.limits = \
-            [to_cube((q, -1)) for q in range(-1, y + 1)] + \
-            [to_cube((q, y)) for q in range(-1, y + 1)] + \
-            [to_cube((-1, r)) for r in range(0, y)] + \
-            [to_cube((x, r)) for r in range(0, y)]
-
-    def moveFigure(self, agent: str, index: int, curr: Cube = None, dst: Cube = None):
-        """Moves a figure from current position to another destination."""
-        if curr:
-            self.figures[agent][cube_to_hex(curr)] = -1
-        if dst:
-            self.figures[agent][cube_to_hex(dst)] = index
-
-    def getHexagon(self, pos: tuple):
-        """Return the Hexagon descriptor object at the given position."""
-        return Hexagon(
-            to_cube(pos),
-            pos,
-            terrain=self.terrain[pos],
-            geography=self.geography[pos],
-            objective=self.objective[pos] > 0,
-            figure={
-                RED: self.figures[RED][pos],
-                BLUE: self.figures[BLUE][pos]
-            })
-
-    def getObstacleSet(self) -> set:
-        """
-        Returns a set of all obstacles. Obstacls are considered:
-            - limit of the map
-            - obstacles added to the map
-        """
-        obs = np.argwhere(self.terrain > Terrain.ROAD)
-        s = set(map(to_cube, obs))
-        s.update(self.limits)
-        return s
-
-    def getGoals(self):
-        """Returns the position marked as goals"""
-        goals = np.argwhere(self.objective > 0)
-        return set(map(to_cube, goals))
 
 
 class GameManager:
@@ -169,6 +88,22 @@ class GameManager:
         """Returns True if there are still figures that can be activated."""
         return len(self.activableFigures(agent)) > 0
 
+    def canShoot(self, weapon: Weapon, target: Figure, n: int, nObstacles: int):
+        canHit = weapon.curved or nObstacles == 0
+        hasAmmo = weapon.hasAmmo()
+        available = weapon.isAvailable()
+        isInRange = weapon.max_range >= n
+
+        # TODO: verify that I can use anti-tank against non-vehicles
+        if weapon.antitank:
+            # can shoot only against vehicles
+            validTarget = target.kind == FigureType.VEHICLE
+        else:
+            # can shoot against infantry and others only
+            validTarget = target.kind < FigureType.VEHICLE
+
+        return all([canHit, hasAmmo, available, isInRange, validTarget])
+
     def buildMovements(self, agent: str, figure: Figure):
         """Build all the movement actions for a figure. All the other units are considered as obstacles."""
 
@@ -180,14 +115,7 @@ class GameManager:
         for f in self.figures[BLUE]:
             obstacles.add(f.position)
 
-        """
         # TODO: add movement enhanced on roads
-        max_distance = distance
-        if (figure.kind == FigureType.INFANTRY):
-            max_distance += 1
-        elif (figure.kind == FigureType.VEHICLE):
-            max_distance += 2
-        """
 
         # TODO: move all cube functions to a single conversion point
         movements = cube_reachable(figure.position, distance, obstacles)
@@ -209,7 +137,7 @@ class GameManager:
             n = len(los)
 
             for weapon in figure.weapons:
-                if weapon.canShoot(target, n, nObstacles):
+                if self.canShoot(weapon, target, n, nObstacles):
                     shoots.append(Shoot(agent, figure, target, weapon, terrain, los))
 
         return shoots

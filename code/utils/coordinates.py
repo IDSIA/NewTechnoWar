@@ -22,7 +22,7 @@ def hex_to_cube(hex: Hex):
     """Converts offset to cube coordinate system"""
     x = hex.q
     z = hex.r - (hex.q + (hex.q % 2)) // 2
-    y = -x-z
+    y = -x - z
     return Cube(x, y, z)
 
 
@@ -81,12 +81,8 @@ cube_directions = [
 ]
 
 
-def cube_direction(direction):
-    return cube_directions[direction]
-
-
-def cube_neighbor(cube, direction):
-    return cube_add(cube, cube_direction(direction))
+def cube_neighbor(cube: Cube) -> list:
+    return [cube_add(cube, direction) for direction in cube_directions]
 
 
 hex_directions = [
@@ -95,10 +91,9 @@ hex_directions = [
 ]
 
 
-def hex_neighbor(hex: Hex, direction):
+def hex_neighbor(hex: Hex) -> list:
     parity = hex.q % 2
-    d = hex_directions[parity][direction]
-    return hex_add(hex, d)
+    return [hex_add(hex, direction) for direction in hex_directions[parity]]
 
 
 # Distances
@@ -154,9 +149,9 @@ def hex_linedraw(a: Hex, b: Hex):
 
 def cube_movement(center: Cube, N: int):
     results = []
-    for x in range(-N, N+1):
-        for y in range(max(-N, -x-N), min(N, -x+N) + 1):
-            z = -x-y
+    for x in range(-N, N + 1):
+        for y in range(max(-N, -x - N), min(N, -x + N) + 1):
+            z = -x - y
             results.append(cube_add(center, Cube(x, y, z)))
     return results
 
@@ -174,13 +169,12 @@ def cube_reachable(start: Cube, movement, obstacles: set):
 
     fringes = [[start]]  # array of array of hexes
 
-    for k in range(2, movement+2):
+    for k in range(2, movement + 2):
         fringes.append([])
-        for hex in fringes[k-2]:
-            for dir in range(0, 6):
-                neighbor = cube_neighbor(hex, dir)
+        for hex in fringes[k - 2]:
+            for neighbor in cube_neighbor(hex):
                 if neighbor not in visited and neighbor not in obstacles:
                     visited.add(neighbor)
-                    fringes[k-1].append(neighbor)
+                    fringes[k - 1].append(neighbor)
 
     return visited
