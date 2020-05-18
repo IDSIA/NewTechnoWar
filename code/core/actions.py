@@ -36,11 +36,12 @@ class Move(Action):
 class Shoot(Action):
     """Action to shoot at another Figure."""
 
-    def __init__(self, agent: str, figure: Figure, target: Figure, weapon: Weapon, terrain: Terrain):
+    def __init__(self, agent: str, figure: Figure, target: Figure, weapon: Weapon, terrain: Terrain, los: list):
         super().__init__(agent, figure)
         self.target = target
         self.weapon = weapon
         self.terrain = terrain
+        self.los = los
 
     def __repr__(self):
         return f'{self.agent}\t{self.figure.name}\tShoot at {self.target} with {self.weapon}'
@@ -49,8 +50,8 @@ class Shoot(Action):
 class Respond(Shoot):
     """Similar to Shoot, but created only after a Shoot Action."""
 
-    def __init__(self, agent: str, figure: Figure, target: Figure, weapon: Weapon, terrain: Terrain):
-        super().__init__(agent, figure, target, weapon, terrain)
+    def __init__(self, agent: str, figure: Figure, target: Figure, weapon: Weapon, terrain: Terrain, los: list):
+        super().__init__(agent, figure, target, weapon, terrain, los)
 
     def __repr__(self):
         return f'{self.agent}\t{self.figure.name}\tRespond to {self.target} with {self.weapon}'

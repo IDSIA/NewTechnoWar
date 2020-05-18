@@ -2,7 +2,7 @@ import numpy as np
 
 from core import RED, BLUE, Terrain, hitScoreCalculator
 from core.actions import Action, Move, Shoot, Respond, DoNothing
-from core.figures import Figure, Infantry, Tank, StatusType, FigureType
+from core.figures import Figure, StatusType, FigureType
 from core.weapons import Weapon
 from utils.coordinates import Hex, Cube, cube_reachable, to_cube, to_hex, cube_to_hex, cube_linedraw
 
@@ -24,7 +24,7 @@ class Hexagon:
         return self.terrain > Terrain.ROAD
 
 
-class Board:
+class GameBoard:
     """
     Static parts of the board.
     """
@@ -89,7 +89,7 @@ class Board:
         return set(map(to_cube, goals))
 
 
-class StateOfTheBoard:
+class GameManager:
     """
     State of the board of the game.
     """
@@ -98,7 +98,7 @@ class StateOfTheBoard:
         self.shape = shape
 
         # static properties of the board
-        self.board = Board(shape)
+        self.board = GameBoard(shape)
         self.obstacles = set()
 
         # support set
@@ -112,10 +112,6 @@ class StateOfTheBoard:
 
     # operations on board layout (static properties)
 
-    # def addObstacle(self, obstacles: np.array):
-        # """Sum an obstacle matrix to the current board"""
-        # self.board.obstacles += obstacles
-
     def addTerrain(self, terrain: np.array):
         """
         Sum a terrain matrix to the current board.
@@ -123,10 +119,6 @@ class StateOfTheBoard:
         Default '0' is 'open ground'.
         """
         self.board.terrain += terrain
-
-    # def addRoads(self, roads: np.array):
-        # """Sum a road matrix to the current board"""
-        # self.board.roads += roads
 
     def addGeography(self, geography: np.array):
         """Sum a geography matrix to the current board"""
@@ -160,34 +152,6 @@ class StateOfTheBoard:
         return self.getFigureByIndex(agent, index)
 
     # other operations
-
-    def resetScenario1(self):
-        """
-        Sets up a specific scenario. reset to state of board to an initial state.
-        Here this is just a dummy.
-        """
-        # TODO: make StateOfTheBoard abstract, with "reset" method abstract and implement it in a new class
-
-        # obstacles = np.zeros(self.shape, dtype='uint8')
-        # obstacles[(4, 4)] = 1
-        # self.addObstacle(obstacles)
-
-        # roads = np.zeros(self.shape, dtype='uint8')
-        # roads[0, :] = 1
-        # self.addRoads(roads)
-
-        terrain = np.zeros(self.shape, dtype='uint8')
-        terrain[(4, 4)] = 1
-        terrain[0, :] = Terrain.ROAD
-        self.addTerrain(terrain)
-
-        objective = np.zeros(self.shape, dtype='uint8')
-        objective[4, 5] = 1
-        self.addObjective(objective)
-
-        self.addFigure(RED, Infantry(to_cube((1, 1)), name='rInf1'))
-        self.addFigure(RED, Tank(to_cube((1, 2)), name='rTank1'))
-        self.addFigure(BLUE, Infantry(to_cube((3, 3)), name='bInf1'))
 
     def activableFigures(self, agent: str):
         """Returns a list of figures that have not been activated."""
@@ -237,16 +201,15 @@ class StateOfTheBoard:
                 continue
 
             terrain = self.board.getHexagon(to_hex(target.position)).terrain
-
             n = len(los)
 
             for weapon in figure.weapons:
-                if weapon.canShoot() and weapon.max_range >= n:
-                    shoots.append(Shoot(agent, figure, target, weapon, terrain))
+                if weapon.canShoot(target, n):
+                    shoots.append(Shoot(agent, figure, target, weapon, terrain, los))
 
         return shoots
 
-    def buildResponse(self, agent: str, figure: Figure):
+    def buildResponses(self, agent: str, figure: Figure):
         """Returns a list of all possible response action that can be performed."""
 
         responses = []
@@ -261,8 +224,8 @@ class StateOfTheBoard:
             n = len(los)
 
             for weapon in figure.weapons:
-                if weapon.canShoot() and weapon.max_range >= n:
-                    responses.append(Respond(agent, figure, target, weapon, terrain))
+                if weapon.canShoot(target, n):
+                    responses.append(Respond(agent, figure, target, weapon, terrain, los))
         return responses
 
     def buildActionForFigure(self, agent: str, figure: Figure):
@@ -275,7 +238,7 @@ class StateOfTheBoard:
         for shoot in self.buildShoots(agent, figure):
             actions.append(shoot)
 
-        for response in self.buildResponse(agent, figure):
+        for response in self.buildResponses(agent, figure):
             actions.append(response)
 
         return actions
@@ -314,6 +277,7 @@ class StateOfTheBoard:
             t: Figure = action.target
             w: Weapon = action.weapon
             o: Terrain = action.terrain
+            los: list = action.los
 
             # TODO: curved weapons (mortar) have different hit computation
 
@@ -329,6 +293,10 @@ class StateOfTheBoard:
             else:
                 ATK = w.atk_normal
                 INT = f.get_INT_ATK(self.turn)
+
+            # TODO: smoke rule:
+            #       if you fire against a panzer, and during the line of sight, you meet a smoke hexagon (not only on
+            #       the hexagon where the panzer is), this smoke protection is used, and not the basis one.
 
             # anti-tank rule
             if w.antitank and t.kind == FigureType.VEHICLE:
@@ -354,6 +322,7 @@ class StateOfTheBoard:
             if success > 0:
                 t.hp -= success
                 print(f'{action.agent}\tSHOOT {f} hit {w}')
+                # TODO: choose which weapon to disable
                 # TODO: if zero, remove when update
 
     def update(self):
@@ -365,7 +334,7 @@ class StateOfTheBoard:
                 # TODO: compute there cutoff status?
                 figure.set_STAT(StatusType.NO_EFFECT)
                 figure.activated = False
-                figure.canRespond = False
+                figure.responded = False
                 figure.attackedBy = None
                 if figure.hp <= 0:
                     figure.killed = True

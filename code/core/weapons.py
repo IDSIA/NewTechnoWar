@@ -3,6 +3,8 @@ This module contains a description of all weapons and their rules.
 """
 
 # This is just a large number that can be considered an infinite amount of something
+from core.figures import Figure, FigureType
+
 INFINITE = 2000000000
 
 
@@ -11,7 +13,8 @@ class Weapon:
     Generic class for weapons mechanics.
     """
 
-    def __init__(self, _id: str, name: str, max_range: int, atk_normal: int, atk_response: int, ammo: int, dices: int, curved: bool = False, damage: int = 1, antitank: bool = False):
+    def __init__(self, _id: str, name: str, max_range: int, atk_normal: int, atk_response: int, ammo: int, dices: int,
+                 curved: bool = False, damage: int = 1, antitank: bool = False):
         self._id = _id
         self.name = name
         self.max_range = max_range
@@ -22,15 +25,38 @@ class Weapon:
         self.curved = curved
         self.damage = damage
         self.antitank = antitank
+        self.no_effect = False
 
     def __repr__(self):
         return self.name
 
-    def canShoot(self):
+    def hasAmmo(self):
         return self.ammo > 0
+
+    def validTarget(self, target: Figure):
+        # TODO: verify this rule: can I use anti-tank against non-vehicles?
+        if self.antitank:
+            # can shoot only against vehicles
+            return target.kind == FigureType.VEHICLE
+        # can shoot against infantry and others only
+        return target.kind < FigureType.VEHICLE
+
+    def isAvailable(self):
+        return not self.no_effect
 
     def shoot(self):
         self.ammo -= 1
+
+    def disable(self):
+        self.no_effect = True
+
+    def canShoot(self, target: Figure, n: int):
+        hasAmmo = self.hasAmmo()
+        available = self.isAvailable()
+        isInRange = self.max_range >= n
+        validTarget = self.validTarget(target)
+
+        return all([hasAmmo, available, isInRange, validTarget])
 
 
 class Cannon(Weapon):
@@ -50,7 +76,7 @@ class AssaultRifle(Weapon):
 class MachineGun(Weapon):
     """Tank and infantry weapon"""
 
-    def __init__(self, ammo=5, dices_to_roll=4):
+    def __init__(self, ammo=5, dices_to_roll=1):
         super().__init__('MG', 'Machine gun', 24, 8, 4, ammo, dices_to_roll)
 
 
@@ -85,5 +111,5 @@ class SmokeGrenade(Weapon):
 class SniperRifle(Weapon):
     """Infantry weapon, special case of Assault Rifle"""
 
-    def __init__(self, ammo=INFINITE, dices_to_roll=4):
+    def __init__(self, ammo=INFINITE, dices_to_roll=1):
         super().__init__('SR', 'Sniper Rifle', 10, 6, 3, ammo, dices_to_roll)

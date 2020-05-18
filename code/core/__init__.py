@@ -20,7 +20,7 @@ class Terrain:
     OPEN_GROUND = 0
     ROAD = 1
     ISOLATED_TREE = 2
-    # TODO: how to model 'edge of the forest'?
+    # TODO: how to model 'edge of the forest'? This should be something that gives no cover but protection only
     FOREST = 3
     WOODEN_BUILDING = 4
     CONCRETE_BUILDING = 5
@@ -49,4 +49,7 @@ def hitScoreCalculator(
         endurance: int,
         intelligence: int
 ):
+    # TODO: meaning of the "+/-" symbol
+    #       if your opponent is moving, it is harder to hit him -> -END
+    #       if you are in a better position (higher) than you opponent, it is easier to hit him -> +END
     return attack - terrain - defense + status + endurance + intelligence

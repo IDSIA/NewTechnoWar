@@ -10,10 +10,10 @@ from utils.coordinates import Cube, to_cube
 
 
 class FigureType:
-    """Defines the possible states of a Figure"""
+    """Defines the possible types of a Figure"""
     OTHER = 0
-    VEHICLE = 1
-    INFANTRY = 2
+    INFANTRY = 1
+    VEHICLE = 2
 
 
 class FigureStatus:
@@ -32,6 +32,7 @@ class StatusType:
     CUT_OFF = FigureStatus('Cut off', 3)  # no friendly troop within 4 hexagons
 
 
+# TODO: this should be a UNIT
 class Figure:
     """Describe the actions and properties of a Unit."""
 
@@ -62,7 +63,7 @@ class Figure:
             self.position: Cube = to_cube(position)
 
         self.activated: bool = False
-        self.respondable: bool = False
+        self.responded: bool = False
         self.killed: bool = False
 
         self.attackedBy = None
@@ -88,7 +89,7 @@ class Figure:
         self.position = destination
 
     def canRespond(self, attacker):
-        self.respondable = True
+        self.responded = True
         self.attackedBy = attacker
 
     def __repr__(self):
@@ -104,9 +105,9 @@ class Tank(Figure):
         self.load = 1
         self.hp = 1
 
-        self.defense = {'basic': 5, 'armored': 18}
+        self.defense = {'basic': 5, 'smoke': 18}
         self.equipment = [
-            MachineGun(INFINITE, 1),
+            MachineGun(INFINITE),
             Cannon(8),
             SmokeGrenade(2)
         ]
@@ -121,9 +122,9 @@ class APC(Figure):
         self.load = 1
         self.hp = 1
 
-        self.defense = {'basic': 5, 'armored': 18},
+        self.defense = {'basic': 5, 'smoke': 18},
         self.equipment = [
-            MachineGun(INFINITE, 1),
+            MachineGun(INFINITE),
             SmokeGrenade(2)
         ]
 

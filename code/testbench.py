@@ -6,7 +6,7 @@ import numpy as np
 from core import RED, BLUE, Terrain
 from core.agents import Agent, Parameters
 from core.figures import Infantry, Tank
-from core.game import StateOfTheBoard
+from core.game.__init__ import GameManager
 from utils.coordinates import cube_distance, cube_linedraw, to_cube, cube_to_hex
 from utils.drawing import draw_state, draw_show, draw_lines
 
@@ -25,7 +25,7 @@ blueAgent = Agent(1, blueParameters)
 
 # %% board setup
 
-board = StateOfTheBoard(shape)
+board = GameManager(shape)
 
 terrain = np.zeros(shape, dtype='uint8')
 terrain[4, 3:7] = Terrain.CONCRETE_BUILDING
@@ -105,3 +105,27 @@ board.whoWon()
 
 
 # %%
+
+borders = [
+    (0, 0, 0, 9),
+    (0, 9, 9, 9),
+    (9, 9, 9, 0),
+    (9, 0, 0, 0),
+
+    (1, 0, 8, 0),
+    (9, 1, 9, 8),
+    (1, 9, 8, 9),
+    (0, 8, 0, 1),
+
+    (2, 9, 8, 9),
+    (2, 9, 8, 9),
+    (1, 0, 8, 0),
+    (2, 0, 8, 0),
+]
+
+for sx, sy, ex, ey in borders:
+    line = cube_linedraw(to_cube((sx, sy)), to_cube((ex, ey)))
+
+    fig, ax = draw_state(board)
+    ax = draw_lines(ax, line)
+    draw_show(fig, ax)
