@@ -6,7 +6,69 @@ from core.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mo
 from core import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, TOTAL_TURNS
 from utils.coordinates import Cube, to_cube
 
-# TODO: miss matrix
+
+def missMatrixRed(v: int) -> Cube:
+    # range 2
+    if v in [1, 3, 6, 12, 20]:
+        return Cube(+2, -2, +0)
+    if v in [2, 7, 13]:
+        return Cube(+2, +0, -2)
+    if v in [4, 5, 11]:
+        return Cube(+0, -2, +2)
+    if v == 8:
+        return Cube(+0, +2, -2)
+    if v == 9:
+        return Cube(-2, +2, +0)
+    if v == 10:
+        return Cube(-2, +0, +2)
+    # range 1
+    if v == 14:
+        return Cube(+0, +1, -1)
+    if v == 15:
+        return Cube(-1, +1, +0)
+    if v == 16:
+        return Cube(-1, +0, +1)
+    if v == 17:
+        return Cube(+0, -1, +1)
+    if v == 18:
+        return Cube(+1, -1, +0)
+    if v == 19:
+        return Cube(+1, +0, -1)
+
+    # center
+    return Cube(+0, +0, +0)
+
+
+def missMatrixBlue(v: int) -> Cube:
+    # range 2
+    if v in [1, 3, 6, 12, 20]:
+        return Cube(-2, +2, +0)
+    if v in [2, 7, 13]:
+        return Cube(+0, +2, -2)
+    if v in [4, 5, 11]:
+        return Cube(-2, +0, +2)
+    if v == 8:
+        return Cube(+2, +0, -2)
+    if v == 9:
+        return Cube(+2, -2, +0)
+    if v == 10:
+        return Cube(+0, -2, +2)
+    # range 1
+    if v == 14:
+        return Cube(+0, -1, +1)
+    if v == 15:
+        return Cube(+1, -1, +0)
+    if v == 16:
+        return Cube(+1, +0, -1)
+    if v == 17:
+        return Cube(+0, +1, -1)
+    if v == 18:
+        return Cube(-1, +1, +0)
+    if v == 19:
+        return Cube(-1, +0, +1)
+
+    # center
+    return Cube(+0, +0, +0)
 
 
 class FigureType:
@@ -38,7 +100,7 @@ class Figure:
 
     # TODO: conversion to status array, position is a matrix of zeros
 
-    def __init__(self, position: Cube, name: str, kind: int = FigureType.INFANTRY):
+    def __init__(self, position: tuple, name: str, kind: int = FigureType.INFANTRY):
         self.name: str = name
         self.index: int = -1
 
@@ -191,7 +253,7 @@ class Sniper(Infantry):
     def get_STAT(self):
         # TODO: better management of this change
         stat = super().get_STAT()
-        return FigureStatus(stat.name, stat.value+5)
+        return FigureStatus(stat.name, stat.value + 5)
 
 
 class Civilian(Figure):

@@ -7,6 +7,7 @@ from core import RED, BLUE, Terrain
 from core.agents import Agent, Parameters
 from core.figures import Infantry, Tank
 from core.game.__init__ import GameManager
+from core.game.scenarios import scenarioTestBench
 from utils.coordinates import cube_distance, cube_linedraw, to_cube, cube_to_hex
 from utils.drawing import draw_state, draw_show, draw_lines
 
@@ -25,24 +26,7 @@ blueAgent = Agent(1, blueParameters)
 
 # %% board setup
 
-board = GameManager(shape)
-
-terrain = np.zeros(shape, dtype='uint8')
-terrain[4, 3:7] = Terrain.CONCRETE_BUILDING
-terrain[5:7, 3] = Terrain.CONCRETE_BUILDING
-terrain[0, :] = Terrain.ROAD
-terrain[:, 4] = Terrain.ROAD
-board.addTerrain(terrain)
-
-objective = np.zeros(shape, dtype='uint8')
-objective[5, 5] = 1
-board.addObjective(objective)
-
-board.addFigure(RED, Infantry(position=(1, 1), name='rInf1'))
-board.addFigure(RED, Infantry(position=(1, 2), name='rInf2'))
-board.addFigure(RED, Tank(position=(0, 2), name='rTank1'))
-board.addFigure(BLUE, Infantry(position=(9, 8), name='bInf1'))
-board.addFigure(BLUE, Tank(position=(7, 6), name='bTank1'))
+board = scenarioTestBench()
 
 # %% draw initial setup
 draw_show(*draw_state(board))

@@ -42,12 +42,10 @@ def round(first: Agent, second: Agent, turn: int):
         figure, action = first.select_random_action(stateOfTheBoard, turn)
         stateOfTheBoard.activate(action)
 
-        """
         # blue can choose to respond
         if stateOfTheBoard.canRespond(second):
             figureRespond, actionRespond = second.select_random_response(stateOfTheBoard, turn)
             stateOfTheBoard.activate(actionRespond)
-        """
 
 
 def play():

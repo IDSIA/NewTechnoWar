@@ -2,9 +2,14 @@ import numpy as np
 
 from core import RED, BLUE, Terrain, hitScoreCalculator
 from core.actions import Action, Move, Shoot, Respond, DoNothing
-from core.figures import Figure, StatusType, FigureType
+from core.figures import Figure, StatusType, FigureType, missMatrixRed, missMatrixBlue
 from core.weapons import Weapon
 from utils.coordinates import Hex, Cube, cube_reachable, to_cube, to_hex, cube_to_hex, cube_linedraw
+
+MISS_MATRIX = {
+    RED: missMatrixRed,
+    BLUE: missMatrixBlue
+}
 
 
 class Hexagon:
@@ -196,15 +201,15 @@ class GameManager:
         shoots = []
 
         for target in self.figures[tAgent]:
-            los = cube_linedraw(figure.position, target.position)
-            if any({self.board.getHexagon(cube_to_hex(h)).terrain > Terrain.ROAD for h in los}):
-                continue
-
             terrain = self.board.getHexagon(to_hex(target.position)).terrain
+
+            los = cube_linedraw(figure.position, target.position)
+            obstacles = [self.board.getHexagon(cube_to_hex(h)).terrain > Terrain.ROAD for h in los]
+            nObstacles = len(obstacles)
             n = len(los)
 
             for weapon in figure.weapons:
-                if weapon.canShoot(target, n):
+                if weapon.canShoot(target, n, nObstacles):
                     shoots.append(Shoot(agent, figure, target, weapon, terrain, los))
 
         return shoots
@@ -216,16 +221,17 @@ class GameManager:
 
         if figure.canRespond:
             target = figure.attackedBy
-            los = cube_linedraw(figure.position, target.position)
-            if any({self.board.getHexagon(cube_to_hex(h)).terrain > Terrain.ROAD for h in los}):
-                return responses
-
             terrain = self.board.getHexagon(to_hex(target.position)).terrain
+
+            los = cube_linedraw(figure.position, target.position)
+            obstacles = [self.board.getHexagon(cube_to_hex(h)).terrain > Terrain.ROAD for h in los]
+            nObstacles = len(obstacles)
             n = len(los)
 
             for weapon in figure.weapons:
-                if weapon.canShoot(target, n):
+                if weapon.canShoot(target, n, nObstacles):
                     responses.append(Respond(agent, figure, target, weapon, terrain, los))
+
         return responses
 
     def buildActionForFigure(self, agent: str, figure: Figure):
@@ -261,6 +267,7 @@ class GameManager:
     def activate(self, action: Action):
         """Apply the given action to the map."""
         action.figure.activated = True
+        agent = action.agent
 
         print(action)
 
@@ -324,6 +331,12 @@ class GameManager:
                 print(f'{action.agent}\tSHOOT {f} hit {w}')
                 # TODO: choose which weapon to disable
                 # TODO: if zero, remove when update
+            elif w.curved:
+                # mortar
+                v = np.random.choice(range(1, 21), size=1)
+                hitLocation = MISS_MATRIX[agent](v)
+                # TODO: use hit matrix
+                pass
 
     def update(self):
         """End turn function that updates the status of all figures and moves forward the internal turn ticker."""

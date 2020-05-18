@@ -50,13 +50,14 @@ class Weapon:
     def disable(self):
         self.no_effect = True
 
-    def canShoot(self, target: Figure, n: int):
+    def canShoot(self, target: Figure, n: int, nObstacles: int):
+        canHit = self.curved or nObstacles == 0
         hasAmmo = self.hasAmmo()
         available = self.isAvailable()
         isInRange = self.max_range >= n
         validTarget = self.validTarget(target)
 
-        return all([hasAmmo, available, isInRange, validTarget])
+        return all([canHit, hasAmmo, available, isInRange, validTarget])
 
 
 class Cannon(Weapon):
