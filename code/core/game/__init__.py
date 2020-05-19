@@ -1,11 +1,11 @@
 import numpy as np
 
-from core import RED, BLUE, Terrain, hitScoreCalculator
+from core import RED, BLUE, hitScoreCalculator, FigureType
 from core.actions import Action, Move, Shoot, Respond, DoNothing
-from core.figures import Figure, StatusType, FigureType, missMatrixRed, missMatrixBlue
+from core.figures import Figure, StatusType, missMatrixRed, missMatrixBlue
 from core.game.board import GameBoard
 from core.weapons import Weapon
-from utils.coordinates import cube_reachable, to_hex, cube_to_hex, cube_linedraw
+from utils.coordinates import cube_reachable, cube_linedraw
 
 MISS_MATRIX = {
     RED: missMatrixRed,
@@ -34,27 +34,9 @@ class GameManager:
             BLUE: []
         }
 
-    # operations on board layout (static properties)
-
-    def addTerrain(self, terrain: np.array):
-        """
-        Sum a terrain matrix to the current board.
-        The values must be of core.Terrain Types.
-        Default '0' is 'open ground'.
-        """
-        self.board.terrain += terrain
-
-    def addGeography(self, geography: np.array):
-        """Sum a geography matrix to the current board"""
-        self.board.geography += geography
-
-    def addObjective(self, objective: np.array):
-        """Sum an objective matrix to the current board"""
-        self.board.objective += objective
-
     # operations on figures (dynamic properties)
 
-    def addFigure(self, agent: str, figure: Figure):
+    def addFigure(self, agent: str, figure: Figure) -> None:
         """
         Add a figures to the units of the given agent and it setup the index
         in the matrix at the position of the figure.
@@ -64,31 +46,31 @@ class GameManager:
 
         figures.append(figure)
         figure.index = index
-        self.board.moveFigure(agent, index, dst=figure.position)
+        self.board.moveFigure(figure, dst=figure.position)
 
-    def getFigureByIndex(self, agent: str, index: int):
+    def getFigureByIndex(self, agent: str, index: int) -> Figure:
         """Given an index of a figure, return the figure."""
         return self.figures[agent][index]
 
-    def getFigureByPos(self, agent: str, pos: tuple):
+    def getFiguresByPos(self, agent: str, pos: tuple) -> list:
         """Given a position of a figure, return the figure."""
-        index = self.board.figures[agent][pos]
-        return self.getFigureByIndex(agent, index)
+        return self.board.getFigureByPos(pos)
 
     # other operations
 
-    def activableFigures(self, agent: str):
+    def activableFigures(self, agent: str) -> list:
         """Returns a list of figures that have not been activated."""
         # TODO:
         #   transform this in an array that is restored at the beginning of the turn with
         #   the activable figures, when a figure is activated, remove it from such array
         return [f for f in self.figures[agent] if not f.activated]
 
-    def canActivate(self, agent: str):
+    def canActivate(self, agent: str) -> bool:
         """Returns True if there are still figures that can be activated."""
         return len(self.activableFigures(agent)) > 0
 
-    def canShoot(self, weapon: Weapon, target: Figure, n: int, nObstacles: int):
+    @staticmethod
+    def canShoot(weapon: Weapon, target: Figure, n: int, nObstacles: int) -> bool:
         canHit = weapon.curved or nObstacles == 0
         hasAmmo = weapon.hasAmmo()
         available = weapon.isAvailable()
@@ -104,11 +86,13 @@ class GameManager:
 
         return all([canHit, hasAmmo, available, isInRange, validTarget])
 
-    def buildMovements(self, agent: str, figure: Figure):
+    def buildMovements(self, agent: str, figure: Figure) -> list:
         """Build all the movement actions for a figure. All the other units are considered as obstacles."""
 
         distance = figure.move - figure.load
         obstacles = self.board.getObstacleSet()
+
+        # TODO: replace with pathfinding
 
         for f in self.figures[RED]:
             obstacles.add(f.position)
@@ -122,47 +106,44 @@ class GameManager:
 
         return [Move(agent, figure, m) for m in movements]
 
-    def buildShoots(self, agent: str, figure: Figure):
+    def buildShoots(self, agent: str, figure: Figure) -> list:
         """Returns a list of all the possible shooting actions that can be performed."""
 
         tAgent = RED if agent == BLUE else BLUE
         shoots = []
 
         for target in self.figures[tAgent]:
-            terrain = self.board.getHexagon(to_hex(target.position)).terrain
-
             los = cube_linedraw(figure.position, target.position)
-            obstacles = [self.board.getHexagon(cube_to_hex(h)).terrain > Terrain.ROAD for h in los]
+            obstacles = [self.board.isObstacle(h) for h in los]
             nObstacles = len(obstacles)
             n = len(los)
 
             for weapon in figure.weapons:
                 if self.canShoot(weapon, target, n, nObstacles):
-                    shoots.append(Shoot(agent, figure, target, weapon, terrain, los))
+                    shoots.append(Shoot(agent, figure, target, weapon, los))
 
         return shoots
 
-    def buildResponses(self, agent: str, figure: Figure):
+    def buildResponses(self, agent: str, figure: Figure) -> list:
         """Returns a list of all possible response action that can be performed."""
 
         responses = []
 
         if figure.canRespond:
             target = figure.attackedBy
-            terrain = self.board.getHexagon(to_hex(target.position)).terrain
 
             los = cube_linedraw(figure.position, target.position)
-            obstacles = [self.board.getHexagon(cube_to_hex(h)).terrain > Terrain.ROAD for h in los]
+            obstacles = [self.board.isObstacle(h) for h in los]
             nObstacles = len(obstacles)
             n = len(los)
 
             for weapon in figure.weapons:
                 if weapon.canShoot(target, n, nObstacles):
-                    responses.append(Respond(agent, figure, target, weapon, terrain, los))
+                    responses.append(Respond(agent, figure, target, weapon, los))
 
         return responses
 
-    def buildActionForFigure(self, agent: str, figure: Figure):
+    def buildActionForFigure(self, agent: str, figure: Figure) -> list:
         """Build all possible actions for the given figure."""
         actions = []
 
@@ -177,7 +158,7 @@ class GameManager:
 
         return actions
 
-    def buildActions(self, agent: str):
+    def buildActions(self, agent: str) -> list:
         """
         Build a list with all the possible actions that can be executed by an agent
         with the current status of the board.
@@ -192,7 +173,7 @@ class GameManager:
 
         return actions
 
-    def activate(self, action: Action):
+    def activate(self, action: Action) -> None:
         """Apply the given action to the map."""
         action.figure.activated = True
         agent = action.agent
@@ -203,7 +184,7 @@ class GameManager:
             return
 
         if isinstance(action, Move):
-            self.board.moveFigure(action.agent, action.figure.index, action.figure.position, action.destination)
+            self.board.moveFigure(action.figure, action.figure.position, action.destination)
             action.figure.goto(action.destination)
             action.figure.set_STAT(StatusType.IN_MOTION)
 
@@ -211,7 +192,6 @@ class GameManager:
             f: Figure = action.figure
             t: Figure = action.target
             w: Weapon = action.weapon
-            o: Terrain = action.terrain
             los: list = action.los
 
             # TODO: curved weapons (mortar) have different hit computation
@@ -239,7 +219,7 @@ class GameManager:
             else:
                 DEF = t.defense['basic']
 
-            TER = o.protection_level
+            TER = self.board.getProtectionLevel(t.position)
             STAT = f.get_STAT().value
             END = f.get_END(self.turn)
 
@@ -252,7 +232,7 @@ class GameManager:
             # target can now respond to the fire
             t.canRespond(f)
 
-            print(f'{action.agent}\tSHOOT {t}({o}) with {f} using {w} (({success}) {score}/{hitScore})')
+            print(f'{action.agent}\tSHOOT {t} with {f} using {w} (({success}) {score}/{hitScore})')
 
             if success > 0:
                 t.hp -= success
@@ -305,7 +285,9 @@ class GameManager:
     def hashValue(self) -> int:
         """Encode the current state of the game (board positions) as an integer."""
 
+        # TODO: change this with updated board
+
         # positive numbers are RED figures, negatives are BLUE figures
-        m = (self.board.figures[RED] + 1) - (self.board.figures[BLUE] + 1)
+        m = (self.figures[RED] + 1) - (self.figures[BLUE] + 1)
 
         return hash(str(m))

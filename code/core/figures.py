@@ -3,7 +3,7 @@ This module defines the available figuresadn their rules.
 """
 from core.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, SniperRifle, \
     INFINITE
-from core import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, TOTAL_TURNS
+from core import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, TOTAL_TURNS, FigureType
 from utils.coordinates import Cube, to_cube
 
 
@@ -69,13 +69,6 @@ def missMatrixBlue(v: int) -> Cube:
 
     # center
     return Cube(+0, +0, +0)
-
-
-class FigureType:
-    """Defines the possible types of a Figure"""
-    OTHER = 0
-    INFANTRY = 1
-    VEHICLE = 2
 
 
 class FigureStatus:

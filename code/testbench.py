@@ -3,84 +3,61 @@
 import matplotlib.pyplot as plt
 
 from core import RED, BLUE
-from core.agents import Agent, Parameters
 from core.game.scenarios import scenarioTestBench
 from utils.coordinates import cube_distance, cube_linedraw, to_cube, cube_to_hex
 from utils.drawing import draw_state, draw_show, draw_lines
 
 # %% initialization
-from utils.pathfinding import findPath
+from utils.pathfinding import findPath, reachablePath
 
 plt.rcParams['figure.dpi'] = 250
 
 shape = (10, 10)
 
-# setting up basic agent features
-redParameters = Parameters(RED, {})
-blueParameters = Parameters(BLUE, {})
+gm = scenarioTestBench()
 
-redAgent = Agent(1, redParameters)
-blueAgent = Agent(1, blueParameters)
-
-# %% board setup
-
-board = scenarioTestBench()
-
-redTank = board.getFigureByPos(RED, (0, 2))
-blueTank = board.getFigureByPos(BLUE, (7, 6))
+redTank = gm.getFiguresByPos(RED, (0, 2))[0]
+blueTank = gm.getFiguresByPos(BLUE, (7, 6))[0]
 
 # %% draw initial setup
-fig, ax = draw_state(board)
+fig, ax = draw_state(gm)
 draw_show(fig, ax)
 
 # %% compute distance between tanks
-
 dx = cube_distance(redTank.position, blueTank.position)
 
 # %% daraw line of sight
-
 line = cube_linedraw(redTank.position, blueTank.position)
 
-fig, ax = draw_state(board)
+fig, ax = draw_state(gm)
 ax = draw_lines(ax, line)
 draw_show(fig, ax)
 
 # %% draw reachable area
+movements = gm.buildMovements(BLUE, blueTank)
 
-movements = board.buildMovements(BLUE, blueTank)
-
-fig, ax = draw_state(board)
+fig, ax = draw_state(gm)
 draw_lines(ax, [a.destination for a in movements])
 draw_show(fig, ax)
 
 # %% perform move action
 m = movements[0]
 
-board.activate(m)
+gm.activate(m)
 
-draw_show(*draw_state(board))
+draw_show(*draw_state(gm))
 
 # %% action performed
 print('move', m.figure.name, 'to', cube_to_hex(m.destination))
 
 # %% perform shoot action
-shoots = board.buildShoots(BLUE, blueTank)
+# TODO: find doable shooting
+"""
+shoots = gm.buildShoots(BLUE, blueTank)
 s = shoots[0]
 
 print(BLUE, 'shoots', s.figure.name, 'against', s.target.name, 'with', s.weapon.name)
-
-# %%
-
-board.hashValue()
-
-# %%
-
-board.whoWon()
-
-# %%
-
-blueTank.goto(to_cube((5, 5)))
-board.whoWon()
+"""
 
 # %%
 
@@ -109,15 +86,21 @@ borders = [
 for sx, sy, ex, ey in borders:
     line = cube_linedraw(to_cube((sx, sy)), to_cube((ex, ey)))
 
-    fig, ax = draw_state(board)
+    fig, ax = draw_state(gm)
     ax = draw_lines(ax, line)
     draw_show(fig, ax)
 
 # %%
-
-path = findPath(redTank.position, blueTank.position, board.board)
+path = findPath(redTank.position, blueTank.position, gm.board, blueTank.kind)
 
 # %%
-fig, ax = draw_state(board)
+fig, ax = draw_state(gm)
 ax = draw_lines(ax, path)
+draw_show(fig, ax)
+
+# %%
+reachable = reachablePath(redTank.position, gm.board, redTank.kind, 6)
+
+fig, ax = draw_state(gm)
+ax = draw_lines(ax, reachable)
 draw_show(fig, ax)

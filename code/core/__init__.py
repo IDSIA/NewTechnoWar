@@ -13,6 +13,13 @@ INTELLIGENCE_ATTACK = [6, 6, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4]
 INTELLIGENCE_DEFENSE = [0, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 4]
 
 
+class FigureType:
+    """Defines the possible types of a Figure"""
+    OTHER = 0
+    INFANTRY = 1
+    VEHICLE = 2
+
+
 # level of protection from the terrain:
 class Terrain:
     """Defines properties of a type of terrain"""
@@ -22,23 +29,40 @@ class Terrain:
     ISOLATED_TREE = 2
     # TODO: how to model 'edge of the forest'? This should be something that gives no cover but protection only
     FOREST = 3
-    WOODEN_BUILDING = 4
-    CONCRETE_BUILDING = 5
+    URBAN = 4
+    BUILDING = 5
+    WOODEN_BUILDING = 6
+    CONCRETE_BUILDING = 7
 
-    def __init__(self, name: str, protection_level: int, stop_vehicle: bool = False):
+    def __init__(self, name: str, protectionLevel: int, moveCostInf: float, moveCostVehicle: float):
         self.name = name
-        self.protection_level = protection_level
-        self.stop_vehicle = stop_vehicle
+        self.protectionLevel = protectionLevel
+        self.moveCostInf = moveCostInf
+        self.moveCostVehicle = moveCostVehicle
 
 
-TYPES_TERRAIN = [
-    Terrain('Open ground', 0),
-    Terrain('Road', 0),
-    Terrain('Isolated tree cover', 2),
-    Terrain('Forest', 4, True),  # stops all vehicle from moving, unless on a road
-    Terrain('Wooden building', 6),
-    Terrain('Concrete building', 8)
+TERRAIN_TYPE = [
+    Terrain('Open ground', 0, 1., 1.),
+    Terrain('Road', 0, .75, .75),
+    Terrain('Isolated tree cover', 2, 1., 1.),
+    # stops all vehicle from moving
+    Terrain('Forest', 4, 1., 1000.),
+    # vehicle can move only 1 hexagon on urban terrain
+    Terrain('Urban', 0, 1., 6.),
+    # solid obstacle
+    Terrain('Building', 0, 1000., 1000.),
+    # terrain type inside a building
+    Terrain('Wooden building', 6, 1., 1000.),
+    Terrain('Concrete building', 8, 1., 1000.),
 ]
+
+TERRAIN_OBSTACLES_TO_LOS = (Terrain.FOREST, Terrain.BUILDING, Terrain.ISOLATED_TREE)
+
+
+class ObstaclesType:
+    FOREST = 1
+    BUILDING = 2
+    ARMORED = 3
 
 
 def hitScoreCalculator(

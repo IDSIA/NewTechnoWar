@@ -4,8 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import RegularPolygon
 from math import sqrt
 
-from core import RED, BLUE, Terrain
-from core.figures import FigureType
+from core import RED, BLUE, Terrain, FigureType
 from core.game import GameManager
 
 from utils.coordinates import cube_to_hex, to_cube
@@ -74,10 +73,9 @@ def draw_text(ax, x, y, text, color='black', size=3):
     ax.text(x, y, text, ha='center', va='center', color=color, size=size)
 
 
-def draw_units(ax, x, y, state: GameManager, agent: str, p: tuple):
-    index = state.board.figures[agent][p]
-    if index > -1:
-        figure = state.getFigureByPos(agent, p)
+def draw_units(ax, x, y, gm: GameManager, agent: str, p: tuple):
+    figures = gm.getFiguresByPos(agent, p)
+    for figure in figures:
         txt = 'T' if figure.kind == FigureType.VEHICLE else 'I'
 
         draw_hex(ax, x, y, agent, .5)

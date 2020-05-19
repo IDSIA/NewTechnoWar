@@ -20,11 +20,11 @@ def scenario1():
     terrain = np.zeros(shape, dtype='uint8')
     terrain[(4, 4)] = 1
     terrain[0, :] = Terrain.ROAD
-    gm.addTerrain(terrain)
+    gm.board.addTerrain(terrain)
 
     objective = np.zeros(shape, dtype='uint8')
     objective[4, 5] = 1
-    gm.addObjective(objective)
+    gm.board.addObjective(objective)
 
     gm.addFigure(RED, Infantry((1, 1), 'rInf1'))
     gm.addFigure(RED, Tank((1, 2), 'rTank1'))
@@ -42,11 +42,11 @@ def scenarioTestBench():
     terrain[:, 4] = Terrain.ROAD
     terrain[4, 3:7] = Terrain.CONCRETE_BUILDING
     terrain[5:7, 3] = Terrain.CONCRETE_BUILDING
-    gm.addTerrain(terrain)
+    gm.board.addTerrain(terrain)
 
     objective = np.zeros(shape, dtype='uint8')
     objective[5, 5] = 1
-    gm.addObjective(objective)
+    gm.board.addObjective(objective)
 
     gm.addFigure(RED, Infantry(position=(1, 1), name='rInf1'))
     gm.addFigure(RED, Infantry(position=(1, 2), name='rInf2'))

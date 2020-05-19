@@ -1,24 +1,8 @@
 import numpy as np
 
-from core import Terrain, RED, BLUE
-from utils.coordinates import Hex, to_cube, Cube, cube_neighbor, cube_to_hex
-
-
-class Hexagon:
-    """
-    Description of a single Hexagon.
-    """
-
-    def __init__(self, hex: Hex, pos: tuple, terrain, geography, objective, figure):
-        self.hex = hex
-        self.pos = pos
-        self.terrain = terrain
-        self.geography = geography
-        self.objective = objective > 0
-        self.figure = figure
-
-    def isObstructed(self):
-        return self.terrain > Terrain.ROAD
+from core import Terrain, FigureType, TERRAIN_TYPE, TERRAIN_OBSTACLES_TO_LOS
+from core.figures import Figure
+from utils.coordinates import to_cube, Cube, cube_neighbor, cube_to_hex
 
 
 class GameBoard:
@@ -30,15 +14,12 @@ class GameBoard:
         self.shape = shape
 
         # matrices filled with -1 so we can use 0-based as index
-        self.terrain = np.zeros(shape, dtype='int8')
+        self.terrain = np.zeros(shape, dtype='uint8')
         self.geography = np.zeros(shape, dtype='uint8')
         self.objective = np.zeros(shape, dtype='uint8')
 
-        # convert to list of matrices, one for each figure
-        self.figures = {
-            RED: np.full(shape, -1, dtype='uint8'),
-            BLUE: np.full(shape, -1, dtype='uint8'),
-        }
+        # contains the figure at the given position: pos -> [figure, ...]
+        self.posToFigure = dict()
 
         x, y = shape
 
@@ -48,38 +29,77 @@ class GameBoard:
             [to_cube((-1, r)) for r in range(0, y)] + \
             [to_cube((x, r)) for r in range(0, y)]
 
+        # obstructions to LOS
+        self.obstacles = set(self.limits)
+
+        # movement obstructions are considered in the cost
+        self.moveCost = {
+            FigureType.INFANTRY: np.zeros(shape, dtype='uint8'),
+            FigureType.VEHICLE: np.zeros(shape, dtype='uint8'),
+        }
+
+        self.protectionLevel = np.zeros(shape, dtype='uint8')
+
+    # operations on board layout (static properties)
+
+    def addTerrain(self, terrain: np.array):
+        """
+        Sum a terrain matrix to the current board.
+        The values must be of core.Terrain Types.
+        Default '0' is 'open ground'.
+        """
+        self.terrain += terrain
+
+        x, y = self.shape
+
+        # update movement costs, protection level and obstacles
+        for i in range(0, x):
+            for j in range(0, y):
+                index = terrain[i, j]
+                tt = TERRAIN_TYPE[index]
+                self.protectionLevel[i, j] = tt.protectionLevel
+                self.moveCost[FigureType.INFANTRY][i, j] = tt.moveCostInf
+                self.moveCost[FigureType.VEHICLE][i, j] = tt.moveCostVehicle
+
+                if index in TERRAIN_OBSTACLES_TO_LOS:
+                    self.obstacles.update(to_cube((i, j)))
+
+    def addGeography(self, geography: np.array):
+        """Sum a geography matrix to the current board"""
+        self.geography += geography
+
+    def addObjective(self, objective: np.array):
+        """Sum an objective matrix to the current board"""
+        self.objective += objective
+
+    # operations on graph
+
     def getNeighbors(self, position: Cube):
-        obs = self.getObstacleSet()  # TODO:cache this
-        return [n for n in cube_neighbor(position) if n not in obs]
+        return [n for n in cube_neighbor(position) if n not in self.limits]
 
-    def getCost(self, start: Cube, end: Cube):
-        terrainStart = self.terrain[cube_to_hex(start)]
-        terrainEnd = self.terrain[cube_to_hex(end)]
+    def getMovementCost(self, end: Cube, kind: FigureType):
+        return self.moveCost[kind][cube_to_hex(end)]
 
-        # TODO: model movement on city for vehicles
-        if terrainStart == terrainEnd and terrainStart == 1:
-            return 0.75  # ROAD
-        return 1
-
-    def moveFigure(self, agent: str, index: int, curr: Cube = None, dst: Cube = None):
+    def moveFigure(self, figure: Figure, curr: Cube = None, dst: Cube = None):
         """Moves a figure from current position to another destination."""
         if curr:
-            self.figures[agent][cube_to_hex(curr)] = -1
+            self.posToFigure[curr].remove(figure)
+            if len(self.posToFigure[curr]) == 0:
+                self.posToFigure.pop(curr, None)
         if dst:
-            self.figures[agent][cube_to_hex(dst)] = index
+            if dst not in self.posToFigure:
+                self.posToFigure[dst] = list()
+            self.posToFigure[dst].append(figure)
 
-    def getHexagon(self, pos: tuple):
-        """Return the Hexagon descriptor object at the given position."""
-        return Hexagon(
-            to_cube(pos),
-            pos,
-            terrain=self.terrain[pos],
-            geography=self.geography[pos],
-            objective=self.objective[pos] > 0,
-            figure={
-                RED: self.figures[RED][pos],
-                BLUE: self.figures[BLUE][pos]
-            })
+    def getFigureByPos(self, pos: tuple) -> list:
+        if len(pos) == 2:
+            pos = to_cube(pos)
+        if pos not in self.posToFigure:
+            return []
+        return self.posToFigure[pos]
+
+    def getProtectionLevel(self, pos: Cube):
+        return self.protectionLevel[cube_to_hex(pos)]
 
     def getObstacleSet(self) -> set:
         """
@@ -91,6 +111,17 @@ class GameBoard:
         s = set(map(to_cube, obs))
         s.update(self.limits)
         return s
+
+    def isObstacle(self, pos: Cube) -> bool:
+        if pos in self.obstacles:
+            return True
+
+        i = 0
+        for f in self.getFigureByPos(pos):
+            if f.kind == FigureType.VEHICLE:
+                i += 1
+
+        return i > 0
 
     def getGoals(self):
         """Returns the position marked as goals"""
