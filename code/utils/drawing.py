@@ -23,8 +23,6 @@ def draw_state(gm: GameManager, size: float = 2. / 3., coord_qr=True, coord_xyz=
             p = (q, r)
             c = to_cube(p)
 
-            print(p, c)
-
             # background color
             color = 'white'
             if gm.board.terrain[p] == Terrain.ROAD:

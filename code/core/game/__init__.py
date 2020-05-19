@@ -46,7 +46,7 @@ class GameManager:
 
         figures.append(figure)
         figure.index = index
-        self.board.moveFigure(figure, dst=figure.position)
+        self.board.moveFigure(agent, figure, dst=figure.position)
 
     def getFigureByIndex(self, agent: str, index: int) -> Figure:
         """Given an index of a figure, return the figure."""
@@ -54,7 +54,7 @@ class GameManager:
 
     def getFiguresByPos(self, agent: str, pos: tuple) -> list:
         """Given a position of a figure, return the figure."""
-        return self.board.getFigureByPos(pos)
+        return self.board.getFigureByPos(agent, pos)
 
     # other operations
 
@@ -175,8 +175,9 @@ class GameManager:
 
     def activate(self, action: Action) -> None:
         """Apply the given action to the map."""
-        action.figure.activated = True
         agent = action.agent
+        figure = action.figure
+        figure.activated = True
 
         print(action)
 
@@ -184,12 +185,12 @@ class GameManager:
             return
 
         if isinstance(action, Move):
-            self.board.moveFigure(action.figure, action.figure.position, action.destination)
-            action.figure.goto(action.destination)
-            action.figure.set_STAT(StatusType.IN_MOTION)
+            self.board.moveFigure(agent, figure, figure.position, action.destination)
+            figure.goto(action.destination)
+            figure.set_STAT(StatusType.IN_MOTION)
 
         if isinstance(action, Shoot):  # Respond *is* a shoot action
-            f: Figure = action.figure
+            f: Figure = figure
             t: Figure = action.target
             w: Weapon = action.weapon
             los: list = action.los

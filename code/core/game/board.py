@@ -1,6 +1,6 @@
 import numpy as np
 
-from core import Terrain, FigureType, TERRAIN_TYPE, TERRAIN_OBSTACLES_TO_LOS
+from core import Terrain, FigureType, TERRAIN_TYPE, TERRAIN_OBSTACLES_TO_LOS, RED, BLUE
 from core.figures import Figure
 from utils.coordinates import to_cube, Cube, cube_neighbor, cube_to_hex
 
@@ -19,7 +19,10 @@ class GameBoard:
         self.objective = np.zeros(shape, dtype='uint8')
 
         # contains the figure at the given position: pos -> [figure, ...]
-        self.posToFigure = dict()
+        self.posToFigure = {
+            RED: dict(),
+            BLUE: dict(),
+        }
 
         x, y = shape
 
@@ -80,23 +83,24 @@ class GameBoard:
     def getMovementCost(self, end: Cube, kind: FigureType):
         return self.moveCost[kind][cube_to_hex(end)]
 
-    def moveFigure(self, figure: Figure, curr: Cube = None, dst: Cube = None):
+    def moveFigure(self, agent: str, figure: Figure, curr: Cube = None, dst: Cube = None):
         """Moves a figure from current position to another destination."""
+        ptf = self.posToFigure[agent]
         if curr:
-            self.posToFigure[curr].remove(figure)
-            if len(self.posToFigure[curr]) == 0:
-                self.posToFigure.pop(curr, None)
+            ptf[curr].remove(figure)
+            if len(ptf[curr]) == 0:
+                ptf.pop(curr, None)
         if dst:
-            if dst not in self.posToFigure:
-                self.posToFigure[dst] = list()
-            self.posToFigure[dst].append(figure)
+            if dst not in ptf:
+                ptf[dst] = list()
+            ptf[dst].append(figure)
 
-    def getFigureByPos(self, pos: tuple) -> list:
+    def getFigureByPos(self, agent: str, pos: tuple) -> list:
         if len(pos) == 2:
             pos = to_cube(pos)
-        if pos not in self.posToFigure:
+        if pos not in self.posToFigure[agent]:
             return []
-        return self.posToFigure[pos]
+        return self.posToFigure[agent][pos]
 
     def getProtectionLevel(self, pos: Cube):
         return self.protectionLevel[cube_to_hex(pos)]
@@ -117,9 +121,10 @@ class GameBoard:
             return True
 
         i = 0
-        for f in self.getFigureByPos(pos):
-            if f.kind == FigureType.VEHICLE:
-                i += 1
+        for agent in (RED, BLUE):
+            for f in self.getFigureByPos(agent, pos):
+                if f.kind == FigureType.VEHICLE:
+                    i += 1
 
         return i > 0
 

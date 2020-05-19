@@ -4,9 +4,8 @@ import matplotlib.pyplot as plt
 
 from core import RED, BLUE
 from core.game.scenarios import scenarioTestBench
-from utils.coordinates import cube_distance, cube_linedraw, to_cube, cube_to_hex
+from utils.coordinates import cube_distance, cube_linedraw, cube_to_hex
 from utils.drawing import draw_state, draw_show, draw_lines
-
 # %% initialization
 from utils.pathfinding import findPath, reachablePath
 
@@ -23,14 +22,11 @@ blueTank = gm.getFiguresByPos(BLUE, (7, 6))[0]
 fig, ax = draw_state(gm)
 draw_show(fig, ax)
 
-# %% compute distance between tanks
-dx = cube_distance(redTank.position, blueTank.position)
-
-# %% daraw line of sight
-line = cube_linedraw(redTank.position, blueTank.position)
+# %%
+reachable = reachablePath(blueTank.position, gm.board, blueTank.kind, 1)
 
 fig, ax = draw_state(gm)
-ax = draw_lines(ax, line)
+ax = draw_lines(ax, reachable)
 draw_show(fig, ax)
 
 # %% draw reachable area
@@ -50,6 +46,16 @@ draw_show(*draw_state(gm))
 # %% action performed
 print('move', m.figure.name, 'to', cube_to_hex(m.destination))
 
+# %% compute distance between tanks
+dx = cube_distance(redTank.position, blueTank.position)
+
+# %% daraw line of sight
+line = cube_linedraw(redTank.position, blueTank.position)
+
+fig, ax = draw_state(gm)
+ax = draw_lines(ax, line)
+draw_show(fig, ax)
+
 # %% perform shoot action
 # TODO: find doable shooting
 """
@@ -60,7 +66,7 @@ print(BLUE, 'shoots', s.figure.name, 'against', s.target.name, 'with', s.weapon.
 """
 
 # %%
-
+"""
 borders = [
     (0, 0, 0, 9),
     (0, 9, 9, 9),
@@ -89,18 +95,11 @@ for sx, sy, ex, ey in borders:
     fig, ax = draw_state(gm)
     ax = draw_lines(ax, line)
     draw_show(fig, ax)
-
+"""
 # %%
 path = findPath(redTank.position, blueTank.position, gm.board, blueTank.kind)
 
 # %%
 fig, ax = draw_state(gm)
 ax = draw_lines(ax, path)
-draw_show(fig, ax)
-
-# %%
-reachable = reachablePath(redTank.position, gm.board, redTank.kind, 6)
-
-fig, ax = draw_state(gm)
-ax = draw_lines(ax, reachable)
 draw_show(fig, ax)

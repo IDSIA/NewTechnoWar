@@ -2,7 +2,7 @@ from queue import PriorityQueue
 
 from core import FigureType
 from core.game import GameBoard
-from utils.coordinates import Cube, cube_distance, cube_neighbor
+from utils.coordinates import Cube, cube_distance
 
 heuristic = cube_distance
 
@@ -20,18 +20,20 @@ def reachablePath(start: Cube, board: GameBoard, kind: FigureType, max_cost: int
     cost_so_far[start] = 0
 
     while not frontier.empty():
-        current = frontier.get()
+        _, current = frontier.get()
         visited.add(current)
 
         for next in board.getNeighbors(current):
             new_cost = cost_so_far[current] + board.getMovementCost(next, kind)
+
+            print(current, next, new_cost)
             if new_cost > max_cost:
                 continue
 
             if next not in cost_so_far or new_cost < cost_so_far[next]:
                 cost_so_far[next] = new_cost
                 priority = new_cost
-                frontier.put(next, priority)
+                frontier.put((priority, next))
                 came_from[next] = current
 
     return visited
