@@ -29,7 +29,6 @@ def reachablePath(figure: Figure, board: GameBoard, max_cost: int):
         for next in board.getNeighbors(current):
             new_cost = cost_so_far[current] + board.getMovementCost(next, figure.kind)
 
-            print(current, next, new_cost)
             if new_cost > max_cost:
                 continue
 
@@ -39,7 +38,18 @@ def reachablePath(figure: Figure, board: GameBoard, max_cost: int):
                 frontier.put((priority, next))
                 came_from[next] = current
 
-    return visited
+    paths = []
+    for goal in visited:
+        x = goal
+        path = [goal]
+        # paths.append((cost_so_far[goal], path))
+        paths.append(path)
+        while x:
+            x = came_from[x]
+            if x:
+                path.insert(0, x)
+
+    return visited, paths
 
 
 def findPath(start: Cube, goal: Cube, board: GameBoard, kind: FigureType):

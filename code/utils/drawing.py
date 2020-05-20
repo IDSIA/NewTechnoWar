@@ -9,17 +9,26 @@ from core.game import GameManager
 
 from utils.coordinates import cube_to_hex, to_cube
 
+from PIL import Image
 
-def draw_state(gm: GameManager, size: float = 2. / 3., coord_qr=True, coord_xyz=False, title=None):
+
+def draw_void(gm):
     cols, rows = gm.shape
 
-    fig, ax = plt.subplots(1)
-    if title:
-        plt.title(title)
+    fig = plt.figure()
+    ax = plt.axes(xlim=(-1, cols), ylim=(-1, rows + 4), aspect='equal')
 
-    ax.set_aspect('equal')
-    ax.set_xlim((-1, cols))
-    ax.set_ylim((-1, rows + 4))
+    return fig, ax
+
+
+def draw_state(gm: GameManager, size: float = 2. / 3., coord_qr=True, coord_xyz=False, fig=None, ax=None):
+    cols, rows = gm.shape
+
+    if not fig:
+        fig = plt.figure()
+
+    if not ax:
+        fig, ax = draw_void(gm)
 
     for r in range(rows):
         for q in range(cols):
@@ -52,10 +61,14 @@ def draw_state(gm: GameManager, size: float = 2. / 3., coord_qr=True, coord_xyz=
     return fig, ax
 
 
-def draw_show(fig, ax):
+def draw_show(ax, title=None):
     ax.invert_yaxis()
     plt.axis('off')
+    if title:
+        plt.title(title)
+    im = plt.gcf()
     plt.show()
+    return im
 
 
 def convert(q, r, size=2. / 3.):
@@ -84,7 +97,7 @@ def draw_units(ax, x, y, gm: GameManager, agent: str, p: tuple):
         draw_text(ax, x, y, txt, agent, 5)
 
 
-def draw_lines(ax, line, size=2. / 3.):
+def draw_hex_line(ax, line, size=2. / 3.):
     for hex in line:
         if len(hex) > 2:
             hex = cube_to_hex(hex)
@@ -92,3 +105,26 @@ def draw_lines(ax, line, size=2. / 3.):
         draw_hex(ax, x, y, 'green', alpha=0.6)
 
     return ax
+
+
+def draw_line(ax, line, size=2. / 3.):
+    for i in range(0, len(line) - 1):
+        h1, h2 = line[i: i + 2]
+        if len(h1) > 2:
+            h1 = cube_to_hex(h1)
+        if len(h2) > 2:
+            h2 = cube_to_hex(h2)
+        x1, y1 = convert(*(h1), size)
+        x2, y2 = convert(*(h2), size)
+
+        ax.plot([x1, x2], [y1, y2], 'yo-')
+
+
+def fig2img(fig):
+    """Convert a Matplotlib figure to a PIL Image and return it"""
+    import io
+    buf = io.BytesIO()
+    fig.savefig(buf)
+    buf.seek(0)
+    img = Image.open(buf)
+    return img
