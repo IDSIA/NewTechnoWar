@@ -1,14 +1,17 @@
 from queue import PriorityQueue
 
 from core import FigureType
+from core.figures import Figure
 from core.game import GameBoard
 from utils.coordinates import Cube, cube_distance
 
 heuristic = cube_distance
 
 
-def reachablePath(start: Cube, board: GameBoard, kind: FigureType, max_cost: int):
+def reachablePath(figure: Figure, board: GameBoard, max_cost: int):
     """This uses Uniform Cost Search."""
+    start = figure.position
+
     visited = set()
     visited.add(start)
 
@@ -24,7 +27,7 @@ def reachablePath(start: Cube, board: GameBoard, kind: FigureType, max_cost: int
         visited.add(current)
 
         for next in board.getNeighbors(current):
-            new_cost = cost_so_far[current] + board.getMovementCost(next, kind)
+            new_cost = cost_so_far[current] + board.getMovementCost(next, figure.kind)
 
             print(current, next, new_cost)
             if new_cost > max_cost:

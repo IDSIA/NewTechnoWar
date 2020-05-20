@@ -154,7 +154,7 @@ class Figure:
 class Tank(Figure):
     """3 red tanks"""
 
-    def __init__(self, position: Cube, name: str = 'Tank'):
+    def __init__(self, position: tuple, name: str = 'Tank'):
         super().__init__(position, name, FigureType.VEHICLE)
         self.move = 7
         self.load = 1
@@ -171,7 +171,7 @@ class Tank(Figure):
 class APC(Figure):
     """1 blue armoured personnel carrier"""
 
-    def __init__(self, position: Cube, name: str = 'APC'):
+    def __init__(self, position: tuple, name: str = 'APC'):
         super().__init__(position, name, FigureType.VEHICLE)
         self.move = 7
         self.load = 1
@@ -187,7 +187,7 @@ class APC(Figure):
 class Infantry(Figure):
     """6x4 red and 2x4 blue"""
 
-    def __init__(self, position: Cube, name: str = 'Infantry'):
+    def __init__(self, position: tuple, name: str = 'Infantry'):
         super().__init__(position, name)
         self.move = 4
         self.load = 1
@@ -210,7 +210,7 @@ class Exoskeleton(Infantry):
         endurance and ability to carry heavy loads.
     """
 
-    def __init__(self, position: Cube, name: str = 'Exoskeleton'):
+    def __init__(self, position: tuple, name: str = 'Exoskeleton'):
         super().__init__(position, name)
         self.move = 4
         self.load = 0
@@ -234,7 +234,7 @@ class Sniper(Infantry):
         The sniper has a status advantage of +2 and an accuracy advantage of +3 (+5 in total) added to his hit score
     """
 
-    def __init__(self, position: Cube, name: str = 'Sniper'):
+    def __init__(self, position: tuple, name: str = 'Sniper'):
         super().__init__(position, name)
         self.move = 0
         self.hp = 4
@@ -252,7 +252,7 @@ class Sniper(Infantry):
 class Civilian(Figure):
     """4 civilians"""
 
-    def __init__(self, position: Cube, name: str = 'Civilian'):
+    def __init__(self, position: tuple, name: str = 'Civilian'):
         super().__init__(position, name, FigureType.OTHER)
         self.move = 0
         self.load = 0

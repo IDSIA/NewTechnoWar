@@ -37,8 +37,8 @@ class GameBoard:
 
         # movement obstructions are considered in the cost
         self.moveCost = {
-            FigureType.INFANTRY: np.zeros(shape, dtype='uint8'),
-            FigureType.VEHICLE: np.zeros(shape, dtype='uint8'),
+            FigureType.INFANTRY: np.zeros(shape, dtype='float'),
+            FigureType.VEHICLE: np.zeros(shape, dtype='float'),
         }
 
         self.protectionLevel = np.zeros(shape, dtype='uint8')
@@ -80,7 +80,7 @@ class GameBoard:
     def getNeighbors(self, position: Cube):
         return [n for n in cube_neighbor(position) if n not in self.limits]
 
-    def getMovementCost(self, end: Cube, kind: FigureType):
+    def getMovementCost(self, end: Cube, kind: int):
         return self.moveCost[kind][cube_to_hex(end)]
 
     def moveFigure(self, agent: str, figure: Figure, curr: Cube = None, dst: Cube = None):

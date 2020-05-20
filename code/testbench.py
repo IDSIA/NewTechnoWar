@@ -6,28 +6,40 @@ from core import RED, BLUE
 from core.game.scenarios import scenarioTestBench
 from utils.coordinates import cube_distance, cube_linedraw, cube_to_hex
 from utils.drawing import draw_state, draw_show, draw_lines
-# %% initialization
 from utils.pathfinding import findPath, reachablePath
 
-plt.rcParams['figure.dpi'] = 250
+# % % initialization
 
-shape = (10, 10)
+plt.rcParams['figure.dpi'] = 200
 
 gm = scenarioTestBench()
 
-redTank = gm.getFiguresByPos(RED, (0, 2))[0]
-blueTank = gm.getFiguresByPos(BLUE, (7, 6))[0]
+redTank = gm.getFiguresByPos(RED, (2, 1))[0]
+blueTank = gm.getFiguresByPos(BLUE, (12, 12))[0]
 
-# %% draw initial setup
+# % % draw initial setup
 fig, ax = draw_state(gm)
 draw_show(fig, ax)
 
 # %%
-reachable = reachablePath(blueTank.position, gm.board, blueTank.kind, 1)
+for i in range(1, 8):
+    reachable = reachablePath(blueTank, gm.board, i)
 
-fig, ax = draw_state(gm)
-ax = draw_lines(ax, reachable)
-draw_show(fig, ax)
+    fig, ax = draw_state(gm)
+    ax = draw_lines(ax, reachable)
+    draw_show(fig, ax)
+
+# %%
+import matplotlib.animation as animation
+
+myAnimation = animation.FuncAnimation(fig,)
+
+for i in range(1, 8):
+    reachable = reachablePath(redTank, gm.board, i)
+
+    fig, ax = draw_state(gm)
+    ax = draw_lines(ax, reachable)
+    draw_show(fig, ax)
 
 # %% draw reachable area
 movements = gm.buildMovements(BLUE, blueTank)

@@ -10,13 +10,16 @@ from core.game import GameManager
 from utils.coordinates import cube_to_hex, to_cube
 
 
-def draw_state(gm: GameManager, size: float = 2. / 3., coord_qr=True, coord_xyz=False):
+def draw_state(gm: GameManager, size: float = 2. / 3., coord_qr=True, coord_xyz=False, title=None):
     cols, rows = gm.shape
 
     fig, ax = plt.subplots(1)
+    if title:
+        plt.title(title)
+
     ax.set_aspect('equal')
     ax.set_xlim((-1, cols))
-    ax.set_ylim((-1, rows + 2))
+    ax.set_ylim((-1, rows + 4))
 
     for r in range(rows):
         for q in range(cols):
@@ -86,6 +89,6 @@ def draw_lines(ax, line, size=2. / 3.):
         if len(hex) > 2:
             hex = cube_to_hex(hex)
         x, y = convert(*(hex), size)
-        draw_hex(ax, x, y, 'green')
+        draw_hex(ax, x, y, 'green', alpha=0.6)
 
     return ax
