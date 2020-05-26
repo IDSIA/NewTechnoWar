@@ -5,7 +5,8 @@ from core.actions import Action, Move, Shoot, Respond, DoNothing
 from core.figures import Figure, StatusType, missMatrixRed, missMatrixBlue
 from core.game.board import GameBoard
 from core.weapons import Weapon
-from utils.coordinates import cube_reachable, cube_linedraw
+from utils.coordinates import cube_linedraw
+from utils.pathfinding import reachablePath
 
 MISS_MATRIX = {
     RED: missMatrixRed,
@@ -90,19 +91,8 @@ class GameManager:
         """Build all the movement actions for a figure. All the other units are considered as obstacles."""
 
         distance = figure.move - figure.load
-        obstacles = self.board.getObstacleSet()
 
-        # TODO: replace with pathfinding
-
-        for f in self.figures[RED]:
-            obstacles.add(f.position)
-        for f in self.figures[BLUE]:
-            obstacles.add(f.position)
-
-        # TODO: add movement enhanced on roads
-
-        # TODO: move all cube functions to a single conversion point
-        movements = cube_reachable(figure.position, distance, obstacles)
+        movements = reachablePath(figure, self.board, distance)
 
         return [Move(agent, figure, m) for m in movements]
 
@@ -165,8 +155,6 @@ class GameManager:
         """
         actions = []
 
-        self.obstacles = self.board.getObstacleSet()
-
         for figure in self.figures[agent]:
             for action in self.buildActionForFigure(agent, figure):
                 actions.append(action)
@@ -185,8 +173,8 @@ class GameManager:
             return
 
         if isinstance(action, Move):
-            self.board.moveFigure(agent, figure, figure.position, action.destination)
-            figure.goto(action.destination)
+            dest = action.destination[-1]
+            self.board.moveFigure(agent, figure, figure.position, dest)
             figure.set_STAT(StatusType.IN_MOTION)
 
         if isinstance(action, Shoot):  # Respond *is* a shoot action

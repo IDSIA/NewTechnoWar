@@ -81,7 +81,12 @@ class GameBoard:
         return [n for n in cube_neighbor(position) if n not in self.limits]
 
     def getMovementCost(self, end: Cube, kind: int):
-        return self.moveCost[kind][cube_to_hex(end)]
+        pos = cube_to_hex(end)
+        if pos in self.posToFigure[RED] and self.posToFigure[RED][pos].kind == FigureType.VEHICLE:
+            return 1000.0
+        if pos in self.posToFigure[BLUE] and self.posToFigure[BLUE][pos].kind == FigureType.VEHICLE:
+            return 1000.0
+        return self.moveCost[kind][pos]
 
     def moveFigure(self, agent: str, figure: Figure, curr: Cube = None, dst: Cube = None):
         """Moves a figure from current position to another destination."""
@@ -94,6 +99,7 @@ class GameBoard:
             if dst not in ptf:
                 ptf[dst] = list()
             ptf[dst].append(figure)
+            figure.goto(dst)
 
     def getFigureByPos(self, agent: str, pos: tuple) -> list:
         if len(pos) == 2:
@@ -104,17 +110,6 @@ class GameBoard:
 
     def getProtectionLevel(self, pos: Cube):
         return self.protectionLevel[cube_to_hex(pos)]
-
-    def getObstacleSet(self) -> set:
-        """
-        Returns a set of all obstacles. Obstacls are considered:
-            - limit of the map
-            - obstacles added to the map
-        """
-        obs = np.argwhere(self.terrain > Terrain.ROAD)
-        s = set(map(to_cube, obs))
-        s.update(self.limits)
-        return s
 
     def isObstacle(self, pos: Cube) -> bool:
         if pos in self.obstacles:

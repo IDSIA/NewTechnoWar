@@ -1,6 +1,5 @@
 from core.figures import Figure
 from core.weapons import Weapon
-from utils.coordinates import Cube
 
 
 class Action:
@@ -24,7 +23,7 @@ class DoNothing(Action):
 class Move(Action):
     """Action to move a Figure to the destination."""
 
-    def __init__(self, agent: str, figure: Figure, destination: Cube):
+    def __init__(self, agent: str, figure: Figure, destination: list):
         super().__init__(agent, figure)
         self.destination = destination
 

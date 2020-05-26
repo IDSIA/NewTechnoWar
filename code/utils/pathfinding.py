@@ -1,6 +1,5 @@
 from queue import PriorityQueue
 
-from core import FigureType
 from core.figures import Figure
 from core.game import GameBoard
 from utils.coordinates import Cube, cube_distance
@@ -17,10 +16,12 @@ def reachablePath(figure: Figure, board: GameBoard, max_cost: int):
 
     frontier = PriorityQueue()
     frontier.put((0, start))
-    came_from = {}
-    cost_so_far = {}
-    came_from[start] = None
-    cost_so_far[start] = 0
+    came_from = {
+        start: None
+    }
+    cost_so_far = {
+        start: 0
+    }
 
     while not frontier.empty():
         _, current = frontier.get()
@@ -52,13 +53,17 @@ def reachablePath(figure: Figure, board: GameBoard, max_cost: int):
     return visited, paths
 
 
-def findPath(start: Cube, goal: Cube, board: GameBoard, kind: FigureType):
+def findPath(start: Cube, goal: Cube, board: GameBoard, kind: int):
     """This uses A*"""
     frontier = PriorityQueue()
     frontier.put((0, start))
 
-    came_from = {start: None}
-    cost_so_far = {start: 0}
+    came_from = {
+        start: None
+    }
+    cost_so_far = {
+        start: 0
+    }
 
     while not frontier.empty():
         _, current = frontier.get()
