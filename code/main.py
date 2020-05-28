@@ -15,7 +15,7 @@ import torch.nn.functional as F
 import torchvision.transforms as T
 
 from core import RED, BLUE
-from core.agents import Agent, Parameters
+from core.agents import RandomAgent, MinMaxAgent, AlphaBetaAgent,  Parameters
 from core.state import StateOfTheBoard
 from learningParameters import TOTAL_STEPS
 
@@ -30,8 +30,8 @@ stateOfTheBoard.resetScenario1()
 redParameters = Parameters('red', {})
 blueParameters = Parameters('blue', {})
 
-redAgent = Agent(roundOfPlay, redParameters)
-blueAgent = Agent(roundOfPlay, blueParameters)
+redAgent = AlphaBetaAgent(roundOfPlay, redParameters)
+blueAgent = RandomAgent(roundOfPlay, blueParameters)
 
 if __name__ == "__main__":
 
@@ -39,19 +39,21 @@ if __name__ == "__main__":
 
     while not done:
         redChosenFigure, redChosenAttackOrMove, redChosenAction, steps_done = \
-            redAgent.select_random_action(stateOfTheBoard, steps_done)
-
-        done = stateOfTheBoard.step(RED, redChosenFigure.item(), redChosenAttackOrMove.item(), redChosenAction.item())
-
+            redAgent.selectAction(stateOfTheBoard, steps_done)
+            
+        _ = stateOfTheBoard.step(RED, redChosenFigure, redChosenAttackOrMove, redChosenAction)
+        print('red action')
+        print(redChosenFigure)
+        print(redChosenAction)
+        print(_)
+        print('board after red action:')
         print(stateOfTheBoard)
-
         blueChosenFigure, blueChosenAttackOrMove, blueChosenAction, _ = \
-            blueAgent.select_random_action(stateOfTheBoard, steps_done)
-
-        __ = stateOfTheBoard.step(BLUE, blueChosenFigure.item(), blueChosenAttackOrMove.item(), blueChosenAction.item())
-
+            blueAgent.selectAction(stateOfTheBoard, steps_done)
+        __ = stateOfTheBoard.step(BLUE, blueChosenFigure.item(), 1, blueChosenAction.item())
+        print('board after blue action:')
         print(stateOfTheBoard)
         stateOfTheBoard.update()
-
+        done = stateOfTheBoard.whoWon()
         if steps_done == TOTAL_STEPS:
-            done = True
+                done = True
