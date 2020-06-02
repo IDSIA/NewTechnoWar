@@ -44,7 +44,7 @@ def blank(shape):
     return gm
 
 
-def scenarioTestBench():
+def battleground16x16():
     shape = (16, 16)
     gm = GameManager(shape)
 
@@ -76,6 +76,12 @@ def scenarioTestBench():
     objective[8, 8] = 1
     gm.board.addObjective(objective)
 
+    return gm
+
+
+def scenarioTestBench():
+    gm = battleground16x16()
+
     gm.addFigure(RED, Infantry((3, 1), 'rInf1'))
     gm.addFigure(RED, Infantry((7, 2), 'rInf2'))
     gm.addFigure(RED, Infantry((6, 2), 'rInf3'))
@@ -89,5 +95,32 @@ def scenarioTestBench():
     gm.addFigure(BLUE, Infantry((9, 13), 'bInf3'))
 
     gm.addFigure(BLUE, Tank((12, 12), 'bTank1'))
+
+    gm.name = "TestBench"
+
+    return gm
+
+
+def scenarioTest1v1():
+    gm = battleground16x16()
+
+    gm.addFigure(RED, Tank((2, 3), 'Tank1'))
+    gm.addFigure(BLUE, Tank((12, 12), 'Tank2'))
+
+    gm.name = "1Rv1B"
+
+    return gm
+
+
+def scenarioTest3v1():
+    gm = battleground16x16()
+
+    gm.addFigure(RED, Infantry((3, 1), 'Inf1'))
+    gm.addFigure(RED, Infantry((7, 2), 'Inf2'))
+    gm.addFigure(RED, Tank((2, 3), 'Tank1'))
+
+    gm.addFigure(BLUE, Tank((12, 12), 'Tank2'))
+
+    gm.name = "3Rv1B"
 
     return gm

@@ -1,0 +1,31 @@
+version: 1
+formatters:
+  basic:
+    datefmt: '%Y-%m-%d %H:%M:%S'
+    format: '%(asctime)s %(levelname)s %(message)s'
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: basic
+    stream: ext://sys.stdout
+
+  file:
+    class: logging.FileHandler
+    level: DEBUG
+    filename: testplay.log
+
+loggers:
+  basicExample:
+    level: INFO
+    handlers:
+      - console
+      - file
+    propagate: no
+
+root:
+  level: INFO
+  handlers:
+    - console
+    - file

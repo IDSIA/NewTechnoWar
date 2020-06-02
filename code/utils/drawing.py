@@ -1,15 +1,13 @@
-import numpy as np
-import matplotlib.pyplot as plt
-
-from matplotlib.patches import RegularPolygon
 from math import sqrt
+
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
+from matplotlib.patches import RegularPolygon
 
 from core import RED, BLUE, Terrain, FigureType
 from core.game import GameManager
-
 from utils.coordinates import cube_to_hex, to_cube
-
-from PIL import Image
 
 
 def draw_void(gm):
@@ -97,12 +95,12 @@ def draw_units(ax, x, y, gm: GameManager, agent: str, p: tuple):
         draw_text(ax, x, y, txt, agent, 5)
 
 
-def draw_hex_line(ax, line, size=2. / 3.):
+def draw_hex_line(ax, line, size=2. / 3., color='green'):
     for hex in line:
         if len(hex) > 2:
             hex = cube_to_hex(hex)
         x, y = convert(*(hex), size)
-        draw_hex(ax, x, y, 'green', alpha=0.6)
+        draw_hex(ax, x, y, color, alpha=0.6)
 
     return ax
 

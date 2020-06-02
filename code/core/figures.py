@@ -1,9 +1,9 @@
 """
 This module defines the available figuresadn their rules.
 """
+from core import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, TOTAL_TURNS, FigureType
 from core.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, SniperRifle, \
     INFINITE
-from core import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, TOTAL_TURNS, FigureType
 from utils.coordinates import Cube, to_cube
 
 
@@ -81,9 +81,9 @@ class FigureStatus:
 
 class StatusType:
     NO_EFFECT = FigureStatus('No effect', 0)
-    IN_MOTION = FigureStatus('In motion', 3),  # the unit has already used its ability to move this turn
-    UPSTAIRS = FigureStatus('Upstairs', 3),  # if the troops are on an upper flor of a house (scenario specified)
-    UNDER_FIRE = FigureStatus('Under fire', -1),  # if the troops have already been targeted by a shot this turn
+    IN_MOTION = FigureStatus('In motion', 3)  # the unit has already used its ability to move this turn
+    UPSTAIRS = FigureStatus('Upstairs', 3)  # if the troops are on an upper flor of a house (scenario specified)
+    UNDER_FIRE = FigureStatus('Under fire', -1)  # if the troops have already been targeted by a shot this turn
     CUT_OFF = FigureStatus('Cut off', 3)  # no friendly troop within 4 hexagons
 
 
@@ -144,7 +144,6 @@ class Figure:
         self.position = destination
 
     def canRespond(self, attacker):
-        self.responded = True
         self.attackedBy = attacker
 
     def __repr__(self):
@@ -161,7 +160,7 @@ class Tank(Figure):
         self.hp = 1
 
         self.defense = {'basic': 5, 'smoke': 18}
-        self.equipment = [
+        self.weapons = [
             MachineGun(INFINITE),
             Cannon(8),
             SmokeGrenade(2)
@@ -178,7 +177,7 @@ class APC(Figure):
         self.hp = 1
 
         self.defense = {'basic': 5, 'smoke': 18},
-        self.equipment = [
+        self.weapons = [
             MachineGun(INFINITE),
             SmokeGrenade(2)
         ]
@@ -194,7 +193,7 @@ class Infantry(Figure):
         self.hp = 4
 
         self.defense = {'basic': 1}
-        self.equipment = [
+        self.weapons = [
             AssaultRifle(INFINITE),
             MachineGun(5),
             AntiTank(4),
@@ -217,7 +216,7 @@ class Exoskeleton(Infantry):
         self.hp = 4
 
         self.defense = {'basic': 1}
-        self.equipment = [
+        self.weapons = [
             AssaultRifle(INFINITE),
             MachineGun(2),
             AntiTank(4),
@@ -239,7 +238,7 @@ class Sniper(Infantry):
         self.move = 0
         self.hp = 4
 
-        self.equipment = [
+        self.weapons = [
             SniperRifle(INFINITE)
         ]
 

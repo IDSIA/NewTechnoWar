@@ -6,6 +6,10 @@ from utils.colors import yellow, green, red, blue, pinkBg, grayBg
 
 
 def printState(gm: GameManager, size=3, extra: list = None):
+    """
+    print the current board
+    TODO: update this function with new GameManager
+    """
     cols, rows = gm.shape
 
     board_extra = np.zeros(gm.shape, dtype='uint8')

@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 
 from core import RED, BLUE, hitScoreCalculator, FigureType
@@ -21,6 +23,9 @@ class GameManager:
 
     def __init__(self, shape: tuple):
         self.shape = shape
+
+        self.name = ""
+        self.descr = ""
 
         # static properties of the board
         self.board = GameBoard(shape)
@@ -64,15 +69,15 @@ class GameManager:
         # TODO:
         #   transform this in an array that is restored at the beginning of the turn with
         #   the activable figures, when a figure is activated, remove it from such array
-        return [f for f in self.figures[agent] if not f.activated]
+        return [f for f in self.figures[agent] if not f.activated and not f.killed]
 
     def canActivate(self, agent: str) -> bool:
         """Returns True if there are still figures that can be activated."""
         return len(self.activableFigures(agent)) > 0
 
     @staticmethod
-    def canShoot(weapon: Weapon, target: Figure, n: int, nObstacles: int) -> bool:
-        canHit = weapon.curved or nObstacles == 0
+    def canShoot(weapon: Weapon, target: Figure, n: int, obstacles: list) -> bool:
+        canHit = weapon.curved or not any(obstacles[1:-2])  # skip first (who shoots) and last (target) positions
         hasAmmo = weapon.hasAmmo()
         available = weapon.isAvailable()
         isInRange = weapon.max_range >= n
@@ -92,7 +97,7 @@ class GameManager:
 
         distance = figure.move - figure.load
 
-        movements = reachablePath(figure, self.board, distance)
+        _, movements = reachablePath(figure, self.board, distance)
 
         return [Move(agent, figure, m) for m in movements]
 
@@ -103,13 +108,15 @@ class GameManager:
         shoots = []
 
         for target in self.figures[tAgent]:
+            if target.killed:
+                continue
+
             los = cube_linedraw(figure.position, target.position)
-            obstacles = [self.board.isObstacle(h) for h in los]
-            nObstacles = len(obstacles)
+            obstacles = [self.board.isObstacle(h) for h in los[1:-2]]
             n = len(los)
 
             for weapon in figure.weapons:
-                if self.canShoot(weapon, target, n, nObstacles):
+                if self.canShoot(weapon, target, n, obstacles):
                     shoots.append(Shoot(agent, figure, target, weapon, los))
 
         return shoots
@@ -119,16 +126,15 @@ class GameManager:
 
         responses = []
 
-        if figure.canRespond:
+        if not figure.responded and not figure.killed:
             target = figure.attackedBy
 
             los = cube_linedraw(figure.position, target.position)
             obstacles = [self.board.isObstacle(h) for h in los]
-            nObstacles = len(obstacles)
             n = len(los)
 
             for weapon in figure.weapons:
-                if weapon.canShoot(target, n, nObstacles):
+                if self.canShoot(weapon, target, n, obstacles):
                     responses.append(Respond(agent, figure, target, weapon, los))
 
         return responses
@@ -167,7 +173,7 @@ class GameManager:
         figure = action.figure
         figure.activated = True
 
-        print(action)
+        logging.info(action)
 
         if isinstance(action, DoNothing):
             return
@@ -194,6 +200,8 @@ class GameManager:
             if isinstance(action, Respond):
                 ATK = w.atk_response
                 INT = f.get_INT_DEF(self.turn)
+                # can respond only once in a turn
+                f.responded = True
             else:
                 ATK = w.atk_normal
                 INT = f.get_INT_ATK(self.turn)
@@ -221,19 +229,24 @@ class GameManager:
             # target can now respond to the fire
             t.canRespond(f)
 
-            print(f'{action.agent}\tSHOOT {t} with {f} using {w} (({success}) {score}/{hitScore})')
+            logging.info(f'{action}: (({success}) {score}/{hitScore})')
 
             if success > 0:
                 t.hp -= success
-                print(f'{action.agent}\tSHOOT {f} hit {w}')
+                logging.info(f'{action}: HIT!')
+                if t.hp <= 0:
+                    t.killed = True
+                    logging.info(f'{action}: KILLED!')
                 # TODO: choose which weapon to disable
-                # TODO: if zero, remove when update
+                # TODO: if zero, remove when update?
             elif w.curved:
                 # mortar
                 v = np.random.choice(range(1, 21), size=1)
                 hitLocation = MISS_MATRIX[agent](v)
                 # TODO: use hit matrix
                 pass
+            else:
+                logging.info(f'{action}: miss')
 
     def update(self):
         """End turn function that updates the status of all figures and moves forward the internal turn ticker."""
@@ -280,3 +293,12 @@ class GameManager:
         m = (self.figures[RED] + 1) - (self.figures[BLUE] + 1)
 
         return hash(str(m))
+
+    def goalAchieved(self):
+        """
+        Current is a death match goal.
+        """
+        redKilled = all([f.killed for f in self.figures[RED]])
+        blueKilled = all([f.killed for f in self.figures[BLUE]])
+
+        return redKilled or blueKilled

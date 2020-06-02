@@ -1,6 +1,9 @@
 from core.figures import Figure
 from core.weapons import Weapon
 
+ACTION_ATTACK = 0
+ACTION_MOVE = 1
+
 
 class Action:
     """Basic action class"""
@@ -8,6 +11,9 @@ class Action:
     def __init__(self, agent: str, figure: Figure):
         self.agent = agent
         self.figure = figure
+
+    def __repr__(self):
+        return f'{self.agent:5} {self.figure.name:10}'
 
 
 class DoNothing(Action):
@@ -17,7 +23,7 @@ class DoNothing(Action):
         super().__init__(agent, figure)
 
     def __repr__(self):
-        return f'{self.agent}\t{self.figure.name}\tPass'
+        return f'{super().__repr__()}: Pass'
 
 
 class Move(Action):
@@ -28,7 +34,7 @@ class Move(Action):
         self.destination = destination
 
     def __repr__(self):
-        return f'{self.agent}\t{self.figure.name}\tMove to {self.destination}'
+        return f'{super().__repr__()}: Move to {self.destination[-1]}'
 
 
 class Shoot(Action):
@@ -41,7 +47,7 @@ class Shoot(Action):
         self.los = los
 
     def __repr__(self):
-        return f'{self.agent}\t{self.figure.name}\tShoot at {self.target} with {self.weapon}'
+        return f'{super().__repr__()}: Shoot at {self.target} with {self.weapon}'
 
 
 class Respond(Shoot):
@@ -51,4 +57,4 @@ class Respond(Shoot):
         super().__init__(agent, figure, target, weapon, los)
 
     def __repr__(self):
-        return f'{self.agent}\t{self.figure.name}\tRespond to {self.target} with {self.weapon}'
+        return f'{super().__repr__()} in response'

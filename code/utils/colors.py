@@ -1,5 +1,5 @@
-def color(color, text):
-    return f'\033[{color}m{text}\033[0m'
+def color(colour, text):
+    return f'\033[{colour}m{text}\033[0m'
 
 
 def white(text):
