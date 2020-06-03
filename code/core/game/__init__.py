@@ -71,18 +71,15 @@ class GameManager:
         #   the activable figures, when a figure is activated, remove it from such array
         return [f for f in self.figures[agent] if not f.activated and not f.killed]
 
-    def canActivate(self, agent: str) -> bool:
-        """Returns True if there are still figures that can be activated."""
-        return len(self.activableFigures(agent)) > 0
+    def canShoot(self, weapon: Weapon, target: Figure, los: list) -> bool:
+        obstacles = [self.board.isObstacle(h) for h in los[1:-2]]
 
-    @staticmethod
-    def canShoot(weapon: Weapon, target: Figure, n: int, obstacles: list) -> bool:
-        canHit = weapon.curved or not any(obstacles[1:-2])  # skip first (who shoots) and last (target) positions
+        canHit = weapon.curved or not any(obstacles)  # skip first (who shoots) and last (target) positions
         hasAmmo = weapon.hasAmmo()
         available = weapon.isAvailable()
-        isInRange = weapon.max_range >= n
+        isInRange = weapon.max_range >= len(los)
 
-        # TODO: verify that I can use anti-tank against non-vehicles
+        # TODO: verify that we can use anti-tank against non-vehicles
         if weapon.antitank:
             # can shoot only against vehicles
             validTarget = target.kind == FigureType.VEHICLE
@@ -112,11 +109,9 @@ class GameManager:
                 continue
 
             los = cube_linedraw(figure.position, target.position)
-            obstacles = [self.board.isObstacle(h) for h in los[1:-2]]
-            n = len(los)
 
             for weapon in figure.weapons:
-                if self.canShoot(weapon, target, n, obstacles):
+                if self.canShoot(weapon, target, los):
                     shoots.append(Shoot(agent, figure, target, weapon, los))
 
         return shoots
@@ -126,15 +121,13 @@ class GameManager:
 
         responses = []
 
-        if not figure.responded and not figure.killed:
+        if not figure.responded and not figure.killed and not figure.attackedBy.killed:
             target = figure.attackedBy
 
             los = cube_linedraw(figure.position, target.position)
-            obstacles = [self.board.isObstacle(h) for h in los]
-            n = len(los)
 
             for weapon in figure.weapons:
-                if self.canShoot(weapon, target, n, obstacles):
+                if self.canShoot(weapon, target, los):
                     responses.append(Respond(agent, figure, target, weapon, los))
 
         return responses
@@ -238,7 +231,6 @@ class GameManager:
                     t.killed = True
                     logging.info(f'{action}: KILLED!')
                 # TODO: choose which weapon to disable
-                # TODO: if zero, remove when update?
             elif w.curved:
                 # mortar
                 v = np.random.choice(range(1, 21), size=1)
@@ -256,43 +248,15 @@ class GameManager:
             for figure in self.figures[agent]:
                 # TODO: compute there cutoff status?
                 figure.set_STAT(StatusType.NO_EFFECT)
-                figure.activated = False
-                figure.responded = False
-                figure.attackedBy = None
                 if figure.hp <= 0:
                     figure.killed = True
+                    figure.activated = True
+                else:
+                    figure.activated = False
+                    figure.responded = False
+                    figure.attackedBy = None
 
         # TODO: remove killed unit?
-
-    def whoWon(self) -> int:
-        """
-        Check whether either side has won the game and return the winner:
-            None = 0
-            RED = 1
-            BLUE = 2
-        """
-        # TODO: this should be something related to the scenario
-        goals = self.board.getGoals()
-
-        for agent in [RED, BLUE]:
-            for figure in self.figures[agent]:
-                if figure.position in goals:
-                    if agent == RED:
-                        return 1
-                    else:
-                        return 2
-
-        return 0
-
-    def hashValue(self) -> int:
-        """Encode the current state of the game (board positions) as an integer."""
-
-        # TODO: change this with updated board
-
-        # positive numbers are RED figures, negatives are BLUE figures
-        m = (self.figures[RED] + 1) - (self.figures[BLUE] + 1)
-
-        return hash(str(m))
 
     def goalAchieved(self):
         """
