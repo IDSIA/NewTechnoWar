@@ -3,6 +3,7 @@ Testing game.
 """
 import logging
 import logging.config
+import os
 
 import numpy as np
 import yaml
@@ -17,8 +18,16 @@ with open('logger.config.yaml', 'r') as stream:
     config = yaml.load(stream, Loader=yaml.FullLoader)
 logging.config.dictConfig(config)
 
-DRAW_IMAGE = True
+DRAW_IMAGE = os.getenv("DRAW_IMAGE", False)
+
 images = []
+
+
+def draw_initial(gm):
+    if DRAW_IMAGE:
+        _, ax = draw_state(gm)
+        im = draw_show(ax, title="Initial setup")
+        images.append(fig2img(im))
 
 
 def draw_round(gm: GameManager, action: Action, turn: int):
@@ -31,6 +40,12 @@ def draw_round(gm: GameManager, action: Action, turn: int):
         ax = draw_hex_line(ax, action.los, color='orange')
     im = draw_show(ax, title=f"Turn {turn}: {action}")
     images.append(fig2img(im))
+
+
+def draw_save(gm):
+    if DRAW_IMAGE:
+        images[0].save(f"{gm.name}.gif", save_all=True, append_images=images[1:], optimize=False, duration=600,
+                       loop=0)
 
 
 def round(gm: GameManager, first: str, second: str, turn: int):
@@ -87,10 +102,7 @@ def play(gm: GameManager, seed=42):
     logging.info(f'SCENARIO: {gm.name}')
     logging.info(f'SEED: {seed}')
 
-    if DRAW_IMAGE:
-        _, ax = draw_state(gm)
-        im = draw_show(ax, title="Initial setup")
-        images.append(fig2img(im))
+    draw_initial(gm)
 
     for turn in range(TOTAL_TURNS):
         logging.info(f'Turn {turn + 1}')
@@ -105,9 +117,7 @@ def play(gm: GameManager, seed=42):
             logging.info("End game!")
             break
 
-    if DRAW_IMAGE:
-        images[0].save(f"{gm.name}.gif", save_all=True, append_images=images[1:], optimize=False, duration=600,
-                       loop=0)
+    draw_save(gm)
 
 
 if __name__ == "__main__":

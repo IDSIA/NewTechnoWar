@@ -233,7 +233,7 @@ class GameManager:
 
             if success > 0:
                 t.hp -= success
-                logging.info(f'{action}: HIT!')
+                logging.info(f'{action}: HIT! ({t.hp})')
                 if t.hp <= 0:
                     t.killed = True
                     logging.info(f'{action}: KILLED!')
