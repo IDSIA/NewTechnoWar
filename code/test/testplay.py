@@ -107,7 +107,7 @@ def play(gm: GameManager, seed=42):
     for turn in range(TOTAL_TURNS):
         logging.info(f'Turn {turn + 1}')
 
-        while gm.canActivate(RED) or gm.canActivate(BLUE):
+        while gm.activableFigures(RED) or gm.activableFigures(BLUE):
             round(gm, RED, BLUE, turn)
             round(gm, BLUE, RED, turn)
 
