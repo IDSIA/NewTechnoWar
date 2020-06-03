@@ -14,6 +14,7 @@ handlers:
   file:
     class: logging.FileHandler
     level: DEBUG
+    formatter: basic
     filename: testplay.log
 
 loggers:
