@@ -16,9 +16,11 @@ def create_app():
     # Application Configuration
     app.config.from_object(conf)
 
+    app.games = dict()
+
     with app.app_context():
         # Import parts of our application
         from . import routes
-        app.register_blueprint(routes.main_bp)
+        app.register_blueprint(routes.main)
 
         return app

@@ -1,0 +1,79 @@
+/*.pod-wrap use:hover {*/
+/*    fill: aqua;*/
+/*}*/
+
+/* other styling */
+svg {
+    width: 900px;
+    flex: 1;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin: 0;
+    height: 100vh;
+    font-family: sans-serif;
+}
+
+a {
+    color: #aaa;
+    padding: 10px;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #333;
+}
+
+.coord {
+    fill: black;
+    text-anchor: middle;
+    font-size: 3pt;
+}
+
+.hex {
+    stroke: #555555;
+    stroke-width: 0.5pt;
+}
+
+/* Game colors */
+
+.terrOpen {
+    fill: #92C060;
+}
+
+.terrTree {
+    fill: #457313;
+}
+
+.terrForest {
+    fill: #00410B;
+}
+
+.terrRoad {
+    fill: #E3854D;
+}
+
+.terrUrban {
+    fill: #555555;
+}
+
+.terrBuilding {
+    fill: #232323;
+}
+
+.terrWooden {
+    fill: #A76B11;
+}
+
+.terrConcrete {
+    fill: #999999;
+}
+
+#star {
+    text-anchor: middle;
+    font-size: 5pt;
+}

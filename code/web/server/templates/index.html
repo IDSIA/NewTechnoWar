@@ -4,7 +4,13 @@
 {% endblock %}
 
 {% block content %}
-<div>
-    {{ body }}
-</div>
+    <ul>
+        {% for scenario in scenarios %}
+            <li>
+                <a href="{{ url_for('main.game', scenario=scenario) }}">
+                    {{ scenario }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
 {% endblock %}

@@ -1,25 +1,44 @@
+import logging
+
 from flask import Blueprint, render_template
+from flask import current_app as app
 
-main_bp = Blueprint('main_bp', __name__, template_folder='templates', static_folder='static')
+from core.game import scenarios, GameManager
+from web.server.utils import scroll
+
+main = Blueprint('main', __name__, template_folder='templates', static_folder='static')
 
 
-@main_bp.route('/', methods=['GET'])
+@main.route('/', methods=['GET'])
 def index():
-    """Serve logged in Dashboard."""
+    """Serve list of available scenarios."""
+    scenarios = [
+        "scenarioTest1v1",
+        "scenarioTest3v1",
+        "scenarioTestBench"
+    ]
+
     return render_template(
         'index.html',
         title='Home | NewTechnoWar',
         template='game-template',
-        body="Index!"
+        scenarios=scenarios
     )
 
 
-@main_bp.route('/game', methods=['GET'])
-def game():
-    """Serve logged in Dashboard."""
+@main.route('/game/<string:scenario>', methods=['GET'])
+def game(scenario: str):
+    """Serve game main page."""
+
+    # TODO: theoretically, the key should be a UUID for the game
+    gm: GameManager = getattr(scenarios, scenario)()
+    app.games[scenario] = gm
+
+    logging.info(f"Created game with scenario {gm.name}")
+
     return render_template(
         'game.html',
         title='Game | NewTechnoWar',
         template='game-template',
-        body="Game!"
+        board=list(scroll(gm.board))
     )
