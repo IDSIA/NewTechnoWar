@@ -1,6 +1,6 @@
 import numpy as np
 
-from core import FigureType, TERRAIN_TYPE, TERRAIN_OBSTACLES_TO_LOS, RED, BLUE
+from core import FigureType, TERRAIN_TYPE, TERRAIN_OBSTACLES_TO_LOS, RED, BLUE, Terrain
 from core.figures import Figure
 from utils.coordinates import to_cube, Cube, cube_neighbor, cube_to_hex
 
