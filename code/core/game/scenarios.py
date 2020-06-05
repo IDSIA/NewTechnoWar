@@ -8,7 +8,12 @@ from utils.coordinates import hex_linedraw, to_hex
 
 
 def fillLine(terrain: np.ndarray, start: tuple, end: tuple, kind: int):
-    line = hex_linedraw(to_hex(start), to_hex(end))
+    if start[0] == end[0]:
+        line = [(start[0], j) for j in range(start[1], end[1] + 1)]
+    elif start[1] == end[1]:
+        line = [(i, start[1]) for i in range(start[0], end[0] + 1)]
+    else:
+        line = hex_linedraw(to_hex(start), to_hex(end))
     for hex in line:
         terrain[hex] = kind
 
@@ -58,17 +63,28 @@ def battleground16x16():
     fillLine(terrain, (2, 12), (8, 9), Terrain.ROAD)
     fillLine(terrain, (2, 12), (2, 15), Terrain.ROAD)
 
-    terrain[9, 4] = Terrain.CONCRETE_BUILDING
-    terrain[9, 5] = Terrain.CONCRETE_BUILDING
-    terrain[10, 4] = Terrain.CONCRETE_BUILDING
+    terrain[9, 4] = Terrain.BUILDING
+    terrain[9, 5] = Terrain.BUILDING
+    terrain[10, 4] = Terrain.BUILDING
 
-    terrain[4, 9] = Terrain.CONCRETE_BUILDING
-    terrain[3, 9] = Terrain.CONCRETE_BUILDING
-    terrain[3, 10] = Terrain.CONCRETE_BUILDING
+    terrain[4, 9] = Terrain.BUILDING
+    terrain[3, 9] = Terrain.BUILDING
+    terrain[3, 10] = Terrain.BUILDING
 
-    fillLine(terrain, (6, 11), (8, 10), Terrain.CONCRETE_BUILDING)
-    fillLine(terrain, (6, 11), (6, 13), Terrain.CONCRETE_BUILDING)
-    fillLine(terrain, (11, 9), (14, 7), Terrain.CONCRETE_BUILDING)
+    terrain[6, 9] = Terrain.ISOLATED_TREE
+    terrain[7, 8] = Terrain.ISOLATED_TREE
+    terrain[11, 5] = Terrain.ISOLATED_TREE
+    terrain[10, 11] = Terrain.ISOLATED_TREE
+
+    fillLine(terrain, (2, 6), (4, 5), Terrain.FOREST)
+    fillLine(terrain, (2, 7), (4, 6), Terrain.FOREST)
+    fillLine(terrain, (9, 0), (15, 0), Terrain.FOREST)
+    fillLine(terrain, (12, 1), (15, 1), Terrain.FOREST)
+    fillLine(terrain, (13, 2), (14, 2), Terrain.FOREST)
+
+    fillLine(terrain, (6, 11), (8, 10), Terrain.BUILDING)
+    fillLine(terrain, (6, 11), (6, 13), Terrain.BUILDING)
+    fillLine(terrain, (11, 9), (14, 7), Terrain.BUILDING)
 
     gm.board.addTerrain(terrain)
 

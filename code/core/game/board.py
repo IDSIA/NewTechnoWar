@@ -1,6 +1,6 @@
 import numpy as np
 
-from core import FigureType, TERRAIN_TYPE, TERRAIN_OBSTACLES_TO_LOS, RED, BLUE, Terrain
+from core import FigureType, TERRAIN_TYPE, RED, BLUE
 from core.figures import Figure
 from utils.coordinates import to_cube, Cube, cube_neighbor, cube_to_hex
 
@@ -64,7 +64,7 @@ class GameBoard:
                 self.moveCost[FigureType.INFANTRY][i, j] = tt.moveCostInf
                 self.moveCost[FigureType.VEHICLE][i, j] = tt.moveCostVehicle
 
-                if index in TERRAIN_OBSTACLES_TO_LOS:
+                if tt.blockLos:
                     self.obstacles.update(to_cube((i, j)))
 
     def addGeography(self, geography: np.array):
