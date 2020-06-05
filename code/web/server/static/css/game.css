@@ -61,20 +61,76 @@ a:hover {
 
 /* Figures structure */
 .unit {
-    padding: 10px 20px;
+    margin: 10px 10px;
     display: flex;
     flex-direction: row;
-    flex-basis: 25em;
+    align-items: flex-start;
 }
 
-.uName {
-    width: 10em;
-    flex: 1;
+.uData {
+    display: flex;
+    flex-direction: column;
 }
 
-.uKind {
-    width: 10em;
-    flex: 1;
+.uWeapon {
+    display: flex;
+    flex-direction: column;
+}
+
+.weapon {
+    display: flex;
+    flex-direction: row;
+}
+
+.weapon::before {
+    content: '';
+    background-image: url('/static/img/weapons.png');
+    background-size: cover;
+    background-color: #666666;
+    background-blend-mode: darken;
+    overflow: hidden;
+    display: block;
+    width: 35px;
+    height: 33px;
+    margin: 0 10px 0 35px;
+}
+
+.wCA::before {
+    background-position: 0;
+}
+
+.wAR::before {
+    background-position: 247px;
+}
+
+.wMG::before {
+    background-position: 203px;
+}
+
+.wAT::before {
+    background-position: 167px;
+}
+
+.wMT::before {
+    background-position: 132px;
+}
+
+.wGR::before {
+    background-position: 92px;
+}
+
+.wSM::before {
+    background-position: 47px;
+}
+
+.weapon > div {
+    white-space: nowrap;
+    margin-right: 10px;
+    padding: 1px;
+}
+
+.wName {
+    width: 150px;
 }
 
 /* Figure status */
