@@ -58,11 +58,11 @@ a:hover {
 }
 
 .terrUrban {
-    fill: #555555;
+    fill: #676767;
 }
 
 .terrBuilding {
-    fill: #232323;
+    fill: #454545;
 }
 
 .terrWooden {
@@ -73,7 +73,7 @@ a:hover {
     fill: #999999;
 }
 
-#star {
+.content {
     text-anchor: middle;
-    font-size: 5pt;
+    font-size: 4pt;
 }

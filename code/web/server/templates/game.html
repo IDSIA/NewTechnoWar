@@ -9,18 +9,30 @@
     <div>
         <svg viewBox="0 0 300 300">
             <g class="pod-wrap">
-                {# x += 15 y += 18  #}
-
                 {% for hex in board %}
-                    <g id="pod" onclick="alert('{{ hex.position }}');" transform="translate({{ hex.x }}, {{ hex.y }})">
+                    <g id="pod"
+                            {# onclick="alert('{{ hex.position }}');" #}
+                       transform="translate({{ hex.x }}, {{ hex.y }})">
                         <polygon class="hex {{ hex.css() }}" points="5,-9 -5,-9 -10,0 -5,9 5,9 10,0"></polygon>
+                        <text class="content" x="0" y="0">
+                            {% if hex.objective %}
+                                ⭐
+                            {% endif %}
+                            {% if hex.blockLos %}
+                                🚧
+                            {% endif %}
+                            {% if hex.terrain.name == 'Building' %}
+                                🏯
+                            {% endif %}
+                            {% if hex.terrain.name == 'Isolated tree cover' %}
+                                🌳
+                            {% endif %}
+                            {% if hex.terrain.name == 'Forest' %}
+                                🌲
+                            {% endif %}
+                        </text>
+
                         <text class="coord" x="0" y="6">{{ hex.position }}</text>
-                        {% if hex.objective %}
-                            <text id="star" x="0" y="0">⭐</text>
-                        {% endif %}
-                        {% if hex.obstacle %}
-                            <text id="star" x="0" y="0">🚧</text>
-                        {% endif %}
                     </g>
                 {% endfor %}
             </g>

@@ -1,14 +1,14 @@
-from core import Terrain, TERRAIN_OBSTACLES_TO_LOS, TERRAIN_TYPE
+from core import Terrain, TERRAIN_TYPE
 from core.game import GameBoard
 from utils.coordinates import to_cube
 
 
 class Hexagon:
-    def __init__(self, position: tuple, terrain: Terrain, geography: int, objective: bool, obstacle: bool):
+    def __init__(self, position: tuple, terrain: Terrain, geography: int, objective: bool, blockLos: bool):
         self.terrain = terrain
         self.geography = geography
         self.objective = objective
-        self.obstacle = obstacle
+        self.blockLos = blockLos
         self.position = position
         self.cube = to_cube(position)
 
@@ -47,7 +47,7 @@ def scroll(board: GameBoard):
                 tt,
                 board.geography[p],
                 board.objective[p] > 0,
-                tt in TERRAIN_OBSTACLES_TO_LOS,
+                tt.blockLos
             )
 
             yield h
