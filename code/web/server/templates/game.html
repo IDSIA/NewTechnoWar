@@ -6,8 +6,19 @@
 {% endblock %}
 
 {% block content %}
-    <div>
-        <svg viewBox="0 0 300 300">
+    <div id="units">
+        <div><h1>New Techno War - AI Demo</h1></div>
+        <div id="red">
+            <h1>Red units</h1>
+            <div id="redUnits"></div>
+        </div>
+        <div id="blue">
+            <h1>Blue units</h1>
+            <div id="blueUnits"></div>
+        </div>
+    </div>
+    <div id="board">
+        <svg viewBox="0 0 400 400">
             <g class="pod-wrap">
                 {% for hex in board %}
                     <g id="pod"
@@ -38,4 +49,8 @@
             </g>
         </svg>
     </div>
+{% endblock %}
+
+{% block additionalscripts %}
+    <script src="{{ url_for('static', filename='js/game.js', version='20191206') }}"></script>
 {% endblock %}

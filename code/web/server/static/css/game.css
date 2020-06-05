@@ -4,17 +4,11 @@
 
 /* other styling */
 svg {
-    width: 900px;
-    flex: 1;
 }
 
 body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
     margin: 0;
-    height: 100vh;
+    padding: 0;
     font-family: sans-serif;
 }
 
@@ -27,6 +21,72 @@ a {
 a:hover {
     color: #333;
 }
+
+#gameId {
+    display: none;
+}
+
+.container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+#units {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 15%;
+    color: #cccccc;
+    background-color: #555555;
+}
+
+#board {
+    flex: 2;
+    height: 100vh;
+    overflow: auto;
+}
+
+#red {
+    flex: 1;
+    background-color: #992222;
+}
+
+
+#blue {
+    flex: 2;
+    background-color: #222299;
+}
+
+/* Figures structure */
+.unit {
+    padding: 10px 20px;
+    display: flex;
+    flex-direction: row;
+    flex-basis: 25em;
+}
+
+.uName {
+    width: 10em;
+    flex: 1;
+}
+
+.uKind {
+    width: 10em;
+    flex: 1;
+}
+
+/* Figure status */
+.activated {
+    background-color: rgba(0, 0, 0, 0.0);
+}
+
+.notActivated {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* SVGs */
 
 .coord {
     fill: black;

@@ -3,6 +3,19 @@ from core.game import GameBoard
 from utils.coordinates import to_cube
 
 
+def pos_to_xy(position):
+    i, j = position
+
+    if i % 2 == 0:
+        x = 10 + 15 * i
+        y = 18 + 18 * j
+    else:
+        x = 10 + 15 * i
+        y = 9 + 18 * j
+
+    return x, y
+
+
 class Hexagon:
     def __init__(self, position: tuple, terrain: Terrain, geography: int, objective: bool, blockLos: bool):
         self.terrain = terrain
@@ -12,14 +25,7 @@ class Hexagon:
         self.position = position
         self.cube = to_cube(position)
 
-        i, j = position
-
-        if i % 2 == 0:
-            self.x = 10 + 15 * i
-            self.y = 18 + 18 * j
-        else:
-            self.x = 10 + 15 * i
-            self.y = 9 + 18 * j
+        self.x, self.y = pos_to_xy(position)
 
     def css(self):
         csss = ['terrOpen', 'terrRoad', 'terrTree', 'terrForest', 'terrUrban', 'terrBuilding', 'terrWooden',

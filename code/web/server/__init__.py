@@ -2,6 +2,7 @@
 from flask import Flask
 
 from web.server.config import conf
+from web.server.utils.serializer import GameJSONEncoder
 
 
 def create_app():
@@ -15,6 +16,7 @@ def create_app():
 
     # Application Configuration
     app.config.from_object(conf)
+    app.json_encoder = GameJSONEncoder
 
     app.games = dict()
 
