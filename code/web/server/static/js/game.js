@@ -6,19 +6,22 @@ function addFigure(data, agent) {
     let killed = data.killed ? 'killed' : '';
 
     let uData = $('<div/>').addClass('uData')
-        .append($('<div/>').addClass('uName').text(`${data.name}`))
-        .append($('<div/>').addClass('uKind').text(`(${data.kind})`))
+        .append($('<div/>').addClass('uKind').addClass(agent).addClass(data.kind))
+        .append($('<div/>').addClass('uName').text(data.name))
         .append($('<div/>').addClass('uPos').text(`(${data.i}, ${data.j})`))
-        .append($('<div/>').addClass('uHP').text(`HP: ${data.hp}`))
-        .append($('<div/>').addClass('uLoad').text(`LOAD: ${data.load}`))
-        .append($('<div/>').addClass('uMove').text(`MOVE: ${data.move}`))
-        .append($('<div/>').addClass('uStat').text(`STAT: ${data.stat}`))
+        .append(
+            $('<dev/>').addClass('uFixed')
+                .append($('<div/>').addClass('uHP').text(data.hp))
+                .append($('<div/>').addClass('uLoad').text(data.load))
+                .append($('<div/>').addClass('uMove').text(data.move))
+        )
+        .append($('<div/>').addClass('uStat').text(data.stat))
 
     let uWeapons = $('<div/>').addClass('uWeapons')
     data.weapons.forEach(function (item, _) {
         let effect = item.no_effect ? 'wNoEffect' : '';
         let ammo = item.ammo > 1000000 ? '♾' : item.ammo;
-        let range = item.max_range > 1000000 ? '♾' : item.range;
+        let range = item.max_range > 1000000 ? '♾' : item.max_range;
         let curved = item.curved ? 'C' : ''; // TODO: find an image
         let antiTank = item.antitank ? 'T' : ''; // TODO: find an image
 
@@ -29,11 +32,9 @@ function addFigure(data, agent) {
                 .addClass('weapon')
                 .append($('<div/>').addClass('wName').text(item.name))
                 .append($('<div/>').addClass('wAmmo').text(ammo))
-                .append($('<div/>').addClass('wAtk').text(item.atk_normal))
-                .append($('<div/>').addClass('wResp').text(item.atk_response))
+                .append($('<div/>').addClass('wAtk').text(`${item.atk_normal}|${item.atk_response}`))
                 .append($('<div/>').addClass('wRange').text(range))
-                .append($('<div/>').addClass('wCurved').text(curved))
-                .append($('<div/>').addClass('wAntitank').text(antiTank))
+                .append($('<div/>').addClass('wSpecs').text(`${curved}${antiTank}`))
         )
     });
 

@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, make_response, request, jsonify
 from flask import current_app as app
 
 from core.game import scenarios, GameManager
-from web.server.utils import scroll
+from web.server.utils import scroll, fieldShape
 
 main = Blueprint("main", __name__, template_folder="templates", static_folder="static")
 
@@ -50,7 +50,8 @@ def game(scenario: str):
             title="Game | NewTechnoWar",
             template="game-template",
             board=list(scroll(gm.board)),
-            gameId=gameId
+            gameId=gameId,
+            shape=fieldShape(gm.board)
         )
     )
 

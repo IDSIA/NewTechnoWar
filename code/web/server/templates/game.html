@@ -9,20 +9,23 @@
     <div id="units">
         <div><h1>New Techno War - AI Demo</h1></div>
         <div id="red">
-            <div id="redUnits"></div>
+            <div id="redUnits" class="units"></div>
         </div>
         <div id="blue">
-            <div id="blueUnits"></div>
+            <div id="blueUnits" class="units"></div>
         </div>
     </div>
     <div id="board">
-        <svg viewBox="0 0 400 400">
+        <svg viewBox="0 0 {{ shape[0] }} {{ shape[1] }}">
+            <defs>
+                <polygon id="hex" class="hex" points="5,-9 -5,-9 -10,0 -5,9 5,9 10,0"></polygon>
+            </defs>
             <g class="pod-wrap">
                 {% for hex in board %}
-                    <g id="pod"
+                    <g id="x{{ hex.x }}y{{ hex.y }}"
                             {# onclick="alert('{{ hex.position }}');" #}
                        transform="translate({{ hex.x }}, {{ hex.y }})">
-                        <polygon class="hex {{ hex.css() }}" points="5,-9 -5,-9 -10,0 -5,9 5,9 10,0"></polygon>
+                        <use href="#hex" class="{{ hex.css() }}"></use>
                         <text class="content" x="0" y="0">
                             {% if hex.objective %}
                                 ⭐

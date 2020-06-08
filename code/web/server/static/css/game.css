@@ -4,6 +4,8 @@
 
 /* other styling */
 svg {
+    height: 95vh;
+    margin: 10px;
 }
 
 body {
@@ -28,6 +30,7 @@ a:hover {
 
 .container {
     display: flex;
+    flex-wrap: wrap;
     flex-direction: row;
     justify-content: center;
     align-items: flex-start;
@@ -59,27 +62,117 @@ a:hover {
     background-color: #222299;
 }
 
+.units {
+    display: flex;
+    flex-wrap: wrap;
+}
+
 /* Figures structure */
 .unit {
-    margin: 10px 10px;
+    margin: 5px 5px;
     display: flex;
     flex-direction: row;
     align-items: flex-start;
+    padding: 5px;
 }
 
 .uData {
     display: flex;
     flex-direction: column;
+    align-content: flex-start;
 }
+
+.uData > div, .uFixed > div, .weapon > div {
+    background-color: #444444;
+    padding: 5px;
+    text-align: center;
+    position: relative;
+    margin-top: 5px;
+}
+
+.uKind {
+    background-size: 117px 97px;
+    width: 117px;
+    height: 97px;
+}
+
+.uKind.red {
+    background-color: #ff0000;
+}
+
+.uKind.blue {
+    background-color: #0000ff;
+}
+
+.uKind.infantry {
+    background-image: url('/static/img/infantry.png');
+}
+
+.uKind.vehicle {
+    background-image: url('/static/img/vehicle.png');
+}
+
+.wName {
+    width: 150px;
+}
+
+.uFixed {
+    display: flex;
+    justify-content: space-between;
+}
+
+.uFixed > div {
+    margin-top: 10px;
+}
+
+.uFixed > ::after, .wName, .wAmmo::before, .wAtk::before, .wRange::before, .wSpecs::before {
+    color: black;
+    font-size: 8pt;
+    font-weight: 900;
+    position: absolute;
+    top: -13px;
+    left: 0;
+}
+
+.uFixed > ::after {
+    width: 28px;
+}
+
+.uLoad, .uMove, .uHP {
+    width: 20px;
+}
+
+.uLoad::after {
+    content: 'LOAD';
+}
+
+.uMove::after {
+    content: 'MOVE';
+}
+
+.uHP::after {
+    content: 'HP';
+}
+
+/* weapons area */
 
 .uWeapon {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    margin-left: 5px;
 }
 
 .weapon {
     display: flex;
-    flex-direction: row;
+    margin: 15px 5px 5px;
+    position: relative;
+}
+
+.wName {
+    display: none;
+    background: none !important;
+    position: absolute !important;
+    top: -13px;
 }
 
 .weapon::before {
@@ -90,9 +183,45 @@ a:hover {
     background-blend-mode: darken;
     overflow: hidden;
     display: block;
-    width: 35px;
-    height: 33px;
-    margin: 0 10px 0 35px;
+    width: 28px;
+    height: 28px;
+}
+
+.weapon > div {
+    width: 28px;
+    height: 28px;
+    margin-top: 0;
+    margin-left: 1px;
+    white-space: nowrap;
+    padding: 1px;
+}
+
+.wAtk {
+    width: 35px !important;
+}
+
+.wRange {
+    width: 30px !important;
+}
+
+.wAmmo::before {
+    content: 'AMMO';
+    font-size: 6pt;
+}
+
+.wAtk::before {
+    content: 'ATK';
+    font-size: 6pt;
+}
+
+.wRange::before {
+    content: 'RANGE';
+    font-size: 6pt;
+}
+
+.wSpecs::before {
+    content: 'SPEC';
+    font-size: 6pt;
 }
 
 .wCA::before {
@@ -100,37 +229,27 @@ a:hover {
 }
 
 .wAR::before {
-    background-position: 247px;
+    background-position: 208px;
 }
 
 .wMG::before {
-    background-position: 203px;
+    background-position: 171px;
 }
 
 .wAT::before {
-    background-position: 167px;
+    background-position: 140px;
 }
 
 .wMT::before {
-    background-position: 132px;
+    background-position: 110px;
 }
 
 .wGR::before {
-    background-position: 92px;
+    background-position: 77px;
 }
 
 .wSM::before {
-    background-position: 47px;
-}
-
-.weapon > div {
-    white-space: nowrap;
-    margin-right: 10px;
-    padding: 1px;
-}
-
-.wName {
-    width: 150px;
+    background-position: 39px;
 }
 
 /* Figure status */

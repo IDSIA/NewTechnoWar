@@ -1,17 +1,25 @@
+from math import sqrt
+
 from core import Terrain, TERRAIN_TYPE
 from core.game import GameBoard
 from utils.coordinates import to_cube
+
+SIZE = 10
+w = SIZE * 2
+h = SIZE * sqrt(3)
 
 
 def pos_to_xy(position):
     i, j = position
 
+    x = w / 2 + 3 / 4 * w * i
+
     if i % 2 == 0:
-        x = 10 + 15 * i
-        y = 18 + 18 * j
+        y = h + h * j
     else:
-        x = 10 + 15 * i
-        y = 9 + 18 * j
+        y = h / 2 + h * j
+
+    print(f'{i:2} {j:2} -> {x:3} {y:3}')
 
     return x, y
 
@@ -36,6 +44,11 @@ class Hexagon:
                 return csss[i]
 
         return ''
+
+
+def fieldShape(board: GameBoard):
+    x, y = board.shape
+    return (x + 3/4) * w, (y + 1/2) * h
 
 
 def scroll(board: GameBoard):
