@@ -24,6 +24,21 @@ a:hover {
     color: #333;
 }
 
+#title {
+    padding: 10px;
+    display: flex;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #555555;
+}
+
+#title > a {
+    font-size: 36pt;
+    border: 1px solid #444444;
+    margin-left: 10px;
+}
+
 #gameId {
     display: none;
 }
@@ -40,9 +55,14 @@ a:hover {
     flex: 1;
     display: flex;
     flex-direction: column;
-    width: 15%;
     color: #cccccc;
     background-color: #555555;
+    overflow-y: scroll;
+    height: 100vh;
+}
+
+#units::-webkit-scrollbar {
+    display: none;
 }
 
 #board {
@@ -52,14 +72,14 @@ a:hover {
 }
 
 #red {
-    flex: 1;
     background-color: #992222;
+    z-index: 1;
 }
 
 
 #blue {
-    flex: 2;
     background-color: #222299;
+    z-index: 1;
 }
 
 .units {
@@ -80,6 +100,7 @@ a:hover {
     display: flex;
     flex-direction: column;
     align-content: flex-start;
+    position: relative;
 }
 
 .uData > div, .uFixed > div, .weapon > div {
@@ -87,13 +108,13 @@ a:hover {
     padding: 5px;
     text-align: center;
     position: relative;
-    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 .uKind {
     background-size: 117px 97px;
-    width: 117px;
-    height: 97px;
+    width: 110px;
+    height: 85px;
 }
 
 .uKind.red {
@@ -127,7 +148,7 @@ a:hover {
 
 .uFixed > ::after, .wName, .wAmmo::before, .wAtk::before, .wRange::before, .wSpecs::before {
     color: black;
-    font-size: 8pt;
+    font-size: 6pt;
     font-weight: 900;
     position: absolute;
     top: -13px;
@@ -156,6 +177,10 @@ a:hover {
 
 /* weapons area */
 
+.uWeapons {
+    font-size: 10pt;
+}
+
 .uWeapon {
     display: flex;
     flex-direction: row;
@@ -164,8 +189,11 @@ a:hover {
 
 .weapon {
     display: flex;
+    margin: 5px 5px 5px;
+}
+
+.first.weapon {
     margin: 15px 5px 5px;
-    position: relative;
 }
 
 .wName {
@@ -189,7 +217,7 @@ a:hover {
 
 .weapon > div {
     width: 28px;
-    height: 28px;
+    height: 26px;
     margin-top: 0;
     margin-left: 1px;
     white-space: nowrap;
@@ -204,22 +232,23 @@ a:hover {
     width: 30px !important;
 }
 
-.wAmmo::before {
+.first > .wAmmo::before {
     content: 'AMMO';
     font-size: 6pt;
 }
 
-.wAtk::before {
+.first > .wAtk::before {
     content: 'ATK';
     font-size: 6pt;
+    width: 35px;
 }
 
-.wRange::before {
+.first > .wRange::before {
     content: 'RANGE';
     font-size: 6pt;
 }
 
-.wSpecs::before {
+.first > .wSpecs::before {
     content: 'SPEC';
     font-size: 6pt;
 }

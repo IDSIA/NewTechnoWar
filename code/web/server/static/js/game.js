@@ -18,17 +18,19 @@ function addFigure(data, agent) {
         .append($('<div/>').addClass('uStat').text(data.stat))
 
     let uWeapons = $('<div/>').addClass('uWeapons')
-    data.weapons.forEach(function (item, _) {
+    data.weapons.forEach(function (item, index) {
         let effect = item.no_effect ? 'wNoEffect' : '';
-        let ammo = item.ammo > 1000000 ? '♾' : item.ammo;
-        let range = item.max_range > 1000000 ? '♾' : item.max_range;
+        let ammo = item.ammo > 1000000 ? '∞' : item.ammo;
+        let range = item.max_range > 1000000 ? '∞' : item.max_range;
         let curved = item.curved ? 'C' : ''; // TODO: find an image
         let antiTank = item.antitank ? 'T' : ''; // TODO: find an image
+        let first = index === 0 ? 'first' : ''
 
         uWeapons.append(
             $('<div/>')
                 .addClass('w' + item.id)
                 .addClass(effect)
+                .addClass(first)
                 .addClass('weapon')
                 .append($('<div/>').addClass('wName').text(item.name))
                 .append($('<div/>').addClass('wAmmo').text(ammo))
