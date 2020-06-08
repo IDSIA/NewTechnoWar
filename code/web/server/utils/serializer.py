@@ -3,7 +3,7 @@ from flask.json import JSONEncoder
 from core import FigureType
 from core.figures import Figure
 from core.weapons import Weapon
-from utils.coordinates import to_hex
+from utils.coordinates import cube_to_hex
 from web.server.utils import pos_to_xy
 
 
@@ -11,7 +11,7 @@ class GameJSONEncoder(JSONEncoder):
 
     def default(self, obj):
         if isinstance(obj, Figure):
-            i, j = to_hex(obj.position)
+            i, j = cube_to_hex(obj.position)
             x, y = pos_to_xy((i, j))
             kind = 'infantry' if obj.kind == FigureType.INFANTRY else 'vehicle'
             return {

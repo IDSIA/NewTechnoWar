@@ -16,13 +16,19 @@
         </div>
     </div>
     <div id="board">
-        <svg viewBox="0 0 {{ shape[0] }} {{ shape[1] }}">
+        <svg id="view" viewBox="0 0 {{ shape[0] }} {{ shape[1] }}">
             <defs>
                 <polygon id="hex" class="hex" points="5,-9 -5,-9 -10,0 -5,9 5,9 10,0"></polygon>
+                <pattern id="infantryMark" x="0" y="0" patternUnits="userSpaceOnUse" height="1" width="1">
+                    <image href="{{ url_for('static', filename='img/infantry.png') }}"></image>
+                </pattern>
+                <pattern id="tankMark" x="0" y="0" patternUnits="userSpaceOnUse" height="1" width="1">
+                    <image href="{{ url_for('static', filename='img/tank.png') }}"></image>
+                </pattern>
             </defs>
             <g class="pod-wrap">
                 {% for hex in board %}
-                    <g id="x{{ hex.x }}y{{ hex.y }}"
+                    <g id="x{{ hex.i }}y{{ hex.j }}"
                             {# onclick="alert('{{ hex.position }}');" #}
                        transform="translate({{ hex.x }}, {{ hex.y }})">
                         <use href="#hex" class="{{ hex.css() }}"></use>
@@ -43,8 +49,7 @@
                                 🌲
                             {% endif %}
                         </text>
-
-                        <text class="coord" x="0" y="6">{{ hex.position }}</text>
+                        <text class="coord" x="0" y="6">({{ hex.i }},{{ hex.j }})</text>
                     </g>
                 {% endfor %}
             </g>

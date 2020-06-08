@@ -19,8 +19,6 @@ def pos_to_xy(position):
     else:
         y = h / 2 + h * j
 
-    print(f'{i:2} {j:2} -> {x:3} {y:3}')
-
     return x, y
 
 
@@ -30,9 +28,9 @@ class Hexagon:
         self.geography = geography
         self.objective = objective
         self.blockLos = blockLos
-        self.position = position
         self.cube = to_cube(position)
 
+        self.i, self.j = position
         self.x, self.y = pos_to_xy(position)
 
     def css(self):
@@ -48,7 +46,7 @@ class Hexagon:
 
 def fieldShape(board: GameBoard):
     x, y = board.shape
-    return (x + 3/4) * w, (y + 1/2) * h
+    return (x + 3 / 4) * w, (y + 1 / 2) * h
 
 
 def scroll(board: GameBoard):

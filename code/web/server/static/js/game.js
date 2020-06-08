@@ -49,6 +49,28 @@ function addFigure(data, agent) {
             .append(uData)
             .append(uWeapons)
     );
+
+    let img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+    img.setAttribute('href', `/static/img/${data.kind}.png`);
+    img.setAttribute('x', '-5');
+    img.setAttribute('y', '-5');
+    img.setAttribute('width', '10');
+    img.setAttribute('height', '10');
+
+    let mark = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    mark.setAttribute('cx', '0');
+    mark.setAttribute('cy', '0');
+    mark.setAttribute('r', '5');
+    mark.setAttribute('fill', `url(#${data.kind}Mark)`);
+
+    let g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('id', data.name + 'Mark');
+    g.setAttribute('transform', `translate(${data.x},${data.y - 3})`);
+    g.classList.add('unit', agent, data.kind);
+    g.appendChild(mark)
+    g.appendChild(img)
+
+    document.getElementById('view').appendChild(g);
 }
 
 window.onload = function () {

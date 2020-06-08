@@ -97,11 +97,11 @@ a:hover {
 }
 
 .uKind.red {
-    background-color: #ff0000;
+    background-color: red;
 }
 
 .uKind.blue {
-    background-color: #0000ff;
+    background-color: dodgerblue;
 }
 
 .uKind.infantry {
@@ -311,4 +311,15 @@ a:hover {
 .content {
     text-anchor: middle;
     font-size: 4pt;
+}
+
+
+/* figures */
+
+g.unit.red > circle {
+    fill: red;
+}
+
+g.unit.blue > circle {
+    fill: dodgerblue;
 }
