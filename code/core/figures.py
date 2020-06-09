@@ -124,6 +124,7 @@ class Figure:
         self.activated: bool = False
         self.responded: bool = False
         self.killed: bool = False
+        self.hit: bool = False
 
         self.attackedBy = None
 

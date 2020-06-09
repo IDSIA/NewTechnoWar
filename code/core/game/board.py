@@ -26,14 +26,15 @@ class GameBoard:
 
         x, y = shape
 
-        self.limits = \
-            [to_cube((q, -1)) for q in range(-1, y + 1)] + \
-            [to_cube((q, y)) for q in range(-1, y + 1)] + \
-            [to_cube((-1, r)) for r in range(0, y)] + \
+        self.limits = set(
+            [to_cube((q, -1)) for q in range(-1, y + 1)] +
+            [to_cube((q, y)) for q in range(-1, y + 1)] +
+            [to_cube((-1, r)) for r in range(0, y)] +
             [to_cube((x, r)) for r in range(0, y)]
+        )
 
         # obstructions to LOS
-        self.obstacles = set(self.limits)
+        self.obstacles = set()
 
         # movement obstructions are considered in the cost
         self.moveCost = {
@@ -65,7 +66,7 @@ class GameBoard:
                 self.moveCost[FigureType.VEHICLE][i, j] = tt.moveCostVehicle
 
                 if tt.blockLos:
-                    self.obstacles.update(to_cube((i, j)))
+                    self.obstacles.add(to_cube((i, j)))
 
     def addGeography(self, geography: np.array):
         """Sum a geography matrix to the current board"""
@@ -80,13 +81,19 @@ class GameBoard:
     def getNeighbors(self, position: Cube):
         return [n for n in cube_neighbor(position) if n not in self.limits]
 
-    def getMovementCost(self, end: Cube, kind: int):
-        pos = cube_to_hex(end)
-        if pos in self.posToFigure[RED] and self.posToFigure[RED][pos].kind == FigureType.VEHICLE:
+    def getMovementCost(self, pos: Cube, kind: int):
+        kinds = set()
+        if pos in self.limits:
             return 1000.0
-        if pos in self.posToFigure[BLUE] and self.posToFigure[BLUE][pos].kind == FigureType.VEHICLE:
+
+        if pos in self.posToFigure[RED]:
+            kinds.update([x.kind for x in self.posToFigure[RED][pos]])
+        if pos in self.posToFigure[BLUE]:
+            kinds.update([x.kind for x in self.posToFigure[BLUE][pos]])
+        if FigureType.VEHICLE in kinds:
             return 1000.0
-        return self.moveCost[kind][pos]
+
+        return self.moveCost[kind][cube_to_hex(pos)]
 
     def moveFigure(self, agent: str, figure: Figure, curr: Cube = None, dst: Cube = None):
         """Moves a figure from current position to another destination."""

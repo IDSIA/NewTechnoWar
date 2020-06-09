@@ -225,8 +225,9 @@ class GameManager:
             logging.info(f'{action}: (({success}) {score}/{hitScore})')
 
             if success > 0:
-                t.hp -= success
+                t.hp -= success * w.damage
                 logging.info(f'{action}: HIT! ({t.hp})')
+                t.hit = True
                 if t.hp <= 0:
                     t.killed = True
                     logging.info(f'{action}: KILLED!')
@@ -251,10 +252,13 @@ class GameManager:
                 if figure.hp <= 0:
                     figure.killed = True
                     figure.activated = True
+                    figure.hit = False
                 else:
+                    figure.killed = False
                     figure.activated = False
                     figure.responded = False
                     figure.attackedBy = None
+                    figure.hit = False
 
         # TODO: remove killed unit?
 
