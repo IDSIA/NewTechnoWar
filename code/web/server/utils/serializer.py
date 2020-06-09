@@ -1,18 +1,17 @@
 from flask.json import JSONEncoder
 
 from core import FigureType
+from core.actions import Move, DoNothing, Shoot, Respond
 from core.figures import Figure
 from core.weapons import Weapon
-from utils.coordinates import cube_to_hex
-from web.server.utils import pos_to_xy
+from web.server.utils import cube_to_ijxy
 
 
 class GameJSONEncoder(JSONEncoder):
 
     def default(self, obj):
         if isinstance(obj, Figure):
-            i, j = cube_to_hex(obj.position)
-            x, y = pos_to_xy((i, j))
+            i, j, x, y = cube_to_ijxy(obj.position)
             kind = 'infantry' if obj.kind == FigureType.INFANTRY else 'vehicle'
             return {
                 'id': obj.fid,
@@ -46,6 +45,29 @@ class GameJSONEncoder(JSONEncoder):
                 'damage': obj.damage,
                 'antitank': obj.antitank,
                 'no_effect': obj.no_effect,
+            }
+
+        if isinstance(obj, DoNothing):
+            return {
+                'agent': obj.agent,
+                'figure': obj.figure.fid
+            }
+
+        if isinstance(obj, Move):
+            return {
+                'agent': obj.agent,
+                'figure': obj.figure.fid,
+                'destination': obj.destination
+            }
+
+        if isinstance(obj, Shoot) or isinstance(obj, Respond):
+            return {
+                'agent': obj.agent,
+                'figure': obj.figure.fid,
+                'target': obj.target.fid,
+                'weapon': obj.weapon.wid,
+                'los': [cube_to_ijxy(hex) for hex in obj.los],
+                'kind': 'shoot' if isinstance(obj, Shoot) else 'response'
             }
 
         return super(GameJSONEncoder, self).default(obj)

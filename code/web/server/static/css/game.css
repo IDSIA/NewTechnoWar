@@ -1,8 +1,3 @@
-/*.pod-wrap use:hover {*/
-/*    fill: aqua;*/
-/*}*/
-
-/* other styling */
 svg {
     height: 95vh;
     margin: 10px;
@@ -17,10 +12,17 @@ svg {
     background-color: #555555;
 }
 
+#title > h1 {
+    margin: 0;
+    flex-grow: 2;
+}
+
 #title > a {
     font-size: 36pt;
     border: 1px solid #444444;
     margin-left: 10px;
+    text-decoration: none;
+    cursor: pointer;
 }
 
 #gameId {
@@ -129,6 +131,10 @@ div.blue.unit {
     width: 150px;
 }
 
+.uPos {
+    display: none;
+}
+
 .uFixed {
     display: flex;
     justify-content: space-between;
@@ -193,6 +199,10 @@ div.blue.unit {
     background: none !important;
     position: absolute !important;
     top: -13px;
+}
+
+.weapon.empty {
+    color: black;
 }
 
 .weapon::before {
@@ -279,8 +289,44 @@ div.blue.unit {
     background-color: rgba(0, 0, 0, 0.0);
 }
 
+div.unit {
+    position: relative;
+}
+
 .notActivated {
     background-color: rgba(255, 255, 255, 0.2);
+}
+
+.responded::before {
+    content: 'R';
+    background-color: orange;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    margin: 5px;
+    color: black;
+    font-weight: bold;
+    padding: 5px;
+}
+
+div.killed {
+    background-color: black;
+}
+
+div.killed::before {
+    content: 'X';
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    margin: 5px;
+    color: white;
+    font-weight: bold;
+    padding: 5px;
+    font-size: 80px;
+    width: 110px;
+    text-align: center;
 }
 
 /* SVGs */
@@ -346,9 +392,17 @@ g.unit.blue > circle {
     fill: dodgerblue;
 }
 
-/*div.unit:hover {*/
-/*    border: 1px solid yellow;*/
-/*}*/
+g.killed.red > circle {
+    fill: #555555;
+    stroke: darkred;
+    stroke-width: 0.5px;
+}
+
+g.killed.blue > circle {
+    fill: #555555;
+    stroke: dodgerblue;
+    stroke-width: 0.5px;
+}
 
 .highlight {
     border: 1px solid yellow !important;

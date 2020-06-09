@@ -1,12 +1,24 @@
 let figures = {};
+let gameId = undefined;
 
 function addFigure(data, agent) {
-    let fid = `figure-${data.id}`
-    let gid = `mark-${data.id}`
+    let fid = `figure-${data.id}`;
+    let gid = `mark-${data.id}`;
 
-    let active = data.activated ? 'activated' : 'notActivated';
-    let responded = data.activated ? 'responded' : 'notResponded';
-    let killed = data.killed ? 'killed' : '';
+    let status = ''
+
+    if (data.killed) {
+        status = 'killed';
+    } else {
+        if (data.activated) {
+            status += 'activated';
+        } else {
+            status = 'notActivated';
+        }
+        if (data.responded) {
+            status += ' responded';
+        }
+    }
 
     let uData = $('<div/>').addClass('uData')
         .append($('<div/>').addClass('uKind').addClass(agent).addClass(data.kind))
@@ -18,16 +30,16 @@ function addFigure(data, agent) {
                 .append($('<div/>').addClass('uLoad').text(data.load))
                 .append($('<div/>').addClass('uMove').text(data.move))
         )
-        .append($('<div/>').addClass('uStat').text(data.stat))
+        .append($('<div/>').addClass('uStat').text(data.stat));
 
-    let uWeapons = $('<div/>').addClass('uWeapons')
+    let uWeapons = $('<div/>').addClass('uWeapons');
     data.weapons.forEach(function (item, index) {
         let effect = item.no_effect ? 'wNoEffect' : '';
         let ammo = item.ammo > 1000000 ? '∞' : item.ammo;
         let range = item.max_range > 1000000 ? '∞' : item.max_range;
         let curved = item.curved ? 'C' : ''; // TODO: find an image
         let antiTank = item.antitank ? 'T' : ''; // TODO: find an image
-        let first = index === 0 ? 'first' : ''
+        let first = index === 0 ? 'first' : '';
 
         uWeapons.append(
             $('<div/>')
@@ -35,20 +47,19 @@ function addFigure(data, agent) {
                 .addClass(effect)
                 .addClass(first)
                 .addClass('weapon')
+                .addClass(ammo === 0 ? 'empty' : '')
                 .append($('<div/>').addClass('wName').text(item.name))
                 .append($('<div/>').addClass('wAmmo').text(ammo))
                 .append($('<div/>').addClass('wAtk').text(`${item.atk_normal}|${item.atk_response}`))
                 .append($('<div/>').addClass('wRange').text(range))
                 .append($('<div/>').addClass('wSpecs').text(`${curved}${antiTank}`))
-        )
+        );
     });
 
     $(`#${agent}Units`).append(
         $('<div/>')
             .attr('id', fid)
-            .addClass(active)
-            .addClass(killed)
-            .addClass(responded)
+            .addClass(status)
             .addClass(data.kind)
             .addClass('unit')
             .addClass(agent)
@@ -82,9 +93,9 @@ function addFigure(data, agent) {
     let g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('id', gid);
     g.setAttribute('transform', `translate(${data.x},${data.y - 3})`);
-    g.classList.add('unit', agent, data.kind);
-    g.appendChild(mark)
-    g.appendChild(img)
+    g.classList.add('unit', agent, data.kind, status);
+    g.appendChild(mark);
+    g.appendChild(img);
 
     g.onmouseover = function () {
         $(`#${fid}`).addClass('highlight');
@@ -95,12 +106,26 @@ function addFigure(data, agent) {
         $(`#${gid}`).removeClass('highlight');
     };
 
-    document.getElementById('view').appendChild(g);
+    document.getElementById('markers').appendChild(g);
+}
+
+function step() {
+    $.get('/game/next/step', function (data) {
+        console.log('step');
+        console.log(data);
+    });
+}
+
+function turn() {
+    $.get('/game/next/turn', function (data) {
+        console.log('turn');
+        console.log(data);
+    });
 }
 
 window.onload = function () {
     console.log('init game');
-    let gameId = $.cookie("gameId");
+    gameId = $.cookie("gameId");
     console.log('gameId: ' + gameId);
 
     $.get('/game/figures', function (data) {
@@ -112,11 +137,11 @@ window.onload = function () {
         let blues = data['blue'];
 
         reds.forEach(function (item, _) {
-            addFigure(item, 'red')
+            addFigure(item, 'red');
         });
         blues.forEach(function (item, _) {
-            addFigure(item, 'blue')
-        })
+            addFigure(item, 'blue');
+        });
 
     }).fail(function () {
         console.error('Failed to load figures!');

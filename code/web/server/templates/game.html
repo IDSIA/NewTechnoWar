@@ -8,9 +8,11 @@
 {% block content %}
     <div id="units">
         <div id="title">
-            <h1>New Techno War - AI Demo</h1>
-            <a id="btnNext">▶</a>
-            <a id="btnForward">▶▶|</a>
+            <h1>New Techno War<br/>AI Demo</h1>
+            <a id="btnReset" href="{{ url_for('main.gameReset') }}">↩</a>
+            <a id="btnNext" onclick="step()">▶</a>
+            <a id="btnForward" onclick="turn()">▶▶|</a>
+            <a id="btnTurn">{{ turn }}</a>
         </div>
         <div id="red">
             <div id="redUnits" class="units"></div>
@@ -30,7 +32,7 @@
                     <image href="{{ url_for('static', filename='img/tank.png') }}"></image>
                 </pattern>
             </defs>
-            <g class="pod-wrap">
+            <g id="board">
                 {% for hex in board %}
                     <g id="x{{ hex.i }}y{{ hex.j }}"
                             {# onclick="alert('{{ hex.position }}');" #}
@@ -57,6 +59,7 @@
                     </g>
                 {% endfor %}
             </g>
+            <g id="markers"></g>
         </svg>
     </div>
 {% endblock %}

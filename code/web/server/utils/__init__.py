@@ -2,7 +2,7 @@ from math import sqrt
 
 from core import Terrain, TERRAIN_TYPE
 from core.game import GameBoard
-from utils.coordinates import to_cube
+from utils.coordinates import to_cube, cube_to_hex
 
 SIZE = 10
 w = SIZE * 2
@@ -20,6 +20,12 @@ def pos_to_xy(position):
         y = h / 2 + h * j
 
     return x, y
+
+
+def cube_to_ijxy(position):
+    i, j = cube_to_hex(position)
+    x, y = pos_to_xy((i, j))
+    return i, j, x, y
 
 
 class Hexagon:
