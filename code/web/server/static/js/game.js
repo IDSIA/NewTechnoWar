@@ -1,41 +1,65 @@
 let figures = {};
 let gameId = undefined;
 
-function addFigure(data, agent) {
-    let fid = `figure-${data.id}`;
-    let gid = `mark-${data.id}`;
+let vEps = -3;
 
-    let status = ''
+function ammoNum(data) {
+    return data.ammo > 1000000 ? '∞' : data.ammo;
+}
+
+function ammoClass(data) {
+    return data === 0 ? 'empty' : '';
+}
+
+function updateFigure(data) {
+    let figure = $(`#figure-${data.id}`);
+    figure.removeClass('killed');
+    figure.removeClass('activated');
+    figure.removeClass('notActivated');
+    figure.removeClass('responded');
+
+    figure.find('div.uPos').text(`(${data.i}, ${data.j})`);
+    figure.find('div.uHP').text(data.hp);
+    figure.find('div.uLoad').text(data.load);
+    figure.find('div.uMove').text(data.move);
+    figure.find('div.uStat').text(data.stat);
 
     if (data.killed) {
-        status = 'killed';
+        figure.addClass('killed');
     } else {
         if (data.activated) {
-            status += 'activated';
+            figure.addClass('activated');
         } else {
-            status = 'notActivated';
+            figure.addClass('notActivated');
         }
         if (data.responded) {
-            status += ' responded';
+            figure.addClass('responded');
         }
     }
+}
+
+function addFigure(data, agent) {
+    figures[data.id] = data;
+
+    let fid = `figure-${data.id}`;
+    let gid = `mark-${data.id}`;
 
     let uData = $('<div/>').addClass('uData')
         .append($('<div/>').addClass('uKind').addClass(agent).addClass(data.kind))
         .append($('<div/>').addClass('uName').text(data.name))
-        .append($('<div/>').addClass('uPos').text(`(${data.i}, ${data.j})`))
+        .append($('<div/>').addClass('uPos'))
         .append(
             $('<dev/>').addClass('uFixed')
-                .append($('<div/>').addClass('uHP').text(data.hp))
-                .append($('<div/>').addClass('uLoad').text(data.load))
-                .append($('<div/>').addClass('uMove').text(data.move))
+                .append($('<div/>').addClass('uHP'))
+                .append($('<div/>').addClass('uLoad'))
+                .append($('<div/>').addClass('uMove'))
         )
-        .append($('<div/>').addClass('uStat').text(data.stat));
+        .append($('<div/>').addClass('uStat'));
 
     let uWeapons = $('<div/>').addClass('uWeapons');
     data.weapons.forEach(function (item, index) {
         let effect = item.no_effect ? 'wNoEffect' : '';
-        let ammo = item.ammo > 1000000 ? '∞' : item.ammo;
+        let ammo = ammoNum(item);
         let range = item.max_range > 1000000 ? '∞' : item.max_range;
         let curved = item.curved ? 'C' : ''; // TODO: find an image
         let antiTank = item.antitank ? 'T' : ''; // TODO: find an image
@@ -47,7 +71,7 @@ function addFigure(data, agent) {
                 .addClass(effect)
                 .addClass(first)
                 .addClass('weapon')
-                .addClass(ammo === 0 ? 'empty' : '')
+                .addClass(ammoClass(ammo))
                 .append($('<div/>').addClass('wName').text(item.name))
                 .append($('<div/>').addClass('wAmmo').text(ammo))
                 .append($('<div/>').addClass('wAtk').text(`${item.atk_normal}|${item.atk_response}`))
@@ -59,7 +83,6 @@ function addFigure(data, agent) {
     $(`#${agent}Units`).append(
         $('<div/>')
             .attr('id', fid)
-            .addClass(status)
             .addClass(data.kind)
             .addClass('unit')
             .addClass(agent)
@@ -73,6 +96,8 @@ function addFigure(data, agent) {
                 $(`#${gid}`).removeClass('highlight');
             })
     );
+
+    updateFigure(data);
 
     // svg image
     let img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
@@ -92,8 +117,8 @@ function addFigure(data, agent) {
     // svg g container
     let g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('id', gid);
-    g.setAttribute('transform', `translate(${data.x},${data.y - 3})`);
-    g.classList.add('unit', agent, data.kind, status);
+    g.setAttribute('transform', `translate(${data.x},${data.y + vEps})`);
+    g.classList.add('unit', agent, data.kind);
     g.appendChild(mark);
     g.appendChild(img);
 
@@ -111,15 +136,83 @@ function addFigure(data, agent) {
 
 function step() {
     $.get('/game/next/step', function (data) {
-        console.log('step');
+        console.log('step: ' + data.action.action);
         console.log(data);
+
+        $('#btnTurn').text(data.turn);
+        let action = data.action;
+
+        let current = figures[action.figure.id];
+        let figure = $(`#figure-${action.figure.id}`);
+        let mark = document.getElementById(`mark-${action.figure.id}`);
+
+        updateFigure(action.figure);
+
+        switch (action.action) {
+            case 'Move':
+                move(mark, action);
+                break;
+            case 'Shoot':
+            case 'Respond':
+                shoot(current, figure, mark, action);
+                break;
+            default:
+                console.info("Not implemented yet: " + action.action);
+        }
+    }).fail(function () {
+        console.error('Failed to step!');
     });
+}
+
+function drawLine(start, end) {
+    let line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute("x1", start.x);
+    line.setAttribute("y1", start.y + vEps);
+    line.setAttribute("x2", end.x);
+    line.setAttribute("y2", end.y + vEps);
+    return line;
+}
+
+function move(mark, data) {
+    let moves = document.getElementById('moves');
+    let start, end, line;
+
+    for (let i = 0; i < data.destination.length - 1; i++) {
+        start = data.destination[i];
+        end = data.destination[i + 1];
+        line = drawLine(start, end);
+        line.classList.add('move');
+        moves.append(line);
+    }
+    mark.setAttribute('transform', `translate(${end.x},${end.y + vEps})`);
+}
+
+function shoot(current, figure, mark, data) {
+    let shoots = document.getElementById('shoots');
+    let w = figure.find('div.w' + data.weapon.id);
+    if (data.action === 'Respond')
+        w.addClass('respond');
+    else
+        w.addClass('used');
+    let ammo = ammoNum(data.weapon)
+    w.find('div.wAmmo').addClass(ammoClass(ammo)).text(ammo);
+
+    let start, end, line;
+    for (let i = 0; i < data.los.length - 1; i++) {
+        start = data.los[i];
+        end = data.los[i + 1];
+        line = drawLine(start, end);
+        line.classList.add('shoot', data.agent);
+        shoots.append(line);
+    }
 }
 
 function turn() {
     $.get('/game/next/turn', function (data) {
         console.log('turn');
         console.log(data);
+    }).fail(function () {
+        console.error('Failed to turn!');
     });
 }
 

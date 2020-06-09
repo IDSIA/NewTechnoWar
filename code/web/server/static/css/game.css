@@ -51,7 +51,7 @@ svg {
     display: none;
 }
 
-#board {
+#gameBoard {
     flex: 2;
     height: 100vh;
     overflow: auto;
@@ -203,6 +203,14 @@ div.blue.unit {
 
 .weapon.empty {
     color: black;
+}
+
+.weapon.used::before {
+    background-color: yellow;
+}
+
+.weapon.respond::before {
+    background-color: darkorange;
 }
 
 .weapon::before {
@@ -395,13 +403,13 @@ g.unit.blue > circle {
 g.killed.red > circle {
     fill: #555555;
     stroke: darkred;
-    stroke-width: 0.5px;
+    stroke-width: 0.5;
 }
 
 g.killed.blue > circle {
     fill: #555555;
     stroke: dodgerblue;
-    stroke-width: 0.5px;
+    stroke-width: 0.5;
 }
 
 .highlight {
@@ -410,4 +418,22 @@ g.killed.blue > circle {
 
 g.unit.highlight > circle {
     fill: yellow !important;
+}
+
+/* Actions */
+line.move {
+    stroke: white;
+    stroke-width: 1;
+}
+
+line.shoot.red {
+    stroke: red;
+    stroke-opacity: 0.5;
+    stroke-width: 2;
+}
+
+line.shoot.blue {
+    stroke: dodgerblue;
+    stroke-opacity: 0.5;
+    stroke-width: 2;
 }

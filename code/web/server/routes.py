@@ -110,7 +110,7 @@ def gameNextStep():
     mm.nextStep()
     lastAction = mm.actionsDone[-1]
 
-    return jsonify(lastAction), 200
+    return jsonify({'turn': mm.turn, 'action': lastAction}), 200
 
 
 @main.route("/game/next/turn", methods=["GET"])
@@ -127,4 +127,4 @@ def gameNextTurn():
     mm.nextTurn()
     lastAction = mm.actionsDone[n:]
 
-    return jsonify(lastAction), 200
+    return jsonify({'turn': mm.turn, 'actions': lastAction}), 200

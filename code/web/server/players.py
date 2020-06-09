@@ -3,7 +3,7 @@ import logging
 import numpy as np
 
 from core import ACTION_MOVE, ACTION_ATTACK
-from core.actions import Shoot
+from core.actions import Shoot, DoNothing
 from core.game import scenarios
 
 
@@ -104,39 +104,41 @@ class MatchManager:
             logging.info(e)
 
         finally:
-            self.step = self._goResponse
+            self._goCheck()
 
     def _goResponse(self):
         action = self.actionsDone[-1]
-        if isinstance(action, Shoot):
-            logging.info('step: response')
-            responses = self.gm.buildResponses(self.second.team, action.target)
 
-            if responses:
-                if np.random.choice([True, False]):
-                    response = np.random.choice(responses)
+        logging.info('step: response')
+        responses = self.gm.buildResponses(self.second.team, action.target)
 
-                    self.actionsDone.append(response)
-                    self.gm.activate(response)
-                else:
-                    logging.info('no response given')
+        if responses:
+            if np.random.choice([True, False]):
+                response = np.random.choice(responses)
+
+                self.actionsDone.append(response)
+                self.gm.activate(response)
             else:
-                logging.info('no response available')
-
-            self.first, self.second = self.second, self.first
-            self.step = self._goCheck
-
+                logging.info('no response given')
+                self.actionsDone.append(DoNothing(self.second.team, action.target))
         else:
-            self.first, self.second = self.second, self.first
-            self._goCheck()
+            logging.info('no response available')
+            self.actionsDone.append(DoNothing(self.second.team, action.target))
+
+        self._goCheck()
 
     def _goCheck(self):
-        if self.gm.activableFigures(self.first.team) or self.gm.activableFigures(self.second.team):
-            self.step = self._goRound
-        elif self.gm.goalAchieved():
-            self.step = self._goEnd
+        action = self.actionsDone[-1]
+        if isinstance(action, Shoot):
+            self.step = self._goResponse
         else:
-            self.step = self._goUpdate
+            if self.gm.activableFigures(self.first.team) or self.gm.activableFigures(self.second.team):
+                self.first, self.second = self.second, self.first
+                self.step = self._goRound
+            elif self.gm.goalAchieved():
+                self.step = self._goEnd
+            else:
+                self.step = self._goUpdate
 
     def _goUpdate(self):
         logging.info('step: update')

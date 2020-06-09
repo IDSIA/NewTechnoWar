@@ -21,7 +21,7 @@
             <div id="blueUnits" class="units"></div>
         </div>
     </div>
-    <div id="board">
+    <div id="gameBoard">
         <svg id="view" viewBox="0 0 {{ shape[0] }} {{ shape[1] }}">
             <defs>
                 <polygon id="hex" class="hex" points="5,-9 -5,-9 -10,0 -5,9 5,9 10,0"></polygon>
@@ -58,6 +58,11 @@
                         <text class="coord" x="0" y="6">({{ hex.i }},{{ hex.j }})</text>
                     </g>
                 {% endfor %}
+            </g>
+            <g id="actions">
+                <g id="moves"></g>
+                <g id="shoots"></g>
+                <g id="responses"></g>
             </g>
             <g id="markers"></g>
         </svg>

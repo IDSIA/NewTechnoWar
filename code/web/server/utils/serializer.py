@@ -4,7 +4,7 @@ from core import FigureType
 from core.actions import Move, DoNothing, Shoot, Respond
 from core.figures import Figure
 from core.weapons import Weapon
-from web.server.utils import cube_to_ijxy
+from web.server.utils import cube_to_ijxy, cube_to_dict
 
 
 class GameJSONEncoder(JSONEncoder):
@@ -49,25 +49,27 @@ class GameJSONEncoder(JSONEncoder):
 
         if isinstance(obj, DoNothing):
             return {
+                'action': 'Do Nothing',
                 'agent': obj.agent,
                 'figure': obj.figure.fid
             }
 
         if isinstance(obj, Move):
             return {
+                'action': 'Move',
                 'agent': obj.agent,
-                'figure': obj.figure.fid,
-                'destination': obj.destination
+                'figure': obj.figure,
+                'destination': [cube_to_dict(hex) for hex in obj.destination]
             }
 
         if isinstance(obj, Shoot) or isinstance(obj, Respond):
             return {
+                'action': 'Shoot' if isinstance(obj, Shoot) else 'Respond',
                 'agent': obj.agent,
-                'figure': obj.figure.fid,
-                'target': obj.target.fid,
-                'weapon': obj.weapon.wid,
-                'los': [cube_to_ijxy(hex) for hex in obj.los],
-                'kind': 'shoot' if isinstance(obj, Shoot) else 'response'
+                'figure': obj.figure,
+                'target': obj.target,
+                'weapon': obj.weapon,
+                'los': [cube_to_dict(hex) for hex in obj.los]
             }
 
         return super(GameJSONEncoder, self).default(obj)

@@ -28,6 +28,12 @@ def cube_to_ijxy(position):
     return i, j, x, y
 
 
+def cube_to_dict(position):
+    i, j = cube_to_hex(position)
+    x, y = pos_to_xy((i, j))
+    return {'i': i, 'j': j, 'x': x, 'y': y}
+
+
 class Hexagon:
     def __init__(self, position: tuple, terrain: Terrain, geography: int, objective: bool, blockLos: bool):
         self.terrain = terrain
