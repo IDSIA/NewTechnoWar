@@ -13,10 +13,13 @@ function ammoClass(data) {
 
 function updateFigure(data) {
     let figure = $(`#figure-${data.id}`);
+    let mark = $(`#mark-${data.id}`);
+
     figure.removeClass('killed');
     figure.removeClass('activated');
     figure.removeClass('notActivated');
     figure.removeClass('responded');
+    mark.removeClass('hit');
 
     figure.find('div.uPos').text(`(${data.i}, ${data.j})`);
     figure.find('div.uHP').text(data.hp);
@@ -26,7 +29,11 @@ function updateFigure(data) {
 
     if (data.killed) {
         figure.addClass('killed');
+        mark.addClass('killed');
     } else {
+        if (data.hit) {
+            mark.addClass('hit');
+        }
         if (data.activated) {
             figure.addClass('activated');
         } else {
@@ -97,8 +104,6 @@ function addFigure(data, agent) {
             })
     );
 
-    updateFigure(data);
-
     // svg image
     let img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
     img.setAttribute('href', `/static/img/${data.kind}.png`);
@@ -132,6 +137,8 @@ function addFigure(data, agent) {
     };
 
     document.getElementById('markers').appendChild(g);
+
+    updateFigure(data);
 }
 
 function step() {
@@ -154,6 +161,7 @@ function step() {
                 break;
             case 'Shoot':
             case 'Respond':
+                updateFigure(action.target)
                 shoot(current, figure, mark, action);
                 break;
             default:

@@ -412,6 +412,18 @@ g.killed.blue > circle {
     stroke-width: 0.5;
 }
 
+g.hit.red > circle {
+    /* this inversion is done on purpose! */
+    stroke: dodgerblue;
+    stroke-width: 1;
+}
+
+g.hit.blue > circle {
+    /* this inversion is done on purpose! */
+    stroke: darkred;
+    stroke-width: 1;
+}
+
 .highlight {
     border: 1px solid yellow !important;
 }

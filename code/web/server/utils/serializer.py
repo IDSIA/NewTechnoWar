@@ -30,6 +30,7 @@ class GameJSONEncoder(JSONEncoder):
                 'activated': obj.activated,
                 'responded': obj.responded,
                 'killed': obj.killed,
+                'hit': obj.hit,
             }
 
         if isinstance(obj, Weapon):
@@ -51,7 +52,7 @@ class GameJSONEncoder(JSONEncoder):
             return {
                 'action': 'Do Nothing',
                 'agent': obj.agent,
-                'figure': obj.figure.fid
+                'figure': obj.figure.fid,
             }
 
         if isinstance(obj, Move):
@@ -59,7 +60,7 @@ class GameJSONEncoder(JSONEncoder):
                 'action': 'Move',
                 'agent': obj.agent,
                 'figure': obj.figure,
-                'destination': [cube_to_dict(hex) for hex in obj.destination]
+                'destination': [cube_to_dict(hex) for hex in obj.destination],
             }
 
         if isinstance(obj, Shoot) or isinstance(obj, Respond):
@@ -69,7 +70,7 @@ class GameJSONEncoder(JSONEncoder):
                 'figure': obj.figure,
                 'target': obj.target,
                 'weapon': obj.weapon,
-                'los': [cube_to_dict(hex) for hex in obj.los]
+                'los': [cube_to_dict(hex) for hex in obj.los],
             }
 
         return super(GameJSONEncoder, self).default(obj)
