@@ -15,6 +15,7 @@ class GameJSONEncoder(JSONEncoder):
             x, y = pos_to_xy((i, j))
             kind = 'infantry' if obj.kind == FigureType.INFANTRY else 'vehicle'
             return {
+                'id': obj.fid,
                 'name': obj.name,
                 'kind': kind,
                 'move': obj.move,
@@ -34,7 +35,7 @@ class GameJSONEncoder(JSONEncoder):
 
         if isinstance(obj, Weapon):
             return {
-                'id': obj._id,
+                'id': obj.wid,
                 'name': obj.name,
                 'max_range': obj.max_range,
                 'atk_normal': obj.atk_normal,

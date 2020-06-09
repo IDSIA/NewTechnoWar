@@ -8,22 +8,6 @@ svg {
     margin: 10px;
 }
 
-body {
-    margin: 0;
-    padding: 0;
-    font-family: sans-serif;
-}
-
-a {
-    color: #aaa;
-    padding: 10px;
-    text-decoration: none;
-}
-
-a:hover {
-    color: #333;
-}
-
 #title {
     padding: 10px;
     display: flex;
@@ -80,6 +64,14 @@ a:hover {
 #blue {
     background-color: #222299;
     z-index: 1;
+}
+
+div.red.unit {
+    border: 1px solid #992222;
+}
+
+div.blue.unit {
+    border: 1px solid #222299;
 }
 
 .units {
@@ -189,11 +181,11 @@ a:hover {
 
 .weapon {
     display: flex;
-    margin: 5px 5px 5px;
+    margin: 0 5px 0 5px;
 }
 
 .first.weapon {
-    margin: 15px 5px 5px;
+    margin: 15px 5px 0;
 }
 
 .wName {
@@ -206,9 +198,10 @@ a:hover {
 .weapon::before {
     content: '';
     background-image: url('/static/img/weapons.png');
-    background-size: cover;
+    background-size: auto 85%;
     background-color: #666666;
     background-blend-mode: darken;
+    background-repeat: no-repeat;
     overflow: hidden;
     display: block;
     width: 28px;
@@ -254,31 +247,31 @@ a:hover {
 }
 
 .wCA::before {
-    background-position: 0;
+    background-position: 2%;
 }
 
 .wAR::before {
-    background-position: 208px;
+    background-position: 19%;
 }
 
 .wMG::before {
-    background-position: 171px;
+    background-position: 35%;
 }
 
 .wAT::before {
-    background-position: 140px;
+    background-position: 49%;
 }
 
 .wMT::before {
-    background-position: 110px;
+    background-position: 62%;
 }
 
 .wGR::before {
-    background-position: 77px;
+    background-position: 76%;
 }
 
 .wSM::before {
-    background-position: 39px;
+    background-position: 93%;
 }
 
 /* Figure status */
@@ -351,4 +344,16 @@ g.unit.red > circle {
 
 g.unit.blue > circle {
     fill: dodgerblue;
+}
+
+/*div.unit:hover {*/
+/*    border: 1px solid yellow;*/
+/*}*/
+
+.highlight {
+    border: 1px solid yellow !important;
+}
+
+g.unit.highlight > circle {
+    fill: yellow !important;
 }

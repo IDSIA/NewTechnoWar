@@ -1,6 +1,9 @@
-let figures = undefined;
+let figures = {};
 
 function addFigure(data, agent) {
+    let fid = `figure-${data.id}`
+    let gid = `mark-${data.id}`
+
     let active = data.activated ? 'activated' : 'notActivated';
     let responded = data.activated ? 'responded' : 'notResponded';
     let killed = data.killed ? 'killed' : '';
@@ -42,16 +45,25 @@ function addFigure(data, agent) {
 
     $(`#${agent}Units`).append(
         $('<div/>')
-            .attr('id', `${agent}${data.name}`)
+            .attr('id', fid)
             .addClass(active)
             .addClass(killed)
             .addClass(responded)
             .addClass(data.kind)
             .addClass('unit')
+            .addClass(agent)
             .append(uData)
             .append(uWeapons)
+            .hover(function () {
+                $(`#${fid}`).addClass('highlight');
+                $(`#${gid}`).addClass('highlight');
+            }, function () {
+                $(`#${fid}`).removeClass('highlight');
+                $(`#${gid}`).removeClass('highlight');
+            })
     );
 
+    // svg image
     let img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
     img.setAttribute('href', `/static/img/${data.kind}.png`);
     img.setAttribute('x', '-5');
@@ -59,18 +71,29 @@ function addFigure(data, agent) {
     img.setAttribute('width', '10');
     img.setAttribute('height', '10');
 
+    // svg circle
     let mark = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     mark.setAttribute('cx', '0');
     mark.setAttribute('cy', '0');
     mark.setAttribute('r', '5');
     mark.setAttribute('fill', `url(#${data.kind}Mark)`);
 
+    // svg g container
     let g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    g.setAttribute('id', data.name + 'Mark');
+    g.setAttribute('id', gid);
     g.setAttribute('transform', `translate(${data.x},${data.y - 3})`);
     g.classList.add('unit', agent, data.kind);
     g.appendChild(mark)
     g.appendChild(img)
+
+    g.onmouseover = function () {
+        $(`#${fid}`).addClass('highlight');
+        $(`#${gid}`).addClass('highlight');
+    };
+    g.onmouseout = function () {
+        $(`#${fid}`).removeClass('highlight');
+        $(`#${gid}`).removeClass('highlight');
+    };
 
     document.getElementById('view').appendChild(g);
 }
@@ -83,7 +106,7 @@ window.onload = function () {
     $.get('/game/figures', function (data) {
         console.log(data);
 
-        figures = data;
+        figures[gameId] = data;
 
         let reds = data['red'];
         let blues = data['blue'];
