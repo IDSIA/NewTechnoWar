@@ -13,7 +13,7 @@ class Weapon:
 
     def __init__(self, _id: str, name: str, max_range: int, atk_normal: int, atk_response: int, ammo: int, dices: int,
                  curved: bool = False, damage: int = 1, antitank: bool = False):
-        self._id = _id
+        self.wid = _id
         self.name = name
         self.max_range = max_range
         self.atk_normal = atk_normal
