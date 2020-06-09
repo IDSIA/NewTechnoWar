@@ -1,6 +1,8 @@
 """
 This module defines the available figuresadn their rules.
 """
+import uuid
+
 from core import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, TOTAL_TURNS, FigureType
 from core.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, SniperRifle, \
     INFINITE
@@ -94,6 +96,8 @@ class Figure:
     # TODO: conversion to status array, position is a matrix of zeros
 
     def __init__(self, position: tuple, name: str, kind: int = FigureType.INFANTRY):
+        self.fid = str(uuid.uuid4())
+
         self.name: str = name
         self.index: int = -1
 
