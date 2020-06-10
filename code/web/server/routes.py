@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, make_response, request, jsonify, r
 from flask import current_app as app
 
 from core import BLUE, RED
-from web.server.players import PlayerDummy, MatchManager
+from web.server.players.__init__ import PlayerDummy, MatchManager
 from web.server.utils import scroll, fieldShape
 
 main = Blueprint("main", __name__, template_folder="templates", static_folder="static")
@@ -16,16 +16,22 @@ def index():
     """Serve list of available scenarios."""
     scenarios = [
         "scenarioTest1v1",
+        "scenarioTest2v2",
         "scenarioTest3v1",
         "scenarioTestBench"
     ]
 
-    return render_template(
-        "index.html",
-        title="Home | NewTechnoWar",
-        template="game-template",
-        scenarios=scenarios
+    response = make_response(
+        render_template(
+            "index.html",
+            title="Home | NewTechnoWar",
+            template="game-template",
+            scenarios=scenarios
+        )
     )
+
+    response.delete_cookie("gameId")
+    return response
 
 
 @main.route("/game/<string:scenario>", methods=["GET"])
@@ -74,7 +80,13 @@ def gameReset():
         logging.error("Game id missing")
         return redirect('/')
 
-    mm: MatchManager = app.games[request.cookies["gameId"]]
+    gameId = request.cookies["gameId"]
+
+    if gameId not in app.games:
+        logging.error("Game id not registered")
+        return redirect('/')
+
+    mm: MatchManager = app.games[gameId]
 
     response = make_response(
         redirect(f'/game/{mm.scenario}')
@@ -108,9 +120,11 @@ def gameNextStep():
     mm: MatchManager = app.games[request.cookies["gameId"]]
 
     mm.nextStep()
-    lastAction = mm.actionsDone[-1]
+    lastAction = None
+    if not mm.update:
+        lastAction = mm.actionsDone[-1]
 
-    return jsonify({'turn': mm.turn, 'action': lastAction}), 200
+    return jsonify({'turn': mm.turn, 'update': mm.update, 'action': lastAction}), 200
 
 
 @main.route("/game/next/turn", methods=["GET"])
@@ -127,4 +141,4 @@ def gameNextTurn():
     mm.nextTurn()
     lastAction = mm.actionsDone[n:]
 
-    return jsonify({'turn': mm.turn, 'actions': lastAction}), 200
+    return jsonify({'turn': mm.turn, 'update': mm.update, 'actions': lastAction}), 200

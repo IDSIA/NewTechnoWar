@@ -5,28 +5,7 @@ import numpy as np
 from core import ACTION_MOVE, ACTION_ATTACK
 from core.actions import Shoot, DoNothing
 from core.game import scenarios
-
-
-class PlayerDummy:
-
-    def __init__(self, team: str):
-        self.name = 'dummy'
-        self.team = team
-
-    def __repr__(self):
-        return f'{self.name}-{self.team}'
-
-    def chooseFigure(self, figures: list):
-        return np.random.choice(figures)
-
-    def chooseActionType(self, types: list):
-        return np.random.choice(types)
-
-    def chooseAction(self, actions: list):
-        return np.random.choice(actions)
-
-    def chooseResponse(self):
-        return np.random.choice([True, False])
+from web.server.players.dummy import PlayerDummy
 
 
 class MatchManager:
@@ -42,6 +21,8 @@ class MatchManager:
 
         self.turn = -1
         self.end = False
+        self.update = False
+
         self.first: PlayerDummy = red
         self.second: PlayerDummy = blue
         self.step = None
@@ -60,11 +41,15 @@ class MatchManager:
         self.second = self.blue
         self.step = self._goRound
 
+        self.end = False
+        self.update = False
+
         logging.info(f'Turn {self.turn}')
 
     def _goRound(self):
         logging.info('step: round')
         try:
+            self.update = False
             figures = self.gm.activableFigures(self.first.team)
             if not figures:
                 raise ValueError(f"no more figures for {self.first}")
@@ -107,9 +92,10 @@ class MatchManager:
             self._goCheck()
 
     def _goResponse(self):
-        action = self.actionsDone[-1]
-
         logging.info('step: response')
+
+        self.update = False
+        action = self.actionsDone[-1]
         responses = self.gm.buildResponses(self.second.team, action.target)
 
         if responses:
@@ -146,7 +132,8 @@ class MatchManager:
         self.turn += 1
         self.gm.update()
 
-        self.step = self._goCheck
+        self._goCheck()
+        self.update = True
         logging.info(f'Turn {self.turn}')
 
     def _goEnd(self):
@@ -163,5 +150,5 @@ class MatchManager:
         logging.info('next: turn')
 
         t = self.turn
-        while self.turn == t:
+        while self.turn == t or not self.end:
             self.step()

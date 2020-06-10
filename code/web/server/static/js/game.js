@@ -43,11 +43,10 @@ function updateFigure(data) {
             figure.addClass('responded');
         }
     }
+    figures[gameId][data.id] = data;
 }
 
 function addFigure(data, agent) {
-    figures[data.id] = data;
-
     let fid = `figure-${data.id}`;
     let gid = `mark-${data.id}`;
 
@@ -137,36 +136,62 @@ function addFigure(data, agent) {
     };
 
     document.getElementById('markers').appendChild(g);
+}
 
-    updateFigure(data);
+function updateTurn(data) {
+    console.log('new turn: ' + data.turn)
+    $('#btnTurn').addClass('highlight').text(data.turn);
+
+    // get the updated status of each figure from the server
+    $.get('/game/figures', function (data) {
+        let reds = data['red'];
+        let blues = data['blue'];
+
+        reds.forEach(function (item, _) {
+            updateFigure(item);
+        });
+        blues.forEach(function (item, _) {
+            updateFigure(item);
+        });
+    }).fail(function () {
+        console.error('Failed to load figures!');
+    });
 }
 
 function step() {
     $.get('/game/next/step', function (data) {
-        console.log('step: ' + data.action.action);
+        if (data.update) {
+            updateTurn();
+            return;
+        }
+
+        let action = data.action;
+
+        console.log('step: ' + action.action);
         console.log(data);
 
-        $('#btnTurn').text(data.turn);
-        let action = data.action;
+        $('#btnTurn').removeClass('highlight');
 
         let current = figures[action.figure.id];
         let figure = $(`#figure-${action.figure.id}`);
         let mark = document.getElementById(`mark-${action.figure.id}`);
 
-        updateFigure(action.figure);
-
         switch (action.action) {
+            case 'DoNothing':
+                break;
             case 'Move':
                 move(mark, action);
                 break;
             case 'Shoot':
             case 'Respond':
-                updateFigure(action.target)
                 shoot(current, figure, mark, action);
+                updateFigure(action.target)
                 break;
             default:
                 console.info("Not implemented yet: " + action.action);
         }
+
+        updateFigure(action.figure);
     }).fail(function () {
         console.error('Failed to step!');
     });
@@ -232,17 +257,24 @@ window.onload = function () {
     $.get('/game/figures', function (data) {
         console.log(data);
 
-        figures[gameId] = data;
+        figures[gameId] = {};
 
         let reds = data['red'];
         let blues = data['blue'];
 
         reds.forEach(function (item, _) {
             addFigure(item, 'red');
+            updateFigure(item);
         });
         blues.forEach(function (item, _) {
             addFigure(item, 'blue');
+            updateFigure(item);
         });
+
+        window.onkeyup = function (e) {
+            if (e.key === 'Enter') turn(); // enter
+            if (e.key === ' ') step(); // space
+        };
 
     }).fail(function () {
         console.error('Failed to load figures!');
