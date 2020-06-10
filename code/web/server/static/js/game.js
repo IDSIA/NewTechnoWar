@@ -3,6 +3,12 @@ let gameId = undefined;
 
 let vEps = -3;
 
+const SVG = 'http://www.w3.org/2000/svg';
+
+function svg(tag) {
+    return $(document.createElementNS(SVG, tag))
+}
+
 function ammoNum(data) {
     return data.ammo > 1000000 ? '∞' : data.ammo;
 }
@@ -103,28 +109,28 @@ function addFigure(data, agent) {
             })
     );
 
-    // svg image
-    let img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-    img.setAttribute('href', `/static/img/${data.kind}.png`);
-    img.setAttribute('x', '-5');
-    img.setAttribute('y', '-5');
-    img.setAttribute('width', '10');
-    img.setAttribute('height', '10');
-
-    // svg circle
-    let mark = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    mark.setAttribute('cx', '0');
-    mark.setAttribute('cy', '0');
-    mark.setAttribute('r', '5');
-    mark.setAttribute('fill', `url(#${data.kind}Mark)`);
-
-    // svg g container
-    let g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    g.setAttribute('id', gid);
-    g.setAttribute('transform', `translate(${data.x},${data.y + vEps})`);
-    g.classList.add('unit', agent, data.kind);
-    g.appendChild(mark);
-    g.appendChild(img);
+    // unit marker
+    let g = svg('g')
+        .attr('id', gid)
+        .attr('transform', `translate(${data.x},${data.y + vEps})`)
+        .addClass('unit')
+        .addClass(agent)
+        .addClass(data.kind)
+        .append(
+            svg('circle')
+                .attr('cx', '0')
+                .attr('cy', '0')
+                .attr('r', '5')
+                .attr('fill', `url(#${data.kind}Mark)`)
+        )
+        .append(
+            svg('image')
+                .attr('href', `/static/img/${data.kind}.png`)
+                .attr('x', '-5')
+                .attr('y', '-5')
+                .attr('width', '10')
+                .attr('height', '10')
+        );
 
     g.onmouseover = function () {
         $(`#${fid}`).addClass('highlight');
@@ -135,7 +141,7 @@ function addFigure(data, agent) {
         $(`#${gid}`).removeClass('highlight');
     };
 
-    document.getElementById('markers').appendChild(g);
+    $(document.getElementById('markers')).append(g);
 }
 
 function updateTurn(data) {
@@ -174,17 +180,24 @@ function step() {
 
         let current = figures[action.figure.id];
         let figure = $(`#figure-${action.figure.id}`);
-        let mark = document.getElementById(`mark-${action.figure.id}`);
+        let mark = $(document.getElementById(`mark-${action.figure.id}`));
+
+        let record = $('<div/>').addClass('record')
+            .append($('<span/>').addClass(action.agent).text(action.figure.name))
+            .append(':&nbsp;')
 
         switch (action.action) {
             case 'DoNothing':
                 break;
             case 'Move':
+                record.append($('<span/>').text('Move'));
                 move(mark, action);
                 break;
-            case 'Shoot':
             case 'Respond':
-                shoot(current, figure, mark, action);
+                record.append($('<span/>').text(' in response'));
+            case 'Shoot':
+                record.append($('<span/>').text(' Shoot'));
+                shoot(current, figure, mark, action, data.outcome);
                 updateFigure(action.target)
                 break;
             default:
@@ -192,55 +205,65 @@ function step() {
         }
 
         updateFigure(action.figure);
+        $('#console').append(record);
+
     }).fail(function () {
         console.error('Failed to step!');
     });
 }
 
 function drawLine(path) {
-    let g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    let g = svg('g');
     let n = path.length - 1;
 
     for (let i = 0, j = 1; i < n; i++, j++) {
         let start = path[i];
         let end = path[j];
 
-        let line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute("x1", start.x);
-        line.setAttribute("y1", start.y + vEps);
-        line.setAttribute("x2", end.x);
-        line.setAttribute("y2", end.y + vEps);
-        if (j === n)
-            line.classList.add('last');
-
-        g.append(line);
+        g.append(
+            svg('line')
+                .attr("x1", start.x)
+                .attr("y1", start.y + vEps)
+                .attr("x2", end.x)
+                .attr("y2", end.y + vEps)
+                .addClass(j === n ? 'last' : '')
+        );
     }
 
     return g;
 }
 
 function move(mark, data) {
-    let moves = document.getElementById('moves');
-    let line = drawLine(data.destination);
-    let end = data.destination.slice(-1)[0];
-    line.classList.add('move');
-    moves.append(line);
+    $(document.getElementById('moves')).append(
+        drawLine(data.destination)
+            .addClass('move')
+    );
 
-    mark.setAttribute('transform', `translate(${end.x},${end.y + vEps})`);
+    let end = data.destination.slice(-1)[0];
+    mark.attr('transform', `translate(${end.x},${end.y + vEps})`);
 }
 
-function shoot(current, figure, mark, data) {
-    let shoots = document.getElementById('shoots');
+function shoot(current, figure, mark, data, outcome) {
     let end = data.los.slice(-1)[0];
 
-    let txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    txt.textContent = 'yay';
-    txt.setAttribute('transform', `translate(${end.x + 10},${end.y})`);
-
-    let line = drawLine(data.los, txt);
-    line.classList.add('shoot', data.agent);
-    line.append(txt);
-    shoots.append(line);
+    $('#shoots').append(
+        drawLine(data.los).addClass('shoot').addClass(data.agent)
+            .append(svg('g')
+                .attr('transform', `translate(${end.x + 10},${end.y})`)
+                .append(svg('rect'))
+                .append(svg('text')
+                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(`ATK: ${outcome.ATK}`))
+                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(`DEF: ${outcome.DEF}`))
+                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(`END: ${outcome.END}`))
+                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(`INT: ${outcome.INT}`))
+                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(`STAT: ${outcome.STAT}`))
+                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(`HIT SCORE: ${outcome.hitScore}`))
+                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(`SCORES: ${outcome.score}`))
+                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(`HITS: ${outcome.hits}`))
+                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(`SUCCESS: ${outcome.success}`))
+                )
+            )
+    );
 
     let w = figure.find('div.w' + data.weapon.id);
     if (data.action === 'Respond')
@@ -255,6 +278,7 @@ function turn() {
     $.get('/game/next/turn', function (data) {
         console.log('turn');
         console.log(data);
+        console.error('not implemented yet')
     }).fail(function () {
         console.error('Failed to turn!');
     });

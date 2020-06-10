@@ -18,11 +18,44 @@ svg {
 }
 
 #title > a {
-    font-size: 36pt;
+    font-size: 1em;
     border: 1px solid #444444;
     margin-left: 10px;
     text-decoration: none;
     cursor: pointer;
+}
+
+#console {
+    display: none; /* TODO: implement console or info on map */
+    /*display: flex;*/
+    position: sticky;
+    background-color: black;
+    top: 0;
+    z-index: 10;
+    flex-direction: column;
+    max-height: 10vh;
+    color: #cccccc;
+    overflow-y: scroll;
+    padding-bottom: 10vh;
+}
+
+#console::-webkit-scrollbar {
+    display: none;
+
+}
+
+.record {
+    display: flex;
+}
+
+span.red {
+    color: red;
+    font-weight: bolder;
+}
+
+span.blue {
+    color: dodgerblue;
+    font-weight: bolder;
 }
 
 #gameId {
@@ -448,4 +481,27 @@ g.unit.highlight > circle {
     stroke: dodgerblue;
     stroke-opacity: 0.5;
     stroke-width: 2;
+}
+
+g.shoot g {
+    display: none; /* TODO: implement console or info on map */
+}
+
+g.shoot g > rect {
+    opacity: 0.8;
+    width: 40px;
+    height: 60px;
+}
+
+g.shoot.blue g > rect {
+    fill: dodgerblue;
+}
+
+g.shoot.red g > rect {
+    fill: red;
+}
+
+g.shoot g > text {
+    fill: white;
+    font-size: 4pt;
 }
