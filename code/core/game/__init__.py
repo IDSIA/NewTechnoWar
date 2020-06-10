@@ -160,7 +160,7 @@ class GameManager:
 
         return actions
 
-    def activate(self, action: Action) -> None:
+    def activate(self, action: Action) -> dict:
         """Apply the given action to the map."""
         agent = action.agent
         figure = action.figure
@@ -169,12 +169,13 @@ class GameManager:
         logging.info(action)
 
         if isinstance(action, DoNothing):
-            return
+            return {}
 
         if isinstance(action, Move):
             dest = action.destination[-1]
             self.board.moveFigure(agent, figure, figure.position, dest)
             figure.set_STAT(StatusType.IN_MOTION)
+            return {}
 
         if isinstance(action, Shoot):  # Respond *is* a shoot action
             f: Figure = figure
@@ -237,9 +238,22 @@ class GameManager:
                 v = np.random.choice(range(1, 21), size=1)
                 hitLocation = MISS_MATRIX[agent](v)
                 # TODO: use hit matrix
-                pass
+
             else:
                 logging.info(f'{action}: miss')
+
+            return {
+                'score': score,
+                'hitScore': hitScore,
+                'ATK': ATK,
+                'TER': TER,
+                'DEF': DEF,
+                'STAT': STAT,
+                'END': END,
+                'INT': INT,
+                'success': success > 0,
+                'hits': success,
+            }
 
     def update(self):
         """End turn function that updates the status of all figures and moves forward the internal turn ticker."""
@@ -248,12 +262,12 @@ class GameManager:
         for agent in [RED, BLUE]:
             for figure in self.figures[agent]:
                 # TODO: compute there cutoff status?
-                figure.set_STAT(StatusType.NO_EFFECT)
                 if figure.hp <= 0:
                     figure.killed = True
                     figure.activated = True
                     figure.hit = False
                 else:
+                    figure.set_STAT(StatusType.NO_EFFECT)
                     figure.killed = False
                     figure.activated = False
                     figure.responded = False

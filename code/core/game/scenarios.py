@@ -128,6 +128,19 @@ def scenarioTest1v1():
     return gm
 
 
+def scenarioTest2v2():
+    gm = battleground16x16()
+
+    gm.addFigure(RED, Tank((2, 2), 'Tank1'))
+    gm.addFigure(RED, Tank((3, 3), 'Tank2'))
+    gm.addFigure(BLUE, Tank((11, 11), 'Tank3'))
+    gm.addFigure(BLUE, Tank((12, 12), 'Tank4'))
+
+    gm.name = "1Rv1B"
+
+    return gm
+
+
 def scenarioTest3v1():
     gm = battleground16x16()
 
