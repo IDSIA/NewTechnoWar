@@ -161,7 +161,7 @@ function updateTurn(data) {
 function step() {
     $.get('/game/next/step', function (data) {
         if (data.update) {
-            updateTurn();
+            updateTurn(data);
             return;
         }
 
@@ -197,31 +197,51 @@ function step() {
     });
 }
 
-function drawLine(start, end) {
-    let line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute("x1", start.x);
-    line.setAttribute("y1", start.y + vEps);
-    line.setAttribute("x2", end.x);
-    line.setAttribute("y2", end.y + vEps);
-    return line;
+function drawLine(path) {
+    let g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    let n = path.length - 1;
+
+    for (let i = 0, j = 1; i < n; i++, j++) {
+        let start = path[i];
+        let end = path[j];
+
+        let line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute("x1", start.x);
+        line.setAttribute("y1", start.y + vEps);
+        line.setAttribute("x2", end.x);
+        line.setAttribute("y2", end.y + vEps);
+        if (j === n)
+            line.classList.add('last');
+
+        g.append(line);
+    }
+
+    return g;
 }
 
 function move(mark, data) {
     let moves = document.getElementById('moves');
-    let start, end, line;
+    let line = drawLine(data.destination);
+    let end = data.destination.slice(-1)[0];
+    line.classList.add('move');
+    moves.append(line);
 
-    for (let i = 0; i < data.destination.length - 1; i++) {
-        start = data.destination[i];
-        end = data.destination[i + 1];
-        line = drawLine(start, end);
-        line.classList.add('move');
-        moves.append(line);
-    }
     mark.setAttribute('transform', `translate(${end.x},${end.y + vEps})`);
 }
 
 function shoot(current, figure, mark, data) {
     let shoots = document.getElementById('shoots');
+    let end = data.los.slice(-1)[0];
+
+    let txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    txt.textContent = 'yay';
+    txt.setAttribute('transform', `translate(${end.x + 10},${end.y})`);
+
+    let line = drawLine(data.los, txt);
+    line.classList.add('shoot', data.agent);
+    line.append(txt);
+    shoots.append(line);
+
     let w = figure.find('div.w' + data.weapon.id);
     if (data.action === 'Respond')
         w.addClass('respond');
@@ -229,15 +249,6 @@ function shoot(current, figure, mark, data) {
         w.addClass('used');
     let ammo = ammoNum(data.weapon)
     w.find('div.wAmmo').addClass(ammoClass(ammo)).text(ammo);
-
-    let start, end, line;
-    for (let i = 0; i < data.los.length - 1; i++) {
-        start = data.los[i];
-        end = data.los[i + 1];
-        line = drawLine(start, end);
-        line.classList.add('shoot', data.agent);
-        shoots.append(line);
-    }
 }
 
 function turn() {

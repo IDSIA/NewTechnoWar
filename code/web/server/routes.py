@@ -120,11 +120,19 @@ def gameNextStep():
     mm: MatchManager = app.games[request.cookies["gameId"]]
 
     mm.nextStep()
+
     lastAction = None
+    lastOutcome = None
     if not mm.update:
         lastAction = mm.actionsDone[-1]
+        lastOutcome = mm.outcome[-1]
 
-    return jsonify({'turn': mm.turn, 'update': mm.update, 'action': lastAction}), 200
+    return jsonify({
+        'turn': mm.turn,
+        'update': mm.update,
+        'action': lastAction,
+        'outcome': lastOutcome,
+    }), 200
 
 
 @main.route("/game/next/turn", methods=["GET"])

@@ -433,18 +433,18 @@ g.unit.highlight > circle {
 }
 
 /* Actions */
-line.move {
+.move > line {
     stroke: white;
     stroke-width: 1;
 }
 
-line.shoot.red {
+.shoot.red > line {
     stroke: red;
     stroke-opacity: 0.5;
     stroke-width: 2;
 }
 
-line.shoot.blue {
+.shoot.blue > line {
     stroke: dodgerblue;
     stroke-opacity: 0.5;
     stroke-width: 2;

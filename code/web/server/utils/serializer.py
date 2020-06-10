@@ -1,3 +1,4 @@
+import numpy as np
 from flask.json import JSONEncoder
 
 from core import FigureType
@@ -72,5 +73,10 @@ class GameJSONEncoder(JSONEncoder):
                 'weapon': obj.weapon,
                 'los': [cube_to_dict(hex) for hex in obj.los],
             }
+
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        if isinstance(obj, np.generic):
+            return np.asscalar(obj)
 
         return super(GameJSONEncoder, self).default(obj)

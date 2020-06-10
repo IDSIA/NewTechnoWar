@@ -18,6 +18,7 @@ class MatchManager:
         self.scenario = scenario
 
         self.actionsDone = []
+        self.outcome = []
 
         self.turn = -1
         self.end = False
@@ -81,9 +82,10 @@ class MatchManager:
                 actions = shoots
 
             action = self.first.chooseAction(actions)
+            outcome = self.gm.activate(action)
 
             self.actionsDone.append(action)
-            self.gm.activate(action)
+            self.outcome.append(outcome)
 
         except ValueError as e:
             logging.info(e)
@@ -101,9 +103,10 @@ class MatchManager:
         if responses:
             if np.random.choice([True, False]):
                 response = np.random.choice(responses)
+                outcome = self.gm.activate(response)
 
                 self.actionsDone.append(response)
-                self.gm.activate(response)
+                self.outcome.append(outcome)
             else:
                 logging.info('no response given')
                 self.actionsDone.append(DoNothing(self.second.team, action.target))
