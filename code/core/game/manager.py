@@ -2,9 +2,10 @@ import logging
 
 import numpy as np
 
-from core import RED, BLUE, FigureType
+from core import RED, BLUE
 from core.actions import Action, Move, Shoot, Respond, DoNothing
-from core.figures import Figure, IN_MOTION, UNDER_FIRE, NO_EFFECT
+from core.figures import Figure, FigureType
+from core.figures.status import IN_MOTION, UNDER_FIRE, NO_EFFECT
 from core.game import MISS_MATRIX, hitScoreCalculator
 from core.game.board import GameBoard
 from core.weapons import Weapon

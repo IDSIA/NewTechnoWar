@@ -1,8 +1,9 @@
-from core.figures import Figure
+from core.figures.__init__ import Figure
 from core.weapons import Weapon
 
 ACTION_ATTACK = 0
 ACTION_MOVE = 1
+ACTION_RESPONSE = 2
 
 
 class Action:

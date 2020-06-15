@@ -1,10 +1,12 @@
 import numpy as np
 
-from core import Terrain, RED, BLUE
-from core.figures import Infantry, Tank
+from core import RED, BLUE
+from core.figures.__init__ import Infantry, Tank
 from core.game.manager import GameManager
-# TODO: maybe define a class with a win condition?
+from core.game.terrain import Terrain
 from utils.coordinates import hex_linedraw, to_hex
+
+# TODO: maybe define a class with a win condition?
 
 
 def fillLine(terrain: np.ndarray, start: tuple, end: tuple, kind: int):

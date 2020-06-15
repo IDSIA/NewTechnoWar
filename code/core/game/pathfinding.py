@@ -1,6 +1,6 @@
 from queue import PriorityQueue
 
-from core.figures import Figure
+from core.figures.__init__ import Figure
 from core.game.manager import GameBoard
 from utils.coordinates import Cube, cube_distance
 
