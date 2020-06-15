@@ -1,7 +1,7 @@
 from queue import PriorityQueue
 
 from core.figures import Figure
-from core.game import GameBoard
+from core.game.manager import GameBoard
 from utils.coordinates import Cube, cube_distance
 
 heuristic = cube_distance

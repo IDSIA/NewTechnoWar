@@ -6,7 +6,7 @@ from PIL import Image
 from matplotlib.patches import RegularPolygon
 
 from core import RED, BLUE, Terrain, FigureType
-from core.game import GameManager
+from core.game.manager import GameManager
 from utils.coordinates import cube_to_hex, to_cube
 
 

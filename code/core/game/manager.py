@@ -2,18 +2,14 @@ import logging
 
 import numpy as np
 
-from core import RED, BLUE, hitScoreCalculator, FigureType
+from core import RED, BLUE, FigureType
 from core.actions import Action, Move, Shoot, Respond, DoNothing
-from core.figures import Figure, StatusType, missMatrixRed, missMatrixBlue
+from core.figures import Figure, IN_MOTION, UNDER_FIRE, NO_EFFECT
+from core.game import MISS_MATRIX, hitScoreCalculator
 from core.game.board import GameBoard
 from core.weapons import Weapon
 from utils.coordinates import cube_linedraw
-from utils.pathfinding import reachablePath
-
-MISS_MATRIX = {
-    RED: missMatrixRed,
-    BLUE: missMatrixBlue
-}
+from core.game.pathfinding import reachablePath
 
 
 class GameManager:
@@ -31,8 +27,7 @@ class GameManager:
         self.board = GameBoard(shape)
         self.obstacles = set()
 
-        # support set
-        self.turn = 0
+        self.turn = -1
 
         # access to figures is done by index: [agent][figure]. Each figure know its own state
         self.figures = {
@@ -174,7 +169,7 @@ class GameManager:
         if isinstance(action, Move):
             dest = action.destination[-1]
             self.board.moveFigure(agent, figure, figure.position, dest)
-            figure.set_STAT(StatusType.IN_MOTION)
+            figure.setSTAT(IN_MOTION)
             return {}
 
         if isinstance(action, Shoot):  # Respond *is* a shoot action
@@ -193,12 +188,12 @@ class GameManager:
             # shoot/response
             if isinstance(action, Respond):
                 ATK = w.atk_response
-                INT = f.get_INT_DEF(self.turn)
+                INT = f.int_def
                 # can respond only once in a turn
                 f.responded = True
             else:
                 ATK = w.atk_normal
-                INT = f.get_INT_ATK(self.turn)
+                INT = f.int_atk
 
             # TODO: smoke rule:
             #       if you fire against a panzer, and during the line of sight, you meet a smoke hexagon (not only on
@@ -208,18 +203,18 @@ class GameManager:
             if w.antitank and t.kind == FigureType.VEHICLE:
                 DEF = 0
             else:
-                DEF = t.defense['basic']
+                DEF = t.defense_basic
 
             TER = self.board.getProtectionLevel(t.position)
-            STAT = f.get_STAT().value
-            END = f.get_END(self.turn)
+            STAT = f.stat
+            END = f.endurance
 
             hitScore = hitScoreCalculator(ATK, TER, DEF, STAT, END, INT)
 
             success = len([x for x in score if x <= hitScore])
 
             # target status changes for the _next_ hit
-            t.set_STAT(StatusType.UNDER_FIRE)
+            t.setSTAT(UNDER_FIRE)
             # target can now respond to the fire
             t.canRespond(f)
 
@@ -261,13 +256,15 @@ class GameManager:
 
         for agent in [RED, BLUE]:
             for figure in self.figures[agent]:
+                figure.update(self.turn)
+
                 # TODO: compute there cutoff status?
                 if figure.hp <= 0:
                     figure.killed = True
                     figure.activated = True
                     figure.hit = False
                 else:
-                    figure.set_STAT(StatusType.NO_EFFECT)
+                    figure.setSTAT(NO_EFFECT)
                     figure.killed = False
                     figure.activated = False
                     figure.responded = False

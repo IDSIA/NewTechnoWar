@@ -2,7 +2,7 @@ import numpy as np
 
 from core import Terrain, RED, BLUE
 from core.figures import Infantry, Tank
-from core.game import GameManager
+from core.game.manager import GameManager
 # TODO: maybe define a class with a win condition?
 from utils.coordinates import hex_linedraw, to_hex
 

@@ -1,76 +1,13 @@
 """
-This module defines the available figuresadn their rules.
+This module defines the available figures and their rules.
 """
 import uuid
 
-from core import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, TOTAL_TURNS, FigureType
+from core import FigureType
+from core.game import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, ENDURANCE_EXO
 from core.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, SniperRifle, \
     INFINITE
 from utils.coordinates import Cube, to_cube
-
-
-def missMatrixRed(v: int) -> Cube:
-    # range 2
-    if v in [1, 3, 6, 12, 20]:
-        return Cube(+2, -2, +0)
-    if v in [2, 7, 13]:
-        return Cube(+2, +0, -2)
-    if v in [4, 5, 11]:
-        return Cube(+0, -2, +2)
-    if v == 8:
-        return Cube(+0, +2, -2)
-    if v == 9:
-        return Cube(-2, +2, +0)
-    if v == 10:
-        return Cube(-2, +0, +2)
-    # range 1
-    if v == 14:
-        return Cube(+0, +1, -1)
-    if v == 15:
-        return Cube(-1, +1, +0)
-    if v == 16:
-        return Cube(-1, +0, +1)
-    if v == 17:
-        return Cube(+0, -1, +1)
-    if v == 18:
-        return Cube(+1, -1, +0)
-    if v == 19:
-        return Cube(+1, +0, -1)
-
-    # center
-    return Cube(+0, +0, +0)
-
-
-def missMatrixBlue(v: int) -> Cube:
-    # range 2
-    if v in [1, 3, 6, 12, 20]:
-        return Cube(-2, +2, +0)
-    if v in [2, 7, 13]:
-        return Cube(+0, +2, -2)
-    if v in [4, 5, 11]:
-        return Cube(-2, +0, +2)
-    if v == 8:
-        return Cube(+2, +0, -2)
-    if v == 9:
-        return Cube(+2, -2, +0)
-    if v == 10:
-        return Cube(+0, -2, +2)
-    # range 1
-    if v == 14:
-        return Cube(+0, -1, +1)
-    if v == 15:
-        return Cube(+1, -1, +0)
-    if v == 16:
-        return Cube(+1, +0, -1)
-    if v == 17:
-        return Cube(+0, +1, -1)
-    if v == 18:
-        return Cube(-1, +1, +0)
-    if v == 19:
-        return Cube(-1, +0, +1)
-
-    # center
-    return Cube(+0, +0, +0)
 
 
 class FigureStatus:
@@ -81,12 +18,15 @@ class FigureStatus:
         self.value = value
 
 
-class StatusType:
-    NO_EFFECT = FigureStatus('No effect', 0)
-    IN_MOTION = FigureStatus('In motion', 3)  # the unit has already used its ability to move this turn
-    UPSTAIRS = FigureStatus('Upstairs', 3)  # if the troops are on an upper flor of a house (scenario specified)
-    UNDER_FIRE = FigureStatus('Under fire', -1)  # if the troops have already been targeted by a shot this turn
-    CUT_OFF = FigureStatus('Cut off', 3)  # no friendly troop within 4 hexagons
+NO_EFFECT = FigureStatus('No effect', 0)
+# the unit has already used its ability to move this turn
+IN_MOTION = FigureStatus('In motion', 3)
+# if the troops are on an upper flor of a house (scenario specified)
+UPSTAIRS = FigureStatus('Upstairs', 3)
+# if the troops have already been targeted by a shot this turn
+UNDER_FIRE = FigureStatus('Under fire', -1)
+# no friendly troop within 4 hexagons
+CUT_OFF = FigureStatus('Cut off', 3)
 
 
 # TODO: this should be a UNIT
@@ -107,14 +47,16 @@ class Figure:
         self.load: int = 0
         self.hp: int = 0
 
-        self.defense: dict = {}
+        self.defense_basic: int = 1
+        self.defense_smoke: int = 0
+
         self.weapons: list = []
 
-        self.int_atk: list = INTELLIGENCE_ATTACK
-        self.int_def: list = INTELLIGENCE_DEFENSE
-        self.endurance: list = ENDURANCE
+        self.int_atk: int = 0
+        self.int_def: int = 0
+        self.endurance: int = 0
 
-        self.stat: FigureStatus = StatusType.NO_EFFECT
+        self.stat: int = 0  # no effect
 
         if len(position) == 3:
             self.position: Cube = position
@@ -128,21 +70,14 @@ class Figure:
 
         self.attackedBy = None
 
+    def update(self, turn: int):
+        self.endurance = ENDURANCE[turn]
+        self.int_atk = INTELLIGENCE_ATTACK[turn]
+        self.int_def = INTELLIGENCE_DEFENSE[turn]
+
     # hit score functions
-    def set_STAT(self, new_STAT: FigureStatus):
-        self.stat = new_STAT
-
-    def get_STAT(self) -> FigureStatus:
-        return self.stat
-
-    def get_END(self, turn: int) -> int:
-        return self.endurance[turn]
-
-    def get_INT_ATK(self, turn: int) -> int:
-        return self.int_atk[turn]
-
-    def get_INT_DEF(self, turn: int) -> int:
-        return self.int_def[turn]
+    def setSTAT(self, new_STAT: FigureStatus):
+        self.stat = new_STAT.value
 
     # actions related methods
     def goto(self, destination: Cube):
@@ -164,7 +99,9 @@ class Tank(Figure):
         self.load = 1
         self.hp = 1
 
-        self.defense = {'basic': 5, 'smoke': 18}
+        self.defense_basic = 5
+        self.defense_smoke = 18
+
         self.weapons = [
             MachineGun(INFINITE),
             Cannon(8),
@@ -181,7 +118,9 @@ class APC(Figure):
         self.load = 1
         self.hp = 1
 
-        self.defense = {'basic': 5, 'smoke': 18},
+        self.defense_basic = 5
+        self.defense_smoke = 18
+
         self.weapons = [
             MachineGun(INFINITE),
             SmokeGrenade(2)
@@ -197,7 +136,6 @@ class Infantry(Figure):
         self.load = 1
         self.hp = 4
 
-        self.defense = {'basic': 1}
         self.weapons = [
             AssaultRifle(INFINITE),
             MachineGun(5),
@@ -220,7 +158,6 @@ class Exoskeleton(Infantry):
         self.load = 0
         self.hp = 4
 
-        self.defense = {'basic': 1}
         self.weapons = [
             AssaultRifle(INFINITE),
             MachineGun(2),
@@ -229,7 +166,9 @@ class Exoskeleton(Infantry):
             Grenade(2)
         ]
 
-        self.endurance = [4] * TOTAL_TURNS
+    def update(self, turn: int):
+        super(Exoskeleton, self).update(turn)
+        self.endurance = ENDURANCE_EXO[turn]
 
 
 class Sniper(Infantry):
@@ -247,10 +186,8 @@ class Sniper(Infantry):
             SniperRifle(INFINITE)
         ]
 
-    def get_STAT(self):
-        # TODO: better management of this change
-        stat = super().get_STAT()
-        return FigureStatus(stat.name, stat.value + 5)
+    def setSTAT(self, STAT: FigureStatus):
+        self.stat = STAT.value + 5
 
 
 class Civilian(Figure):
