@@ -3,10 +3,10 @@
 import matplotlib.pyplot as plt
 
 from core import RED, BLUE
+from core.game.pathfinding import findPath, reachablePath
 from core.game.scenarios import scenarioTestBench
 from utils.coordinates import cube_distance, cube_linedraw, cube_to_hex, to_cube
 from utils.drawing import draw_state, draw_show, draw_hex_line, draw_line, fig2img
-from core.game.pathfinding import findPath, reachablePath
 
 # %% initialization
 

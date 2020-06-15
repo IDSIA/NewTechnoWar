@@ -1,4 +1,3 @@
-# level of protection from the terrain:
 class Terrain:
     """Defines properties of a type of terrain"""
 
@@ -24,6 +23,7 @@ class Terrain:
         return self.name
 
 
+# level of protection from the terrain:
 TERRAIN_TYPE = [
     Terrain('Open ground', 0, 1., 1.),
     Terrain('Road', 0, .75, .75),

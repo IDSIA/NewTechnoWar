@@ -6,11 +6,11 @@ from core import RED, BLUE
 from core.actions import Action, Move, Shoot, Respond, DoNothing
 from core.figures import Figure, FigureType
 from core.figures.status import IN_MOTION, UNDER_FIRE, NO_EFFECT
+from core.figures.weapons import Weapon
 from core.game import MISS_MATRIX, hitScoreCalculator
 from core.game.board import GameBoard
-from core.weapons import Weapon
-from utils.coordinates import cube_linedraw
 from core.game.pathfinding import reachablePath
+from utils.coordinates import cube_linedraw
 
 
 class GameManager:

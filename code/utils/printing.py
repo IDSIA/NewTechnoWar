@@ -1,6 +1,7 @@
 from numpy import np
 
-from core import RED, BLUE, FigureType
+from core import RED, BLUE
+from core.figures import FigureType
 from core.game.manager import GameManager
 from utils.colors import yellow, green, red, blue, pinkBg, grayBg
 

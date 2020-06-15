@@ -14,7 +14,9 @@ from core.game.manager import GameManager
 from core.game.scenarios import scenarioTest1v1, scenarioTest3v1, scenarioTestBench, scenarioTest2v2
 from utils.drawing import draw_state, draw_show, fig2img, draw_hex_line
 
-with open('logger.config.yaml', 'r') as stream:
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
+with open(os.path.join(dir_path, 'logger.config.yaml'), 'r') as stream:
     config = yaml.load(stream, Loader=yaml.FullLoader)
 logging.config.dictConfig(config)
 
