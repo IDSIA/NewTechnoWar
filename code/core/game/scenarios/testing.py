@@ -4,56 +4,14 @@ from core import RED, BLUE
 from core.figures import Infantry, Tank
 from core.figures.status import HIDDEN
 from core.game.manager import GameManager
+from core.game.scenarios.utils import fillLine
 from core.game.terrain import Terrain
-from utils.coordinates import hex_linedraw, to_hex
 
 
 # TODO: maybe define a class with a win condition?
 
 
-def fillLine(terrain: np.ndarray, start: tuple, end: tuple, kind: int):
-    if start[0] == end[0]:
-        line = [(start[0], j) for j in range(start[1], end[1] + 1)]
-    elif start[1] == end[1]:
-        line = [(i, start[1]) for i in range(start[0], end[0] + 1)]
-    else:
-        line = hex_linedraw(to_hex(start), to_hex(end))
-    for hex in line:
-        terrain[hex] = kind
-
-
-def scenario1():
-    """
-    Sets up a specific scenario. reset to state of board to an initial state.
-    Here this is just a dummy.
-    """
-
-    shape = (10, 10)
-
-    gm = GameManager(shape)
-
-    terrain = np.zeros(shape, dtype='uint8')
-    terrain[(4, 4)] = 1
-    terrain[0, :] = Terrain.ROAD
-    gm.board.addTerrain(terrain)
-
-    objective = np.zeros(shape, dtype='uint8')
-    objective[4, 5] = 1
-    gm.board.addObjective(objective)
-
-    gm.addFigure(RED, Infantry((1, 1), 'rInf1'))
-    gm.addFigure(RED, Tank((1, 2), 'rTank1'))
-    gm.addFigure(BLUE, Infantry((3, 3), 'bInf1'))
-
-    return gm
-
-
-def blank(shape):
-    gm = GameManager(shape)
-    return gm
-
-
-def battleground16x16():
+def _battleground16x16():
     shape = (16, 16)
     gm = GameManager(shape)
 
@@ -100,7 +58,7 @@ def battleground16x16():
 
 
 def scenarioTestBench():
-    gm = battleground16x16()
+    gm = _battleground16x16()
 
     gm.addFigure(RED, Infantry((3, 1), 'rInf1'))
     gm.addFigure(RED, Infantry((7, 2), 'rInf2'))
@@ -122,7 +80,7 @@ def scenarioTestBench():
 
 
 def scenarioTest1v1():
-    gm = battleground16x16()
+    gm = _battleground16x16()
 
     gm.addFigure(RED, Tank((2, 3), 'Tank1'))
     gm.addFigure(BLUE, Tank((12, 12), 'Tank2'))
@@ -133,7 +91,7 @@ def scenarioTest1v1():
 
 
 def scenarioTest2v2():
-    gm = battleground16x16()
+    gm = _battleground16x16()
 
     gm.addFigure(RED, Tank((2, 2), 'Tank1'))
     gm.addFigure(RED, Tank((3, 3), 'Tank2'))
@@ -147,7 +105,7 @@ def scenarioTest2v2():
 
 
 def scenarioTest3v1():
-    gm = battleground16x16()
+    gm = _battleground16x16()
 
     gm.addFigure(RED, Infantry((3, 1), 'Inf1'))
     gm.addFigure(RED, Infantry((7, 2), 'Inf2'))
