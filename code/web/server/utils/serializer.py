@@ -1,10 +1,10 @@
 import numpy as np
 from flask.json import JSONEncoder
 
-from core import FigureType
-from core.actions import Move, DoNothing, Shoot, Respond
+from core.figures import FigureType
+from core.actions import Move, Pass, Shoot, Respond
 from core.figures import Figure
-from core.weapons import Weapon
+from core.figures.weapons import Weapon
 from web.server.utils import cube_to_ijxy, cube_to_dict
 
 
@@ -49,7 +49,7 @@ class GameJSONEncoder(JSONEncoder):
                 'no_effect': obj.no_effect,
             }
 
-        if isinstance(obj, DoNothing):
+        if isinstance(obj, Pass):
             return {
                 'action': 'Do Nothing',
                 'agent': obj.agent,

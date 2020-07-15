@@ -4,6 +4,7 @@ from core.figures.weapons import Weapon
 ACTION_ATTACK = 0
 ACTION_MOVE = 1
 ACTION_RESPONSE = 2
+ACTION_PASS = 3
 
 
 class Action:
@@ -17,7 +18,7 @@ class Action:
         return f'{self.agent:5} {self.figure.name:10}'
 
 
-class DoNothing(Action):
+class Pass(Action):
     """Action that just does nothing: used to mark a Figure as activated."""
 
     def __init__(self, agent: str, figure: Figure):

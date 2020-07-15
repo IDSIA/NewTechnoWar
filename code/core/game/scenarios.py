@@ -2,6 +2,7 @@ import numpy as np
 
 from core import RED, BLUE
 from core.figures import Infantry, Tank
+from core.figures.status import HIDDEN
 from core.game.manager import GameManager
 from core.game.terrain import Terrain
 from utils.coordinates import hex_linedraw, to_hex
@@ -136,6 +137,7 @@ def scenarioTest2v2():
 
     gm.addFigure(RED, Tank((2, 2), 'Tank1'))
     gm.addFigure(RED, Tank((3, 3), 'Tank2'))
+
     gm.addFigure(BLUE, Tank((11, 11), 'Tank3'))
     gm.addFigure(BLUE, Tank((12, 12), 'Tank4'))
 
@@ -151,7 +153,7 @@ def scenarioTest3v1():
     gm.addFigure(RED, Infantry((7, 2), 'Inf2'))
     gm.addFigure(RED, Tank((2, 3), 'Tank1'))
 
-    gm.addFigure(BLUE, Tank((12, 12), 'Tank2'))
+    gm.addFigure(BLUE, Tank((12, 12), 'Tank2', HIDDEN))
 
     gm.name = "3Rv1B"
 

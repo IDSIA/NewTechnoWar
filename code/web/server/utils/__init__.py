@@ -1,7 +1,7 @@
 from math import sqrt
 
-from core import Terrain, TERRAIN_TYPE
-from core.game import GameBoard
+from core.game.terrain import Terrain, TERRAIN_TYPE
+from core.game.board import GameBoard
 from utils.coordinates import to_cube, cube_to_hex
 
 SIZE = 10

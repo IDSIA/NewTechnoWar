@@ -3,9 +3,9 @@ import logging
 import numpy as np
 
 from core import RED, BLUE
-from core.actions import Action, Move, Shoot, Respond, DoNothing
+from core.actions import Action, Move, Shoot, Respond, Pass
 from core.figures import Figure, FigureType
-from core.figures.status import IN_MOTION, UNDER_FIRE, NO_EFFECT
+from core.figures.status import IN_MOTION, UNDER_FIRE, NO_EFFECT, HIDDEN
 from core.figures.weapons import Weapon
 from core.game import MISS_MATRIX, hitScoreCalculator
 from core.game.board import GameBoard
@@ -74,6 +74,7 @@ class GameManager:
         hasAmmo = weapon.hasAmmo()
         available = weapon.isAvailable()
         isInRange = weapon.max_range >= len(los)
+        isNotHidden = target.stat != HIDDEN
 
         # TODO: verify that we can use anti-tank against non-vehicles
         if weapon.antitank:
@@ -83,7 +84,7 @@ class GameManager:
             # can shoot against infantry and others only
             validTarget = target.kind < FigureType.VEHICLE
 
-        return all([canHit, hasAmmo, available, isInRange, validTarget])
+        return all([canHit, hasAmmo, available, isInRange, validTarget, isNotHidden])
 
     def buildMovements(self, agent: str, figure: Figure) -> list:
         """Build all the movement actions for a figure. All the other units are considered as obstacles."""
@@ -117,8 +118,8 @@ class GameManager:
 
         responses = []
 
-        if not figure.responded and not figure.killed and not figure.attackedBy.killed:
-            target = figure.attackedBy
+        if not figure.responded and not figure.killed and not figure.attacked_by.killed:
+            target = figure.attacked_by
 
             los = cube_linedraw(figure.position, target.position)
 
@@ -164,13 +165,15 @@ class GameManager:
 
         logging.info(action)
 
-        if isinstance(action, DoNothing):
+        if isinstance(action, Pass):
             return {}
+
+        figure.stat = NO_EFFECT
 
         if isinstance(action, Move):
             dest = action.destination[-1]
             self.board.moveFigure(agent, figure, figure.position, dest)
-            figure.setSTAT(IN_MOTION)
+            figure.stat = IN_MOTION
             return {}
 
         if isinstance(action, Shoot):  # Respond *is* a shoot action
@@ -202,12 +205,12 @@ class GameManager:
 
             # anti-tank rule
             if w.antitank and t.kind == FigureType.VEHICLE:
-                DEF = 0
+                DEF = t.defense['antitank']
             else:
-                DEF = t.defense_basic
+                DEF = t.defense['basic']
 
             TER = self.board.getProtectionLevel(t.position)
-            STAT = f.stat
+            STAT = f.stat.value + f.bonus
             END = f.endurance
 
             hitScore = hitScoreCalculator(ATK, TER, DEF, STAT, END, INT)
@@ -215,9 +218,9 @@ class GameManager:
             success = len([x for x in score if x <= hitScore])
 
             # target status changes for the _next_ hit
-            t.setSTAT(UNDER_FIRE)
+            t.stat = UNDER_FIRE
             # target can now respond to the fire
-            t.canRespond(f)
+            t.attacked_by = f
 
             logging.info(f'{action}: (({success}) {score}/{hitScore})')
 
@@ -265,11 +268,11 @@ class GameManager:
                     figure.activated = True
                     figure.hit = False
                 else:
-                    figure.setSTAT(NO_EFFECT)
+                    figure.stat = NO_EFFECT
                     figure.killed = False
                     figure.activated = False
                     figure.responded = False
-                    figure.attackedBy = None
+                    figure.attacked_by = None
                     figure.hit = False
 
         # TODO: remove killed unit?

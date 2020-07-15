@@ -3,7 +3,7 @@ import logging
 import numpy as np
 
 from core import ACTION_MOVE, ACTION_ATTACK
-from core.actions import Shoot, DoNothing
+from core.actions import Shoot, Pass
 from core.game import scenarios
 from web.server.players.dummy import PlayerDummy
 
@@ -109,10 +109,10 @@ class MatchManager:
                 self.outcome.append(outcome)
             else:
                 logging.info('no response given')
-                self.actionsDone.append(DoNothing(self.second.team, action.target))
+                self.actionsDone.append(Pass(self.second.team, action.target))
         else:
             logging.info('no response available')
-            self.actionsDone.append(DoNothing(self.second.team, action.target))
+            self.actionsDone.append(Pass(self.second.team, action.target))
 
         self._goCheck()
 

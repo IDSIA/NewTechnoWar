@@ -1,15 +1,17 @@
 """
 This module contains a description of all weapons and their rules.
 """
-
-# This is just a large number that can be considered an infinite amount of something
-INFINITE = 2 ** 10
+from utils import INFINITE
 
 
 class Weapon:
     """
     Generic class for weapons mechanics.
     """
+    __slots__ = [
+        'wid', 'name', 'max_range', 'atk_normal', 'atk_response', 'ammo', 'dices', 'curved', 'damage', 'antitank',
+        'no_effect',
+    ]
 
     def __init__(self, _id: str, name: str, max_range: int, atk_normal: int, atk_response: int, ammo: int, dices: int,
                  curved: bool = False, damage: int = 1, antitank: bool = False):
