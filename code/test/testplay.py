@@ -10,11 +10,13 @@ import yaml
 
 from core import TOTAL_TURNS, RED, BLUE
 from core.actions import Shoot, Move, Action, ACTION_MOVE, ACTION_ATTACK
-from core.game import GameManager
-from core.game.scenarios import scenarioTest1v1, scenarioTest3v1, scenarioTestBench
+from core.game.manager import GameManager
+from core.game.scenarios import scenarioTest1v1, scenarioTest3v1, scenarioTestBench, scenarioTest2v2
 from utils.drawing import draw_state, draw_show, fig2img, draw_hex_line
 
-with open('logger.config.yaml', 'r') as stream:
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
+with open(os.path.join(dir_path, 'logger.config.yaml'), 'r') as stream:
     config = yaml.load(stream, Loader=yaml.FullLoader)
 logging.config.dictConfig(config)
 
@@ -102,6 +104,8 @@ def play(gm: GameManager, seed=42):
     logging.info(f'SCENARIO: {gm.name}')
     logging.info(f'SEED: {seed}')
 
+    gm.update()
+
     draw_initial(gm)
 
     for turn in range(TOTAL_TURNS):
@@ -124,9 +128,11 @@ if __name__ == "__main__":
     np.random.seed(42)
 
     gm1v1 = scenarioTest1v1()
+    gm2v2 = scenarioTest2v2()
     gm3v1 = scenarioTest3v1()
     gmTB = scenarioTestBench()
 
     play(gm1v1)
+    play(gm2v2)
     play(gm3v1)
     play(gmTB)

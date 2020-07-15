@@ -3,9 +3,9 @@
 
 from __future__ import division
 from __future__ import print_function
+
 import collections
 import math
-
 
 Point = collections.namedtuple("Point", ["x", "y"])
 

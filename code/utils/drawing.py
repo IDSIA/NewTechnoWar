@@ -5,8 +5,10 @@ import numpy as np
 from PIL import Image
 from matplotlib.patches import RegularPolygon
 
-from core import RED, BLUE, Terrain, FigureType
-from core.game import GameManager
+from core import RED, BLUE
+from core.figures import FigureType
+from core.game.manager import GameManager
+from core.game.terrain import Terrain
 from utils.coordinates import cube_to_hex, to_cube
 
 

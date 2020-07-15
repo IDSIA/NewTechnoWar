@@ -1,7 +1,8 @@
 import numpy as np
 
-from core import FigureType, TERRAIN_TYPE, RED, BLUE
-from core.figures import Figure
+from core import RED, BLUE
+from core.figures import Figure, FigureType
+from core.game.terrain import TERRAIN_TYPE
 from utils.coordinates import to_cube, Cube, cube_neighbor, cube_to_hex
 
 

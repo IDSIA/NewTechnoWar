@@ -3,7 +3,7 @@ This module contains a description of all weapons and their rules.
 """
 
 # This is just a large number that can be considered an infinite amount of something
-INFINITE = 2000000000
+INFINITE = 2 ** 10
 
 
 class Weapon:
