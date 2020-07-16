@@ -10,6 +10,7 @@ from core.figures.weapons import Weapon
 from core.game import MISS_MATRIX, hitScoreCalculator
 from core.game.board import GameBoard
 from core.game.pathfinding import reachablePath
+from core.game.state import GameState
 from utils.coordinates import cube_linedraw
 
 
@@ -26,15 +27,7 @@ class GameManager:
 
         # static properties of the board
         self.board = GameBoard(shape)
-        self.obstacles = set()
-
-        self.turn = -1
-
-        # access to figures is done by index: [agent][figure]. Each figure know its own state
-        self.figures = {
-            RED: [],
-            BLUE: []
-        }
+        self.state = GameState(shape)
 
     # operations on figures (dynamic properties)
 
@@ -43,32 +36,29 @@ class GameManager:
         Add a figures to the units of the given agent and it setup the index
         in the matrix at the position of the figure.
         """
-        figures = self.figures[agent]
+        figures = self.state.figures[agent]
         index = len(figures)  # to have 0-based index
 
         figures.append(figure)
         figure.index = index
-        self.board.moveFigure(agent, figure, dst=figure.position)
+        self.state.moveFigure(agent, figure, dst=figure.position)
 
     def getFigureByIndex(self, agent: str, index: int) -> Figure:
         """Given an index of a figure, return the figure."""
-        return self.figures[agent][index]
+        return self.state.figures[agent][index]
 
     def getFiguresByPos(self, agent: str, pos: tuple) -> list:
         """Given a position of a figure, return the figure."""
-        return self.board.getFigureByPos(agent, pos)
+        return self.state.getFigureByPos(agent, pos)
 
     # other operations
 
-    def activableFigures(self, agent: str) -> list:
-        """Returns a list of figures that have not been activated."""
-        # TODO:
-        #   transform this in an array that is restored at the beginning of the turn with
-        #   the activable figures, when a figure is activated, remove it from such array
-        return [f for f in self.figures[agent] if not f.activated and not f.killed]
+    def isObstacle(self, h):
+        return self.board.isObstacle(h) or self.state.isObstacle(h)
 
     def canShoot(self, weapon: Weapon, target: Figure, los: list) -> bool:
-        obstacles = [self.board.isObstacle(h) for h in los[1:-2]]
+        """Check if the given weapon can shoot against the given target."""
+        obstacles = [self.isObstacle(h) for h in los[1:-2]]
 
         canHit = weapon.curved or not any(obstacles)  # skip first (who shoots) and last (target) positions
         hasAmmo = weapon.hasAmmo()
@@ -82,9 +72,14 @@ class GameManager:
             validTarget = target.kind == FigureType.VEHICLE
         else:
             # can shoot against infantry and others only
-            validTarget = target.kind < FigureType.VEHICLE
+            validTarget = target.kind != FigureType.VEHICLE
+
+        # TODO: curved weapons need los from other units
 
         return all([canHit, hasAmmo, available, isInRange, validTarget, isNotHidden])
+
+    def activableFigures(self, agent: str):
+        return self.state.activableFigures(agent)
 
     def buildMovements(self, agent: str, figure: Figure) -> list:
         """Build all the movement actions for a figure. All the other units are considered as obstacles."""
@@ -101,7 +96,7 @@ class GameManager:
         tAgent = RED if agent == BLUE else BLUE
         shoots = []
 
-        for target in self.figures[tAgent]:
+        for target in self.state.figures[tAgent]:
             if target.killed:
                 continue
 
@@ -118,6 +113,7 @@ class GameManager:
 
         responses = []
 
+        # TODO: response need to be redone and based on last action of other team
         if not figure.responded and not figure.killed and not figure.attacked_by.killed:
             target = figure.attacked_by
 
@@ -151,13 +147,19 @@ class GameManager:
         """
         actions = []
 
-        for figure in self.figures[agent]:
+        for figure in self.state.figures[agent]:
             for action in self.buildActionForFigure(agent, figure):
                 actions.append(action)
 
         return actions
 
     def activate(self, action: Action) -> dict:
+        s1, outcome = self.step(self.board, self.state, action)
+        self.state = s1
+        return outcome
+
+    @staticmethod
+    def step(board: GameBoard, state: GameState, action: Action) -> (GameState, dict):
         """Apply the given action to the map."""
         agent = action.agent
         figure = action.figure
@@ -166,15 +168,15 @@ class GameManager:
         logging.info(action)
 
         if isinstance(action, Pass):
-            return {}
+            return state, {}
 
         figure.stat = NO_EFFECT
 
         if isinstance(action, Move):
             dest = action.destination[-1]
-            self.board.moveFigure(agent, figure, figure.position, dest)
+            state.moveFigure(agent, figure, figure.position, dest)
             figure.stat = IN_MOTION
-            return {}
+            return state, {}
 
         if isinstance(action, Shoot):  # Respond *is* a shoot action
             f: Figure = figure
@@ -183,6 +185,8 @@ class GameManager:
             los: list = action.los
 
             # TODO: curved weapons (mortar) have different hit computation
+
+            # TODO: implement smoke
 
             # consume ammunition
             w.shoot()
@@ -209,7 +213,7 @@ class GameManager:
             else:
                 DEF = t.defense['basic']
 
-            TER = self.board.getProtectionLevel(t.position)
+            TER = board.getProtectionLevel(t.position)
             STAT = f.stat.value + f.bonus
             END = f.endurance
 
@@ -232,6 +236,7 @@ class GameManager:
                     t.killed = True
                     logging.info(f'{action}: KILLED!')
                 # TODO: choose which weapon to disable
+
             elif w.curved:
                 # mortar
                 v = np.random.choice(range(1, 21), size=1)
@@ -241,7 +246,7 @@ class GameManager:
             else:
                 logging.info(f'{action}: miss')
 
-            return {
+            return state, {
                 'score': score,
                 'hitScore': hitScore,
                 'ATK': ATK,
@@ -256,17 +261,20 @@ class GameManager:
 
     def update(self):
         """End turn function that updates the status of all figures and moves forward the internal turn ticker."""
-        self.turn += 1
+        self.state.turn += 1
+
+        # TODO: reduce smoke turn counter
 
         for agent in [RED, BLUE]:
-            for figure in self.figures[agent]:
-                figure.update(self.turn)
+            for figure in self.state.figures[agent]:
+                figure.update(self.state.turn)
 
                 # TODO: compute there cutoff status?
                 if figure.hp <= 0:
                     figure.killed = True
                     figure.activated = True
                     figure.hit = False
+
                 else:
                     figure.stat = NO_EFFECT
                     figure.killed = False
@@ -275,13 +283,14 @@ class GameManager:
                     figure.attacked_by = None
                     figure.hit = False
 
-        # TODO: remove killed unit?
+        return self.state
 
     def goalAchieved(self):
         """
         Current is a death match goal.
         """
-        redKilled = all([f.killed for f in self.figures[RED]])
-        blueKilled = all([f.killed for f in self.figures[BLUE]])
+        # TODO: change with different goals based on board
+        redKilled = all([f.killed for f in self.state.figures[RED]])
+        blueKilled = all([f.killed for f in self.state.figures[BLUE]])
 
         return redKilled or blueKilled

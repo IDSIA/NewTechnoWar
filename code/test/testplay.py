@@ -11,7 +11,7 @@ import yaml
 from core import TOTAL_TURNS, RED, BLUE
 from core.actions import Shoot, Move, Action, ACTION_MOVE, ACTION_ATTACK
 from core.game.manager import GameManager
-from core.game.scenarios import scenarioTest1v1, scenarioTest3v1, scenarioTestBench, scenarioTest2v2
+from scenarios import scenarioTest1v1, scenarioTest3v1, scenarioTestBench, scenarioTest2v2
 from utils.drawing import draw_state, draw_show, fig2img, draw_hex_line
 
 dir_path = os.path.dirname(os.path.realpath(__file__))

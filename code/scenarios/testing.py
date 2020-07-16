@@ -4,8 +4,8 @@ from core import RED, BLUE
 from core.figures import Infantry, Tank
 from core.figures.status import HIDDEN
 from core.game.manager import GameManager
-from core.game.scenarios.utils import fillLine
 from core.game.terrain import Terrain
+from scenarios.utils import fillLine
 
 
 # TODO: maybe define a class with a win condition?

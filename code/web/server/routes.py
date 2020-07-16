@@ -106,7 +106,7 @@ def gameFigures():
 
     mm: MatchManager = app.games[request.cookies["gameId"]]
 
-    return jsonify(mm.gm.figures), 200
+    return jsonify(mm.gm.state.figures), 200
 
 
 @main.route("/game/next/step", methods=["GET"])
