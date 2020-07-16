@@ -37,7 +37,9 @@ class MatchManager:
 
         np.random.seed(self.seed)
 
-        self.turn = 0
+        self.gm.update()
+
+        self.turn = self.gm.state.turn
         self.first = self.red
         self.second = self.blue
         self.step = self._goRound

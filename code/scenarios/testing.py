@@ -60,19 +60,19 @@ def _battleground16x16():
 def scenarioTestBench():
     gm = _battleground16x16()
 
-    gm.addFigure(RED, Infantry((3, 1), 'rInf1'))
-    gm.addFigure(RED, Infantry((7, 2), 'rInf2'))
-    gm.addFigure(RED, Infantry((6, 2), 'rInf3'))
-    gm.addFigure(RED, Infantry((1, 4), 'rInf4'))
+    gm.addFigure(Infantry((3, 1), RED, 'rInf1'))
+    gm.addFigure(Infantry((7, 2), RED, 'rInf2'))
+    gm.addFigure(Infantry((6, 2), RED, 'rInf3'))
+    gm.addFigure(Infantry((1, 4), RED, 'rInf4'))
 
-    gm.addFigure(RED, Tank((2, 3), 'rTank1'))
-    gm.addFigure(RED, Tank((2, 1), 'rTank2'))
+    gm.addFigure(Tank((2, 3), RED, 'rTank1'))
+    gm.addFigure(Tank((2, 1), RED, 'rTank2'))
 
-    gm.addFigure(BLUE, Infantry((14, 14), 'bInf1'))
-    gm.addFigure(BLUE, Infantry((13, 10), 'bInf2'))
-    gm.addFigure(BLUE, Infantry((9, 13), 'bInf3'))
+    gm.addFigure(Infantry((14, 14), BLUE, 'bInf1'))
+    gm.addFigure(Infantry((13, 10), BLUE, 'bInf2'))
+    gm.addFigure(Infantry((9, 13), BLUE, 'bInf3'))
 
-    gm.addFigure(BLUE, Tank((12, 12), 'bTank1'))
+    gm.addFigure(Tank((12, 12), BLUE, 'bTank1'))
 
     gm.name = "TestBench"
 
@@ -82,8 +82,8 @@ def scenarioTestBench():
 def scenarioTest1v1():
     gm = _battleground16x16()
 
-    gm.addFigure(RED, Tank((2, 3), 'Tank1'))
-    gm.addFigure(BLUE, Tank((12, 12), 'Tank2'))
+    gm.addFigure(Tank((2, 3), RED, 'Tank1'))
+    gm.addFigure(Tank((12, 12), BLUE, 'Tank2'))
 
     gm.name = "1Rv1B"
 
@@ -93,11 +93,11 @@ def scenarioTest1v1():
 def scenarioTest2v2():
     gm = _battleground16x16()
 
-    gm.addFigure(RED, Tank((2, 2), 'Tank1'))
-    gm.addFigure(RED, Tank((3, 3), 'Tank2'))
+    gm.addFigure(Tank((2, 2), RED, 'Tank1'))
+    gm.addFigure(Tank((3, 3), RED, 'Tank2'))
 
-    gm.addFigure(BLUE, Tank((11, 11), 'Tank3'))
-    gm.addFigure(BLUE, Tank((12, 12), 'Tank4'))
+    gm.addFigure(Tank((11, 11), BLUE, 'Tank3'))
+    gm.addFigure(Tank((12, 12), BLUE, 'Tank4'))
 
     gm.name = "1Rv1B"
 
@@ -107,11 +107,11 @@ def scenarioTest2v2():
 def scenarioTest3v1():
     gm = _battleground16x16()
 
-    gm.addFigure(RED, Infantry((3, 1), 'Inf1'))
-    gm.addFigure(RED, Infantry((7, 2), 'Inf2'))
-    gm.addFigure(RED, Tank((2, 3), 'Tank1'))
+    gm.addFigure(Infantry((3, 1), RED, 'Inf1'))
+    gm.addFigure(Infantry((7, 2), RED, 'Inf2'))
+    gm.addFigure(Tank((2, 3), RED, 'Tank1'))
 
-    gm.addFigure(BLUE, Tank((12, 12), 'Tank2', HIDDEN))
+    gm.addFigure(Tank((12, 12), BLUE, 'Tank2', HIDDEN))
 
     gm.name = "3Rv1B"
 

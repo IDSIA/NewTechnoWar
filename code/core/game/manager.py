@@ -11,7 +11,6 @@ from core.game import MISS_MATRIX, hitScoreCalculator
 from core.game.board import GameBoard
 from core.game.pathfinding import reachablePath
 from core.game.state import GameState
-from utils.coordinates import cube_linedraw
 
 
 class GameManager:
@@ -31,17 +30,12 @@ class GameManager:
 
     # operations on figures (dynamic properties)
 
-    def addFigure(self, agent: str, figure: Figure) -> None:
+    def addFigure(self, figure: Figure) -> None:
         """
         Add a figures to the units of the given agent and it setup the index
         in the matrix at the position of the figure.
         """
-        figures = self.state.figures[agent]
-        index = len(figures)  # to have 0-based index
-
-        figures.append(figure)
-        figure.index = index
-        self.state.moveFigure(agent, figure, dst=figure.position)
+        self.state.addFigure(figure)
 
     def getFigureByIndex(self, agent: str, index: int) -> Figure:
         """Given an index of a figure, return the figure."""
@@ -56,11 +50,18 @@ class GameManager:
     def isObstacle(self, h):
         return self.board.isObstacle(h) or self.state.isObstacle(h)
 
-    def canShoot(self, weapon: Weapon, target: Figure, los: list) -> bool:
+    def canShoot(self, figure: Figure, target: Figure, weapon: Weapon, los: dict) -> bool:
         """Check if the given weapon can shoot against the given target."""
-        obstacles = [self.isObstacle(h) for h in los[1:-2]]
+        if weapon.curved:
+            # at least one has LOS on target
+            canSee = [not any([self.isObstacle(h) for h in l[1:-2]]) for i, l in los.items()]
+            canHit = any(canSee)
 
-        canHit = weapon.curved or not any(obstacles)  # skip first (who shoots) and last (target) positions
+        else:
+            # there is direct LOS on target
+            direct_los = los[figure.index]
+            canHit = not any([self.isObstacle(h) for h in direct_los[1:-2]])
+
         hasAmmo = weapon.hasAmmo()
         available = weapon.isAvailable()
         isInRange = weapon.max_range >= len(los)
@@ -73,8 +74,6 @@ class GameManager:
         else:
             # can shoot against infantry and others only
             validTarget = target.kind != FigureType.VEHICLE
-
-        # TODO: curved weapons need los from other units
 
         return all([canHit, hasAmmo, available, isInRange, validTarget, isNotHidden])
 
@@ -100,10 +99,10 @@ class GameManager:
             if target.killed:
                 continue
 
-            los = cube_linedraw(figure.position, target.position)
+            los: dict = self.state.getLos(target)
 
             for weapon in figure.weapons:
-                if self.canShoot(weapon, target, los):
+                if self.canShoot(figure, target, weapon, los):
                     shoots.append(Shoot(agent, figure, target, weapon, los))
 
         return shoots
@@ -117,10 +116,10 @@ class GameManager:
         if not figure.responded and not figure.killed and not figure.attacked_by.killed:
             target = figure.attacked_by
 
-            los = cube_linedraw(figure.position, target.position)
+            los: dict = self.state.getLos(target)
 
             for weapon in figure.weapons:
-                if self.canShoot(weapon, target, los):
+                if self.canShoot(figure, target, weapon, los):
                     responses.append(Respond(agent, figure, target, weapon, los))
 
         return responses
@@ -182,7 +181,7 @@ class GameManager:
             f: Figure = figure
             t: Figure = action.target
             w: Weapon = action.weapon
-            los: list = action.los
+            los: dict = action.los
 
             # TODO: curved weapons (mortar) have different hit computation
 
@@ -268,6 +267,7 @@ class GameManager:
         for agent in [RED, BLUE]:
             for figure in self.state.figures[agent]:
                 figure.update(self.state.turn)
+                self.state.updateLos(figure)
 
                 # TODO: compute there cutoff status?
                 if figure.hp <= 0:

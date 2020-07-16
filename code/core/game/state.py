@@ -2,13 +2,15 @@ import numpy as np
 
 from core import RED, BLUE
 from core.figures import FigureType, Figure
-from utils.coordinates import to_cube, Cube
+from utils.coordinates import to_cube, Cube, cube_linedraw
 
 
 class GameState:
     """
     Dynamic parts of the board.
     """
+
+    __slots__ = ['turn', 'figures', 'posToFigure', 'smoke', 'figuresLos']
 
     def __init__(self, shape: tuple):
         self.turn = -1
@@ -27,23 +29,39 @@ class GameState:
 
         self.smoke = np.zeros(shape, dtype='uint8')
 
-        # TODO:
+        self.figuresLos = {
+            RED: dict(),
+            BLUE: dict()
+        }
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{self.turn}:\n{self.figures}\n{self.posToFigure}'
 
-    def addFigure(self, agent: str, figure: Figure) -> None:
+    def addFigure(self, figure: Figure) -> None:
         """
         Add a figures to the units of the given agent and it setup the index
         in the matrix at the position of the figure.
         """
+        agent = figure.agent
         figures = self.figures[agent]
         index = len(figures)  # to have 0-based index
         figures.append(figure)
         figure.index = index
         self.moveFigure(agent, figure, dst=figure.position)
 
-    def addSmoke(self, area: np.array):
+    def getLos(self, target: Figure) -> dict:
+        return self.figuresLos[target.agent][target.index]
+
+    def updateLos(self, target: Figure) -> None:
+        attackers = RED if target.agent == BLUE else BLUE
+
+        self.figuresLos[target.agent][target.index] = {
+            # attacker's line of sight
+            attacker.index: cube_linedraw(attacker.position, target.position)
+            for attacker in self.figures[attackers]
+        }
+
+    def addSmoke(self, area: np.array) -> None:
         self.smoke += area
 
     def getFigureByPos(self, agent: str, pos: tuple) -> list:
@@ -66,6 +84,7 @@ class GameState:
                 ptf[dst] = list()
             ptf[dst].append(figure)
             figure.goto(dst)
+            self.updateLos(figure)
 
     def isObstacle(self, pos: Cube) -> bool:
         """Returns if the position is an obstacle (a VEHICLE) to LOS or not."""

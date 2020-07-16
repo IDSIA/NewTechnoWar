@@ -10,6 +10,8 @@ class GameBoard:
     Static parts of the game board.
     """
 
+    __slots__ = ['shape', 'terrain', 'geography', 'objective', 'limits', 'obstacles', 'moveCost', 'protectionLevel']
+
     def __init__(self, shape: tuple):
         self.shape = shape
 
