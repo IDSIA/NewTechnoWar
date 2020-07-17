@@ -159,6 +159,8 @@ function updateTurn(data) {
         blues.forEach(function (item, _) {
             updateFigure(item);
         });
+
+        $('div.weapon').removeClass('used');
     }).fail(function () {
         console.error('Failed to load figures!');
     });
@@ -247,7 +249,7 @@ function shoot(current, figure, mark, data, outcome) {
     let end = data.los.slice(-1)[0];
 
     $('#shoots').append(
-        drawLine(data.los[figure.index]).addClass('shoot').addClass(data.agent)
+        drawLine(data.los).addClass('shoot').addClass(data.agent)
             /*
             .append(svg('g')
                 .attr('transform', `translate(${end.x + 10},${end.y})`)

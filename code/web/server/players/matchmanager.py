@@ -35,6 +35,10 @@ class MatchManager:
 
         self._goInit()
 
+    def reset(self):
+        self.gm = getattr(scenarios, self.scenario)()
+        self._goInit()
+
     def _goInit(self):
         logging.info('step: init')
         logging.info(f'SCENARIO: {self.gm.name}')
@@ -42,7 +46,9 @@ class MatchManager:
 
         np.random.seed(self.seed)
 
-        self.turn = 0
+        self.gm.update()
+
+        self.turn = self.gm.state.turn
         self.first = self.red
         self.second = self.blue
         self.step = self._goRound

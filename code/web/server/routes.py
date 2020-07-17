@@ -105,77 +105,75 @@ def game():
 
 @main.route("/game/reset", methods=['GET'])
 def gameReset():
-    if "gameId" not in request.cookies:
-        logging.error("Game id missing")
+    try:
+        _, mm = checkGameId()
+        mm.reset()
+
+        response = make_response(
+            redirect(f'/game/')
+        )
+
+        response.delete_cookie("gameId")
+        return response
+
+    except ValueError as ve:
+        logging.error(ve)
         return redirect('/')
-
-    gameId = request.cookies["gameId"]
-
-    if gameId not in app.games:
-        logging.error("Game id not registered")
-        return redirect('/')
-
-    mm: MatchManager = app.games[gameId]
-
-    response = make_response(
-        redirect(f'/game/{mm.scenario}')
-    )
-
-    response.delete_cookie("gameId")
-    return response
 
 
 @main.route("/game/figures", methods=["GET"])
 def gameFigures():
     logging.info("Request figures")
 
-    if "gameId" not in request.cookies:
-        logging.error("Game id missing")
+    try:
+        _, mm = checkGameId()
+        return jsonify(mm.gm.state.figures), 200
+
+    except ValueError as ve:
+        logging.error(ve)
         return None, 404
-
-    mm: MatchManager = app.games[request.cookies["gameId"]]
-
-    return jsonify(mm.gm.state.figures), 200
 
 
 @main.route("/game/next/step", methods=["GET"])
 def gameNextStep():
     logging.info("Request next")
 
-    if "gameId" not in request.cookies:
-        logging.error("Game id missing")
+    try:
+        _, mm = checkGameId()
+        mm.nextStep()
+
+        lastAction = None
+        lastOutcome = None
+
+        if not mm.update:
+            lastAction = mm.actionsDone[-1]
+            lastOutcome = mm.outcome[-1]
+
+        return jsonify({
+            'turn': mm.turn,
+            'update': mm.update,
+            'action': lastAction,
+            'outcome': lastOutcome,
+        }), 200
+
+    except ValueError as ve:
+        logging.error(ve)
         return None, 404
-
-    mm: MatchManager = app.games[request.cookies["gameId"]]
-
-    mm.nextStep()
-
-    lastAction = None
-    lastOutcome = None
-    if not mm.update:
-        lastAction = mm.actionsDone[-1]
-        lastOutcome = mm.outcome[-1]
-
-    return jsonify({
-        'turn': mm.turn,
-        'update': mm.update,
-        'action': lastAction,
-        'outcome': lastOutcome,
-    }), 200
 
 
 @main.route("/game/next/turn", methods=["GET"])
 def gameNextTurn():
     logging.info("Request next")
 
-    if "gameId" not in request.cookies:
-        logging.error("Game id missing")
+    try:
+        _, mm = checkGameId()
+
+        n = len(mm.actionsDone) - 1
+        mm.nextTurn()
+        lastAction = mm.actionsDone[n:]
+
+        return jsonify({'turn': mm.turn, 'update': mm.update, 'actions': lastAction}), 200
+
+    except ValueError as ve:
+        logging.error(ve)
         return None, 404
-
-    mm: MatchManager = app.games[request.cookies["gameId"]]
-
-    n = len(mm.actionsDone) - 1
-    mm.nextTurn()
-    lastAction = mm.actionsDone[n:]
-
-    return jsonify({'turn': mm.turn, 'update': mm.update, 'actions': lastAction}), 200

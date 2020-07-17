@@ -17,7 +17,7 @@ class GameJSONEncoder(JSONEncoder):
             return {
                 'id': obj.fid,
                 'agent': obj.agent,
-                'index': obj.index,
+                'idx': obj.index,
                 'name': obj.name,
                 'kind': kind,
                 'move': obj.move,
