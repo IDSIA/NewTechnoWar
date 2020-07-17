@@ -2,10 +2,10 @@ import logging
 
 import numpy as np
 
+import scenarios
 import web.server.players as players
 from core import ACTION_MOVE, ACTION_ATTACK
 from core.actions import Shoot, Pass
-from core.game import scenarios
 from core.game.manager import GameManager
 from web.server.players.player import Player
 
