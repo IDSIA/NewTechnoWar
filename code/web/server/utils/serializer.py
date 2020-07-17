@@ -16,6 +16,8 @@ class GameJSONEncoder(JSONEncoder):
             kind = 'infantry' if obj.kind == FigureType.INFANTRY else 'vehicle'
             return {
                 'id': obj.fid,
+                'agent': obj.agent,
+                'index': obj.index,
                 'name': obj.name,
                 'kind': kind,
                 'move': obj.move,
@@ -71,7 +73,7 @@ class GameJSONEncoder(JSONEncoder):
                 'figure': obj.figure,
                 'target': obj.target,
                 'weapon': obj.weapon,
-                'los': [cube_to_dict(hex) for hex in obj.los],
+                'los': [cube_to_dict(hex) for hex in obj.los[obj.figure.index]],
             }
 
         if isinstance(obj, np.ndarray):

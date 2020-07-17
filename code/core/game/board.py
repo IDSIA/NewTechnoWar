@@ -1,7 +1,6 @@
 import numpy as np
 
-from core import RED, BLUE
-from core.figures import Figure, FigureType
+from core.figures import FigureType
 from core.game.terrain import TERRAIN_TYPE
 from utils.coordinates import to_cube, Cube, cube_neighbor, cube_to_hex
 
@@ -11,6 +10,8 @@ class GameBoard:
     Static parts of the game board.
     """
 
+    __slots__ = ['shape', 'terrain', 'geography', 'objective', 'limits', 'obstacles', 'moveCost', 'protectionLevel']
+
     def __init__(self, shape: tuple):
         self.shape = shape
 
@@ -18,12 +19,6 @@ class GameBoard:
         self.terrain = np.zeros(shape, dtype='uint8')
         self.geography = np.zeros(shape, dtype='uint8')
         self.objective = np.zeros(shape, dtype='uint8')
-
-        # contains the figure at the given position: pos -> [figure, ...]
-        self.posToFigure = {
-            RED: dict(),
-            BLUE: dict(),
-        }
 
         x, y = shape
 
@@ -44,8 +39,6 @@ class GameBoard:
         }
 
         self.protectionLevel = np.zeros(shape, dtype='uint8')
-
-    # operations on board layout (static properties)
 
     def addTerrain(self, terrain: np.array):
         """
@@ -70,68 +63,34 @@ class GameBoard:
                     self.obstacles.add(to_cube((i, j)))
 
     def addGeography(self, geography: np.array):
-        """Sum a geography matrix to the current board"""
+        """Add a geography matrix to the current board."""
         self.geography += geography
 
     def addObjective(self, objective: np.array):
-        """Sum an objective matrix to the current board"""
+        """Add an objective matrix to the current board."""
         self.objective += objective
 
-    # operations on graph
-
     def getNeighbors(self, position: Cube):
+        """Returns all the neighbors of the given position."""
         return [n for n in cube_neighbor(position) if n not in self.limits]
 
     def getMovementCost(self, pos: Cube, kind: int):
-        kinds = set()
+        """Returns the cost of move in the given position."""
         if pos in self.limits:
-            return 1000.0
-
-        if pos in self.posToFigure[RED]:
-            kinds.update([x.kind for x in self.posToFigure[RED][pos]])
-        if pos in self.posToFigure[BLUE]:
-            kinds.update([x.kind for x in self.posToFigure[BLUE][pos]])
-        if FigureType.VEHICLE in kinds:
             return 1000.0
 
         return self.moveCost[kind][cube_to_hex(pos)]
 
-    def moveFigure(self, agent: str, figure: Figure, curr: Cube = None, dst: Cube = None):
-        """Moves a figure from current position to another destination."""
-        ptf = self.posToFigure[agent]
-        if curr:
-            ptf[curr].remove(figure)
-            if len(ptf[curr]) == 0:
-                ptf.pop(curr, None)
-        if dst:
-            if dst not in ptf:
-                ptf[dst] = list()
-            ptf[dst].append(figure)
-            figure.goto(dst)
-
-    def getFigureByPos(self, agent: str, pos: tuple) -> list:
-        if len(pos) == 2:
-            pos = to_cube(pos)
-        if pos not in self.posToFigure[agent]:
-            return []
-        return self.posToFigure[agent][pos]
-
     def getProtectionLevel(self, pos: Cube):
+        """Returns the protection level in the given position."""
         return self.protectionLevel[cube_to_hex(pos)]
 
     def isObstacle(self, pos: Cube) -> bool:
+        """Return if the given position is an obstacle or not."""
         if pos in self.obstacles:
             return True
 
-        i = 0
-        for agent in (RED, BLUE):
-            for f in self.getFigureByPos(agent, pos):
-                if f.kind == FigureType.VEHICLE:
-                    i += 1
-
-        return i > 0
-
     def getGoals(self):
-        """Returns the position marked as goals"""
+        """Returns the positions marked as goals."""
         goals = np.argwhere(self.objective > 0)
         return set(map(to_cube, goals))

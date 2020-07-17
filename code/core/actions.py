@@ -42,7 +42,7 @@ class Move(Action):
 class Shoot(Action):
     """Action to shoot at another Figure."""
 
-    def __init__(self, agent: str, figure: Figure, target: Figure, weapon: Weapon, los: list):
+    def __init__(self, agent: str, figure: Figure, target: Figure, weapon: Weapon, los: dict):
         super().__init__(agent, figure)
         self.target = target
         self.weapon = weapon
@@ -55,7 +55,7 @@ class Shoot(Action):
 class Respond(Shoot):
     """Similar to Shoot, but created only after a Shoot Action."""
 
-    def __init__(self, agent: str, figure: Figure, target: Figure, weapon: Weapon, los: list):
+    def __init__(self, agent: str, figure: Figure, target: Figure, weapon: Weapon, los: dict):
         super().__init__(agent, figure, target, weapon, los)
 
     def __repr__(self):
