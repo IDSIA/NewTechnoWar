@@ -1,6 +1,7 @@
 import numpy as np
 
 from core import RED, BLUE
+from core.actions import Action
 from core.figures import FigureType, Figure
 from utils.coordinates import to_cube, Cube, cube_linedraw
 
@@ -10,29 +11,31 @@ class GameState:
     Dynamic parts of the board.
     """
 
-    __slots__ = ['turn', 'figures', 'posToFigure', 'smoke', 'figuresLos']
+    __slots__ = ['turn', 'figures', 'posToFigure', 'smoke', 'figuresLos', 'lastAction']
 
     def __init__(self, shape: tuple):
-        self.turn = -1
+        self.turn: int = -1
 
         # list of all figures
-        self.figures = {
+        self.figures: dict = {
             RED: [],
             BLUE: []
         }
 
         # contains the figure index at the given position: pos -> [idx, ...]
-        self.posToFigure = {
+        self.posToFigure: dict = {
             RED: dict(),
             BLUE: dict(),
         }
 
-        self.smoke = np.zeros(shape, dtype='uint8')
+        self.smoke: np.array = np.zeros(shape, dtype='uint8')
 
-        self.figuresLos = {
+        self.figuresLos: dict = {
             RED: dict(),
             BLUE: dict()
         }
+
+        self.lastAction: Action or None = None
 
     def __repr__(self) -> str:
         return f'{self.turn}:\n{self.figures}\n{self.posToFigure}'

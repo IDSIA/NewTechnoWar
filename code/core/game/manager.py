@@ -112,9 +112,10 @@ class GameManager:
 
         responses = []
 
-        # TODO: response need to be redone and based on last action of other team
-        if not figure.responded and not figure.killed and not figure.attacked_by.killed:
-            target = figure.attacked_by
+        # TODO: can react to pass?
+        target = self.state.lastAction.figure
+
+        if not figure.responded and not figure.killed and not target.killed:
 
             los: dict = self.state.getLos(target)
 
@@ -159,12 +160,14 @@ class GameManager:
 
     @staticmethod
     def step(board: GameBoard, state: GameState, action: Action) -> (GameState, dict):
-        """Apply the given action to the map."""
+        """Update state with the given action."""
         agent = action.agent
         figure = action.figure
         figure.activated = True
 
         logging.info(action)
+
+        state.lastAction = action
 
         if isinstance(action, Pass):
             return state, {}
@@ -234,6 +237,11 @@ class GameManager:
                 if t.hp <= 0:
                     t.killed = True
                     logging.info(f'{action}: KILLED!')
+                else:
+                    to_disable = np.random.choice([x for x in t.weapons if not w.disabled], w.damage)
+                    for x in to_disable:
+                        x.disabled = True
+
                 # TODO: choose which weapon to disable
 
             elif w.curved:

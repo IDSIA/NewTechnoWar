@@ -10,22 +10,22 @@ class Weapon:
     """
     __slots__ = [
         'wid', 'name', 'max_range', 'atk_normal', 'atk_response', 'ammo', 'dices', 'curved', 'damage', 'antitank',
-        'no_effect',
+        'disabled',
     ]
 
     def __init__(self, _id: str, name: str, max_range: int, atk_normal: int, atk_response: int, ammo: int, dices: int,
                  curved: bool = False, damage: int = 1, antitank: bool = False):
-        self.wid = _id
-        self.name = name
-        self.max_range = max_range
-        self.atk_normal = atk_normal
-        self.atk_response = atk_response
-        self.ammo = ammo
-        self.dices = dices
-        self.curved = curved
-        self.damage = damage
-        self.antitank = antitank
-        self.no_effect = False
+        self.wid: str = _id
+        self.name: str = name
+        self.max_range: int = max_range
+        self.atk_normal: int = atk_normal
+        self.atk_response: int = atk_response
+        self.ammo: int = ammo
+        self.dices: int = dices
+        self.curved: bool = curved
+        self.damage: int = damage
+        self.antitank: bool = antitank
+        self.disabled: bool = False
 
     def __repr__(self):
         return self.name
@@ -34,13 +34,13 @@ class Weapon:
         return self.ammo > 0
 
     def isAvailable(self):
-        return not self.no_effect
+        return not self.disabled
 
     def shoot(self):
         self.ammo -= 1
 
     def disable(self):
-        self.no_effect = True
+        self.disabled = True
 
 
 class Cannon(Weapon):

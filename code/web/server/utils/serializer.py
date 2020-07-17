@@ -48,7 +48,7 @@ class GameJSONEncoder(JSONEncoder):
                 'curved': obj.curved,
                 'damage': obj.damage,
                 'antitank': obj.antitank,
-                'no_effect': obj.no_effect,
+                'no_effect': obj.disabled,
             }
 
         if isinstance(obj, Pass):
