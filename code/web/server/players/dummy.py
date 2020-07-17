@@ -1,11 +1,12 @@
 import numpy as np
 
+from web.server.players.player import Player
 
-class PlayerDummy:
+
+class PlayerDummy(Player):
 
     def __init__(self, team: str):
-        self.name = 'dummy'
-        self.team = team
+        super().__init__('dummy', team)
 
     def __repr__(self):
         return f'{self.name}-{self.team}'

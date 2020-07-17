@@ -1,16 +1,38 @@
 {% extends "layout.html" %}
 
 {% block pagestyles %}
+    <link href="{{ url_for('static', filename='css/lobby.css', version='20200717') }}" rel="stylesheet" type="text/css">
 {% endblock %}
 
 {% block content %}
-    <ul>
-        {% for scenario in scenarios %}
-            <li>
-                <a href="{{ url_for('main.game', scenario=scenario) }}">
-                    {{ scenario }}
-                </a>
-            </li>
-        {% endfor %}
-    </ul>
+    <form action="/" method="post">
+        <div id="lobby">
+            <label class="red" for="redPlayer">Red team</label>
+            <select id="redPlayer" name="redPlayer">
+                <option selected>Please select</option>
+                {% for player in players %}
+                    <option>{{ player }}</option>
+                {% endfor %}
+            </select>
+            <label class="blue" for="bluePlayer">Blue team</label>
+            <select id="bluePlayer" name="bluePlayer">
+                <option selected>Please select</option>
+                {% for player in players %}
+                    <option>{{ player }}</option>
+                {% endfor %}
+            </select>
+            <label for="scenario">Scenario</label>
+            <select id="scenario" name="scenario">
+                <option selected>Please select</option>
+                {% for scenario in scenarios %}
+                    <option>{{ scenario }}</option>
+                {% endfor %}
+            </select>
+            <input type="submit" value="Play"/>
+        </div>
+    </form>
+{% endblock %}
+
+{% block additionalscripts %}
+    <script src="{{ url_for('static', filename='js/lobby.js', version='20200717') }}"></script>
 {% endblock %}

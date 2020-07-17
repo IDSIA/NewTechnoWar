@@ -1,0 +1,43 @@
+body {
+    color: #cccccc;
+}
+
+#lobby {
+    margin: 2em;
+    padding: 2em;
+    width: 25em;
+    border: 1px solid black;
+    background-color: #555555;
+    color: #cccccc;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#lobby > * {
+    padding: 0.5em;
+    margin: 1em 0;
+    font-size: 16pt;
+}
+
+label {
+    width: 34%;
+    display: inline-block;
+    font-weight: bolder;
+}
+
+select {
+    width: 60%;
+}
+
+input {
+    width: 100%;
+    flex-grow: 2;
+}
+
+.red {
+    color: red;
+}
+
+.blue {
+    color: dodgerblue;
+}
