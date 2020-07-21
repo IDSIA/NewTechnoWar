@@ -471,16 +471,28 @@ g.unit.highlight > circle {
     stroke-width: 1;
 }
 
-.shoot.red > line {
+.shoot.lof.red > line {
     stroke: red;
     stroke-opacity: 0.5;
     stroke-width: 2;
 }
 
-.shoot.blue > line {
+.shoot.lof.blue > line {
     stroke: dodgerblue;
     stroke-opacity: 0.5;
     stroke-width: 2;
+}
+
+.shoot.los.red > line {
+    stroke: darkred;
+    stroke-opacity: 0.5;
+    stroke-width: 1;
+}
+
+.shoot.los.blue > line {
+    stroke: darkblue;
+    stroke-opacity: 0.5;
+    stroke-width: 1;
 }
 
 g.shoot g {

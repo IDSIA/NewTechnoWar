@@ -36,7 +36,7 @@ class Figure:
 
         self.defense: dict = {
             'basic': 1,
-            'smoke': 0
+            'smoke': 18
         }
         self.weapons: list = []
 
@@ -97,7 +97,6 @@ class Tank(Figure):
 
         self.defense: dict = {
             'basic': 5,
-            'smoke': 18,
             'antitank': 0
         }
 
@@ -121,7 +120,6 @@ class APC(Figure):
 
         self.defense: dict = {
             'basic': 5,
-            'smoke': 18,
             'antitank': 0
         }
 

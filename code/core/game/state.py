@@ -3,7 +3,7 @@ import numpy as np
 from core import RED, BLUE
 from core.actions import Action
 from core.figures import FigureType, Figure
-from utils.coordinates import to_cube, Cube, cube_linedraw
+from utils.coordinates import to_cube, Cube, cube_linedraw, cube_to_hex
 
 
 class GameState:
@@ -103,3 +103,10 @@ class GameState:
         #   transform this in an array that is restored at the beginning of the turn with
         #   the activable figures, when a figure is activated, remove it from such array
         return [f for f in self.figures[agent] if not f.activated and not f.killed]
+
+    def hasSmoke(self, lof: list):
+        """
+        Smoke rule: if you fire against a panzer, and during the line of sight, you meet a smoke hexagon (not only on
+        the hexagon where the panzer is), this smoke protection is used, and not the basic protection value.
+        """
+        return any([self.smoke[cube_to_hex(h)] > 0 for h in lof])

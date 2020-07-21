@@ -50,24 +50,36 @@ class GameManager:
     def isObstacle(self, h):
         return self.board.isObstacle(h) or self.state.isObstacle(h)
 
-    def canShoot(self, figure: Figure, target: Figure, weapon: Weapon, los: dict) -> bool:
+    def canShoot(self, figure: Figure, target: Figure, weapon: Weapon, state: GameState) -> tuple or None:
         """Check if the given weapon can shoot against the given target."""
+        agent = figure.agent
+        lines = state.getLos(target)
+
+        lof = lines[figure.index]
+
         if weapon.curved:
-            # at least one has LOS on target
-            canSee = [not any([self.isObstacle(h) for h in l[1:-2]]) for i, l in los.items()]
-            canHit = any(canSee)
+            # at least one has Line-Of-Sight on target
+            canHit = False
+            guard = None
+            los = []
+            for idx, ls in lines.items():
+                canHit = not any([self.isObstacle(h) for h in ls[1:-2]])
+                if canHit:
+                    los = ls
+                    guard = state.figures[agent][idx]
+                    break
 
         else:
-            # there is direct LOS on target
-            direct_los = los[figure.index]
-            canHit = not any([self.isObstacle(h) for h in direct_los[1:-2]])
+            # Line-Of-Sight and Line-Of-Fire are equivalent
+            los = lof
+            canHit = not any([self.isObstacle(h) for h in lof[1:-2]])
+            guard = figure
 
         hasAmmo = weapon.hasAmmo()
         available = weapon.isAvailable()
         isInRange = weapon.max_range >= len(los)
         isNotHidden = target.stat != HIDDEN
 
-        # TODO: verify that we can use anti-tank against non-vehicles
         if weapon.antitank:
             # can shoot only against vehicles
             validTarget = target.kind == FigureType.VEHICLE
@@ -75,7 +87,9 @@ class GameManager:
             # can shoot against infantry and others only
             validTarget = target.kind != FigureType.VEHICLE
 
-        return all([canHit, hasAmmo, available, isInRange, validTarget, isNotHidden])
+        if all([canHit, hasAmmo, available, isInRange, validTarget, isNotHidden]):
+            return agent, figure, target, guard, weapon, los, lof
+        return None
 
     def activableFigures(self, agent: str):
         return self.state.activableFigures(agent)
@@ -99,11 +113,10 @@ class GameManager:
             if target.killed:
                 continue
 
-            los: dict = self.state.getLos(target)
-
             for weapon in figure.weapons:
-                if self.canShoot(figure, target, weapon, los):
-                    shoots.append(Shoot(agent, figure, target, weapon, los))
+                args = self.canShoot(figure, target, weapon, self.state)
+                if args:
+                    shoots.append(Shoot(*args))
 
         return shoots
 
@@ -117,15 +130,14 @@ class GameManager:
 
         if not figure.responded and not figure.killed and not target.killed:
 
-            los: dict = self.state.getLos(target)
-
             for weapon in figure.weapons:
-                if self.canShoot(figure, target, weapon, los):
-                    responses.append(Respond(agent, figure, target, weapon, los))
+                args = self.canShoot(figure, target, weapon, self.state)
+                if args:
+                    responses.append(Respond(*args))
 
         return responses
 
-    def buildActionForFigure(self, agent: str, figure: Figure) -> list:
+    def buildActionsForFigure(self, agent: str, figure: Figure) -> list:
         """Build all possible actions for the given figure."""
         actions = []
 
@@ -148,7 +160,7 @@ class GameManager:
         actions = []
 
         for figure in self.state.figures[agent]:
-            for action in self.buildActionForFigure(agent, figure):
+            for action in self.buildActionsForFigure(agent, figure):
                 actions.append(action)
 
         return actions
@@ -183,10 +195,12 @@ class GameManager:
         if isinstance(action, Shoot):  # Respond *is* a shoot action
             f: Figure = figure
             t: Figure = action.target
+            g: Figure = action.guard
             w: Weapon = action.weapon
-            los: dict = action.los
+            los: list = action.los
+            lof: list = action.lof
 
-            # TODO: curved weapons (mortar) have different hit computation
+            # TODO: mortar have different hit computation
 
             # TODO: implement smoke
 
@@ -205,12 +219,10 @@ class GameManager:
                 ATK = w.atk_normal
                 INT = f.int_atk
 
-            # TODO: smoke rule:
-            #       if you fire against a panzer, and during the line of sight, you meet a smoke hexagon (not only on
-            #       the hexagon where the panzer is), this smoke protection is used, and not the basis one.
-
             # anti-tank rule
-            if w.antitank and t.kind == FigureType.VEHICLE:
+            if state.hasSmoke(lof):
+                DEF = t.defense['smoke']
+            elif w.antitank and t.kind == FigureType.VEHICLE:
                 DEF = t.defense['antitank']
             else:
                 DEF = t.defense['basic']

@@ -1,9 +1,9 @@
 import numpy as np
 from flask.json import JSONEncoder
 
-from core.figures import FigureType
 from core.actions import Move, Pass, Shoot, Respond
 from core.figures import Figure
+from core.figures import FigureType
 from core.figures.weapons import Weapon
 from web.server.utils import cube_to_ijxy, cube_to_dict
 
@@ -73,7 +73,8 @@ class GameJSONEncoder(JSONEncoder):
                 'figure': obj.figure,
                 'target': obj.target,
                 'weapon': obj.weapon,
-                'los': [cube_to_dict(hex) for hex in obj.los[obj.figure.index]],
+                'los': [cube_to_dict(hex) for hex in obj.los],
+                'lof': [cube_to_dict(hex) for hex in obj.lof],
             }
 
         if isinstance(obj, np.ndarray):

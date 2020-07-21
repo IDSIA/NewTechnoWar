@@ -249,8 +249,9 @@ function shoot(current, figure, mark, data, outcome) {
     let end = data.los.slice(-1)[0];
 
     $('#shoots').append(
-        drawLine(data.los).addClass('shoot').addClass(data.agent)
-            /*
+        drawLine(data.los).addClass('shoot los').addClass(data.agent)
+    ).append(
+        drawLine(data.lof).addClass('shoot lof').addClass(data.agent)
             .append(svg('g')
                 .attr('transform', `translate(${end.x + 10},${end.y})`)
                 .append(svg('rect'))
@@ -266,7 +267,6 @@ function shoot(current, figure, mark, data, outcome) {
                     .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(`SUCCESS: ${outcome.success}`))
                 )
             )
-            */
     );
 
     let w = figure.find('div.w' + data.weapon.id);
