@@ -248,10 +248,13 @@ function move(mark, data) {
 function shoot(current, figure, mark, data, outcome) {
     let end = data.los.slice(-1)[0];
 
+    let los = [data.los[0], data.los.slice(-1)[0]]
+    let lof = [data.lof[0], data.lof.slice(-1)[0]]
+
     $('#shoots').append(
-        drawLine(data.los).addClass('shoot los').addClass(data.agent)
+        drawLine(los).addClass('shoot los').addClass(data.agent)
     ).append(
-        drawLine(data.lof).addClass('shoot lof').addClass(data.agent)
+        drawLine(lof).addClass('shoot lof').addClass(data.agent)
             .append(svg('g')
                 .attr('transform', `translate(${end.x + 10},${end.y})`)
                 .append(svg('rect'))
