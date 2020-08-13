@@ -5,7 +5,7 @@ import numpy as np
 import scenarios
 import agents.players as players
 from agents.players.player import Player
-from core.actions import Shoot, Pass
+from core.actions import Shoot, Pass, Move
 from core.game.board import GameBoard
 from core.game.manager import GameManager
 from core.game.state import GameState
@@ -18,6 +18,15 @@ class MatchManager:
     ]
 
     def __init__(self, gid: str, scenario: str, red: str, blue: str, seed: int = 42):
+        """
+        Initialize the state-machine.
+
+        :param gid:         Unique identifier.
+        :param scenario:    String value of the scenario to use. Check module scenarios for a list.
+        :param red:         String value of the player to use. Check module agent.players for a list.
+        :param blue:        String value of the player to use. Check module agent.players for a list.
+        :param seed:        Random seed value (default: 42)
+        """
         self.gid: str = gid
         self.seed: int = seed
 
@@ -101,7 +110,7 @@ class MatchManager:
 
     def _goCheck(self):
         action = self.actionsDone[-1]
-        if isinstance(action, Shoot):
+        if isinstance(action, Shoot) or isinstance(action, Move):
             self.step = self._goResponse
         else:
             if self.state.getFiguresActivatable(self.first.team) or self.state.getFiguresActivatable(self.second.team):
