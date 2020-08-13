@@ -4,7 +4,7 @@ import uuid
 from flask import Blueprint, render_template, make_response, request, jsonify, redirect
 from flask import current_app as app
 
-from web.server.players.matchmanager import MatchManager
+from agents.matchmanager import MatchManager
 from web.server.utils import scroll, fieldShape
 
 main = Blueprint("main", __name__, template_folder="templates", static_folder="static")

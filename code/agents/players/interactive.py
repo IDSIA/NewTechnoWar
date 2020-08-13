@@ -1,4 +1,4 @@
-from web.server.players import Player
+from agents.players import Player
 
 
 class Human(Player):

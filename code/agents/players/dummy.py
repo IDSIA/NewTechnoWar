@@ -4,7 +4,7 @@ from core.actions import Action, ACTION_MOVE, ACTION_ATTACK, ACTION_PASS, Pass
 from core.game.board import GameBoard
 from core.game.manager import GameManager
 from core.game.state import GameState
-from web.server.players.player import Player
+from agents.players.player import Player
 
 
 class PlayerDummy(Player):

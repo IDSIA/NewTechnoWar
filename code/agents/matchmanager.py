@@ -3,12 +3,12 @@ import logging
 import numpy as np
 
 import scenarios
-import web.server.players as players
+import agents.players as players
+from agents.players.player import Player
 from core.actions import Shoot, Pass
 from core.game.board import GameBoard
 from core.game.manager import GameManager
 from core.game.state import GameState
-from web.server.players.player import Player
 
 
 class MatchManager:
@@ -87,6 +87,7 @@ class MatchManager:
 
         try:
             response = self.second.chooseResponse(self.gm, self.board, self.state)
+            logging.info(f'{self.second} respond')
         except ValueError as e:
             logging.info(e)
             action = self.state.lastAction
