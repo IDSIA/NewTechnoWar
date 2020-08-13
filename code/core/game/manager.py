@@ -1,6 +1,7 @@
 import logging
 
 import numpy as np
+from copy import deepcopy
 
 from core import RED, BLUE
 from core.actions import Action, Move, Shoot, Respond, Pass
@@ -14,43 +15,10 @@ from core.game.state import GameState
 
 
 class GameManager:
-    """
-    State of the board of the game.
-    """
+    """Utility class that helps in manage the states of the game."""
 
-    def __init__(self, shape: tuple):
-        self.shape = shape
-
-        self.name = ""
-        self.descr = ""
-
-        # static properties of the board
-        self.board = GameBoard(shape)
-        self.state = GameState(shape)
-
-    # operations on figures (dynamic properties)
-
-    def addFigure(self, figure: Figure) -> None:
-        """
-        Add a figures to the units of the given agent and it setup the index
-        in the matrix at the position of the figure.
-        """
-        self.state.addFigure(figure)
-
-    def getFigureByIndex(self, agent: str, index: int) -> Figure:
-        """Given an index of a figure, return the figure."""
-        return self.state.figures[agent][index]
-
-    def getFiguresByPos(self, agent: str, pos: tuple) -> list:
-        """Given a position of a figure, return the figure."""
-        return self.state.getFigureByPos(agent, pos)
-
-    # other operations
-
-    def isObstacle(self, h):
-        return self.board.isObstacle(h) or self.state.isObstacle(h)
-
-    def canShoot(self, figure: Figure, target: Figure, weapon: Weapon, state: GameState) -> tuple or None:
+    @staticmethod
+    def canShoot(board: GameBoard, state: GameState, figure: Figure, target: Figure, weapon: Weapon) -> tuple or None:
         """Check if the given weapon can shoot against the given target."""
         agent = figure.agent
         lines = state.getLos(target)
@@ -63,7 +31,7 @@ class GameManager:
             guard = None
             los = []
             for idx, ls in lines.items():
-                canHit = not any([self.isObstacle(h) for h in ls[1:-2]])
+                canHit = not any([state.isObstacle(h) or board.isObstacle(h) for h in ls[1:-2]])
                 if canHit:
                     los = ls
                     guard = state.figures[agent][idx]
@@ -72,7 +40,7 @@ class GameManager:
         else:
             # Line-Of-Sight and Line-Of-Fire are equivalent
             los = lof
-            canHit = not any([self.isObstacle(h) for h in lof[1:-2]])
+            canHit = not any([state.isObstacle(h) or board.isObstacle(h) for h in lof[1:-2]])
             guard = figure
 
         hasAmmo = weapon.hasAmmo()
@@ -91,88 +59,86 @@ class GameManager:
             return agent, figure, target, guard, weapon, los, lof
         return None
 
-    def activableFigures(self, agent: str):
-        return self.state.activableFigures(agent)
-
-    def buildMovements(self, agent: str, figure: Figure) -> list:
+    @staticmethod
+    def buildMovements(board: GameBoard, state: GameState, agent: str, figure: Figure) -> list:
         """Build all the movement actions for a figure. All the other units are considered as obstacles."""
 
         distance = figure.move - figure.load
 
-        _, movements = reachablePath(figure, self.board, distance)
+        _, movements = reachablePath(figure, board, distance)
 
         return [Move(agent, figure, m) for m in movements]
 
-    def buildShoots(self, agent: str, figure: Figure) -> list:
+    def buildShoots(self, board: GameBoard, state: GameState, agent: str, figure: Figure) -> list:
         """Returns a list of all the possible shooting actions that can be performed."""
 
         tAgent = RED if agent == BLUE else BLUE
         shoots = []
 
-        for target in self.state.figures[tAgent]:
+        for target in state.figures[tAgent]:
             if target.killed:
                 continue
 
             for weapon in figure.weapons:
-                args = self.canShoot(figure, target, weapon, self.state)
+                args = self.canShoot(board, state, figure, target, weapon)
                 if args:
                     shoots.append(Shoot(*args))
 
         return shoots
 
-    def buildResponses(self, agent: str, figure: Figure) -> list:
+    def buildResponses(self, board: GameBoard, state: GameState, figure: Figure) -> list:
         """Returns a list of all possible response action that can be performed."""
 
         responses = []
 
-        # TODO: can react to pass?
-        target = self.state.lastAction.figure
+        target = state.lastAction.figure
 
         if not figure.responded and not figure.killed and not target.killed:
 
             for weapon in figure.weapons:
-                args = self.canShoot(figure, target, weapon, self.state)
+                args = self.canShoot(board, state, figure, target, weapon)
                 if args:
                     responses.append(Respond(*args))
 
         return responses
 
-    def buildActionsForFigure(self, agent: str, figure: Figure) -> list:
+    def buildActionsForFigure(self, board: GameBoard, state: GameState, agent: str, figure: Figure) -> list:
         """Build all possible actions for the given figure."""
         actions = []
 
-        for movement in self.buildMovements(agent, figure):
+        for movement in self.buildMovements(board, state, agent, figure):
             actions.append(movement)
 
-        for shoot in self.buildShoots(agent, figure):
+        for shoot in self.buildShoots(board, state, agent, figure):
             actions.append(shoot)
 
-        for response in self.buildResponses(agent, figure):
+        for response in self.buildResponses(board, state, figure):
             actions.append(response)
 
         return actions
 
-    def buildActions(self, agent: str) -> list:
+    def buildActions(self, board: GameBoard, state: GameState, agent: str) -> list:
         """
         Build a list with all the possible actions that can be executed by an agent
         with the current status of the board.
         """
         actions = []
 
-        for figure in self.state.figures[agent]:
-            for action in self.buildActionsForFigure(agent, figure):
+        for figure in state.figures[agent]:
+            for action in self.buildActionsForFigure(board, state, agent, figure):
                 actions.append(action)
 
         return actions
 
-    def activate(self, action: Action) -> dict:
-        s1, outcome = self.step(self.board, self.state, action)
-        self.state = s1
-        return outcome
+    def activate(self, board: GameBoard, state: GameState, action: Action) -> (GameState, dict):
+        """Apply the step method to a deepcopy of the given GameState."""
+        s1 = deepcopy(state)
+        outcome = self.step(board, s1, action)
+        return s1, outcome
 
     @staticmethod
-    def step(board: GameBoard, state: GameState, action: Action) -> (GameState, dict):
-        """Update state with the given action."""
+    def step(board: GameBoard, state: GameState, action: Action) -> dict:
+        """Update the given state with the given action in a irreversible way."""
         agent = action.agent
         figure = action.figure
         figure.activated = True
@@ -182,7 +148,7 @@ class GameManager:
         state.lastAction = action
 
         if isinstance(action, Pass):
-            return state, {}
+            return {}
 
         figure.stat = NO_EFFECT
 
@@ -190,15 +156,15 @@ class GameManager:
             dest = action.destination[-1]
             state.moveFigure(agent, figure, figure.position, dest)
             figure.stat = IN_MOTION
-            return state, {}
+            return {}
 
         if isinstance(action, Shoot):  # Respond *is* a shoot action
-            f: Figure = figure
-            t: Figure = action.target
-            g: Figure = action.guard
+            f: Figure = figure  # who performs the shoot action
+            t: Figure = action.target  # target
+            g: Figure = action.guard  # who has line-of-sight on target
             w: Weapon = action.weapon
-            los: list = action.los
-            lof: list = action.lof
+            los: list = action.los  # line-of-sight on target of guard
+            lof: list = action.lof  # line-of-fire on target of figure
 
             # TODO: mortar have different hit computation
 
@@ -250,11 +216,10 @@ class GameManager:
                     t.killed = True
                     logging.info(f'{action}: KILLED!')
                 else:
+                    # disable a random weapon
                     to_disable = np.random.choice([x for x in t.weapons if not w.disabled], w.damage)
                     for x in to_disable:
                         x.disabled = True
-
-                # TODO: choose which weapon to disable
 
             elif w.curved:
                 # mortar
@@ -265,7 +230,7 @@ class GameManager:
             else:
                 logging.info(f'{action}: miss')
 
-            return state, {
+            return {
                 'score': score,
                 'hitScore': hitScore,
                 'ATK': ATK,
@@ -278,16 +243,18 @@ class GameManager:
                 'hits': success,
             }
 
-    def update(self):
-        """End turn function that updates the status of all figures and moves forward the internal turn ticker."""
-        self.state.turn += 1
+    @staticmethod
+    def update(state: GameState) -> None:
+        """End turn function that updates the given GameStatus in an irreversibly way, by moving forward the internal
+        turn ticker."""
+        state.turn += 1
 
         # TODO: reduce smoke turn counter
 
         for agent in [RED, BLUE]:
-            for figure in self.state.figures[agent]:
-                figure.update(self.state.turn)
-                self.state.updateLos(figure)
+            for figure in state.figures[agent]:
+                figure.update(state.turn)
+                state.updateLos(figure)
 
                 # TODO: compute there cutoff status?
                 if figure.hp <= 0:
@@ -303,14 +270,13 @@ class GameManager:
                     figure.attacked_by = None
                     figure.hit = False
 
-        return self.state
-
-    def goalAchieved(self):
+    @staticmethod
+    def goalAchieved(board: GameBoard, state: GameState) -> bool:
         """
         Current is a death match goal.
         """
         # TODO: change with different goals based on board
-        redKilled = all([f.killed for f in self.state.figures[RED]])
-        blueKilled = all([f.killed for f in self.state.figures[BLUE]])
+        redKilled = all([f.killed for f in state.figures[RED]])
+        blueKilled = all([f.killed for f in state.figures[BLUE]])
 
         return redKilled or blueKilled

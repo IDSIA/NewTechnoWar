@@ -4,16 +4,17 @@ import numpy as np
 
 import scenarios
 import web.server.players as players
-from core import ACTION_MOVE, ACTION_ATTACK
 from core.actions import Shoot, Pass
+from core.game.board import GameBoard
 from core.game.manager import GameManager
+from core.game.state import GameState
 from web.server.players.player import Player
 
 
 class MatchManager:
     __slots__ = [
-        'gid', 'seed', 'actionsDone', 'outcome', 'turn', 'end', 'update', 'gm', 'scenario', 'red', 'blue', 'first',
-        'second', 'step'
+        'gid', 'seed', 'actionsDone', 'outcome', 'turn', 'end', 'update', 'board', 'state', 'gm', 'scenario', 'red',
+        'blue', 'first', 'second', 'step'
     ]
 
     def __init__(self, gid: str, scenario: str, red: str, blue: str, seed: int = 42):
@@ -27,8 +28,12 @@ class MatchManager:
         self.end: bool = False
         self.update: bool = False
 
+        self.gm: GameManager = GameManager()
+
         self.scenario: str = scenario
-        self.gm: GameManager = getattr(scenarios, scenario)()
+        board, state = getattr(scenarios, scenario)()
+        self.board: GameBoard = board
+        self.state: GameState = state
 
         self.red: Player = getattr(players, red)('red')
         self.blue: Player = getattr(players, blue)('blue')
@@ -36,19 +41,20 @@ class MatchManager:
         self._goInit()
 
     def reset(self):
-        self.gm = getattr(scenarios, self.scenario)()
+        _, state = getattr(scenarios, self.scenario)()
+        self.state: GameState = state
         self._goInit()
 
     def _goInit(self):
         logging.info('step: init')
-        logging.info(f'SCENARIO: {self.gm.name}')
+        logging.info(f'SCENARIO: {self.board.name}')
         logging.info(f'SEED: {self.seed}')
 
         np.random.seed(self.seed)
 
-        self.gm.update()
+        self.gm.update(self.state)
 
-        self.turn = self.gm.state.turn
+        self.turn = self.state.turn
         self.first = self.red
         self.second = self.blue
         self.step = self._goRound
@@ -62,38 +68,9 @@ class MatchManager:
         logging.info('step: round')
         try:
             self.update = False
-            figures = self.gm.activableFigures(self.first.team)
-            if not figures:
-                raise ValueError(f"no more figures for {self.first}")
 
-            f = self.first.chooseFigure(figures)
-
-            moves = self.gm.buildMovements(self.first.team, f)
-            shoots = self.gm.buildShoots(self.first.team, f)
-
-            if not moves and not shoots:
-                raise ValueError(f"no more moves for {f} {self.first}")
-
-            whatDo = []
-
-            if moves:
-                whatDo.append(ACTION_MOVE)
-            if shoots:
-                whatDo.append(ACTION_ATTACK)
-
-            # agent chooses type of action
-            toa = self.first.chooseActionType(whatDo)
-
-            actions = []
-
-            if toa == ACTION_MOVE:
-                actions = moves
-
-            if toa == ACTION_ATTACK:
-                actions = shoots
-
-            action = self.first.chooseAction(actions)
-            outcome = self.gm.activate(action)
+            action = self.first.chooseAction(self.gm, self.board, self.state)
+            outcome = self.gm.step(self.board, self.state, action)
 
             self.actionsDone.append(action)
             self.outcome.append(outcome)
@@ -106,24 +83,18 @@ class MatchManager:
 
     def _goResponse(self):
         logging.info('step: response')
-
         self.update = False
-        action = self.actionsDone[-1]
-        responses = self.gm.buildResponses(self.second.team, action.target)
 
-        if responses:
-            if np.random.choice([True, False]):
-                response = np.random.choice(responses)
-                outcome = self.gm.activate(response)
+        try:
+            response = self.second.chooseResponse(self.gm, self.board, self.state)
+        except ValueError as e:
+            logging.info(e)
+            action = self.state.lastAction
+            response = Pass(self.second.team, action.target)
 
-                self.actionsDone.append(response)
-                self.outcome.append(outcome)
-            else:
-                logging.info('no response given')
-                self.actionsDone.append(Pass(self.second.team, action.target))
-        else:
-            logging.info('no response available')
-            self.actionsDone.append(Pass(self.second.team, action.target))
+        outcome = self.gm.step(self.board, self.state, response)
+        self.actionsDone.append(response)
+        self.outcome.append(outcome)
 
         self._goCheck()
 
@@ -132,19 +103,22 @@ class MatchManager:
         if isinstance(action, Shoot):
             self.step = self._goResponse
         else:
-            if self.gm.activableFigures(self.first.team) or self.gm.activableFigures(self.second.team):
+            if self.state.getFiguresActivatable(self.first.team) or self.state.getFiguresActivatable(self.second.team):
+                # if there are still figure to activate, continue with the current round
                 self.first, self.second = self.second, self.first
                 self.step = self._goRound
-            elif self.gm.goalAchieved():
+            elif self.gm.goalAchieved(self.board, self.state):
+                # if we achieved a goal, end
                 self.step = self._goEnd
             else:
+                # if we are at the end of a turn, need to update and then go to next one
                 self.step = self._goUpdate
 
     def _goUpdate(self):
         logging.info('step: update')
 
         self.turn += 1
-        self.gm.update()
+        self.gm.update(self.state)
 
         self._goCheck()
         self.update = True

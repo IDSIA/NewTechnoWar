@@ -3,7 +3,8 @@ import numpy as np
 from core import RED, BLUE
 from core.figures import Infantry, Tank
 from core.figures.status import HIDDEN
-from core.game.manager import GameManager
+from core.game.board import GameBoard
+from core.game.state import GameState
 from core.game.terrain import Terrain
 from scenarios.utils import fillLine
 
@@ -11,9 +12,9 @@ from scenarios.utils import fillLine
 # TODO: maybe define a class with a win condition?
 
 
-def _battleground16x16():
+def _battleground16x16() -> GameBoard:
     shape = (16, 16)
-    gm = GameManager(shape)
+    board: GameBoard = GameBoard(shape)
 
     terrain = np.zeros(shape, dtype='uint8')
     fillLine(terrain, (0, 1), (5, 4), Terrain.ROAD)
@@ -48,71 +49,75 @@ def _battleground16x16():
     fillLine(terrain, (6, 11), (6, 13), Terrain.BUILDING)
     fillLine(terrain, (11, 9), (14, 7), Terrain.BUILDING)
 
-    gm.board.addTerrain(terrain)
+    board.addTerrain(terrain)
 
     objective = np.zeros(shape, dtype='uint8')
     objective[8, 8] = 1
-    gm.board.addObjective(objective)
+    board.addObjective(objective)
 
-    return gm
-
-
-def scenarioTestBench():
-    gm = _battleground16x16()
-
-    gm.addFigure(Infantry((3, 1), RED, 'rInf1'))
-    gm.addFigure(Infantry((7, 2), RED, 'rInf2'))
-    gm.addFigure(Infantry((6, 2), RED, 'rInf3'))
-    gm.addFigure(Infantry((1, 4), RED, 'rInf4'))
-
-    gm.addFigure(Tank((2, 3), RED, 'rTank1'))
-    gm.addFigure(Tank((2, 1), RED, 'rTank2'))
-
-    gm.addFigure(Infantry((14, 14), BLUE, 'bInf1'))
-    gm.addFigure(Infantry((13, 10), BLUE, 'bInf2'))
-    gm.addFigure(Infantry((9, 13), BLUE, 'bInf3'))
-
-    gm.addFigure(Tank((12, 12), BLUE, 'bTank1'))
-
-    gm.name = "TestBench"
-
-    return gm
+    return board
 
 
-def scenarioTest1v1():
-    gm = _battleground16x16()
+def scenarioTestBench() -> (GameBoard, GameState):
+    board: GameBoard = _battleground16x16()
+    state: GameState = GameState(board.shape)
 
-    gm.addFigure(Tank((2, 3), RED, 'Tank1'))
-    gm.addFigure(Tank((12, 12), BLUE, 'Tank2'))
+    state.addFigure(Infantry((3, 1), RED, 'rInf1'))
+    state.addFigure(Infantry((7, 2), RED, 'rInf2'))
+    state.addFigure(Infantry((6, 2), RED, 'rInf3'))
+    state.addFigure(Infantry((1, 4), RED, 'rInf4'))
 
-    gm.name = "1Rv1B"
+    state.addFigure(Tank((2, 3), RED, 'rTank1'))
+    state.addFigure(Tank((2, 1), RED, 'rTank2'))
 
-    return gm
+    state.addFigure(Infantry((14, 14), BLUE, 'bInf1'))
+    state.addFigure(Infantry((13, 10), BLUE, 'bInf2'))
+    state.addFigure(Infantry((9, 13), BLUE, 'bInf3'))
 
+    state.addFigure(Tank((12, 12), BLUE, 'bTank1'))
 
-def scenarioTest2v2():
-    gm = _battleground16x16()
+    board.name = state.name = "TestBench"
 
-    gm.addFigure(Tank((2, 2), RED, 'Tank1'))
-    gm.addFigure(Tank((3, 3), RED, 'Tank2'))
-
-    gm.addFigure(Tank((11, 11), BLUE, 'Tank3'))
-    gm.addFigure(Tank((12, 12), BLUE, 'Tank4'))
-
-    gm.name = "1Rv1B"
-
-    return gm
+    return board, state
 
 
-def scenarioTest3v1():
-    gm = _battleground16x16()
+def scenarioTest1v1() -> (GameBoard, GameState):
+    board: GameBoard = _battleground16x16()
+    state: GameState = GameState(board.shape)
 
-    gm.addFigure(Infantry((3, 1), RED, 'Inf1'))
-    gm.addFigure(Infantry((7, 2), RED, 'Inf2'))
-    gm.addFigure(Tank((2, 3), RED, 'Tank1'))
+    state.addFigure(Tank((2, 3), RED, 'Tank1'))
+    state.addFigure(Tank((12, 12), BLUE, 'Tank2'))
 
-    gm.addFigure(Tank((12, 12), BLUE, 'Tank2', HIDDEN))
+    board.name = state.name = "1Rv1B"
 
-    gm.name = "3Rv1B"
+    return board, state
 
-    return gm
+
+def scenarioTest2v2() -> (GameBoard, GameState):
+    board: GameBoard = _battleground16x16()
+    state: GameState = GameState(board.shape)
+
+    state.addFigure(Tank((2, 2), RED, 'Tank1'))
+    state.addFigure(Tank((3, 3), RED, 'Tank2'))
+
+    state.addFigure(Tank((11, 11), BLUE, 'Tank3'))
+    state.addFigure(Tank((12, 12), BLUE, 'Tank4'))
+
+    board.name = state.name = "1Rv1B"
+
+    return board, state
+
+
+def scenarioTest3v1() -> (GameBoard, GameState):
+    board: GameBoard = _battleground16x16()
+    state: GameState = GameState(board.shape)
+
+    state.addFigure(Infantry((3, 1), RED, 'Inf1'))
+    state.addFigure(Infantry((7, 2), RED, 'Inf2'))
+    state.addFigure(Tank((2, 3), RED, 'Tank1'))
+
+    state.addFigure(Tank((12, 12), BLUE, 'Tank2', HIDDEN))
+
+    board.name = state.name = "3Rv1B"
+
+    return board, state

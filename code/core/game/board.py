@@ -10,9 +10,11 @@ class GameBoard:
     Static parts of the game board.
     """
 
-    __slots__ = ['shape', 'terrain', 'geography', 'objective', 'limits', 'obstacles', 'moveCost', 'protectionLevel']
+    __slots__ = ['name', 'shape', 'terrain', 'geography', 'objective', 'limits', 'obstacles', 'moveCost',
+                 'protectionLevel']
 
-    def __init__(self, shape: tuple):
+    def __init__(self, shape: tuple, name: str = ''):
+        self.name = name
         self.shape = shape
 
         # matrices filled with -1 so we can use 0-based as index

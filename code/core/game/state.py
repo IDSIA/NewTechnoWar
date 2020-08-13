@@ -11,9 +11,10 @@ class GameState:
     Dynamic parts of the board.
     """
 
-    __slots__ = ['turn', 'figures', 'posToFigure', 'smoke', 'figuresLos', 'lastAction']
+    __slots__ = ['name', 'turn', 'figures', 'posToFigure', 'smoke', 'figuresLos', 'lastAction']
 
-    def __init__(self, shape: tuple):
+    def __init__(self, shape: tuple, name: str = ''):
+        self.name: str = name
         self.turn: int = -1
 
         # list of all figures
@@ -52,21 +53,6 @@ class GameState:
         figure.index = index
         self.moveFigure(agent, figure, dst=figure.position)
 
-    def getLos(self, target: Figure) -> dict:
-        return self.figuresLos[target.agent][target.index]
-
-    def updateLos(self, target: Figure) -> None:
-        attackers = RED if target.agent == BLUE else BLUE
-
-        self.figuresLos[target.agent][target.index] = {
-            # attacker's line of sight
-            attacker.index: cube_linedraw(attacker.position, target.position)
-            for attacker in self.figures[attackers]
-        }
-
-    def addSmoke(self, area: np.array) -> None:
-        self.smoke += area
-
     def getFigureByPos(self, agent: str, pos: tuple) -> list:
         """Returns all the figures that occupy the given position."""
         if len(pos) == 2:
@@ -74,6 +60,18 @@ class GameState:
         if pos not in self.posToFigure[agent]:
             return []
         return self.posToFigure[agent][pos]
+
+    def getFigureByIndex(self, agent: str, index: int) -> Figure:
+        """Given an index of a figure, return the figure."""
+        return self.figures[agent][index]
+
+    def getFiguresActivatable(self, agent: str) -> list:
+        """Returns a list of figures that have not been activated."""
+        return [f for f in self.figures[agent] if not f.activated and not f.killed]
+
+    def getFiguresRespondatable(self, agent: str) -> list:
+        """Returns a list of figures that have not responded."""
+        return [f for f in self.figures[agent] if not f.responded and not f.killed]
 
     def moveFigure(self, agent: str, figure: Figure, curr: Cube = None, dst: Cube = None) -> None:
         """Moves a figure from current position to another destination."""
@@ -89,6 +87,18 @@ class GameState:
             figure.goto(dst)
             self.updateLos(figure)
 
+    def getLos(self, target: Figure) -> dict:
+        return self.figuresLos[target.agent][target.index]
+
+    def updateLos(self, target: Figure) -> None:
+        attackers = RED if target.agent == BLUE else BLUE
+
+        self.figuresLos[target.agent][target.index] = {
+            # attacker's line of sight
+            attacker.index: cube_linedraw(attacker.position, target.position)
+            for attacker in self.figures[attackers]
+        }
+
     def isObstacle(self, pos: Cube) -> bool:
         """Returns if the position is an obstacle (a VEHICLE) to LOS or not."""
         for agent in (RED, BLUE):
@@ -97,14 +107,10 @@ class GameState:
                     return True
         return False
 
-    def activableFigures(self, agent: str) -> list:
-        """Returns a list of figures that have not been activated."""
-        # TODO:
-        #   transform this in an array that is restored at the beginning of the turn with
-        #   the activable figures, when a figure is activated, remove it from such array
-        return [f for f in self.figures[agent] if not f.activated and not f.killed]
+    def addSmoke(self, area: np.array) -> None:
+        self.smoke += area
 
-    def hasSmoke(self, lof: list):
+    def hasSmoke(self, lof: list) -> bool:
         """
         Smoke rule: if you fire against a panzer, and during the line of sight, you meet a smoke hexagon (not only on
         the hexagon where the panzer is), this smoke protection is used, and not the basic protection value.

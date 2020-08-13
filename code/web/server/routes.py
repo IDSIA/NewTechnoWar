@@ -24,7 +24,7 @@ def index():
         )
         app.games[mm.gid] = mm
 
-        logging.info(f"Created game #{mm.gid} with scenario {mm.gm.name}")
+        logging.info(f"Created game #{mm.gid} with scenario {mm.board.name}")
 
         response = make_response(
             redirect(f'/game/')
@@ -81,16 +81,16 @@ def game():
     try:
         gameId, mm = checkGameId()
 
-        logging.info(f"Restored game #{gameId} with scenario {mm.gm.name}")
+        logging.info(f"Restored game #{gameId} with scenario {mm.board.name}")
 
         response = make_response(
             render_template(
                 "game.html",
                 title="Game | NewTechnoWar",
                 template="game-template",
-                board=list(scroll(mm.gm.board)),
+                board=list(scroll(mm.board)),
                 gameId=gameId,
-                shape=fieldShape(mm.gm.board),
+                shape=fieldShape(mm.board),
                 turn=mm.turn
             )
         )
@@ -127,7 +127,7 @@ def gameFigures():
 
     try:
         _, mm = checkGameId()
-        return jsonify(mm.gm.state.figures), 200
+        return jsonify(mm.state.figures), 200
 
     except ValueError as ve:
         logging.error(ve)

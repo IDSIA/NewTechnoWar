@@ -1,3 +1,9 @@
+from core.actions import Action
+from core.game.board import GameBoard
+from core.game.manager import GameManager
+from core.game.state import GameState
+
+
 class Player:
 
     def __init__(self, name: str, team: str):
@@ -7,14 +13,8 @@ class Player:
     def __repr__(self):
         return f'{self.name}-{self.team}'
 
-    def chooseFigure(self, figures: list):
+    def chooseAction(self, gm: GameManager, board: GameBoard, state: GameState) -> Action:
         raise NotImplemented()
 
-    def chooseActionType(self, types: list):
-        raise NotImplemented()
-
-    def chooseAction(self, actions: list):
-        raise NotImplemented()
-
-    def chooseResponse(self):
+    def chooseResponse(self, gm: GameManager, board: GameBoard, state: GameState) -> Action:
         raise NotImplemented()

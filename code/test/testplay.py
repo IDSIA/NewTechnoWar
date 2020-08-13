@@ -117,7 +117,7 @@ def play(gm: GameManager, seed=42):
 
         gm.update()
 
-        if gm.goalAchieved():
+        if gm.goalAchieved(x, ):
             logging.info("End game!")
             break
 
