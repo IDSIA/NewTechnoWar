@@ -159,21 +159,22 @@
 		]
 			\tikzstyle{every state}=[fill={rgb:black,1;white,10}]
 
-			\node[state,initial,label=right:\texttt{\_goInit()}] (Init)						{};
-			\node[state,label=right:\texttt{\_goRound()}]		(Round)   	[below of=Init] 	{};
-			\node[state,label=below:\texttt{\_goCheck()}]     	(Check)  	[below of=Round] 	{};
-			\node[state,label=below:\texttt{\_goResponse()}]  	(Response)	[right of=Check] 	{};
-			\node[state,label=below:\texttt{\_goUpdate()}]    	(Update)	[left of=Check] 	{};
-			\node[state,accepting,label=right:\texttt{\_goEnd()}]			(End)		[below of=Check]  	{};
+			\node[state,initial,label=right:\texttt{\_goInit()}] 	(Init)							{};
+			\node[state,label=right:\texttt{\_goUpdate()}]			(Update)   	[below of=Init] 	{};
+			\node[state,label=below:\texttt{\_goCheck()}]     		(Check)  	[below of=Update] 	{};
+			\node[state,label=below:\texttt{\_goResponse()}]  		(Response)	[right of=Check] 	{};
+			\node[state,label=below:\texttt{\_goRound()}]    		(Round)		[left of=Check] 	{};
+			\node[state,accepting,label=right:\texttt{\_goEnd()}]	(End)		[below of=Check]  	{};
 
 			\path[->]
-			(Init)  	edge node				{} (Round)
-			(Round) 	edge [bend left] node 	{} (Check)
+			(Init)  	edge node				{} (Update)
+			(Update) 	edge [bend left] node 	{} (Check)
 			(Check) 	edge [bend left] node 	{} (Round)
 						edge [bend left] node 	{} (Response)
 						edge [bend left] node 	{} (Update)
 						edge node 				{} (End)
 			(Response)	edge [bend left] node 	{} (Check)
+			(Round)		edge [bend left] node 	{} (Check)
 			(Update)	edge [bend left] node 	{} (Check);
 		\end{tikzpicture}
 		\caption{State transition diagram of the MatchManager class.}
@@ -184,7 +185,7 @@
 	
 	For the creation of this object, it is required to pass as argument the \texttt{string value} of the classes to instantiate. This is a consequence of the web interface and the interaction with humans. Check the documentation of the \texttt{\_\_init\_\_()} method for further details.
 	
-	The state machine begin with an \textbf{initialization} step. Then the first action is a \textbf{round} of the red player. After that, the state machine goes in \textit{check} mode: it checks the current status and decide where to go next. The possible outcomes are four: if there was a \textit{Shoot} or \textit{Move} action, a \textbf{response} is possible; if there are still figures that can be activated, there will be a \textbf{round} step; if the goal of the scenario is achieved, then the match will \textbf{end}; otherwise, the only possible remaining state is a turn \textbf{update}. All other states step back to \textbf{check} with the exception of the \textbf{end} state.
+	The state machine begin with an \textbf{initialization} step. Then the first action is an update action. After that, the state machine goes in \textit{check} mode: it checks the current status and decide where to go next. The possible outcomes are four: if there was a \textit{Shoot} or \textit{Move} action (but not a response), a \textbf{response} is possible; if there are still figures that can be activated, there will be a \textbf{round} step; if the goal of the scenario is achieved, then the match will \textbf{end}; otherwise, the only possible remaining state is a turn \textbf{update}. All other states step back to \textbf{check} with the exception of the \textbf{end} state.
 
 	The class offers two utility methods:
 	

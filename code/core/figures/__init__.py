@@ -7,8 +7,8 @@ from core.figures.status import FigureStatus, NO_EFFECT
 from core.figures.types import FigureType
 from core.figures.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, SniperRifle
 from core.game import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, ENDURANCE_EXO
-from utils.coordinates import Cube, to_cube
 from utils import INFINITE
+from utils.coordinates import Cube, to_cube
 
 
 class Figure:
@@ -96,6 +96,7 @@ class Tank(Figure):
 
         self.defense: dict = {
             'basic': 5,
+            'smoke': 18,
             'antitank': 0
         }
 
@@ -119,6 +120,7 @@ class APC(Figure):
 
         self.defense: dict = {
             'basic': 5,
+            'smoke': 18,
             'antitank': 0
         }
 
