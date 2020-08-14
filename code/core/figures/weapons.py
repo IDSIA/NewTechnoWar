@@ -10,11 +10,12 @@ class Weapon:
     """
     __slots__ = [
         'wid', 'name', 'max_range', 'atk_normal', 'atk_response', 'ammo', 'dices', 'curved', 'damage', 'antitank',
-        'miss_matrix', 'disabled',
+        'miss_matrix', 'disabled', 'attack_ground', 'smoke',
     ]
 
     def __init__(self, _id: str, name: str, max_range: int, atk_normal: int, atk_response: int, ammo: int, dices: int,
-                 curved: bool = False, damage: int = 1, antitank: bool = False, miss_matrix: bool = False):
+                 curved: bool = False, damage: int = 1, antitank: bool = False, miss_matrix: bool = False,
+                 attack_ground: bool = False, smoke: bool = False):
         self.wid: str = _id
         self.name: str = name
         self.max_range: int = max_range
@@ -27,6 +28,8 @@ class Weapon:
         self.antitank: bool = antitank
         self.miss_matrix: bool = miss_matrix
         self.disabled: bool = False
+        self.attack_ground: bool = attack_ground
+        self.smoke: bool = smoke
 
     def __repr__(self):
         return self.name
@@ -76,7 +79,8 @@ class Mortar(Weapon):
     """Infantry weapon"""
 
     def __init__(self, ammo=2, dices_to_roll=1):
-        super().__init__('MT', 'Mortar', INFINITE, 12, 6, ammo, dices_to_roll, curved=True, damage=4, miss_matrix=True)
+        super().__init__('MT', 'Mortar', INFINITE, 12, 6, ammo, dices_to_roll, curved=True, damage=4, miss_matrix=True,
+                         attack_ground=True)
 
 
 class Grenade(Weapon):
@@ -90,7 +94,8 @@ class SmokeGrenade(Weapon):
     """Tank weapon"""
 
     def __init__(self, ammo=2, dices_to_roll=1):
-        super().__init__('SM', 'Smoke Grenade', 3, 20, 10, ammo, dices_to_roll, curved=True, damage=0)
+        super().__init__('SM', 'Smoke Grenade', 3, 20, 10, ammo, dices_to_roll, curved=True, damage=0,
+                         attack_ground=True, smoke=True)
 
 
 class SniperRifle(Weapon):

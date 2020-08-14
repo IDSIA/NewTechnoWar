@@ -1,14 +1,14 @@
 import logging
+from copy import deepcopy
 
 import numpy as np
-from copy import deepcopy
 
 from core import RED, BLUE
 from core.actions import Action, Move, Shoot, Respond, Pass
 from core.figures import Figure, FigureType
-from core.figures.status import IN_MOTION, UNDER_FIRE, NO_EFFECT, HIDDEN
+from core.figures.status import IN_MOTION, UNDER_FIRE, NO_EFFECT, HIDDEN, CUT_OFF
 from core.figures.weapons import Weapon
-from core.game import MISS_MATRIX, hitScoreCalculator
+from core.game import MISS_MATRIX, hitScoreCalculator, CUTOFF_RANGE
 from core.game.board import GameBoard
 from core.game.pathfinding import reachablePath
 from core.game.state import GameState
@@ -20,8 +20,8 @@ class GameManager:
     @staticmethod
     def canShoot(board: GameBoard, state: GameState, figure: Figure, target: Figure, weapon: Weapon) -> tuple or None:
         """Check if the given weapon can shoot against the given target."""
-        agent = figure.agent
-        lines = state.getLos(target)
+        agent = figure.team
+        lines = state.getLOS(target)
 
         lof = lines[figure.index]
 
@@ -76,7 +76,7 @@ class GameManager:
         shoots = []
 
         for target in state.figures[tAgent]:
-            if target.killed:
+            if target.killed or target.stat == HIDDEN:
                 continue
 
             for weapon in figure.weapons:
@@ -93,7 +93,7 @@ class GameManager:
 
         target = state.lastAction.figure
 
-        if not figure.responded and not figure.killed and not target.killed:
+        if not any([figure.responded, figure.killed, target.killed, target.stat == HIDDEN]):
 
             for weapon in figure.weapons:
                 args = self.canShoot(board, state, figure, target, weapon)
@@ -249,26 +249,34 @@ class GameManager:
         turn ticker."""
         state.turn += 1
 
-        # TODO: reduce smoke turn counter
+        # reduce smoke turn counter
+        state.reduceSmoke()
 
         for agent in [RED, BLUE]:
             for figure in state.figures[agent]:
                 figure.update(state.turn)
-                state.updateLos(figure)
+                state.updateLOS(figure)
 
-                # TODO: compute there cutoff status?
                 if figure.hp <= 0:
                     figure.killed = True
                     figure.activated = True
                     figure.hit = False
 
                 else:
-                    figure.stat = NO_EFFECT
                     figure.killed = False
                     figure.activated = False
                     figure.responded = False
                     figure.attacked_by = None
                     figure.hit = False
+
+                # update status
+                if figure.stat != HIDDEN:
+                    figure.stat = NO_EFFECT
+
+                    # compute there cutoff status
+                    allies = state.getDistance(figure)
+                    if min([len(v) for v in allies.values()]) > CUTOFF_RANGE:
+                        figure.stat = CUT_OFF
 
     @staticmethod
     def goalAchieved(board: GameBoard, state: GameState) -> bool:

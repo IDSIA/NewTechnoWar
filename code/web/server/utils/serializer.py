@@ -16,7 +16,7 @@ class GameJSONEncoder(JSONEncoder):
             kind = 'infantry' if obj.kind == FigureType.INFANTRY else 'vehicle'
             return {
                 'id': obj.fid,
-                'agent': obj.agent,
+                'agent': obj.team,
                 'idx': obj.index,
                 'name': obj.name,
                 'kind': kind,

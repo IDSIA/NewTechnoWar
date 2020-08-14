@@ -11,19 +11,18 @@ from utils.coordinates import Cube, to_cube
 from utils import INFINITE
 
 
-# TODO: this should be a UNIT
 class Figure:
     """Describe the actions and properties of a Unit."""
 
     __slots__ = [
-        'fid', 'agent', 'name', 'index', 'kind', 'move', 'load', 'hp', 'defense', 'weapons',
+        'fid', 'team', 'name', 'index', 'kind', 'move', 'load', 'hp', 'defense', 'weapons',
         'int_atk', 'int_def', 'endurance', 'stat', 'position', 'activated', 'responded', 'killed', 'hit',
         'attacked_by', 'can_transport', 'transporting', 'transported_by', 'bonus'
     ]
 
-    def __init__(self, position: tuple, name: str, agent: str, kind: int, stat: FigureStatus):
+    def __init__(self, position: tuple, name: str, team: str, kind: int, stat: FigureStatus):
         self.fid = str(uuid.uuid4())
-        self.agent: str = agent
+        self.team: str = team
 
         self.name: str = name
         self.index: int = -1
@@ -80,7 +79,7 @@ class Figure:
         figure.transported_by = None
 
     def getKey(self):
-        return f'{self.agent}{self.index}'
+        return f'{self.team}{self.index}'
 
     def __repr__(self):
         return f'{self.name}({self.position})'
@@ -89,8 +88,8 @@ class Figure:
 class Tank(Figure):
     """3 red tanks"""
 
-    def __init__(self, position: tuple, agent: str, name: str = 'Tank', stat: FigureStatus = NO_EFFECT):
-        super().__init__(position, name, agent, FigureType.VEHICLE, stat)
+    def __init__(self, position: tuple, team: str, name: str = 'Tank', stat: FigureStatus = NO_EFFECT):
+        super().__init__(position, name, team, FigureType.VEHICLE, stat)
         self.move = 7
         self.load = 1
         self.hp = 1
@@ -112,8 +111,8 @@ class Tank(Figure):
 class APC(Figure):
     """1 blue armoured personnel carrier"""
 
-    def __init__(self, position: tuple, agent: str, name: str = 'APC', stat: FigureStatus = NO_EFFECT):
-        super().__init__(position, name, agent, FigureType.VEHICLE, stat)
+    def __init__(self, position: tuple, team: str, name: str = 'APC', stat: FigureStatus = NO_EFFECT):
+        super().__init__(position, name, team, FigureType.VEHICLE, stat)
         self.move = 7
         self.load = 1
         self.hp = 1
@@ -134,8 +133,8 @@ class APC(Figure):
 class Infantry(Figure):
     """6x4 red and 2x4 blue"""
 
-    def __init__(self, position: tuple, agent: str, name: str = 'Infantry', stat: FigureStatus = NO_EFFECT):
-        super().__init__(position, name, agent, FigureType.INFANTRY, stat)
+    def __init__(self, position: tuple, team: str, name: str = 'Infantry', stat: FigureStatus = NO_EFFECT):
+        super().__init__(position, name, team, FigureType.INFANTRY, stat)
         self.move = 4
         self.load = 1
         self.hp = 4
@@ -156,8 +155,8 @@ class Exoskeleton(Infantry):
         endurance and ability to carry heavy loads.
     """
 
-    def __init__(self, position: tuple, agent: str, name: str = 'Exoskeleton', stat: FigureStatus = NO_EFFECT):
-        super().__init__(position, name, agent, stat)
+    def __init__(self, position: tuple, team: str, name: str = 'Exoskeleton', stat: FigureStatus = NO_EFFECT):
+        super().__init__(position, name, team, stat)
         self.move = 4
         self.load = 0
         self.hp = 4
@@ -181,8 +180,8 @@ class Sniper(Infantry):
         The sniper has a status advantage of +2 and an accuracy advantage of +3 (+5 in total) added to his hit score
     """
 
-    def __init__(self, position: tuple, agent: str, name: str = 'Sniper', stat: FigureStatus = NO_EFFECT):
-        super().__init__(position, name, agent, stat)
+    def __init__(self, position: tuple, team: str, name: str = 'Sniper', stat: FigureStatus = NO_EFFECT):
+        super().__init__(position, name, team, stat)
         self.move = 0
         self.hp = 4
 
@@ -196,8 +195,8 @@ class Sniper(Infantry):
 class Civilian(Figure):
     """4 civilians"""
 
-    def __init__(self, position: tuple, agent: str, name: str = 'Civilian', stat: FigureStatus = NO_EFFECT):
-        super().__init__(position, name, agent, FigureType.OTHER, stat)
+    def __init__(self, position: tuple, team: str, name: str = 'Civilian', stat: FigureStatus = NO_EFFECT):
+        super().__init__(position, name, team, FigureType.OTHER, stat)
         self.move = 0
         self.load = 0
         self.hp = 1

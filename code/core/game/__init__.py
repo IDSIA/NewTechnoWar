@@ -11,6 +11,9 @@ ENDURANCE_EXO = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
 INTELLIGENCE_ATTACK = [6, 6, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4]
 INTELLIGENCE_DEFENSE = [0, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 4]
 
+MAX_SMOKE = 2
+CUTOFF_RANGE = 4
+
 
 def hitScoreCalculator(
         attack: int,

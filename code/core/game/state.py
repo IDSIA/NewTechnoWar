@@ -3,6 +3,7 @@ import numpy as np
 from core import RED, BLUE
 from core.actions import Action
 from core.figures import FigureType, Figure
+from core.game import MAX_SMOKE
 from utils.coordinates import to_cube, Cube, cube_linedraw, cube_to_hex
 
 
@@ -11,7 +12,7 @@ class GameState:
     Dynamic parts of the board.
     """
 
-    __slots__ = ['name', 'turn', 'figures', 'posToFigure', 'smoke', 'figuresLos', 'lastAction']
+    __slots__ = ['name', 'turn', 'figures', 'posToFigure', 'smoke', 'figuresLOS', 'figuresDistance', 'lastAction']
 
     def __init__(self, shape: tuple, name: str = ''):
         self.name: str = name
@@ -31,7 +32,12 @@ class GameState:
 
         self.smoke: np.array = np.zeros(shape, dtype='uint8')
 
-        self.figuresLos: dict = {
+        self.figuresLOS: dict = {
+            RED: dict(),
+            BLUE: dict()
+        }
+
+        self.figuresDistance: dict = {
             RED: dict(),
             BLUE: dict()
         }
@@ -46,7 +52,7 @@ class GameState:
         Add a figures to the units of the given agent and it setup the index
         in the matrix at the position of the figure.
         """
-        agent = figure.agent
+        agent = figure.team
         figures = self.figures[agent]
         index = len(figures)  # to have 0-based index
         figures.append(figure)
@@ -85,18 +91,31 @@ class GameState:
                 ptf[dst] = list()
             ptf[dst].append(figure)
             figure.goto(dst)
-            self.updateLos(figure)
+            self.updateLOS(figure)
 
-    def getLos(self, target: Figure) -> dict:
-        return self.figuresLos[target.agent][target.index]
+    def getLOS(self, target: Figure) -> dict:
+        """Get all the lines of sight of all hostile figures of the given target."""
+        return self.figuresLOS[target.team][target.index]
 
-    def updateLos(self, target: Figure) -> None:
-        attackers = RED if target.agent == BLUE else BLUE
+    def getDistance(self, target: Figure) -> dict:
+        """Get all the lines of sight of all ally figures of the given target."""
+        return self.figuresDistance[target.team][target.index]
 
-        self.figuresLos[target.agent][target.index] = {
+    def updateLOS(self, target: Figure) -> None:
+        """Updates all the lines of sight for the current target."""
+        defenders = target.team
+        attackers = RED if defenders == BLUE else BLUE
+
+        self.figuresLOS[defenders][target.index] = {
             # attacker's line of sight
             attacker.index: cube_linedraw(attacker.position, target.position)
             for attacker in self.figures[attackers]
+        }
+
+        self.figuresDistance[defenders][target.index] = {
+            # defender's line of sight
+            defender.index: cube_linedraw(defender.position, target.position)
+            for defender in self.figures[defenders]
         }
 
     def isObstacle(self, pos: Cube) -> bool:
@@ -107,8 +126,10 @@ class GameState:
                     return True
         return False
 
-    def addSmoke(self, area: np.array) -> None:
-        self.smoke += area
+    def addSmoke(self, smoke: list) -> None:
+        """Add a cloud of smoke to the status. This cloud is defined by a list of Cubes."""
+        for h in smoke:
+            self.smoke[cube_to_hex(h)] = MAX_SMOKE
 
     def hasSmoke(self, lof: list) -> bool:
         """
@@ -116,3 +137,7 @@ class GameState:
         the hexagon where the panzer is), this smoke protection is used, and not the basic protection value.
         """
         return any([self.smoke[cube_to_hex(h)] > 0 for h in lof])
+
+    def reduceSmoke(self) -> None:
+        """Reduce by 1 the counter for of smoke clouds."""
+        self.smoke = np.clip(self.smoke - 1, 0, MAX_SMOKE)
