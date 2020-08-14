@@ -23,6 +23,7 @@ def index():
             data['bluePlayer'],
         )
         app.games[mm.gid] = mm
+        mm.step()
 
         logging.info(f"Created game #{mm.gid} with scenario {mm.board.name}")
 
@@ -168,9 +169,8 @@ def gameNextTurn():
     try:
         _, mm = checkGameId()
 
-        n = len(mm.actionsDone) - 1
         mm.nextTurn()
-        lastAction = mm.actionsDone[n:]
+        lastAction = mm.actionsDone[-1]
 
         return jsonify({'turn': mm.state.turn, 'update': mm.update, 'actions': lastAction}), 200
 

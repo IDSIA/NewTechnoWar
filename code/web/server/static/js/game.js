@@ -17,13 +17,16 @@ function ammoClass(data) {
     return data === 0 ? 'empty' : '';
 }
 
-function updateFigure(data) {
+function updateFigure(data, action='') {
     let figure = $(`#figure-${data.id}`);
     let mark = $(`#mark-${data.id}`);
 
     figure.removeClass('killed');
     figure.removeClass('activated');
     figure.removeClass('notActivated');
+    figure.removeClass('passed');
+    figure.removeClass('moving');
+    figure.removeClass('attacking');
     figure.removeClass('responded');
     mark.removeClass('hit');
 
@@ -45,7 +48,16 @@ function updateFigure(data) {
         } else {
             figure.addClass('notActivated');
         }
-        if (data.responded) {
+        if (action === 'Pass') {
+            figure.addClass('passed');
+        }
+        if (action === 'Move') {
+            figure.addClass('moving');
+        }
+        if (action === 'Shoot') {
+            figure.addClass('attacking');
+        }
+        if (action === 'Respond') {
             figure.addClass('responded');
         }
     }
@@ -173,9 +185,15 @@ function step() {
             return;
         }
 
-        let action = data.action;
+        if (data.action === null) {
+            console.log('no actions');
+            return;
+        }
 
-        console.log('step: ' + action.action);
+        let action = data.action;
+        let agent = data.action.agent;
+
+        console.log('step: ' + agent + ' ' + action.action);
         console.log(data);
 
         $('#btnTurn').removeClass('highlight');
@@ -197,16 +215,22 @@ function step() {
                 break;
             case 'Respond':
                 record.append($('<span/>').text(' in response'));
+                shoot(current, figure, mark, action, data.outcome);
+                updateFigure(action.target)
+                break;
             case 'Shoot':
                 record.append($('<span/>').text(' Shoot'));
                 shoot(current, figure, mark, action, data.outcome);
                 updateFigure(action.target)
                 break;
+            case 'Pass':
+                record.append($('<span/>').text('passed'));
+                break;
             default:
                 console.info("Not implemented yet: " + action.action);
         }
 
-        updateFigure(action.figure);
+        updateFigure(action.figure, action.action);
         $('#console').append(record);
 
     }).fail(function () {
@@ -275,6 +299,8 @@ function shoot(current, figure, mark, data, outcome) {
     let w = figure.find('div.w' + data.weapon.id);
     if (data.action === 'Respond')
         w.addClass('respond');
+    if (data.action === 'Pass')
+        w.addClass('pass');
     else
         w.addClass('used');
     let ammo = ammoNum(data.weapon)

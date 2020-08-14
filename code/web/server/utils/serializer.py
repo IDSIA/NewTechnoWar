@@ -53,9 +53,9 @@ class GameJSONEncoder(JSONEncoder):
 
         if isinstance(obj, Pass):
             return {
-                'action': 'Do Nothing',
+                'action': 'Pass',
                 'agent': obj.agent,
-                'figure': obj.figure.fid,
+                'figure': obj.figure,
             }
 
         if isinstance(obj, Move):
@@ -68,7 +68,7 @@ class GameJSONEncoder(JSONEncoder):
 
         if isinstance(obj, Shoot) or isinstance(obj, Respond):
             return {
-                'action': 'Shoot' if isinstance(obj, Shoot) else 'Respond',
+                'action': 'Respond' if isinstance(obj, Respond) else 'Shoot',
                 'agent': obj.agent,
                 'figure': obj.figure,
                 'target': obj.target,

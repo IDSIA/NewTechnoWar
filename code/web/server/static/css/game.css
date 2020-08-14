@@ -242,10 +242,6 @@ div.blue.unit {
     background-color: yellow;
 }
 
-.weapon.respond::before {
-    background-color: darkorange;
-}
-
 .weapon::before {
     content: '';
     background-image: url('/static/img/weapons.png');
@@ -338,6 +334,32 @@ div.unit {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
+.moving::before {
+    content: 'M';
+    background-color: cyan;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    margin: 5px;
+    color: black;
+    font-weight: bold;
+    padding: 5px;
+}
+
+.attacking::before {
+    content: 'A';
+    background-color: purple;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    margin: 5px;
+    color: black;
+    font-weight: bold;
+    padding: 5px;
+}
+
 .responded::before {
     content: 'R';
     background-color: orange;
@@ -349,6 +371,23 @@ div.unit {
     color: black;
     font-weight: bold;
     padding: 5px;
+}
+
+.passed::before {
+    content: 'P';
+    background-color: green;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    margin: 5px;
+    color: black;
+    font-weight: bold;
+    padding: 5px;
+}
+
+.passed::before {
+
 }
 
 div.killed {

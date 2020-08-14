@@ -78,6 +78,8 @@ class MatchManager:
 
         except ValueError as e:
             logging.info(f'{self.first.team:5}: {e}')
+            self.actionsDone.append(None)
+            self.outcome.append({})
 
         finally:
             self._goCheck()
@@ -96,6 +98,8 @@ class MatchManager:
 
         except ValueError as e:
             logging.info(f'{self.second.team:5}: {e}')
+            self.actionsDone.append(None)
+            self.outcome.append({})
 
         finally:
             self._goCheck()
