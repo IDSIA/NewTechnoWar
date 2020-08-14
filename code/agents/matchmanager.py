@@ -15,7 +15,7 @@ from core.game.state import GameState
 class MatchManager:
     __slots__ = [
         'gid', 'seed', 'actionsDone', 'outcome', 'end', 'board', 'state', 'gm', 'scenario', 'red', 'blue',
-        'first', 'second', 'step',
+        'first', 'second', 'step', 'update',
     ]
 
     def __init__(self, gid: str, scenario: str, red: str, blue: str, seed: int = 42):
@@ -35,6 +35,7 @@ class MatchManager:
         self.outcome: list = []
 
         self.end: bool = False
+        self.update: bool = False
 
         self.gm: GameManager = GameManager()
 
@@ -66,6 +67,7 @@ class MatchManager:
 
     def _goRound(self):
         logging.info(f'step: round {self.first.team:5}')
+        self.update = False
 
         try:
             action = self.first.chooseAction(self.gm, self.board, self.state)
@@ -85,9 +87,9 @@ class MatchManager:
 
         try:
             response = self.second.chooseResponse(self.gm, self.board, self.state)
-            logging.info(f'{self.second} respond')
-
             outcome = self.gm.step(self.board, self.state, response)
+
+            logging.info(f'{self.second} respond')
 
             self.actionsDone.append(response)
             self.outcome.append(outcome)
@@ -102,7 +104,7 @@ class MatchManager:
         logging.info('-' * 100)
 
         # check if we are at the end of the game
-        if self.gm.goalAchieved(self.board, self.state) or self.state.turn >= TOTAL_TURNS:
+        if self.gm.goalAchieved(self.board, self.state):
             # if we achieved a goal, end
             self.step = self._goEnd
             return
@@ -122,14 +124,19 @@ class MatchManager:
                 self.first, self.second = self.second, self.first
 
             self.step = self._goRound
+            return
 
-        else:
-            # if we are at the end of a turn, need to update and then go to next one
-            self.step = self._goUpdate
+        if self.state.turn + 1 >= TOTAL_TURNS:
+            self._goEnd()
+            return
+
+        # if we are at the end of a turn, need to update and then go to next one
+        self.step = self._goUpdate
 
     def _goUpdate(self):
         logging.info('=' * 100)
         logging.info('step: update')
+        self.update = True
 
         self.first = self.red
         self.second = self.blue

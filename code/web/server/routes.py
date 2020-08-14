@@ -91,7 +91,7 @@ def game():
                 board=list(scroll(mm.board)),
                 gameId=gameId,
                 shape=fieldShape(mm.board),
-                turn=mm.turn
+                turn=mm.state.turn
             )
         )
 
@@ -150,7 +150,7 @@ def gameNextStep():
             lastOutcome = mm.outcome[-1]
 
         return jsonify({
-            'turn': mm.turn,
+            'turn': mm.state.turn,
             'update': mm.update,
             'action': lastAction,
             'outcome': lastOutcome,
@@ -172,7 +172,7 @@ def gameNextTurn():
         mm.nextTurn()
         lastAction = mm.actionsDone[n:]
 
-        return jsonify({'turn': mm.turn, 'update': mm.update, 'actions': lastAction}), 200
+        return jsonify({'turn': mm.state.turn, 'update': mm.update, 'actions': lastAction}), 200
 
     except ValueError as ve:
         logging.error(ve)

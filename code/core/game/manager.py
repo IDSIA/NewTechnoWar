@@ -93,6 +93,9 @@ class GameManager:
 
         target = state.lastAction.figure
 
+        if target.team == figure.team:
+            return responses
+
         if not any([figure.responded, figure.killed, target.killed, target.stat == HIDDEN]):
 
             for weapon in figure.weapons:
