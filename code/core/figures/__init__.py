@@ -80,7 +80,9 @@ class Figure:
         self.transporting.remove(figure)
         figure.transported_by = None
 
-    def canTransport(self):
+    def canTransport(self, figure):
+        if figure.kind == FigureType.VEHICLE:
+            return False
         return self.can_transport and len(self.transporting) < self.transport_capacity
 
     def getKey(self):

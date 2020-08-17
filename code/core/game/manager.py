@@ -71,16 +71,16 @@ class GameManager:
 
         for destination in movements:
             destinationFigures = state.getFigureByPos(agent, destination[-1])
-            availabelTransporters = [f for f in destinationFigures if f.canTransport()]
+            availableTransporters = [f for f in destinationFigures if f.canTransport(figure)]
 
             if not destinationFigures:
                 # move to empty destination
                 move = Move(agent, figure, destination)
                 moves.append(move)
 
-            elif availabelTransporters:
+            elif availableTransporters:
                 # load into transporter action
-                for transporter in availabelTransporters:
+                for transporter in availableTransporters:
                     move = LoadInto(agent, figure, destination, transporter)
                     moves.append(move)
 
