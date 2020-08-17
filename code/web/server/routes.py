@@ -4,7 +4,7 @@ import uuid
 from flask import Blueprint, render_template, make_response, request, jsonify, redirect
 from flask import current_app as app
 
-from agents.matchmanager import MatchManager
+from agents.matchmanager import MatchManager, buildMatchManager
 from web.server.utils import scroll, fieldShape
 
 main = Blueprint("main", __name__, template_folder="templates", static_folder="static")
@@ -16,7 +16,7 @@ def index():
     if request.method == 'POST':
         data = request.form
 
-        mm = MatchManager(
+        mm = buildMatchManager(
             str(uuid.uuid4()),
             data['scenario'],
             data['redPlayer'],

@@ -54,14 +54,14 @@ class GameJSONEncoder(JSONEncoder):
         if isinstance(obj, Pass):
             return {
                 'action': 'Pass',
-                'agent': obj.agent,
+                'agent': obj.team,
                 'figure': obj.figure,
             }
 
         if isinstance(obj, Move):
             return {
                 'action': 'Move',
-                'agent': obj.agent,
+                'agent': obj.team,
                 'figure': obj.figure,
                 'destination': [cube_to_dict(hex) for hex in obj.destination],
             }
@@ -69,7 +69,7 @@ class GameJSONEncoder(JSONEncoder):
         if isinstance(obj, Attack) or isinstance(obj, Respond):
             return {
                 'action': 'Respond' if isinstance(obj, Respond) else 'Attack',
-                'agent': obj.agent,
+                'agent': obj.team,
                 'figure': obj.figure,
                 'target': obj.target,
                 'weapon': obj.weapon,

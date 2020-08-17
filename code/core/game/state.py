@@ -1,8 +1,8 @@
 import numpy as np
 
 from core import RED, BLUE
-from core.actions import Action
-from core.figures import FigureType, Figure
+from core.actions import Action, Attack, AttackGround
+from core.figures import FigureType, Figure, Weapon
 from core.game import MAX_SMOKE
 from utils.coordinates import to_cube, Cube, cube_linedraw, cube_to_hex
 
@@ -58,6 +58,17 @@ class GameState:
         figures.append(figure)
         figure.index = index
         self.moveFigure(agent, figure, dst=figure.position)
+
+    def getFigure(self, action: Action) -> Figure:
+        """Given an action, returns the figure that performs such action."""
+        return self.getFigureByIndex(action.team, action.fid)
+
+    def getTarget(self, action: Attack) -> Figure:
+        """Given an Attack Action, returns the target figure."""
+        return self.getFigureByIndex(action.target_team, action.target_id)
+
+    def getWeapon(self, action: Attack or AttackGround) -> Weapon:
+        return self.getFigure(action).weapons[action.weapon_id]
 
     def getFiguresByPos(self, agent: str, pos: tuple) -> list:
         """Returns all the figures that occupy the given position."""

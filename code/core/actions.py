@@ -10,27 +10,30 @@ ACTION_RESPONSE = 3
 class Action:
     """Basic action class"""
 
-    def __init__(self, agent: str, figure: Figure):
+    __slots__ = ['team', 'fid', 'name']
+
+    def __init__(self, team: str, figure: Figure):
         """
-        :param agent:   name of the agent
+        :param team:    name of the team
         :param figure:  Figure that performs the action
         """
-        self.agent = agent
-        self.figure = figure
+        self.team = team
+        self.fid = figure.index
+        self.name = figure.name
 
     def __repr__(self):
-        return f'{self.agent:5}: {self.figure.name:10}'
+        return f'{self.team:5}: {self.name:10}'
 
 
 class Pass(Action):
     """Action that just does nothing: used to mark a Figure as activated."""
 
-    def __init__(self, agent: str, figure: Figure):
+    def __init__(self, team: str, figure: Figure):
         """
-        :param agent:   name of the agent
+        :param team:    name of the team
         :param figure:  Figure that performs the action
         """
-        super().__init__(agent, figure)
+        super().__init__(team, figure)
 
     def __repr__(self):
         return f'{super().__repr__()}: Pass'
@@ -39,13 +42,16 @@ class Pass(Action):
 class Move(Action):
     """Action to move a Figure to the destination."""
 
-    def __init__(self, agent: str, figure: Figure, destination: list):
+    __slots__ = ['position', 'destination']
+
+    def __init__(self, team: str, figure: Figure, destination: list):
         """
-        :param agent:           name of the agent
+        :param team:            name of the team
         :param figure:          Figure that performs the action
         :param destination:     path from current position to destination
         """
-        super().__init__(agent, figure)
+        super().__init__(team, figure)
+        self.position = figure.position
         self.destination = destination
 
     def __repr__(self):
@@ -55,26 +61,31 @@ class Move(Action):
 class LoadInto(Move):
     """Action to load a Figure in a transporter at the destination."""
 
-    def __init__(self, agent: str, figure: Figure, destination: list, transporter: Figure):
+    __slots__ = ['transporter_id', 'transporter_name']
+
+    def __init__(self, team: str, figure: Figure, destination: list, transporter: Figure):
         """
-        :param agent:           name of the agent
+        :param team:            name of the team
         :param figure:          Figure that performs the action
         :param destination:     path from current position to destination
         :param transporter:     Figure to use as a transporter
         """
-        super().__init__(agent, figure, destination)
-        self.transporter = transporter
+        super().__init__(team, figure, destination)
+        self.transporter_id = transporter.index
+        self.transporter_name = transporter.name
 
     def __repr__(self):
-        return f'{super().__repr__()} load into {self.transporter}'
+        return f'{super().__repr__()} load into {self.transporter_name}'
 
 
 class Attack(Action):
     """Action to attack at another Figure."""
 
-    def __init__(self, agent: str, figure: Figure, target: Figure, guard: Figure, weapon: Weapon, los: list, lof: list):
+    __slots__ = ['target_id', 'target_name', 'target_team', 'guard_id', 'weapon_id', 'weapon_name', 'los', 'lof']
+
+    def __init__(self, team: str, figure: Figure, target: Figure, guard: Figure, weapon: Weapon, los: list, lof: list):
         """
-        :param agent:   name of the agent
+        :param team:    name of the team
         :param figure:  Figure that performs the action
         :param target:  Figure target of the action
         :param guard:   Figure that can see the target directly
@@ -82,23 +93,26 @@ class Attack(Action):
         :param los:     direct line of sight on target (from who can see it)
         :param lof:     direct line of fire on target (from the attacker)
         """
-        super().__init__(agent, figure)
-        self.target = target
-        self.guard = guard
-        self.weapon = weapon
+        super().__init__(team, figure)
+        self.target_id = target.index
+        self.target_name = target.name
+        self.target_team = target.team
+        self.guard_id = guard.index
+        self.weapon_id = weapon.wid
+        self.weapon_name = repr(weapon)
         self.los = los
         self.lof = lof
 
     def __repr__(self):
-        return f'{super().__repr__()}: Attack {self.target} with {self.weapon}'
+        return f'{super().__repr__()}: Attack {self.target_name} with {self.weapon_name}'
 
 
 class Respond(Attack):
     """Similar to Attack, but created only after a Attack Action."""
 
-    def __init__(self, agent: str, figure: Figure, target: Figure, guard: Figure, weapon: Weapon, los: list, lof: list):
+    def __init__(self, team: str, figure: Figure, target: Figure, guard: Figure, weapon: Weapon, los: list, lof: list):
         """
-        :param agent:   name of the agent
+        :param team:    name of the team
         :param figure:  Figure that performs the action
         :param target:  Figure target of the action
         :param guard:   Figure that can see the target directly
@@ -106,7 +120,7 @@ class Respond(Attack):
         :param los:     direct line of sight on target (from who can see it)
         :param lof:     direct line of fire on target (from the attacker)
         """
-        super().__init__(agent, figure, target, guard, weapon, los, lof)
+        super().__init__(team, figure, target, guard, weapon, los, lof)
 
     def __repr__(self):
         return f'{super().__repr__()} in response'
@@ -115,16 +129,19 @@ class Respond(Attack):
 class AttackGround(Action):
     """Similar to Attack, but aim to ground."""
 
-    def __init__(self, agent: str, figure: Figure, ground: tuple, weapon: Weapon):
+    __slots__ = ['ground', 'weapon_id', 'weapon_name']
+
+    def __init__(self, team: str, figure: Figure, ground: tuple, weapon: Weapon):
         """
-        :param agent:   name of the agent
+        :param team:    name of the team
         :param figure:  Figure that performs the action
         :param ground:  Figure target of the action
         :param weapon:  weapon used by the attacker
         """
-        super().__init__(agent, figure)
+        super().__init__(team, figure)
         self.ground = ground
-        self.weapon = weapon
+        self.weapon_id = weapon.wid
+        self.weapon_name = weapon.name
 
     def __repr__(self):
-        return f'{super().__repr__()}: Attack ground at {self.ground} with {self.weapon}'
+        return f'{super().__repr__()}: Attack ground at {self.ground} with {self.weapon_name}'

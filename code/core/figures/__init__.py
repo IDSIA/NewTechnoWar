@@ -5,7 +5,8 @@ import uuid
 
 from core.figures.status import FigureStatus, NO_EFFECT
 from core.figures.types import FigureType
-from core.figures.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, SniperRifle
+from core.figures.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, SniperRifle, \
+    Weapon
 from core.game import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, ENDURANCE_EXO
 from utils import INFINITE
 from utils.coordinates import Cube, to_cube
@@ -38,7 +39,7 @@ class Figure:
             'basic': 1,
             'smoke': 18
         }
-        self.weapons: list = []
+        self.weapons: dict = {}
 
         self.int_atk: int = 0
         self.int_def: int = 0
@@ -88,6 +89,9 @@ class Figure:
     def getKey(self):
         return f'{self.team}{self.index}'
 
+    def addWeapon(self, w: Weapon):
+        self.weapons[w.wid] = w
+
     def __repr__(self):
         return f'{self.name}({self.position})'
 
@@ -108,11 +112,9 @@ class Tank(Figure):
             'antitank': 0
         }
 
-        self.weapons = [
-            MachineGun(INFINITE),
-            Cannon(8),
-            SmokeGrenade(2)
-        ]
+        self.addWeapon(MachineGun(INFINITE))
+        self.addWeapon(Cannon(8))
+        self.addWeapon(SmokeGrenade(2))
 
         self.can_transport = True
         self.transport_capacity = 2
@@ -134,10 +136,8 @@ class APC(Figure):
             'antitank': 0
         }
 
-        self.weapons = [
-            MachineGun(INFINITE),
-            SmokeGrenade(2)
-        ]
+        self.addWeapon(MachineGun(INFINITE))
+        self.addWeapon(SmokeGrenade(2))
 
         self.can_transport = True
         self.transport_capacity = 2
@@ -153,13 +153,11 @@ class Infantry(Figure):
         self.hp = 4
         self.max_hp = 4
 
-        self.weapons = [
-            AssaultRifle(INFINITE),
-            MachineGun(5),
-            AntiTank(4),
-            Mortar(2),
-            Grenade(2)
-        ]
+        self.addWeapon(AssaultRifle(INFINITE))
+        self.addWeapon(MachineGun(5))
+        self.addWeapon(AntiTank(4))
+        self.addWeapon(Mortar(2))
+        self.addWeapon(Grenade(2))
 
 
 class Exoskeleton(Infantry):
@@ -176,13 +174,11 @@ class Exoskeleton(Infantry):
         self.hp = 4
         self.max_hp = 4
 
-        self.weapons = [
-            AssaultRifle(INFINITE),
-            MachineGun(2),
-            AntiTank(4),
-            Mortar(5),
-            Grenade(2)
-        ]
+        self.addWeapon(AssaultRifle(INFINITE))
+        self.addWeapon(MachineGun(2))
+        self.addWeapon(AntiTank(4))
+        self.addWeapon(Mortar(5))
+        self.addWeapon(Grenade(2))
 
     def update(self, turn: int):
         super(Exoskeleton, self).update(turn)
@@ -201,9 +197,7 @@ class Sniper(Infantry):
         self.hp = 4
         self.max_hp = 4
 
-        self.weapons = [
-            SniperRifle(INFINITE)
-        ]
+        self.addWeapon(SniperRifle(INFINITE))
 
         self.bonus = 5
 

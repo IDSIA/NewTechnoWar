@@ -3,7 +3,7 @@ import os.path as op
 
 import yaml
 
-from agents.matchmanager import MatchManager
+from agents.matchmanager import buildMatchManager
 
 dir_path = op.dirname(op.realpath(__file__))
 
@@ -12,7 +12,7 @@ with open(op.join(dir_path, 'logger.config.yaml'), 'r') as stream:
 logging.config.dictConfig(config)
 
 if __name__ == '__main__':
-    mm = MatchManager('', 'scenarioTestBench', 'PlayerDummy', 'PlayerDummy', seed=42)
+    mm = buildMatchManager('', 'scenarioTestBench', 'PlayerDummy', 'PlayerDummy', seed=42)
 
     while not mm.end:
         mm.nextTurn()

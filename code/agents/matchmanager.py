@@ -5,11 +5,21 @@ import numpy as np
 import agents.players as players
 import scenarios
 from agents.players.player import Player
-from core import TOTAL_TURNS
+from core import TOTAL_TURNS, RED, BLUE
 from core.actions import Attack, Move
 from core.game.board import GameBoard
 from core.game.manager import GameManager
 from core.game.state import GameState
+
+
+def buildMatchManager(gid: str, scenario: str, red: str, blue: str, seed: int = 42):
+    """Utility function to create a standard MatchManager from string parameters."""
+    board, state = getattr(scenarios, scenario)()
+
+    pRed: Player = getattr(players, red)(RED)
+    pBlue: Player = getattr(players, blue)(BLUE)
+
+    return MatchManager(gid, board, state, pRed, pBlue, seed)
 
 
 class MatchManager:
@@ -18,12 +28,13 @@ class MatchManager:
         'first', 'second', 'step', 'update',
     ]
 
-    def __init__(self, gid: str, scenario: str, red: str, blue: str, seed: int = 42):
+    def __init__(self, gid: str, board: GameBoard, state: GameState, red: Player, blue: Player, seed: int = 42):
         """
         Initialize the state-machine.
 
         :param gid:         Unique identifier.
-        :param scenario:    String value of the scenario to use. Check module scenarios for a list.
+        :param board:       Static descriptor of the game.
+        :param state:       Dynamic descriptor of the game.
         :param red:         String value of the player to use. Check module agent.players for a list.
         :param blue:        String value of the player to use. Check module agent.players for a list.
         :param seed:        Random seed value (default: 42)
@@ -39,13 +50,11 @@ class MatchManager:
 
         self.gm: GameManager = GameManager()
 
-        self.scenario: str = scenario
-        board, state = getattr(scenarios, scenario)()
         self.board: GameBoard = board
         self.state: GameState = state
 
-        self.red: Player = getattr(players, red)('red')
-        self.blue: Player = getattr(players, blue)('blue')
+        self.red: Player = red
+        self.blue: Player = blue
 
         self._goInit()
 
@@ -119,7 +128,8 @@ class MatchManager:
                 self.step = self._goResponse
                 return
 
-        if self.state.getFiguresCanBeActivated(self.first.team) or self.state.getFiguresCanBeActivated(self.second.team):
+        if self.state.getFiguresCanBeActivated(self.first.team) or self.state.getFiguresCanBeActivated(
+                self.second.team):
             # if there are still figure to activate, continue with a round
             if not self.step == self._goUpdate:
                 # invert only if it is not an update

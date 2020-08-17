@@ -1,10 +1,10 @@
 import numpy as np
 
+from agents.players.player import Player
 from core.actions import Action, ACTION_MOVE, ACTION_ATTACK, ACTION_PASS, Pass
 from core.game.board import GameBoard
 from core.game.manager import GameManager
 from core.game.state import GameState
-from agents.players.player import Player
 
 
 class PlayerDummy(Player):
@@ -23,8 +23,8 @@ class PlayerDummy(Player):
 
         f = np.random.choice(figures)
 
-        moves = gm.buildMovements(board, state, self.team, f)
-        attacks = gm.buildAttacks(board, state, self.team, f)
+        moves = gm.buildMovements(board, state, f)
+        attacks = gm.buildAttacks(board, state, f)
 
         if not moves and not attacks:
             raise ValueError(f"no more moves for {f} {self.team}")

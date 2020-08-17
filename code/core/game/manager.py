@@ -21,7 +21,7 @@ class GameManager:
     @staticmethod
     def canShoot(board: GameBoard, state: GameState, figure: Figure, target: Figure, weapon: Weapon) -> tuple or None:
         """Check if the given weapon can shoot against the given target."""
-        agent = figure.team
+        team = figure.team
         lines = state.getLOS(target)
 
         lof = lines[figure.index]
@@ -35,7 +35,7 @@ class GameManager:
                 canHit = not any([state.isObstacle(h) or board.isObstacle(h) for h in ls[1:-2]])
                 if canHit:
                     los = ls
-                    guard = state.figures[agent][idx]
+                    guard = state.figures[team][idx]
                     break
 
         else:
@@ -57,13 +57,13 @@ class GameManager:
             validTarget = target.kind != FigureType.VEHICLE
 
         if all([canHit, hasAmmo, available, isInRange, validTarget, isNotHidden]):
-            return agent, figure, target, guard, weapon, los, lof
+            return team, figure, target, guard, weapon, los, lof
         return None
 
     @staticmethod
-    def buildMovements(board: GameBoard, state: GameState, agent: str, figure: Figure) -> list:
+    def buildMovements(board: GameBoard, state: GameState, figure: Figure) -> list:
         """Build all the movement actions for a figure. All the other units are considered as obstacles."""
-
+        team = figure.team
         distance = figure.move - figure.load
 
         _, movements = reachablePath(figure, board, distance)
@@ -71,33 +71,34 @@ class GameManager:
         moves = []
 
         for destination in movements:
-            destinationFigures = state.getFiguresByPos(agent, destination[-1])
+            destinationFigures = state.getFiguresByPos(team, destination[-1])
             availableTransporters = [f for f in destinationFigures if f.canTransport(figure)]
 
             if not destinationFigures:
                 # move to empty destination
-                move = Move(agent, figure, destination)
+                move = Move(team, figure, destination)
                 moves.append(move)
 
             elif availableTransporters:
                 # load into transporter action
                 for transporter in availableTransporters:
-                    move = LoadInto(agent, figure, destination, transporter)
+                    move = LoadInto(team, figure, destination, transporter)
                     moves.append(move)
 
         return moves
 
-    def buildAttacks(self, board: GameBoard, state: GameState, agent: str, figure: Figure) -> list:
+    def buildAttacks(self, board: GameBoard, state: GameState, figure: Figure) -> list:
         """Returns a list of all the possible shooting actions that can be performed."""
 
-        tAgent = RED if agent == BLUE else BLUE
+        team = figure.team
+        tTeam = RED if team == BLUE else BLUE
         attacks = []
 
-        for target in state.figures[tAgent]:
+        for target in state.figures[tTeam]:
             if target.killed or target.stat == HIDDEN:
                 continue
 
-            for weapon in figure.weapons:
+            for weapon in figure.weapons.values():
                 args = self.canShoot(board, state, figure, target, weapon)
                 if args:
                     attacks.append(Attack(*args))
@@ -109,14 +110,14 @@ class GameManager:
 
         responses = []
 
-        target = state.lastAction.figure
+        target = state.getFigure(state.lastAction)
 
         if target.team == figure.team:
             return responses
 
         if not any([figure.responded, figure.killed, target.killed, target.stat == HIDDEN]):
 
-            for weapon in figure.weapons:
+            for weapon in figure.weapons.values():
                 if weapon.smoke:
                     # smoke weapons cannot be used as response since they do no damage
                     continue
@@ -127,28 +128,28 @@ class GameManager:
         return responses
 
     @staticmethod
-    def buildSupportAttacks(board: GameBoard, state: GameState, agent: str, figure: Figure) -> list:
+    def buildSupportAttacks(board: GameBoard, state: GameState, figure: Figure) -> list:
         supports = []
 
         for weapon in figure.weapons:
             if weapon.smoke:
                 grounds, _ = reachablePath(figure, board, weapon.max_range)
                 for ground in grounds:
-                    supports.append(AttackGround(agent, figure, ground, weapon))
+                    supports.append(AttackGround(figure.team, figure, ground, weapon))
 
         return supports
 
-    def buildActionsForFigure(self, board: GameBoard, state: GameState, agent: str, figure: Figure) -> list:
+    def buildActionsForFigure(self, board: GameBoard, state: GameState, figure: Figure) -> list:
         """Build all possible actions for the given figure."""
         actions = []
 
-        for movement in self.buildMovements(board, state, agent, figure):
+        for movement in self.buildMovements(board, state, figure):
             actions.append(movement)
 
-        for attack in self.buildAttacks(board, state, agent, figure):
+        for attack in self.buildAttacks(board, state, figure):
             actions.append(attack)
 
-        for support in self.buildSupportAttacks(board, state, agent, figure):
+        for support in self.buildSupportAttacks(board, state, figure):
             actions.append(support)
 
         for response in self.buildResponses(board, state, figure):
@@ -156,15 +157,14 @@ class GameManager:
 
         return actions
 
-    def buildActions(self, board: GameBoard, state: GameState, agent: str) -> list:
+    def buildActions(self, board: GameBoard, state: GameState, team: str) -> list:
         """
-        Build a list with all the possible actions that can be executed by an agent
-        with the current status of the board.
+        Build a list with all the possible actions that can be executed by an team with the current status of the board.
         """
         actions = []
 
-        for figure in state.figures[agent]:
-            for action in self.buildActionsForFigure(board, state, agent, figure):
+        for figure in state.figures[team]:
+            for action in self.buildActionsForFigure(board, state, figure):
                 actions.append(action)
 
         return actions
@@ -198,8 +198,8 @@ class GameManager:
 
     def step(self, board: GameBoard, state: GameState, action: Action) -> dict:
         """Update the given state with the given action in a irreversible way."""
-        agent = action.agent
-        figure = action.figure
+        team = action.team
+        figure = state.getFigure(action)
         figure.activated = True
 
         logging.debug(action)
@@ -214,12 +214,13 @@ class GameManager:
 
         if isinstance(action, Move):
             dest = action.destination[-1]
-            state.moveFigure(agent, figure, figure.position, dest)
+            state.moveFigure(team, figure, figure.position, dest)
             figure.stat = IN_MOTION
 
             if isinstance(action, LoadInto):
                 # figure moves inside transporter
-                action.transporter.transportLoad(figure)
+                t = state.getFigure(action)
+                t.transportLoad(figure)
             elif figure.transported_by:
                 # figure leaves transporter
                 figure.transported_by.transportUnload(figure)
@@ -228,9 +229,11 @@ class GameManager:
             return {}
 
         if isinstance(action, AttackGround):
-            f: Figure = action.figure
+            f: Figure = state.getFigure(action)
             x: Cube = action.ground
-            w: Weapon = action.weapon
+            w: Weapon = state.getWeapon(action)
+
+            w.shoot()
 
             if w.smoke:
                 cloud = [
@@ -252,13 +255,11 @@ class GameManager:
 
         if isinstance(action, Attack):  # Respond *is* an attack action
             f: Figure = figure  # who performs the attack action
-            t: Figure = action.target  # target
-            g: Figure = action.guard  # who has line-of-sight on target
-            w: Weapon = action.weapon
-            los: list = action.los  # line-of-sight on target of guard
+            t: Figure = state.getTarget(action)  # target
+            # g: Figure = action.guard  # who has line-of-sight on target
+            w: Weapon = state.getWeapon(action)
+            # los: list = action.los  # line-of-sight on target of guard
             lof: list = action.lof  # line-of-fire on target of figure
-
-            # TODO: implement smoke
 
             # consume ammunition
             w.shoot()
@@ -305,7 +306,7 @@ class GameManager:
             elif w.curved:
                 # missing with curved weapons
                 v = np.random.choice(range(1, 21), size=1)
-                hitLocation = MISS_MATRIX[agent](v)
+                hitLocation = MISS_MATRIX[team](v)
                 missed = state.getFiguresByPos(t.team, hitLocation)
                 missed = [m for m in missed if not m.killed]
 
@@ -339,8 +340,8 @@ class GameManager:
         # reduce smoke turn counter
         state.reduceSmoke()
 
-        for agent in [RED, BLUE]:
-            for figure in state.figures[agent]:
+        for team in [RED, BLUE]:
+            for figure in state.figures[team]:
                 figure.update(state.turn)
                 state.updateLOS(figure)
 
