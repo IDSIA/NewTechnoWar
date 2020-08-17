@@ -2,33 +2,35 @@
 
 import matplotlib.pyplot as plt
 
+from agents.matchmanager import MatchManager
 from core import RED, BLUE
 from core.game.pathfinding import findPath, reachablePath
-from core.game.scenarios import scenarioTestBench
 from utils.coordinates import cube_distance, cube_linedraw, cube_to_hex, to_cube
 from utils.drawing import draw_state, draw_show, draw_hex_line, draw_line, fig2img
 
 # %% initialization
-
 plt.rcParams['figure.dpi'] = 100
 plt.rcParams['figure.figsize'] = (8, 8)
 
-gm = scenarioTestBench()
+mm: MatchManager = MatchManager('', 'scenarioTestBench', 'PlayerDummy', 'PlayerDummy')
+gm = mm.gm
+board = mm.board
+state = mm.state
 
-redTank = gm.getFiguresByPos(RED, (2, 1))[0]
-blueTank = gm.getFiguresByPos(BLUE, (12, 12))[0]
+redTank = state.getFiguresByPos(RED, (2, 1))[0]
+blueTank = state.getFiguresByPos(BLUE, (12, 12))[0]
 
 # %% draw initial setup
-_, ax = draw_state(gm)
+_, ax = draw_state(board, state)
 im = draw_show(ax, title="Initial setup")
 
 # %%
 images = [fig2img(im)]
 
 for i in range(1, 7):
-    reachable, paths = reachablePath(blueTank, gm.board, i)
+    reachable, paths = reachablePath(blueTank, board, i)
 
-    fig, ax = draw_state(gm)
+    fig, ax = draw_state(board, state)
     ax = draw_hex_line(ax, reachable)
 
     for path in paths:
@@ -38,15 +40,15 @@ for i in range(1, 7):
 
     images.append(fig2img(im))
 
+"""
 images[0].save("BlueTankMovement.gif", save_all=True, append_images=images[1:], optimize=False, duration=600, loop=0)
-
-exit(0)  # TODO: remove
+"""
 
 # %%
 for i in range(1, 7):
-    reachable, paths = reachablePath(redTank, gm.board, i)
+    reachable, paths = reachablePath(redTank, board, i)
 
-    ax = draw_state(gm)
+    _, ax = draw_state(board, state)
     ax = draw_hex_line(ax, reachable)
 
     for path in paths:
@@ -54,21 +56,21 @@ for i in range(1, 7):
 
     draw_show(ax, title=f"{redTank} range {i}")
 
-exit(0)
+# %% compute reachable area
+movements = gm.buildMovements(board, state, BLUE, blueTank)
 
 # %% draw reachable area
-movements = gm.buildMovements(BLUE, blueTank)
-
-ax = draw_state(gm)
-draw_hex_line(ax, [a.destination for a in movements])
+_, ax = draw_state(board, state)
+for a in movements:
+    draw_hex_line(ax, a.destination)
 draw_show(ax)
 
 # %% perform move action
 m = movements[0]
 
-gm.activate(m)
+state1, outcome = gm.activate(board, state, m)
 
-draw_show(*draw_state(gm))
+draw_show(draw_state(board, state1)[1])
 
 # %% action performed
 print('move', m.figure.name, 'to', cube_to_hex(m.destination))
@@ -79,20 +81,19 @@ dx = cube_distance(redTank.position, blueTank.position)
 # %% draw line of sight
 line = cube_linedraw(redTank.position, blueTank.position)
 
-fig, ax = draw_state(gm)
+fig, ax = draw_state(board, state)
 ax = draw_hex_line(ax, line)
 draw_show(fig, ax)
 
 # %% perform shoot action
 # TODO: find doable shooting
 
-shoots = gm.buildAttacks(BLUE, blueTank)
-s = shoots[0]
+attacks = gm.buildAttacks(board, state, BLUE, blueTank)
+s = attacks[0]
 
 print(BLUE, 'shoots', s.figure.name, 'against', s.target.name, 'with', s.weapon.name)
 
 # %%
-
 borders = [
     (0, 0, 0, 9),
     (0, 9, 9, 9),
@@ -118,14 +119,14 @@ borders = [
 for sx, sy, ex, ey in borders:
     line = cube_linedraw(to_cube((sx, sy)), to_cube((ex, ey)))
 
-    fig, ax = draw_state(gm)
+    fig, ax = draw_state(board, state)
     ax = draw_hex_line(ax, line)
     draw_show(fig, ax)
 
 # %%
-path = findPath(redTank.position, blueTank.position, gm.board, blueTank.kind)
+path = findPath(redTank.position, blueTank.position, board, blueTank.kind)
 
 # %%
-fig, ax = draw_state(gm)
+fig, ax = draw_state(board, state)
 ax = draw_hex_line(ax, path)
 draw_show(fig, ax)

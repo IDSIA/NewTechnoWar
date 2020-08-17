@@ -7,13 +7,13 @@ from matplotlib.patches import RegularPolygon
 
 from core import RED, BLUE
 from core.figures import FigureType
-from core.game.manager import GameManager
+from core.game.manager import GameBoard, GameState
 from core.game.terrain import Terrain
 from utils.coordinates import cube_to_hex, to_cube
 
 
-def draw_void(gm):
-    cols, rows = gm.shape
+def draw_void(board: GameBoard):
+    cols, rows = board.shape
 
     fig = plt.figure()
     ax = plt.axes(xlim=(-1, cols), ylim=(-1, rows + 4), aspect='equal')
@@ -21,14 +21,15 @@ def draw_void(gm):
     return fig, ax
 
 
-def draw_state(gm: GameManager, size: float = 2. / 3., coord_qr=True, coord_xyz=False, fig=None, ax=None):
-    cols, rows = gm.shape
+def draw_state(board: GameBoard, state: GameState, size: float = 2. / 3., coord_qr=True, coord_xyz=False, fig=None,
+               ax=None):
+    cols, rows = board.shape
 
     if not fig:
         fig = plt.figure()
 
     if not ax:
-        fig, ax = draw_void(gm)
+        fig, ax = draw_void(board)
 
     for r in range(rows):
         for q in range(cols):
@@ -37,9 +38,9 @@ def draw_state(gm: GameManager, size: float = 2. / 3., coord_qr=True, coord_xyz=
 
             # background color
             color = 'white'
-            if gm.board.terrain[p] == Terrain.ROAD:
+            if board.terrain[p] == Terrain.ROAD:
                 color = 'gray'
-            if gm.board.terrain[p] > Terrain.ROAD:
+            if board.terrain[p] > Terrain.ROAD:
                 color = 'pink'
 
             # coordinates
@@ -52,10 +53,10 @@ def draw_state(gm: GameManager, size: float = 2. / 3., coord_qr=True, coord_xyz=
             if coord_xyz:
                 draw_text(ax, x, y + 0.2, f'({c.x},{c.y},{c.z})')
 
-            draw_units(ax, x, y, gm, RED, p)
-            draw_units(ax, x, y, gm, BLUE, p)
+            draw_units(ax, x, y, state, RED, p)
+            draw_units(ax, x, y, state, BLUE, p)
 
-            if gm.board.objective[p] > 0:
+            if board.objective[p] > 0:
                 draw_text(ax, x, y + 0.25, 'X', 'orange', 10)
 
     return fig, ax
@@ -87,8 +88,8 @@ def draw_text(ax, x, y, text, color='black', size=3):
     ax.text(x, y, text, ha='center', va='center', color=color, size=size)
 
 
-def draw_units(ax, x, y, gm: GameManager, agent: str, p: tuple):
-    figures = gm.getFiguresByPos(agent, p)
+def draw_units(ax, x, y, state: GameState, agent: str, p: tuple):
+    figures = state.getFiguresByPos(agent, p)
     for figure in figures:
         txt = 'T' if figure.kind == FigureType.VEHICLE else 'I'
 

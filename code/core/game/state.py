@@ -59,13 +59,13 @@ class GameState:
         figure.index = index
         self.moveFigure(agent, figure, dst=figure.position)
 
-    def getFigureByPos(self, agent: str, pos: tuple) -> list:
+    def getFiguresByPos(self, agent: str, pos: tuple) -> list:
         """Returns all the figures that occupy the given position."""
         if len(pos) == 2:
             pos = to_cube(pos)
         if pos not in self.posToFigure[agent]:
             return []
-        return self.posToFigure[agent][pos]
+        return [self.getFigureByIndex(agent, i) for i in self.posToFigure[agent][pos]]
 
     def getFigureByIndex(self, agent: str, index: int) -> Figure:
         """Given an index of a figure, return the figure."""
@@ -83,13 +83,13 @@ class GameState:
         """Moves a figure from current position to another destination."""
         ptf = self.posToFigure[agent]
         if curr:
-            ptf[curr].remove(figure)
+            ptf[curr].remove(figure.index)
             if len(ptf[curr]) == 0:
                 ptf.pop(curr, None)
         if dst:
             if dst not in ptf:
                 ptf[dst] = list()
-            ptf[dst].append(figure)
+            ptf[dst].append(figure.index)
             figure.goto(dst)
             self.updateLOS(figure)
         for f in figure.transporting:
@@ -123,7 +123,7 @@ class GameState:
     def isObstacle(self, pos: Cube) -> bool:
         """Returns if the position is an obstacle (a VEHICLE) to LOS or not."""
         for agent in (RED, BLUE):
-            for f in self.getFigureByPos(agent, pos):
+            for f in self.getFiguresByPos(agent, pos):
                 if f.kind == FigureType.VEHICLE:
                     return True
         return False

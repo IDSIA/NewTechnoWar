@@ -71,7 +71,7 @@ class GameManager:
         moves = []
 
         for destination in movements:
-            destinationFigures = state.getFigureByPos(agent, destination[-1])
+            destinationFigures = state.getFiguresByPos(agent, destination[-1])
             availableTransporters = [f for f in destinationFigures if f.canTransport(figure)]
 
             if not destinationFigures:
@@ -229,7 +229,7 @@ class GameManager:
 
         if isinstance(action, AttackGround):
             f: Figure = action.figure
-            x: tuple = action.ground
+            x: Cube = action.ground
             w: Weapon = action.weapon
 
             if w.smoke:
@@ -306,7 +306,7 @@ class GameManager:
                 # missing with curved weapons
                 v = np.random.choice(range(1, 21), size=1)
                 hitLocation = MISS_MATRIX[agent](v)
-                missed = state.getFigureByPos(t.team, hitLocation)
+                missed = state.getFiguresByPos(t.team, hitLocation)
                 missed = [m for m in missed if not m.killed]
 
                 logging.info(f'{action}: shell hit {hitLocation}: {len(missed)} hit')

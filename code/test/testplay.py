@@ -10,7 +10,9 @@ import yaml
 
 from core import TOTAL_TURNS, RED, BLUE
 from core.actions import Attack, Move, Action, ACTION_MOVE, ACTION_ATTACK
+from core.game.board import GameBoard
 from core.game.manager import GameManager
+from core.game.state import GameState
 from scenarios import scenarioTest1v1, scenarioTest3v1, scenarioTestBench, scenarioTest2v2
 from utils.drawing import draw_state, draw_show, fig2img, draw_hex_line
 
@@ -25,17 +27,17 @@ DRAW_IMAGE = os.getenv("DRAW_IMAGE", False)
 images = []
 
 
-def draw_initial(gm):
+def draw_initial(board: GameBoard, state: GameState):
     if DRAW_IMAGE:
-        _, ax = draw_state(gm)
+        _, ax = draw_state(board, state)
         im = draw_show(ax, title="Initial setup")
         images.append(fig2img(im))
 
 
-def draw_round(gm: GameManager, action: Action, turn: int):
+def draw_round(board: GameBoard, state: GameState, action: Action, turn: int):
     if not DRAW_IMAGE:
         return
-    fig, ax = draw_state(gm)
+    fig, ax = draw_state(board, state)
     if isinstance(action, Move):
         ax = draw_hex_line(ax, action.destination, color='green')
     if isinstance(action, Attack):
@@ -50,16 +52,16 @@ def draw_save(gm):
                        loop=0)
 
 
-def round(gm: GameManager, first: str, second: str, turn: int):
-    figures = gm.activableFigures(first)
+def round(gm: GameManager, board: GameBoard, state: GameState, first: str, turn: int):
+    figures = state.getFiguresCanBeActivated(first)
     if not figures:
         return
 
     # agent chooses figures
     f = np.random.choice(figures)
 
-    moves = gm.buildMovements(first, f)
-    shoots = gm.buildAttacks(first, f)
+    moves = gm.buildMovements(board, state, first, f)
+    shoots = gm.buildAttacks(board, state, first, f)
 
     if not moves and not shoots:
         return
@@ -83,41 +85,44 @@ def round(gm: GameManager, first: str, second: str, turn: int):
         actions = shoots
 
     action = np.random.choice(actions)
-    draw_round(gm, action, turn)
-    gm.activate(action)
+    draw_round(board, state, action, turn)
+    gm.step(board, state, action)
 
     if isinstance(action, Attack):
-        responses = gm.buildResponses(second, action.target)
+        responses = gm.buildResponses(board, state, action.target)
 
         if responses:
             if np.random.choice([True, False]):
                 response = np.random.choice(responses)
-                draw_round(gm, action, turn)
-                gm.activate(response)
+                draw_round(board, state, action, turn)
+                gm.step(board, state, response)
 
 
-def play(gm: GameManager, seed=42):
+def play(scene, seed=42):
     global images
     images = []
     np.random.seed(seed)
 
-    logging.info(f'SCENARIO: {gm.name}')
+    board, state = scene
+    gm: GameManager = GameManager()
+
+    logging.info(f'SCENARIO: {board.name}')
     logging.info(f'SEED: {seed}')
 
-    gm.update()
+    gm.update(state)
 
-    draw_initial(gm)
+    draw_initial(board, state)
 
     for turn in range(TOTAL_TURNS):
         logging.info(f'Turn {turn + 1}')
 
-        while gm.activableFigures(RED) or gm.activableFigures(BLUE):
-            round(gm, RED, BLUE, turn)
-            round(gm, BLUE, RED, turn)
+        while state.getFiguresCanBeActivated(RED) or state.getFiguresCanBeActivated(BLUE):
+            round(gm, board, state, RED, turn)
+            round(gm, board, state, BLUE, turn)
 
-        gm.update()
+        gm.update(state)
 
-        if gm.goalAchieved(x, ):
+        if gm.goalAchieved(board, state):
             logging.info("End game!")
             break
 
