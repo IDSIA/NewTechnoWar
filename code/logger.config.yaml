@@ -15,7 +15,7 @@ handlers:
     class: logging.FileHandler
     level: DEBUG
     formatter: basic
-    filename: web.log
+    filename: newtechnowar.log
 
 loggers:
   basicExample:

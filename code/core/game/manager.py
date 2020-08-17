@@ -99,6 +99,9 @@ class GameManager:
         if not any([figure.responded, figure.killed, target.killed, target.stat == HIDDEN]):
 
             for weapon in figure.weapons:
+                if weapon.smoke:
+                    # smoke weapons cannot be used as response since they do no damage
+                    continue
                 args = self.canShoot(board, state, figure, target, weapon)
                 if args:
                     responses.append(Respond(*args))
@@ -140,22 +143,38 @@ class GameManager:
         return s1, outcome
 
     @staticmethod
-    def step(board: GameBoard, state: GameState, action: Action) -> dict:
+    def applyDamage(action, hitScore, score, success, target, weapon):
+        target.hp -= success * weapon.damage
+        target.hit = True
+        if target.hp <= 0:
+            logging.info(f'{action}: ({success} {score}/{hitScore}): KILL! ({target.hp}/{target.hp_max})')
+            target.killed = True
+
+        else:
+            logging.info(f'{action}: ({success} {score}/{hitScore}): HIT!  ({target.hp}/{target.hp_max})')
+            # disable a random weapon
+            to_disable = np.random.choice([x for x in target.weapons if not weapon.disabled], weapon.damage)
+            for x in to_disable:
+                x.disabled = True
+
+    def step(self, board: GameBoard, state: GameState, action: Action) -> dict:
         """Update the given state with the given action in a irreversible way."""
         agent = action.agent
         figure = action.figure
         figure.activated = True
 
-        logging.info(action)
+        logging.debug(action)
 
         state.lastAction = action
 
         if isinstance(action, Pass):
+            logging.info(f'{action}')
             return {}
 
         figure.stat = NO_EFFECT
 
         if isinstance(action, Move):
+            logging.info(f'{action}')
             dest = action.destination[-1]
             state.moveFigure(agent, figure, figure.position, dest)
             figure.stat = IN_MOTION
@@ -168,8 +187,6 @@ class GameManager:
             w: Weapon = action.weapon
             los: list = action.los  # line-of-sight on target of guard
             lof: list = action.lof  # line-of-fire on target of figure
-
-            # TODO: mortar have different hit computation
 
             # TODO: implement smoke
 
@@ -210,29 +227,24 @@ class GameManager:
             # target can now respond to the fire
             t.attacked_by = f
 
-            logging.info(f'{action}: (({success}) {score}/{hitScore})')
+            logging.debug(f'{action}: (({success}) {score}/{hitScore})')
 
             if success > 0:
-                t.hp -= success * w.damage
-                logging.info(f'{action}: HIT! ({t.hp})')
-                t.hit = True
-                if t.hp <= 0:
-                    t.killed = True
-                    logging.info(f'{action}: KILLED!')
-                else:
-                    # disable a random weapon
-                    to_disable = np.random.choice([x for x in t.weapons if not w.disabled], w.damage)
-                    for x in to_disable:
-                        x.disabled = True
+                self.applyDamage(action, hitScore, score, success, t, w)
 
             elif w.curved:
-                # mortar
+                # missing with curved weapons
                 v = np.random.choice(range(1, 21), size=1)
                 hitLocation = MISS_MATRIX[agent](v)
-                # TODO: use hit matrix
+                missed = state.getFigureByPos(t.team, hitLocation)
+
+                logging.info(f'{action}: shell hit {hitLocation}: {len(missed)} hit')
+
+                for m in missed:
+                    self.applyDamage(action, hitScore, score, 1, m, w)
 
             else:
-                logging.info(f'{action}: miss')
+                logging.info(f'{action}: ({success} {score}/{hitScore}): MISS!')
 
             return {
                 'score': score,

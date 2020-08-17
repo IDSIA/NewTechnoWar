@@ -15,7 +15,7 @@ class Figure:
     """Describe the actions and properties of a Unit."""
 
     __slots__ = [
-        'fid', 'team', 'name', 'index', 'kind', 'move', 'load', 'hp', 'defense', 'weapons',
+        'fid', 'team', 'name', 'index', 'kind', 'move', 'load', 'hp', 'hp_max', 'defense', 'weapons',
         'int_atk', 'int_def', 'endurance', 'stat', 'position', 'activated', 'responded', 'killed', 'hit',
         'attacked_by', 'can_transport', 'transporting', 'transported_by', 'bonus'
     ]
@@ -32,6 +32,7 @@ class Figure:
         self.move: int = 0
         self.load: int = 0
         self.hp: int = 0
+        self.hp_max: int = 0
 
         self.defense: dict = {
             'basic': 1,
@@ -93,6 +94,7 @@ class Tank(Figure):
         self.move = 7
         self.load = 1
         self.hp = 1
+        self.max_hp = 1
 
         self.defense: dict = {
             'basic': 5,
@@ -117,6 +119,7 @@ class APC(Figure):
         self.move = 7
         self.load = 1
         self.hp = 1
+        self.max_hp = 1
 
         self.defense: dict = {
             'basic': 5,
@@ -140,6 +143,7 @@ class Infantry(Figure):
         self.move = 4
         self.load = 1
         self.hp = 4
+        self.max_hp = 4
 
         self.weapons = [
             AssaultRifle(INFINITE),
@@ -162,6 +166,7 @@ class Exoskeleton(Infantry):
         self.move = 4
         self.load = 0
         self.hp = 4
+        self.max_hp = 4
 
         self.weapons = [
             AssaultRifle(INFINITE),
@@ -186,6 +191,7 @@ class Sniper(Infantry):
         super().__init__(position, name, team, stat)
         self.move = 0
         self.hp = 4
+        self.max_hp = 4
 
         self.weapons = [
             SniperRifle(INFINITE)
@@ -202,3 +208,4 @@ class Civilian(Figure):
         self.move = 0
         self.load = 0
         self.hp = 1
+        self.max_hp = 1

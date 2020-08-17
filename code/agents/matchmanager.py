@@ -55,7 +55,7 @@ class MatchManager:
         self._goInit()
 
     def _goInit(self):
-        logging.info('step: init')
+        logging.debug('step: init')
         logging.info(f'SCENARIO: {self.board.name}')
         logging.info(f'SEED:     {self.seed}')
 
@@ -66,7 +66,7 @@ class MatchManager:
         self.step = self._goUpdate
 
     def _goRound(self):
-        logging.info(f'step: round {self.first.team:5}')
+        logging.debug(f'step: round {self.first.team:5}')
         self.update = False
 
         try:
@@ -85,13 +85,13 @@ class MatchManager:
             self._goCheck()
 
     def _goResponse(self):
-        logging.info(f'step: response {self.second.team:5}')
+        logging.debug(f'step: response {self.second.team:5}')
 
         try:
             response = self.second.chooseResponse(self.gm, self.board, self.state)
             outcome = self.gm.step(self.board, self.state, response)
 
-            logging.info(f'{self.second} respond')
+            logging.info(f'{self.second.team} respond')
 
             self.actionsDone.append(response)
             self.outcome.append(outcome)
@@ -105,8 +105,6 @@ class MatchManager:
             self._goCheck()
 
     def _goCheck(self):
-        logging.info('-' * 100)
-
         # check if we are at the end of the game
         if self.gm.goalAchieved(self.board, self.state):
             # if we achieved a goal, end
@@ -139,7 +137,7 @@ class MatchManager:
 
     def _goUpdate(self):
         logging.info('=' * 100)
-        logging.info('step: update')
+        logging.debug('step: update')
         self.update = True
 
         self.first = self.red
@@ -151,17 +149,17 @@ class MatchManager:
         self._goCheck()
 
     def _goEnd(self):
-        logging.info("step: end")
+        logging.debug("step: end")
         self.end = True
         self.step = self._goEnd
 
     def nextStep(self):
-        logging.info('next: step')
+        logging.debug('next: step')
 
         self.step()
 
     def nextTurn(self):
-        logging.info('next: turn')
+        logging.debug('next: turn')
 
         t = self.state.turn
         while self.state.turn == t and not self.end:
