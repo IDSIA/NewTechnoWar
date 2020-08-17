@@ -86,7 +86,7 @@ draw_show(fig, ax)
 # %% perform shoot action
 # TODO: find doable shooting
 
-shoots = gm.buildShoots(BLUE, blueTank)
+shoots = gm.buildAttacks(BLUE, blueTank)
 s = shoots[0]
 
 print(BLUE, 'shoots', s.figure.name, 'against', s.target.name, 'with', s.weapon.name)

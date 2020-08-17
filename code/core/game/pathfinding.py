@@ -7,7 +7,7 @@ from utils.coordinates import Cube, cube_distance
 heuristic = cube_distance
 
 
-def reachablePath(figure: Figure, board: GameBoard, max_cost: int):
+def reachablePath(figure: Figure, board: GameBoard, max_cost: int) -> (set, list):
     """This uses Uniform Cost Search."""
     start = figure.position
 
@@ -53,7 +53,7 @@ def reachablePath(figure: Figure, board: GameBoard, max_cost: int):
     return visited, paths
 
 
-def findPath(start: Cube, goal: Cube, board: GameBoard, kind: int):
+def findPath(start: Cube, goal: Cube, board: GameBoard, kind: int) -> list:
     """This uses A*"""
     frontier = PriorityQueue()
     frontier.put((0, start))

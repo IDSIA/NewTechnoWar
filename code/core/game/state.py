@@ -71,11 +71,11 @@ class GameState:
         """Given an index of a figure, return the figure."""
         return self.figures[agent][index]
 
-    def getFiguresActivatable(self, agent: str) -> list:
+    def getFiguresCanBeActivated(self, agent: str) -> list:
         """Returns a list of figures that have not been activated."""
         return [f for f in self.figures[agent] if not f.activated and not f.killed]
 
-    def getFiguresRespondatable(self, agent: str) -> list:
+    def getFiguresCanRespond(self, agent: str) -> list:
         """Returns a list of figures that have not responded."""
         return [f for f in self.figures[agent] if not f.responded and not f.killed]
 

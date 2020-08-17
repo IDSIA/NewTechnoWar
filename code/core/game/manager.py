@@ -4,7 +4,7 @@ from copy import deepcopy
 import numpy as np
 
 from core import RED, BLUE
-from core.actions import Action, Move, Shoot, Respond, Pass, LoadInto
+from core.actions import Action, Move, Attack, Respond, Pass, LoadInto, AttackGround
 from core.figures import Figure, FigureType
 from core.figures.status import IN_MOTION, UNDER_FIRE, NO_EFFECT, HIDDEN, CUT_OFF
 from core.figures.weapons import Weapon
@@ -12,6 +12,7 @@ from core.game import MISS_MATRIX, hitScoreCalculator, CUTOFF_RANGE
 from core.game.board import GameBoard
 from core.game.pathfinding import reachablePath
 from core.game.state import GameState
+from utils.coordinates import cube_add, Cube, cube_distance
 
 
 class GameManager:
@@ -86,11 +87,11 @@ class GameManager:
 
         return moves
 
-    def buildShoots(self, board: GameBoard, state: GameState, agent: str, figure: Figure) -> list:
+    def buildAttacks(self, board: GameBoard, state: GameState, agent: str, figure: Figure) -> list:
         """Returns a list of all the possible shooting actions that can be performed."""
 
         tAgent = RED if agent == BLUE else BLUE
-        shoots = []
+        attacks = []
 
         for target in state.figures[tAgent]:
             if target.killed or target.stat == HIDDEN:
@@ -99,9 +100,9 @@ class GameManager:
             for weapon in figure.weapons:
                 args = self.canShoot(board, state, figure, target, weapon)
                 if args:
-                    shoots.append(Shoot(*args))
+                    attacks.append(Attack(*args))
 
-        return shoots
+        return attacks
 
     def buildResponses(self, board: GameBoard, state: GameState, figure: Figure) -> list:
         """Returns a list of all possible response action that can be performed."""
@@ -125,6 +126,18 @@ class GameManager:
 
         return responses
 
+    @staticmethod
+    def buildSupportAttacks(board: GameBoard, state: GameState, agent: str, figure: Figure) -> list:
+        supports = []
+
+        for weapon in figure.weapons:
+            if weapon.smoke:
+                grounds, _ = reachablePath(figure, board, weapon.max_range)
+                for ground in grounds:
+                    supports.append(AttackGround(agent, figure, ground, weapon))
+
+        return supports
+
     def buildActionsForFigure(self, board: GameBoard, state: GameState, agent: str, figure: Figure) -> list:
         """Build all possible actions for the given figure."""
         actions = []
@@ -132,8 +145,11 @@ class GameManager:
         for movement in self.buildMovements(board, state, agent, figure):
             actions.append(movement)
 
-        for shoot in self.buildShoots(board, state, agent, figure):
-            actions.append(shoot)
+        for attack in self.buildAttacks(board, state, agent, figure):
+            actions.append(attack)
+
+        for support in self.buildSupportAttacks(board, state, agent, figure):
+            actions.append(support)
 
         for response in self.buildResponses(board, state, figure):
             actions.append(response)
@@ -197,7 +213,6 @@ class GameManager:
         figure.stat = NO_EFFECT
 
         if isinstance(action, Move):
-            logging.info(f'{action}')
             dest = action.destination[-1]
             state.moveFigure(agent, figure, figure.position, dest)
             figure.stat = IN_MOTION
@@ -209,10 +224,34 @@ class GameManager:
                 # figure leaves transporter
                 figure.transported_by.transportUnload(figure)
 
+            logging.info(f'{action}')
             return {}
 
-        if isinstance(action, Shoot):  # Respond *is* a shoot action
-            f: Figure = figure  # who performs the shoot action
+        if isinstance(action, AttackGround):
+            f: Figure = action.figure
+            x: tuple = action.ground
+            w: Weapon = action.weapon
+
+            if w.smoke:
+                cloud = [
+                    cube_add(x, Cube(0, -1, 1)),
+                    cube_add(x, Cube(1, -1, 0)),
+                    cube_add(x, Cube(1, 0, -1)),
+                    cube_add(x, Cube(0, 1, -1)),
+                    cube_add(x, Cube(-1, 1, 0)),
+                    cube_add(x, Cube(-1, 0, 1)),
+                ]
+
+                cloud = [(cube_distance(c, f.position), c) for c in cloud]
+                cloud = sorted(cloud, key=lambda y: -y[0])
+
+                state.addSmoke(cloud[1:3] + [x])
+
+                logging.info(f'{action}: smoke at {x}')
+            return {}
+
+        if isinstance(action, Attack):  # Respond *is* an attack action
+            f: Figure = figure  # who performs the attack action
             t: Figure = action.target  # target
             g: Figure = action.guard  # who has line-of-sight on target
             w: Weapon = action.weapon
@@ -226,7 +265,7 @@ class GameManager:
 
             score = np.random.choice(range(1, 21), size=w.dices)
 
-            # shoot/response
+            # attack/response
             if isinstance(action, Respond):
                 ATK = w.atk_response
                 INT = f.int_def

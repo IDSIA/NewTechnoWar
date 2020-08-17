@@ -1,7 +1,7 @@
 import numpy as np
 from flask.json import JSONEncoder
 
-from core.actions import Move, Pass, Shoot, Respond
+from core.actions import Move, Pass, Attack, Respond
 from core.figures import Figure
 from core.figures import FigureType
 from core.figures.weapons import Weapon
@@ -66,9 +66,9 @@ class GameJSONEncoder(JSONEncoder):
                 'destination': [cube_to_dict(hex) for hex in obj.destination],
             }
 
-        if isinstance(obj, Shoot) or isinstance(obj, Respond):
+        if isinstance(obj, Attack) or isinstance(obj, Respond):
             return {
-                'action': 'Respond' if isinstance(obj, Respond) else 'Shoot',
+                'action': 'Respond' if isinstance(obj, Respond) else 'Attack',
                 'agent': obj.agent,
                 'figure': obj.figure,
                 'target': obj.target,

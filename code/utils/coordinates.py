@@ -45,8 +45,19 @@ def cube_add(a: Cube, b: Cube):
     return Cube(x, y, z)
 
 
+def cube_subtract(a: Cube, b: Cube):
+    x = a.x - b.x
+    y = a.y - b.y
+    z = a.z - b.z
+    return Cube(x, y, z)
+
+
 def hex_add(a: Hex, b: Hex):
     return Hex(a.q + b.q, a.r + b.r)
+
+
+def hex_subtract(a, b):
+    return Hex(a.q - b.q, a.r - b.r)
 
 
 def cube_round(c: Cube):

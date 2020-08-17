@@ -6,7 +6,7 @@ import agents.players as players
 import scenarios
 from agents.players.player import Player
 from core import TOTAL_TURNS
-from core.actions import Shoot, Move
+from core.actions import Attack, Move
 from core.game.board import GameBoard
 from core.game.manager import GameManager
 from core.game.state import GameState
@@ -115,11 +115,11 @@ class MatchManager:
             # after a round we have a response
             action = self.actionsDone[-1] if len(self.actionsDone) > 0 else None
 
-            if isinstance(action, Shoot) or isinstance(action, Move):
+            if isinstance(action, Attack) or isinstance(action, Move):
                 self.step = self._goResponse
                 return
 
-        if self.state.getFiguresActivatable(self.first.team) or self.state.getFiguresActivatable(self.second.team):
+        if self.state.getFiguresCanBeActivated(self.first.team) or self.state.getFiguresCanBeActivated(self.second.team):
             # if there are still figure to activate, continue with a round
             if not self.step == self._goUpdate:
                 # invert only if it is not an update

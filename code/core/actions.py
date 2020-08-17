@@ -1,6 +1,5 @@
 from core.figures import Figure
 from core.figures.weapons import Weapon
-from utils.coordinates import Cube
 
 ACTION_PASS = 0
 ACTION_ATTACK = 1
@@ -57,6 +56,12 @@ class LoadInto(Move):
     """Action to load a Figure in a transporter at the destination."""
 
     def __init__(self, agent: str, figure: Figure, destination: list, transporter: Figure):
+        """
+        :param agent:           name of the agent
+        :param figure:          Figure that performs the action
+        :param destination:     path from current position to destination
+        :param transporter:     Figure to use as a transporter
+        """
         super().__init__(agent, figure, destination)
         self.transporter = transporter
 
@@ -64,11 +69,10 @@ class LoadInto(Move):
         return f'{super().__repr__()} load into {self.transporter}'
 
 
-class Shoot(Action):
-    """Action to shoot at another Figure."""
+class Attack(Action):
+    """Action to attack at another Figure."""
 
-    def __init__(self, agent: str, figure: Figure, target: Figure or None, guard: Figure, weapon: Weapon, los: list,
-                 lof: list):
+    def __init__(self, agent: str, figure: Figure, target: Figure, guard: Figure, weapon: Weapon, los: list, lof: list):
         """
         :param agent:   name of the agent
         :param figure:  Figure that performs the action
@@ -86,11 +90,11 @@ class Shoot(Action):
         self.lof = lof
 
     def __repr__(self):
-        return f'{super().__repr__()}: Shoot at {self.target} with {self.weapon}'
+        return f'{super().__repr__()}: Attack {self.target} with {self.weapon}'
 
 
-class Respond(Shoot):
-    """Similar to Shoot, but created only after a Shoot Action."""
+class Respond(Attack):
+    """Similar to Attack, but created only after a Attack Action."""
 
     def __init__(self, agent: str, figure: Figure, target: Figure, guard: Figure, weapon: Weapon, los: list, lof: list):
         """
@@ -106,3 +110,21 @@ class Respond(Shoot):
 
     def __repr__(self):
         return f'{super().__repr__()} in response'
+
+
+class AttackGround(Action):
+    """Similar to Attack, but aim to ground."""
+
+    def __init__(self, agent: str, figure: Figure, ground: tuple, weapon: Weapon):
+        """
+        :param agent:   name of the agent
+        :param figure:  Figure that performs the action
+        :param ground:  Figure target of the action
+        :param weapon:  weapon used by the attacker
+        """
+        super().__init__(agent, figure)
+        self.ground = ground
+        self.weapon = weapon
+
+    def __repr__(self):
+        return f'{super().__repr__()}: Attack ground at {self.ground} with {self.weapon}'

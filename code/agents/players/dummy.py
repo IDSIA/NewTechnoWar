@@ -17,23 +17,23 @@ class PlayerDummy(Player):
 
     def chooseAction(self, gm: GameManager, board: GameBoard, state: GameState) -> Action:
         # choose which figures that can still be activate will be activated
-        figures = state.getFiguresActivatable(self.team)
+        figures = state.getFiguresCanBeActivated(self.team)
         if not figures:
             raise ValueError(f"no more figures for {self.team}")
 
         f = np.random.choice(figures)
 
         moves = gm.buildMovements(board, state, self.team, f)
-        shoots = gm.buildShoots(board, state, self.team, f)
+        attacks = gm.buildAttacks(board, state, self.team, f)
 
-        if not moves and not shoots:
+        if not moves and not attacks:
             raise ValueError(f"no more moves for {f} {self.team}")
 
         whatDo = [ACTION_PASS]
 
         if moves:
             whatDo.append(ACTION_MOVE)
-        if shoots:
+        if attacks:
             whatDo.append(ACTION_ATTACK)
 
         # agent chooses type of action
@@ -48,7 +48,7 @@ class PlayerDummy(Player):
             actions = moves
 
         if toa == ACTION_ATTACK:
-            actions = shoots
+            actions = attacks
 
         return np.random.choice(actions)
 
@@ -58,7 +58,7 @@ class PlayerDummy(Player):
             raise ValueError('no response given')
 
         # choose which figures that can still respond will respond
-        figures = state.getFiguresRespondatable(self.team)
+        figures = state.getFiguresCanRespond(self.team)
         if not figures:
             raise ValueError('no figure can respond')
 

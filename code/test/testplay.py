@@ -9,7 +9,7 @@ import numpy as np
 import yaml
 
 from core import TOTAL_TURNS, RED, BLUE
-from core.actions import Shoot, Move, Action, ACTION_MOVE, ACTION_ATTACK
+from core.actions import Attack, Move, Action, ACTION_MOVE, ACTION_ATTACK
 from core.game.manager import GameManager
 from scenarios import scenarioTest1v1, scenarioTest3v1, scenarioTestBench, scenarioTest2v2
 from utils.drawing import draw_state, draw_show, fig2img, draw_hex_line
@@ -38,7 +38,7 @@ def draw_round(gm: GameManager, action: Action, turn: int):
     fig, ax = draw_state(gm)
     if isinstance(action, Move):
         ax = draw_hex_line(ax, action.destination, color='green')
-    if isinstance(action, Shoot):
+    if isinstance(action, Attack):
         ax = draw_hex_line(ax, action.los, color='orange')
     im = draw_show(ax, title=f"Turn {turn}: {action}")
     images.append(fig2img(im))
@@ -59,7 +59,7 @@ def round(gm: GameManager, first: str, second: str, turn: int):
     f = np.random.choice(figures)
 
     moves = gm.buildMovements(first, f)
-    shoots = gm.buildShoots(first, f)
+    shoots = gm.buildAttacks(first, f)
 
     if not moves and not shoots:
         return
@@ -86,7 +86,7 @@ def round(gm: GameManager, first: str, second: str, turn: int):
     draw_round(gm, action, turn)
     gm.activate(action)
 
-    if isinstance(action, Shoot):
+    if isinstance(action, Attack):
         responses = gm.buildResponses(second, action.target)
 
         if responses:
