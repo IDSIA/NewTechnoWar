@@ -30,7 +30,7 @@ class GameState:
             BLUE: dict(),
         }
 
-        self.smoke: np.array = np.zeros(shape, dtype='uint8')
+        self.smoke: np.array = np.zeros(shape, dtype='int8')
 
         self.figuresLOS: dict = {
             RED: dict(),
@@ -92,6 +92,8 @@ class GameState:
             ptf[dst].append(figure)
             figure.goto(dst)
             self.updateLOS(figure)
+        for f in figure.transporting:
+            self.moveFigure(agent, f, f.position, dst)
 
     def getLOS(self, target: Figure) -> dict:
         """Get all the lines of sight of all hostile figures of the given target."""

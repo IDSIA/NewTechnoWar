@@ -4,7 +4,7 @@ from copy import deepcopy
 import numpy as np
 
 from core import RED, BLUE
-from core.actions import Action, Move, Shoot, Respond, Pass
+from core.actions import Action, Move, Shoot, Respond, Pass, LoadInto
 from core.figures import Figure, FigureType
 from core.figures.status import IN_MOTION, UNDER_FIRE, NO_EFFECT, HIDDEN, CUT_OFF
 from core.figures.weapons import Weapon
@@ -67,7 +67,24 @@ class GameManager:
 
         _, movements = reachablePath(figure, board, distance)
 
-        return [Move(agent, figure, m) for m in movements]
+        moves = []
+
+        for destination in movements:
+            destinationFigures = state.getFigureByPos(agent, destination[-1])
+            availabelTransporters = [f for f in destinationFigures if f.canTransport()]
+
+            if not destinationFigures:
+                # move to empty destination
+                move = Move(agent, figure, destination)
+                moves.append(move)
+
+            elif availabelTransporters:
+                # load into transporter action
+                for transporter in availabelTransporters:
+                    move = LoadInto(agent, figure, destination, transporter)
+                    moves.append(move)
+
+        return moves
 
     def buildShoots(self, board: GameBoard, state: GameState, agent: str, figure: Figure) -> list:
         """Returns a list of all the possible shooting actions that can be performed."""
@@ -150,6 +167,12 @@ class GameManager:
             logging.info(f'{action}: ({success} {score}/{hitScore}): KILL! ({target.hp}/{target.hp_max})')
             target.killed = True
 
+            for f in target.transporting:
+                # kill all transported units
+                logging.info(f'{action}: {f} killed while transporting')
+                f.killed = True
+                f.hp = 0
+
         else:
             logging.info(f'{action}: ({success} {score}/{hitScore}): HIT!  ({target.hp}/{target.hp_max})')
             # disable a random weapon
@@ -178,6 +201,14 @@ class GameManager:
             dest = action.destination[-1]
             state.moveFigure(agent, figure, figure.position, dest)
             figure.stat = IN_MOTION
+
+            if isinstance(action, LoadInto):
+                # figure moves inside transporter
+                action.transporter.transportLoad(figure)
+            elif figure.transported_by:
+                # figure leaves transporter
+                figure.transported_by.transportUnload(figure)
+
             return {}
 
         if isinstance(action, Shoot):  # Respond *is* a shoot action
@@ -237,6 +268,7 @@ class GameManager:
                 v = np.random.choice(range(1, 21), size=1)
                 hitLocation = MISS_MATRIX[agent](v)
                 missed = state.getFigureByPos(t.team, hitLocation)
+                missed = [m for m in missed if not m.killed]
 
                 logging.info(f'{action}: shell hit {hitLocation}: {len(missed)} hit')
 

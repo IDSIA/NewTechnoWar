@@ -17,7 +17,7 @@ class Figure:
     __slots__ = [
         'fid', 'team', 'name', 'index', 'kind', 'move', 'load', 'hp', 'hp_max', 'defense', 'weapons',
         'int_atk', 'int_def', 'endurance', 'stat', 'position', 'activated', 'responded', 'killed', 'hit',
-        'attacked_by', 'can_transport', 'transporting', 'transported_by', 'bonus'
+        'attacked_by', 'can_transport', 'transport_capacity', 'transporting', 'transported_by', 'bonus'
     ]
 
     def __init__(self, position: tuple, name: str, team: str, kind: int, stat: FigureStatus):
@@ -60,6 +60,7 @@ class Figure:
         self.attacked_by = None
 
         self.can_transport: bool = False
+        self.transport_capacity: int = 0
         self.transporting: list = []
         self.transported_by = None
 
@@ -71,13 +72,16 @@ class Figure:
     def goto(self, destination: Cube):
         self.position = destination
 
-    def transport_load(self, figure):
+    def transportLoad(self, figure):
         self.transporting.append(figure)
         figure.transported_by = self
 
-    def transport_unload(self, figure):
+    def transportUnload(self, figure):
         self.transporting.remove(figure)
         figure.transported_by = None
+
+    def canTransport(self):
+        return self.can_transport and len(self.transporting) < self.transport_capacity
 
     def getKey(self):
         return f'{self.team}{self.index}'
@@ -109,6 +113,7 @@ class Tank(Figure):
         ]
 
         self.can_transport = True
+        self.transport_capacity = 2
 
 
 class APC(Figure):
@@ -133,6 +138,7 @@ class APC(Figure):
         ]
 
         self.can_transport = True
+        self.transport_capacity = 2
 
 
 class Infantry(Figure):
