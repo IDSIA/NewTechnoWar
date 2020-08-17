@@ -1,7 +1,7 @@
 import numpy as np
 
 from core import RED, BLUE
-from core.actions import Action, Attack, AttackGround
+from core.actions import Action, Attack, AttackGround, LoadInto
 from core.figures import FigureType, Figure, Weapon
 from core.game import MAX_SMOKE
 from utils.coordinates import to_cube, Cube, cube_linedraw, cube_to_hex
@@ -55,12 +55,12 @@ class GameState:
         Add a figures to the units of the given agent and it setup the index
         in the matrix at the position of the figure.
         """
-        agent = figure.team
-        figures = self.figures[agent]
+        team = figure.team
+        figures = self.figures[team]
         index = len(figures)  # to have 0-based index
         figures.append(figure)
         figure.index = index
-        self.moveFigure(agent, figure, dst=figure.position)
+        self.moveFigure(team, figure, dst=figure.position)
 
     def getFigure(self, action: Action) -> Figure:
         """Given an action, returns the figure that performs such action."""
@@ -71,31 +71,36 @@ class GameState:
         return self.getFigureByIndex(action.target_team, action.target_id)
 
     def getWeapon(self, action: Attack or AttackGround) -> Weapon:
+        """Given an Attack Action, returns the weapon used."""
         return self.getFigure(action).weapons[action.weapon_id]
 
-    def getFiguresByPos(self, agent: str, pos: tuple) -> list:
+    def getTransporter(self, action: LoadInto) -> Figure:
+        """Given a LoadInto action, return the destination transporter."""
+        return self.getFigureByIndex(action.team, action.transporter_id)
+
+    def getFiguresByPos(self, team: str, pos: tuple) -> list:
         """Returns all the figures that occupy the given position."""
         if len(pos) == 2:
             pos = to_cube(pos)
-        if pos not in self.posToFigure[agent]:
+        if pos not in self.posToFigure[team]:
             return []
-        return [self.getFigureByIndex(agent, i) for i in self.posToFigure[agent][pos]]
+        return [self.getFigureByIndex(team, i) for i in self.posToFigure[team][pos]]
 
-    def getFigureByIndex(self, agent: str, index: int) -> Figure:
+    def getFigureByIndex(self, team: str, index: int) -> Figure:
         """Given an index of a figure, return the figure."""
-        return self.figures[agent][index]
+        return self.figures[team][index]
 
-    def getFiguresCanBeActivated(self, agent: str) -> list:
+    def getFiguresCanBeActivated(self, team: str) -> list:
         """Returns a list of figures that have not been activated."""
-        return [f for f in self.figures[agent] if not f.activated and not f.killed]
+        return [f for f in self.figures[team] if not f.activated and not f.killed]
 
-    def getFiguresCanRespond(self, agent: str) -> list:
+    def getFiguresCanRespond(self, team: str) -> list:
         """Returns a list of figures that have not responded."""
-        return [f for f in self.figures[agent] if not f.responded and not f.killed]
+        return [f for f in self.figures[team] if not f.responded and not f.killed]
 
-    def moveFigure(self, agent: str, figure: Figure, curr: Cube = None, dst: Cube = None) -> None:
+    def moveFigure(self, team: str, figure: Figure, curr: Cube = None, dst: Cube = None) -> None:
         """Moves a figure from current position to another destination."""
-        ptf = self.posToFigure[agent]
+        ptf = self.posToFigure[team]
         if curr:
             ptf[curr].remove(figure.index)
             if len(ptf[curr]) == 0:
@@ -106,8 +111,6 @@ class GameState:
             ptf[dst].append(figure.index)
             figure.goto(dst)
             self.updateLOS(figure)
-        for f in figure.transporting:
-            self.moveFigure(agent, f, f.position, dst)
 
     def getLOS(self, target: Figure) -> dict:
         """Get all the lines of sight of all hostile figures of the given target."""

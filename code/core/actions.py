@@ -42,17 +42,18 @@ class Pass(Action):
 class Move(Action):
     """Action to move a Figure to the destination."""
 
-    __slots__ = ['position', 'destination']
+    __slots__ = ['position', 'path', 'destination']
 
-    def __init__(self, team: str, figure: Figure, destination: list):
+    def __init__(self, team: str, figure: Figure, path: list):
         """
-        :param team:            name of the team
-        :param figure:          Figure that performs the action
-        :param destination:     path from current position to destination
+        :param team:    name of the team
+        :param figure:  Figure that performs the action
+        :param path:    path from current position to destination
         """
         super().__init__(team, figure)
         self.position = figure.position
-        self.destination = destination
+        self.path = path
+        self.destination = path[-1]
 
     def __repr__(self):
         return f'{super().__repr__()}: Move to {self.destination[-1]}'

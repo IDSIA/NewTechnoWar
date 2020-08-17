@@ -213,24 +213,28 @@ class GameManager:
         figure.stat = NO_EFFECT
 
         if isinstance(action, Move):
-            dest = action.destination[-1]
-            state.moveFigure(team, figure, figure.position, dest)
-            figure.stat = IN_MOTION
-
             if isinstance(action, LoadInto):
                 # figure moves inside transporter
-                t = state.getFigure(action)
+                t = state.getTransporter(action)
                 t.transportLoad(figure)
-            elif figure.transported_by:
+            elif figure.transported_by > -1:
                 # figure leaves transporter
-                figure.transported_by.transportUnload(figure)
+                t = state.getFigureByIndex(team, figure.transported_by)
+                t.transportUnload(figure)
 
+            state.moveFigure(team, figure, figure.position, action.destination)
+            figure.stat = IN_MOTION
             logging.info(f'{action}')
+
+            for transported in figure.transporting:
+                f = state.getFigureByIndex(team, transported)
+                state.moveFigure(team, f, f.position, action.destination)
+
             return {}
 
         if isinstance(action, AttackGround):
             f: Figure = state.getFigure(action)
-            x: Cube = action.ground
+            x: tuple = action.ground
             w: Weapon = state.getWeapon(action)
 
             w.shoot()

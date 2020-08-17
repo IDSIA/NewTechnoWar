@@ -63,36 +63,38 @@ class Figure:
         self.can_transport: bool = False
         self.transport_capacity: int = 0
         self.transporting: list = []
-        self.transported_by = None
+        self.transported_by: int = -1
 
-    def update(self, turn: int):
+    def update(self, turn: int) -> None:
         self.endurance = ENDURANCE[turn]
         self.int_atk = INTELLIGENCE_ATTACK[turn]
         self.int_def = INTELLIGENCE_DEFENSE[turn]
 
-    def goto(self, destination: Cube):
+    def goto(self, destination: Cube) -> None:
         self.position = destination
 
-    def transportLoad(self, figure):
-        self.transporting.append(figure)
-        figure.transported_by = self
+    def transportLoad(self, figure) -> None:
+        if not self.canTransport(figure):
+            raise ValueError('cannot load figure')
+        self.transporting.append(figure.index)
+        figure.transported_by = self.index
 
-    def transportUnload(self, figure):
-        self.transporting.remove(figure)
-        figure.transported_by = None
+    def transportUnload(self, figure) -> None:
+        self.transporting.remove(figure.index)
+        figure.transported_by = -1
 
-    def canTransport(self, figure):
+    def canTransport(self, figure) -> bool:
         if figure.kind == FigureType.VEHICLE:
             return False
         return self.can_transport and len(self.transporting) < self.transport_capacity
 
-    def getKey(self):
+    def getKey(self) -> str:
         return f'{self.team}{self.index}'
 
-    def addWeapon(self, w: Weapon):
+    def addWeapon(self, w: Weapon) -> None:
         self.weapons[w.wid] = w
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{self.name}({self.position})'
 
 
