@@ -18,7 +18,7 @@ class GameState:
         self.name: str = name
         self.turn: int = -1
 
-        # list of all figures
+        # lists of all figures divided by team
         self.figures: dict = {
             RED: [],
             BLUE: []
@@ -30,13 +30,16 @@ class GameState:
             BLUE: dict(),
         }
 
+        # clouds of smoke on the map
         self.smoke: np.array = np.zeros(shape, dtype='int8')
 
+        # keep track of the line-of-sight to figures (marked by index) of the oppose team
         self.figuresLOS: dict = {
             RED: dict(),
             BLUE: dict()
         }
 
+        # keep track of the distance by using a line-of-sight between figures (marked by index) of the same team
         self.figuresDistance: dict = {
             RED: dict(),
             BLUE: dict()
