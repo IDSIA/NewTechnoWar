@@ -57,7 +57,7 @@ class Move(Action):
         self.destination = path[-1]
 
     def __repr__(self):
-        return f'{super().__repr__()}: Move to {self.destination[-1]}'
+        return f'{super().__repr__()}: Move to {self.destination}'
 
 
 class LoadInto(Move):
