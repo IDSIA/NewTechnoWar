@@ -48,8 +48,7 @@ def draw_round(board: GameBoard, state: GameState, action: Action, turn: int):
 
 def draw_save(gm):
     if DRAW_IMAGE:
-        images[0].save(f"{gm.name}.gif", save_all=True, append_images=images[1:], optimize=False, duration=600,
-                       loop=0)
+        images[0].save(f"{gm.name}.gif", save_all=True, append_images=images[1:], optimize=False, duration=600, loop=0)
 
 
 def round(gm: GameManager, board: GameBoard, state: GameState, first: str, turn: int):

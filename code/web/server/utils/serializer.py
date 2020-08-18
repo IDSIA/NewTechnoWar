@@ -5,12 +5,24 @@ from core.actions import Move, Pass, Attack, Respond, LoadInto, AttackGround
 from core.figures import Figure
 from core.figures import FigureType
 from core.figures.weapons import Weapon
+from core.game.state import GameState
 from web.server.utils import cube_to_ijxy, cube_to_dict
 
 
 class GameJSONEncoder(JSONEncoder):
 
     def default(self, obj):
+        if isinstance(obj, GameState):
+            return {
+                'name': obj.name,
+                'turn': obj.turn,
+                'figures': obj.figures,
+                'smoke': obj.smoke,
+                'los': obj.figuresLOS,
+                'distances': obj.figuresDistance,
+                'lastAction': obj.lastAction,
+            }
+
         if isinstance(obj, Figure):
             i, j, x, y = cube_to_ijxy(obj.position)
             kind = 'infantry' if obj.kind == FigureType.INFANTRY else 'vehicle'
@@ -26,6 +38,7 @@ class GameJSONEncoder(JSONEncoder):
                 'hp_max': obj.hp_max,
                 'defense': obj.defense,
                 'weapons': obj.weapons,
+                'weapons_keys': [k for k in obj.weapons.keys()],
                 'int_atk': obj.int_atk,
                 'int_def': obj.int_def,
                 'endurance': obj.endurance,
@@ -65,16 +78,16 @@ class GameJSONEncoder(JSONEncoder):
             return {
                 'action': 'Pass',
                 'team': obj.team,
-                'figure_id': obj.fid,
-                'figure_name': obj.name,
+                'figure_id': obj.figure_id,
+                'figure_name': obj.figure_name,
             }
 
         if isinstance(obj, LoadInto):
             return {
                 'action': 'Move',
                 'team': obj.team,
-                'figure_id': obj.fid,
-                'figure_name': obj.name,
+                'figure_id': obj.figure_id,
+                'figure_name': obj.figure_name,
                 'position': obj.position,
                 'destination': obj.destination,
                 'path': [cube_to_dict(h) for h in obj.path],
@@ -86,8 +99,8 @@ class GameJSONEncoder(JSONEncoder):
             return {
                 'action': 'Move',
                 'team': obj.team,
-                'figure_id': obj.fid,
-                'figure_name': obj.name,
+                'figure_id': obj.figure_id,
+                'figure_name': obj.figure_name,
                 'position': obj.position,
                 'destination': obj.destination,
                 'path': [cube_to_dict(h) for h in obj.path],
@@ -97,8 +110,8 @@ class GameJSONEncoder(JSONEncoder):
             return {
                 'action': 'Respond' if isinstance(obj, Respond) else 'Attack',
                 'team': obj.team,
-                'figure_id': obj.fid,
-                'figure_name': obj.name,
+                'figure_id': obj.figure_id,
+                'figure_name': obj.figure_name,
                 'target_id': obj.target_id,
                 'target_name': obj.target_name,
                 'target_team': obj.target_team,
@@ -113,8 +126,8 @@ class GameJSONEncoder(JSONEncoder):
             return {
                 'action': 'AttackGround',
                 'team': obj.team,
-                'figure_id': obj.fid,
-                'figure_name': obj.name,
+                'figure_id': obj.figure_id,
+                'figure_name': obj.figure_name,
                 'ground': obj.ground,
                 'weapon_id': obj.weapon_id,
                 'weapon_name': obj.weapon_name,

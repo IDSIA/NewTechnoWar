@@ -17,7 +17,7 @@ function ammoClass(data) {
     return data === 0 ? 'empty' : '';
 }
 
-function updateFigure(data, action='') {
+function updateFigure(data, action = '') {
     let figure = $(`#figure-${data.id}`);
     let mark = $(`#mark-${data.id}`);
 
@@ -64,13 +64,13 @@ function updateFigure(data, action='') {
     figures[gameId][data.id] = data;
 }
 
-function addFigure(data, agent) {
-    let fid = `figure-${data.id}`;
-    let gid = `mark-${data.id}`;
+function addFigure(figure, team) {
+    let fid = `figure-${figure.id}`;
+    let gid = `mark-${figure.id}`;
 
     let uData = $('<div/>').addClass('uData')
-        .append($('<div/>').addClass('uKind').addClass(agent).addClass(data.kind))
-        .append($('<div/>').addClass('uName').text(data.name))
+        .append($('<div/>').addClass('uKind').addClass(team).addClass(figure.kind))
+        .append($('<div/>').addClass('uName').text(figure.name))
         .append($('<div/>').addClass('uPos'))
         .append(
             $('<dev/>').addClass('uFixed')
@@ -81,7 +81,8 @@ function addFigure(data, agent) {
         .append($('<div/>').addClass('uStat'));
 
     let uWeapons = $('<div/>').addClass('uWeapons');
-    data.weapons.forEach(function (item, index) {
+    figure.weapons_keys.forEach((key, index) => {
+        let item = figure.weapons[key]
         let effect = item.no_effect ? 'wNoEffect' : '';
         let ammo = ammoNum(item);
         let range = item.max_range > 1000000 ? '∞' : item.max_range;
@@ -104,12 +105,12 @@ function addFigure(data, agent) {
         );
     });
 
-    $(`#${agent}Units`).append(
+    $(`#${team}Units`).append(
         $('<div/>')
             .attr('id', fid)
-            .addClass(data.kind)
+            .addClass(figure.kind)
             .addClass('unit')
-            .addClass(agent)
+            .addClass(team)
             .append(uData)
             .append(uWeapons)
             .hover(function () {
@@ -124,20 +125,20 @@ function addFigure(data, agent) {
     // unit marker
     let g = svg('g')
         .attr('id', gid)
-        .attr('transform', `translate(${data.x},${data.y + vEps})`)
+        .attr('transform', `translate(${figure.x},${figure.y + vEps})`)
         .addClass('unit')
-        .addClass(agent)
-        .addClass(data.kind)
+        .addClass(team)
+        .addClass(figure.kind)
         .append(
             svg('circle')
                 .attr('cx', '0')
                 .attr('cy', '0')
                 .attr('r', '5')
-                .attr('fill', `url(#${data.kind}Mark)`)
+                .attr('fill', `url(#${figure.kind}Mark)`)
         )
         .append(
             svg('image')
-                .attr('href', `/static/img/${data.kind}.png`)
+                .attr('href', `/static/img/${figure.kind}.png`)
                 .attr('x', '-5')
                 .attr('y', '-5')
                 .attr('width', '10')
@@ -157,25 +158,20 @@ function addFigure(data, agent) {
 }
 
 function updateTurn(data) {
-    console.log('new turn: ' + data.turn)
-    $('#btnTurn').addClass('highlight').text(data.turn);
+    console.log('new turn: ' + data.state.turn)
+    $('#btnTurn').addClass('highlight').text(data.state.turn);
 
-    // get the updated status of each figure from the server
-    $.get('/game/figures', function (data) {
-        let reds = data['red'];
-        let blues = data['blue'];
+    let reds = data.state.figures.red;
+    let blues = data.state.figures.blue;
 
-        reds.forEach(function (item, _) {
-            updateFigure(item);
-        });
-        blues.forEach(function (item, _) {
-            updateFigure(item);
-        });
-
-        $('div.weapon').removeClass('used');
-    }).fail(function () {
-        console.error('Failed to load figures!');
+    reds.forEach(function (item, _) {
+        updateFigure(item);
     });
+    blues.forEach(function (item, _) {
+        updateFigure(item);
+    });
+
+    $('div.weapon').removeClass('used');
 }
 
 function step() {
@@ -190,20 +186,26 @@ function step() {
             return;
         }
 
-        let action = data.action;
-        let agent = data.action.agent;
+        if (data.end) {
+            console.log('end game');
+            return;
+        }
 
-        console.log('step: ' + agent + ' ' + action.action);
+        let action = data.state.lastAction;
+        let figureData = data.state.figures[action.team][action.figure_id]
+
+        console.log('step: ' + action.team + ' ' + action.action);
         console.log(data);
 
         $('#btnTurn').removeClass('highlight');
 
-        let current = figures[action.figure.id];
-        let figure = $(`#figure-${action.figure.id}`);
-        let mark = $(document.getElementById(`mark-${action.figure.id}`));
+        let current = figures[gameId][figureData.id];
+        let figure = $(`#figure-${figureData.id}`);
+        let mark = $(document.getElementById(`mark-${figureData.id}`));
+        let target;
 
         let record = $('<div/>').addClass('record')
-            .append($('<span/>').addClass(action.agent).text(action.figure.name))
+            .append($('<span/>').addClass(action.team).text(figureData.name))
             .append(':&nbsp;')
 
         switch (action.action) {
@@ -214,23 +216,25 @@ function step() {
                 move(mark, action);
                 break;
             case 'Respond':
-                record.append($('<span/>').text(' in response'));
-                shoot(current, figure, mark, action, data.outcome);
-                updateFigure(action.target)
+                record.append($('<span/>').text(' In response'));
+                shoot(current, figure, mark, data);
+                target = data.state.figures[action.target_team][action.target_id]
+                updateFigure(target);
                 break;
-            case 'Shoot':
-                record.append($('<span/>').text(' Shoot'));
-                shoot(current, figure, mark, action, data.outcome);
-                updateFigure(action.target)
+            case 'Attack':
+                record.append($('<span/>').text(' Attack'));
+                shoot(current, figure, mark, data);
+                target = data.state.figures[action.target_team][action.target_id]
+                updateFigure(target);
                 break;
             case 'Pass':
-                record.append($('<span/>').text('passed'));
+                record.append($('<span/>').text('p Passed'));
                 break;
             default:
                 console.info("Not implemented yet: " + action.action);
         }
 
-        updateFigure(action.figure, action.action);
+        updateFigure(figureData, action.action);
         $('#console').append(record);
 
     }).fail(function () {
@@ -261,24 +265,25 @@ function drawLine(path) {
 
 function move(mark, data) {
     $(document.getElementById('moves')).append(
-        drawLine(data.destination)
-            .addClass('move')
+        drawLine(data.path).addClass('move')
     );
 
-    let end = data.destination.slice(-1)[0];
+    let end = data.path.slice(-1)[0];
     mark.attr('transform', `translate(${end.x},${end.y + vEps})`);
 }
 
-function shoot(current, figure, mark, data, outcome) {
-    let end = data.los.slice(-1)[0];
+function shoot(current, figure, mark, data) {
+    let outcome = data.outcome;
+    let action = data.action;
+    let end = action.los.slice(-1)[0];
 
-    let los = [data.los[0], data.los.slice(-1)[0]]
-    let lof = [data.lof[0], data.lof.slice(-1)[0]]
+    let los = [action.los[0], action.los.slice(-1)[0]]
+    let lof = [action.lof[0], action.lof.slice(-1)[0]]
 
     $('#shoots').append(
-        drawLine(los).addClass('shoot los').addClass(data.agent)
+        drawLine(los).addClass('shoot los').addClass(action.team)
     ).append(
-        drawLine(lof).addClass('shoot lof').addClass(data.agent)
+        drawLine(lof).addClass('shoot lof').addClass(action.team)
             .append(svg('g')
                 .attr('transform', `translate(${end.x + 10},${end.y})`)
                 .append(svg('rect'))
@@ -296,14 +301,15 @@ function shoot(current, figure, mark, data, outcome) {
             )
     );
 
-    let w = figure.find('div.w' + data.weapon.id);
+    let weapon = data.state.figures[action.team][action.figure_id].weapons[action.weapon_id]
+    let w = figure.find('div.w' + weapon.id);
     if (data.action === 'Respond')
         w.addClass('respond');
     if (data.action === 'Pass')
         w.addClass('pass');
     else
         w.addClass('used');
-    let ammo = ammoNum(data.weapon)
+    let ammo = ammoNum(weapon)
     w.find('div.wAmmo').addClass(ammoClass(ammo)).text(ammo);
 }
 
@@ -322,21 +328,21 @@ window.onload = function () {
     gameId = $.cookie("gameId");
     console.log('gameId: ' + gameId);
 
-    $.get('/game/figures', function (data) {
+    $.get('/game/state', function (data) {
         console.log(data);
 
         figures[gameId] = {};
 
-        let reds = data['red'];
-        let blues = data['blue'];
+        let reds = data.state.figures.red;
+        let blues = data.state.figures.blue;
 
-        reds.forEach(function (item, _) {
-            addFigure(item, 'red');
-            updateFigure(item);
+        reds.forEach(function (figure, _) {
+            addFigure(figure, 'red');
+            updateFigure(figure);
         });
-        blues.forEach(function (item, _) {
-            addFigure(item, 'blue');
-            updateFigure(item);
+        blues.forEach(function (figure, _) {
+            addFigure(figure, 'blue');
+            updateFigure(figure);
         });
 
         window.onkeyup = function (e) {

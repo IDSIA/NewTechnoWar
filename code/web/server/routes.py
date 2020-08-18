@@ -122,16 +122,18 @@ def gameReset():
         return redirect('/')
 
 
-@main.route("/game/figures", methods=["GET"])
-def gameFigures():
-    logging.info("Request figures")
+@main.route("/game/state", methods=["GET"])
+def gameState():
+    logging.info("Request state")
 
     try:
         _, mm = checkGameId()
-        return jsonify(mm.state.figures), 200
+        return jsonify({
+            'state': mm.state
+        }), 200
 
-    except ValueError as ve:
-        logging.error(ve)
+    except ValueError as e:
+        logging.error(e)
         return None, 404
 
 
@@ -151,14 +153,15 @@ def gameNextStep():
             lastOutcome = mm.outcome[-1]
 
         return jsonify({
-            'turn': mm.state.turn,
             'update': mm.update,
+            'end': mm.end,
+            'state': mm.state,
             'action': lastAction,
             'outcome': lastOutcome,
         }), 200
 
-    except ValueError as ve:
-        logging.error(ve)
+    except ValueError as e:
+        logging.error(e)
         return None, 404
 
 
@@ -168,12 +171,17 @@ def gameNextTurn():
 
     try:
         _, mm = checkGameId()
-
         mm.nextTurn()
+
         lastAction = mm.actionsDone[-1]
 
-        return jsonify({'turn': mm.state.turn, 'update': mm.update, 'actions': lastAction}), 200
+        return jsonify({
+            'update': mm.update,
+            'end': mm.end,
+            'state': mm.state,
+            'action': lastAction,
+        }), 200
 
-    except ValueError as ve:
-        logging.error(ve)
+    except ValueError as e:
+        logging.error(e)
         return None, 404

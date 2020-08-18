@@ -63,7 +63,7 @@ class GameState:
 
     def getFigure(self, action: Action) -> Figure:
         """Given an action, returns the figure that performs such action."""
-        return self.getFigureByIndex(action.team, action.fid)
+        return self.getFigureByIndex(action.team, action.figure_id)
 
     def getTarget(self, action: Attack) -> Figure:
         """Given an Attack Action, returns the target figure."""

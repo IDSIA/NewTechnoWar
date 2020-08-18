@@ -1,4 +1,5 @@
 import logging
+from copy import deepcopy
 
 import numpy as np
 
@@ -24,7 +25,7 @@ def buildMatchManager(gid: str, scenario: str, red: str, blue: str, seed: int = 
 
 class MatchManager:
     __slots__ = [
-        'gid', 'seed', 'actionsDone', 'outcome', 'end', 'board', 'state', 'gm', 'scenario', 'red', 'blue',
+        'gid', 'seed', 'actionsDone', 'outcome', 'end', 'board', 'state', 'origin', 'gm', 'scenario', 'red', 'blue',
         'first', 'second', 'step', 'update',
     ]
 
@@ -52,6 +53,7 @@ class MatchManager:
 
         self.board: GameBoard = board
         self.state: GameState = state
+        self.origin: GameState = deepcopy(state)
 
         self.red: Player = red
         self.blue: Player = blue
@@ -59,8 +61,7 @@ class MatchManager:
         self._goInit()
 
     def reset(self):
-        _, state = getattr(scenarios, self.scenario)()
-        self.state: GameState = state
+        self.state: GameState = deepcopy(self.state)
         self._goInit()
 
     def _goInit(self):

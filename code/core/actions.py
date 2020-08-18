@@ -11,7 +11,7 @@ ACTION_RESPONSE = 3
 class Action:
     """Basic action class"""
 
-    __slots__ = ['team', 'fid', 'name']
+    __slots__ = ['team', 'figure_id', 'figure_name']
 
     def __init__(self, team: str, figure: Figure):
         """
@@ -19,11 +19,11 @@ class Action:
         :param figure:  Figure that performs the action
         """
         self.team = team
-        self.fid = figure.index
-        self.name = figure.name
+        self.figure_id = figure.index
+        self.figure_name = figure.name
 
     def __repr__(self):
-        return f'{self.team:5}: {self.name:10}'
+        return f'{self.team:5}: {self.figure_name:10}'
 
 
 class Pass(Action):
