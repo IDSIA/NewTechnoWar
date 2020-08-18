@@ -3,8 +3,10 @@
 import matplotlib.pyplot as plt
 
 from agents.matchmanager import MatchManager
+from agents.players import PlayerDummy
 from core import RED, BLUE
 from core.game.pathfinding import findPath, reachablePath
+from scenarios import scenarioTestBench
 from utils.coordinates import cube_distance, cube_linedraw, cube_to_hex, to_cube
 from utils.drawing import draw_state, draw_show, draw_hex_line, draw_line, fig2img
 
@@ -12,10 +14,9 @@ from utils.drawing import draw_state, draw_show, draw_hex_line, draw_line, fig2i
 plt.rcParams['figure.dpi'] = 100
 plt.rcParams['figure.figsize'] = (8, 8)
 
-mm: MatchManager = MatchManager('', 'scenarioTestBench', 'PlayerDummy', 'PlayerDummy')
+board, state = scenarioTestBench()
+mm: MatchManager = MatchManager('', board, state, PlayerDummy(RED), PlayerDummy(BLUE))
 gm = mm.gm
-board = mm.board
-state = mm.state
 
 redTank = state.getFiguresByPos(RED, (2, 1))[0]
 blueTank = state.getFiguresByPos(BLUE, (12, 12))[0]
@@ -57,7 +58,7 @@ for i in range(1, 7):
     draw_show(ax, title=f"{redTank} range {i}")
 
 # %% compute reachable area
-movements = gm.buildMovements(board, state, BLUE, blueTank)
+movements = gm.buildMovements(board, state, blueTank)
 
 # %% draw reachable area
 _, ax = draw_state(board, state)
@@ -88,7 +89,7 @@ draw_show(fig, ax)
 # %% perform shoot action
 # TODO: find doable shooting
 
-attacks = gm.buildAttacks(board, state, BLUE, blueTank)
+attacks = gm.buildAttacks(board, state, blueTank)
 s = attacks[0]
 
 print(BLUE, 'shoots', s.figure.name, 'against', s.target.name, 'with', s.weapon.name)

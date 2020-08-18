@@ -2,7 +2,7 @@ import numpy as np
 
 from core.figures import FigureType
 from core.game.terrain import TERRAIN_TYPE
-from utils.coordinates import to_cube, Cube, cube_neighbor, cube_to_hex
+from utils.coordinates import to_cube, Cube, cube_neighbor, cube_to_hex, cube_range
 
 
 class GameBoard:
@@ -96,3 +96,12 @@ class GameBoard:
         """Returns the positions marked as goals."""
         goals = np.argwhere(self.objective > 0)
         return set(map(to_cube, goals))
+
+    def getRange(self, center: Cube, n: int):
+        """Returns all the positions inside a given range and a center."""
+        r = []
+        for x in cube_range(center, n):
+            h = cube_to_hex(x)
+            if 0 < h.q < self.shape[0] and 0 < h.r < self.shape[1]:
+                r.append(x)
+        return r

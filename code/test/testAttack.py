@@ -3,7 +3,6 @@ import unittest
 from agents.matchmanager import MatchManager
 from agents.players import PlayerDummy
 from core import RED, BLUE
-from core.actions import Attack
 from core.figures import Tank, Infantry
 from core.game.board import GameBoard
 from core.game.state import GameState
@@ -33,13 +32,10 @@ class TestAttack(unittest.TestCase):
         # initialization
         self.mm = MatchManager('', board, state, red, blue)
 
-        # compute possible attacks
-        self.attacks = self.mm.gm.buildAttacks(board, state, self.red_tank)
-
     def testAttack(self):
         board = self.mm.board
         state = self.mm.state
-        attack = self.attacks[0]
+        attack = self.mm.gm.actionAttack(board, state, self.red_tank, self.blue_tank, self.red_tank.weapons['CA'])
 
         target = state.getTarget(attack)
         weapon = state.getWeapon(attack)
@@ -55,7 +51,7 @@ class TestAttack(unittest.TestCase):
     def testActivateAttack(self):
         board = self.mm.board
         state = self.mm.state
-        attack = self.attacks[0]
+        attack = self.mm.gm.actionAttack(board, state, self.red_inf, self.blue_inf, self.red_tank.weapons['AR'])
 
         t0 = state.getTarget(attack)
         w0 = state.getWeapon(attack)
@@ -78,6 +74,7 @@ class TestAttack(unittest.TestCase):
     def testShootingGround(self):
         board = self.mm.board
         state = self.mm.state
+
 
 if __name__ == '__main__':
     unittest.main()

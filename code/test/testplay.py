@@ -60,8 +60,8 @@ def round(gm: GameManager, board: GameBoard, state: GameState, first: str, turn:
     # agent chooses figures
     f = np.random.choice(figures)
 
-    moves = gm.buildMovements(board, state, first, f)
-    shoots = gm.buildAttacks(board, state, first, f)
+    moves = gm.buildMovements(board, state, f)
+    shoots = gm.buildAttacks(board, state, f)
 
     if not moves and not shoots:
         return
@@ -89,7 +89,8 @@ def round(gm: GameManager, board: GameBoard, state: GameState, first: str, turn:
     gm.step(board, state, action)
 
     if isinstance(action, Attack):
-        responses = gm.buildResponses(board, state, action.target)
+        target = state.getTarget(action)
+        responses = gm.buildResponses(board, state, target)
 
         if responses:
             if np.random.choice([True, False]):

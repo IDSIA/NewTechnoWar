@@ -10,20 +10,93 @@ from core.figures.status import IN_MOTION, UNDER_FIRE, NO_EFFECT, HIDDEN, CUT_OF
 from core.figures.weapons import Weapon
 from core.game import MISS_MATRIX, hitScoreCalculator, CUTOFF_RANGE
 from core.game.board import GameBoard
-from core.game.pathfinding import reachablePath
+from core.game.pathfinding import reachablePath, findPath
 from core.game.state import GameState
-from utils.coordinates import cube_add, Cube, cube_distance
+from utils.coordinates import cube_add, Cube, cube_distance, to_cube
 
 
 class GameManager:
-    """Utility class that helps in manage the states of the game."""
+    """Utility class that helps in manage the states of the game and build actions."""
 
     @staticmethod
-    def canShoot(board: GameBoard, state: GameState, figure: Figure, target: Figure, weapon: Weapon) -> tuple or None:
-        """Check if the given weapon can shoot against the given target."""
-        team = figure.team
-        lines = state.getLOS(target)
+    def actionMove(board: GameBoard, figure: Figure, path: list = None, destination: tuple = None) -> Move:
+        """
+        Creates a Move action for a figure with a specified destination or a path. If path is not given, it will be
+        computed using the destination argument as a target. It can raise a ValueError exception if destination is
+        unreachable or if both destination and path are undefined.
+        """
 
+        if not path and not destination:
+            raise ValueError('no path and no destination given: where should go the figure?')
+
+        if not path:
+            if len(destination) == 2:
+                destination = to_cube(destination)
+            path = findPath(figure.position, destination, board, figure.kind)
+            if len(path) - 1 > (figure.move - figure.load):
+                raise ValueError(f'destination unreachable for {figure} to {path[-1]}')
+        return Move(figure.team, figure, path)
+
+    @staticmethod
+    def actionLoadInto(board: GameBoard, figure: Figure, transporter: Figure, path: list = None) -> LoadInto:
+        """
+        Creates a LoadInto action for a figure with a specified transporter as destination. If path is not given, then
+        it will be computed. It can raise a ValueError exception if the destination is unreachable.
+        """
+
+        if not path:
+            path = findPath(figure.position, transporter.position, board, figure.kind)
+            if len(path) - 1 > (figure.move - figure.load):
+                raise ValueError(f'destination unreachable for {figure} to {path[-1]}')
+        return LoadInto(figure.team, figure, path, transporter)
+
+    def buildMovements(self, board: GameBoard, state: GameState, figure: Figure) -> list:
+        """Build all the movement actions for a figure. All the other units are considered as obstacles."""
+
+        distance = figure.move - figure.load
+
+        _, movements = reachablePath(figure, board, distance)
+
+        moves = []
+
+        for path in movements:
+            destinationFigures = state.getFiguresByPos(figure.team, path[-1])
+            availableTransporters = [f for f in destinationFigures if f.canTransport(figure)]
+
+            # move to destination
+            moves.append(self.actionMove(board, figure, path))
+
+            if availableTransporters:
+                # load into transporter action
+                for transporter in availableTransporters:
+                    moves.append(self.actionLoadInto(board, figure, transporter, path))
+
+        return moves
+
+    @staticmethod
+    def canShoot(board: GameBoard, state: GameState, figure: Figure, target: Figure, weapon: Weapon) -> tuple:
+        """Check if the given weapon can shoot against the given target."""
+
+        if not weapon.isAvailable():
+            raise ValueError(f'{weapon} not available for {figure}')
+
+        if not weapon.hasAmmo():
+            raise ValueError(f'{weapon} does not have enough ammo')
+
+        if target.stat == HIDDEN:
+            raise ValueError(f'{weapon} cannot hit {target} because it is HIDDEN')
+
+        if weapon.antitank:
+            # can shoot only against vehicles
+            validTarget = target.kind == FigureType.VEHICLE
+        else:
+            # can shoot against infantry and others only
+            validTarget = target.kind != FigureType.VEHICLE
+
+        if not validTarget:
+            raise ValueError(f'{weapon} cannot hit {target} because it is not valid')
+
+        lines = state.getLOS(target)
         lof = lines[figure.index]
 
         if weapon.curved:
@@ -35,7 +108,7 @@ class GameManager:
                 canHit = not any([state.isObstacle(h) or board.isObstacle(h) for h in ls[1:-2]])
                 if canHit:
                     los = ls
-                    guard = state.figures[team][idx]
+                    guard = state.figures[figure.team][idx]
                     break
 
         else:
@@ -44,48 +117,25 @@ class GameManager:
             canHit = not any([state.isObstacle(h) or board.isObstacle(h) for h in lof[1:-2]])
             guard = figure
 
-        hasAmmo = weapon.hasAmmo()
-        available = weapon.isAvailable()
-        isInRange = weapon.max_range >= len(los)
-        isNotHidden = target.stat != HIDDEN
+        if not canHit:
+            raise ValueError(f'{weapon} cannot hit {target} from {figure.position}: no LOS on target')
 
-        if weapon.antitank:
-            # can shoot only against vehicles
-            validTarget = target.kind == FigureType.VEHICLE
-        else:
-            # can shoot against infantry and others only
-            validTarget = target.kind != FigureType.VEHICLE
+        if not weapon.max_range >= len(lof):
+            raise ValueError(f'{weapon} cannot hit {target} from {figure.position}: out of max range')
 
-        if all([canHit, hasAmmo, available, isInRange, validTarget, isNotHidden]):
-            return team, figure, target, guard, weapon, los, lof
-        return None
+        return figure.team, figure, target, guard, weapon, los, lof
 
     @staticmethod
-    def buildMovements(board: GameBoard, state: GameState, figure: Figure) -> list:
-        """Build all the movement actions for a figure. All the other units are considered as obstacles."""
-        team = figure.team
-        distance = figure.move - figure.load
+    def actionAttack(board: GameBoard, state: GameState, figure: Figure, target: Figure, weapon: Weapon) -> Attack:
+        """
+        Creates an Attack action for a figure given the specified target and weapon. Can raise ValueError if the shot
+        is not doable.
+        """
 
-        _, movements = reachablePath(figure, board, distance)
-
-        moves = []
-
-        for destination in movements:
-            destinationFigures = state.getFiguresByPos(team, destination[-1])
-            availableTransporters = [f for f in destinationFigures if f.canTransport(figure)]
-
-            if not destinationFigures:
-                # move to empty destination
-                move = Move(team, figure, destination)
-                moves.append(move)
-
-            elif availableTransporters:
-                # load into transporter action
-                for transporter in availableTransporters:
-                    move = LoadInto(team, figure, destination, transporter)
-                    moves.append(move)
-
-        return moves
+        args = GameManager.canShoot(board, state, figure, target, weapon)
+        if not args:
+            raise ValueError
+        return Attack(*args)
 
     def buildAttacks(self, board: GameBoard, state: GameState, figure: Figure) -> list:
         """Returns a list of all the possible shooting actions that can be performed."""
@@ -99,11 +149,24 @@ class GameManager:
                 continue
 
             for weapon in figure.weapons.values():
-                args = self.canShoot(board, state, figure, target, weapon)
-                if args:
-                    attacks.append(Attack(*args))
+                try:
+                    attacks.append(self.actionAttack(board, state, figure, target, weapon))
+                except ValueError as _:
+                    pass
 
         return attacks
+
+    @staticmethod
+    def actionRespond(board: GameBoard, state: GameState, figure: Figure, target: Figure, weapon: Weapon) -> Respond:
+        """
+        Creates a Respond action for a figure given the specified target and weapon. Can raise ValueError if the shot
+        is not doable.
+        """
+
+        args = GameManager.canShoot(board, state, figure, target, weapon)
+        if not args:
+            raise ValueError
+        return Respond(*args)
 
     def buildResponses(self, board: GameBoard, state: GameState, figure: Figure) -> list:
         """Returns a list of all possible response action that can be performed."""
@@ -121,26 +184,44 @@ class GameManager:
                 if weapon.smoke:
                     # smoke weapons cannot be used as response since they do no damage
                     continue
-                args = self.canShoot(board, state, figure, target, weapon)
-                if args:
-                    responses.append(Respond(*args))
+                try:
+                    responses.append(self.actionRespond(board, state, figure, target, weapon))
+                except ValueError as _:
+                    pass
 
         return responses
 
     @staticmethod
-    def buildSupportAttacks(board: GameBoard, state: GameState, figure: Figure) -> list:
+    def actionAttackGround(figure: Figure, ground: tuple, weapon: Weapon):
+        """Creates an AttackGround action for a figure given the ground location and the weapon to use."""
+
+        if not weapon.attack_ground:
+            raise ValueError(f'weapon {weapon} cannot attack ground')
+
+        if len(ground) == 2:
+            ground = to_cube(ground)
+
+        if cube_distance(figure.position, ground) > weapon.max_range:
+            raise ValueError(f'weapon {weapon} cannot reach {ground} from {figure.position}')
+
+        return AttackGround(figure.team, figure, ground, weapon)
+
+    def buildSupportAttacks(self, board: GameBoard, state: GameState, figure: Figure) -> list:
+        """Returns a list of all possible SupportAttack actions that can be performed."""
+
         supports = []
 
         for weapon in figure.weapons:
             if weapon.smoke:
-                grounds, _ = reachablePath(figure, board, weapon.max_range)
+                grounds = board.getRange(figure.position, weapon.max_range)
                 for ground in grounds:
-                    supports.append(AttackGround(figure.team, figure, ground, weapon))
+                    supports.append(self.actionAttackGround(figure, ground, weapon))
 
         return supports
 
     def buildActionsForFigure(self, board: GameBoard, state: GameState, figure: Figure) -> list:
         """Build all possible actions for the given figure."""
+
         actions = []
 
         for movement in self.buildMovements(board, state, figure):
@@ -161,6 +242,7 @@ class GameManager:
         """
         Build a list with all the possible actions that can be executed by an team with the current status of the board.
         """
+
         actions = []
 
         for figure in state.figures[team]:
@@ -171,14 +253,18 @@ class GameManager:
 
     def activate(self, board: GameBoard, state: GameState, action: Action) -> (GameState, dict):
         """Apply the step method to a deepcopy of the given GameState."""
+
         s1 = deepcopy(state)
         outcome = self.step(board, s1, action)
         return s1, outcome
 
     @staticmethod
     def applyDamage(action, hitScore, score, success, target, weapon):
+        """Applies the damage of a weapon to the target, if succeeded."""
+
         target.hp -= success * weapon.damage
         target.hit = True
+
         if target.hp <= 0:
             logging.info(f'{action}: ({success} {score}/{hitScore}): KILL! ({target.hp}/{target.hp_max})')
             target.killed = True
@@ -198,6 +284,7 @@ class GameManager:
 
     def step(self, board: GameBoard, state: GameState, action: Action) -> dict:
         """Update the given state with the given action in a irreversible way."""
+
         team = action.team
         figure = state.getFigure(action)
         figure.activated = True
@@ -337,8 +424,11 @@ class GameManager:
 
     @staticmethod
     def update(state: GameState) -> None:
-        """End turn function that updates the given GameStatus in an irreversibly way, by moving forward the internal
-        turn ticker."""
+        """
+        End turn function that updates the given GameStatus in an irreversibly way, by moving forward the internal
+        turn ticker.
+        """
+
         state.turn += 1
 
         # reduce smoke turn counter
@@ -375,6 +465,7 @@ class GameManager:
         """
         Current is a death match goal.
         """
+
         # TODO: change with different goals based on board
         redKilled = all([f.killed for f in state.figures[RED]])
         blueKilled = all([f.killed for f in state.figures[BLUE]])

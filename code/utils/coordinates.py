@@ -158,7 +158,7 @@ def hex_linedraw(a: Hex, b: Hex):
 
 # Movement range
 
-def cube_movement(center: Cube, N: int):
+def cube_range(center: Cube, N: int):
     results = []
     for x in range(-N, N + 1):
         for y in range(max(-N, -x - N), min(N, -x + N) + 1):
@@ -167,8 +167,8 @@ def cube_movement(center: Cube, N: int):
     return results
 
 
-def hex_movement(center: Hex, N: int):
-    results = cube_movement(hex_to_cube(center), N)
+def hex_range(center: Hex, N: int):
+    results = cube_range(hex_to_cube(center), N)
     return [cube_to_hex(c) for c in results]
 
 
