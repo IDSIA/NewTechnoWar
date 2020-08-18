@@ -1,5 +1,6 @@
 from core.figures import Figure
 from core.figures.weapons import Weapon
+from utils.coordinates import Cube
 
 ACTION_PASS = 0
 ACTION_ATTACK = 1
@@ -132,7 +133,7 @@ class AttackGround(Action):
 
     __slots__ = ['ground', 'weapon_id', 'weapon_name']
 
-    def __init__(self, team: str, figure: Figure, ground: tuple, weapon: Weapon):
+    def __init__(self, team: str, figure: Figure, ground: Cube, weapon: Weapon):
         """
         :param team:    name of the team
         :param figure:  Figure that performs the action

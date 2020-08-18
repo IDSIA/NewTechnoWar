@@ -58,7 +58,7 @@ class Figure:
         self.killed: bool = False
         self.hit: bool = False
 
-        self.attacked_by = None
+        self.attacked_by: int = -1
 
         self.can_transport: bool = False
         self.transport_capacity: int = 0
@@ -106,7 +106,7 @@ class Tank(Figure):
         self.move = 7
         self.load = 1
         self.hp = 1
-        self.max_hp = 1
+        self.hp_max = 1
 
         self.defense: dict = {
             'basic': 5,
@@ -130,7 +130,7 @@ class APC(Figure):
         self.move = 7
         self.load = 1
         self.hp = 1
-        self.max_hp = 1
+        self.hp_max = 1
 
         self.defense: dict = {
             'basic': 5,
@@ -153,7 +153,7 @@ class Infantry(Figure):
         self.move = 4
         self.load = 1
         self.hp = 4
-        self.max_hp = 4
+        self.hp_max = 4
 
         self.addWeapon(AssaultRifle(INFINITE))
         self.addWeapon(MachineGun(5))
@@ -174,7 +174,7 @@ class Exoskeleton(Infantry):
         self.move = 4
         self.load = 0
         self.hp = 4
-        self.max_hp = 4
+        self.hp_max = 4
 
         self.addWeapon(AssaultRifle(INFINITE))
         self.addWeapon(MachineGun(2))
@@ -197,7 +197,7 @@ class Sniper(Infantry):
         super().__init__(position, name, team, stat)
         self.move = 0
         self.hp = 4
-        self.max_hp = 4
+        self.hp_max = 4
 
         self.addWeapon(SniperRifle(INFINITE))
 
@@ -212,4 +212,4 @@ class Civilian(Figure):
         self.move = 0
         self.load = 0
         self.hp = 1
-        self.max_hp = 1
+        self.hp_max = 1

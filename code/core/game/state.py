@@ -52,8 +52,7 @@ class GameState:
 
     def addFigure(self, figure: Figure) -> None:
         """
-        Add a figures to the units of the given agent and it setup the index
-        in the matrix at the position of the figure.
+        Add a figures to the units of the given team and set the index in the matrix at the position of the figure.
         """
         team = figure.team
         figures = self.figures[team]
@@ -139,8 +138,8 @@ class GameState:
 
     def isObstacle(self, pos: Cube) -> bool:
         """Returns if the position is an obstacle (a VEHICLE) to LOS or not."""
-        for agent in (RED, BLUE):
-            for f in self.getFiguresByPos(agent, pos):
+        for team in (RED, BLUE):
+            for f in self.getFiguresByPos(team, pos):
                 if f.kind == FigureType.VEHICLE:
                     return True
         return False

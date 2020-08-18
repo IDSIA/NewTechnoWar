@@ -26,7 +26,6 @@ class TestMovementAction(unittest.TestCase):
 
         # initialization
         self.mm = MatchManager('', board, state, red, blue)
-        # self.mm.step()
 
         # compute reachable area
         self.movements = self.mm.gm.buildMovements(board, state, self.tank)
@@ -42,7 +41,7 @@ class TestMovementAction(unittest.TestCase):
                          'figure in the wrong position')
         self.assertEqual(self.tank.stat, IN_MOTION, 'figure should be in motion')
 
-    def testStepMoveToDestination(self):
+    def testActivateMoveToDestination(self):
         board = self.mm.board
         state = self.mm.state
         move = self.movements[0]
@@ -93,6 +92,7 @@ class TestMovementAction(unittest.TestCase):
         # figures moves along with tank
         self.assertEqual(inf1.position, self.tank.position)
         self.assertEqual(inf2.position, self.tank.position)
+        self.assertEqual(len(self.tank.transporting), 2)
 
         self.assertGreater(inf1.transported_by, -1)
 

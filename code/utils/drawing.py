@@ -88,14 +88,14 @@ def draw_text(ax, x, y, text, color='black', size=3):
     ax.text(x, y, text, ha='center', va='center', color=color, size=size)
 
 
-def draw_units(ax, x, y, state: GameState, agent: str, p: tuple):
-    figures = state.getFiguresByPos(agent, p)
+def draw_units(ax, x, y, state: GameState, team: str, p: tuple):
+    figures = state.getFiguresByPos(team, p)
     for figure in figures:
         txt = 'T' if figure.kind == FigureType.VEHICLE else 'I'
 
-        draw_hex(ax, x, y, agent, .5)
-        draw_text(ax, x, y - 0.25, figure.name, agent, 4)
-        draw_text(ax, x, y, txt, agent, 5)
+        draw_hex(ax, x, y, team, .5)
+        draw_text(ax, x, y - 0.25, figure.name, team, 4)
+        draw_text(ax, x, y, txt, team, 5)
 
 
 def draw_hex_line(ax, line, size=2. / 3., color='green'):

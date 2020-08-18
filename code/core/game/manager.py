@@ -234,7 +234,7 @@ class GameManager:
 
         if isinstance(action, AttackGround):
             f: Figure = state.getFigure(action)
-            x: tuple = action.ground
+            x: Cube = action.ground
             w: Weapon = state.getWeapon(action)
 
             w.shoot()
@@ -300,7 +300,7 @@ class GameManager:
             # target status changes for the _next_ hit
             t.stat = UNDER_FIRE
             # target can now respond to the fire
-            t.attacked_by = f
+            t.attacked_by = f.index
 
             logging.debug(f'{action}: (({success}) {score}/{hitScore})')
 
@@ -358,7 +358,7 @@ class GameManager:
                     figure.killed = False
                     figure.activated = False
                     figure.responded = False
-                    figure.attacked_by = None
+                    figure.attacked_by = -1
                     figure.hit = False
 
                 # update status

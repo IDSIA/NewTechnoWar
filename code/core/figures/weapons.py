@@ -9,8 +9,8 @@ class Weapon:
     Generic class for weapons mechanics.
     """
     __slots__ = [
-        'wid', 'name', 'max_range', 'atk_normal', 'atk_response', 'ammo', 'dices', 'curved', 'damage', 'antitank',
-        'miss_matrix', 'disabled', 'attack_ground', 'smoke',
+        'wid', 'name', 'max_range', 'atk_normal', 'atk_response', 'ammo', 'ammo_max', 'dices', 'curved', 'damage',
+        'antitank', 'miss_matrix', 'disabled', 'attack_ground', 'smoke',
     ]
 
     def __init__(self, _id: str, name: str, max_range: int, atk_normal: int, atk_response: int, ammo: int, dices: int,
@@ -22,6 +22,7 @@ class Weapon:
         self.atk_normal: int = atk_normal
         self.atk_response: int = atk_response
         self.ammo: int = ammo
+        self.ammo_max: int = ammo
         self.dices: int = dices
         self.curved: bool = curved
         self.damage: int = damage
