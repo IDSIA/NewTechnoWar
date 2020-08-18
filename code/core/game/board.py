@@ -81,7 +81,12 @@ class GameBoard:
         if pos in self.limits:
             return 1000.0
 
-        return self.moveCost[kind][cube_to_hex(pos)]
+        cost = self.moveCost[kind]
+
+        if pos not in cost:
+            return 1000.0
+
+        return cost[cube_to_hex(pos)]
 
     def getProtectionLevel(self, pos: Cube):
         """Returns the protection level in the given position."""

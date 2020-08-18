@@ -36,10 +36,16 @@ def index():
         logging.info(f"New lobby access")
 
         scenarios = [
-            "scenarioTest1v1",
-            "scenarioTest2v2",
-            "scenarioTest3v1",
-            "scenarioTestBench"
+            'scenarioTest1v1',
+            'scenarioTest2v2',
+            'scenarioTest3v1',
+            'scenarioTestBench',
+            'scenarioDummy1',
+            'scenarioDummy2',
+            'scenarioDummy3',
+            'scenarioDummyResponseCheck',
+            'scenarioInSightTest',
+            'scenarioJunction',
         ]
 
         players = [

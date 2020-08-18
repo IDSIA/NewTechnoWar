@@ -1,4 +1,6 @@
 """All these scenarios are adapted from the main project source code."""
+import numpy as np
+
 from core import RED, BLUE
 from core.figures import Tank, Infantry
 from core.game.board import GameBoard
@@ -39,7 +41,9 @@ def scenarioJunction() -> (GameBoard, GameState):
     board.addTerrain(urban)
     board.addTerrain(road)
 
-    objective = [(30, 13)]
+    objective = np.zeros(shape, dtype='uint8')
+    objective[(30, 13)] = 1
+
     board.addObjective(objective)
 
     # setup dynamic parameters
