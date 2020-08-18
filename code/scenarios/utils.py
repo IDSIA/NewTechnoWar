@@ -1,12 +1,12 @@
 import numpy as np
 
-from core.game.manager import GameManager
+from core.game.board import GameBoard
+from core.game.state import GameState
 from utils.coordinates import hex_linedraw, to_hex
 
 
-def blank(shape):
-    gm = GameManager(shape)
-    return gm
+def blank(shape) -> (GameBoard, GameState):
+    return GameBoard(shape), GameState(shape)
 
 
 def fillLine(terrain: np.ndarray, start: tuple, end: tuple, kind: int):
