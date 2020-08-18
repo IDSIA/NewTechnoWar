@@ -1,11 +1,11 @@
 """All these scenarios are adapted from the main project source code."""
+import numpy as np
+
 from core import RED, BLUE
-from core.figures import Infantry, Tank, FigureStatus
+from core.figures import Infantry, Tank
 from core.figures.status import HIDDEN
 from core.game.board import GameBoard
 from core.game.state import GameState
-import numpy as np
-
 from core.game.terrain import Terrain
 
 
@@ -150,4 +150,44 @@ def scenarioDummyResponseCheck() -> (GameBoard, GameState):
     state.addFigure(Infantry((4, 14), BLUE, stat=HIDDEN))
 
     board.name = state.name = 'scenarioDummyResponseCheck'
+    return board, state
+
+
+def scenarioInSightTest() -> (GameBoard, GameState):
+    """
+    Sets up a specific scenario. reset to state of board to an initial state.
+    Here this is just a dummy.
+    """
+
+    shape = (10, 20)
+    board = GameBoard(shape)
+    state = GameState(shape)
+
+    forest = np.zeros(shape, dtype='uint8')
+    forest[(2, 5)] = Terrain.FOREST
+    forest[(3, 5)] = Terrain.FOREST
+    forest[(4, 5)] = Terrain.FOREST
+    forest[(5, 5)] = Terrain.FOREST
+    forest[(6, 5)] = Terrain.FOREST
+    forest[(7, 5)] = Terrain.FOREST
+    forest[(8, 5)] = Terrain.FOREST
+    board.addTerrain(forest)
+
+    urban = np.zeros(shape, dtype='uint8')
+    urban[:, 14:20] = 1
+    board.addTerrain(urban)
+
+    roads = np.zeros(shape, dtype='uint8')
+    roads[0, :] = 1
+    board.addTerrain(roads)
+
+    objective = np.zeros(shape, dtype='uint8')
+    objective[9, 12] = 1
+    board.addObjective(objective)
+
+    state.addFigure(Tank((7, 10), RED))
+    state.addFigure(Tank((9, 7), RED))
+    state.addFigure(Infantry((4, 14), BLUE, stat=HIDDEN))
+
+    board.name = state.name = 'scenarioInSightTest'
     return board, state

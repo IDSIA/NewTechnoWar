@@ -1,6 +1,6 @@
 import numpy as np
 
-from core import RED, BLUE
+from core import RED, BLUE, TOTAL_TURNS
 from core.actions import Action, Attack, AttackGround, LoadInto
 from core.figures import FigureType, Figure, Weapon
 from core.game import MAX_SMOKE
@@ -12,11 +12,14 @@ class GameState:
     Dynamic parts of the board.
     """
 
-    __slots__ = ['name', 'turn', 'figures', 'posToFigure', 'smoke', 'figuresLOS', 'figuresDistance', 'lastAction']
+    __slots__ = [
+        'name', 'turn', 'turn_max', 'figures', 'posToFigure', 'smoke', 'figuresLOS', 'figuresDistance', 'lastAction'
+    ]
 
     def __init__(self, shape: tuple, name: str = ''):
         self.name: str = name
         self.turn: int = -1
+        self.turn_max: int = TOTAL_TURNS
 
         # lists of all figures divided by team
         self.figures: dict = {
