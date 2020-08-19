@@ -142,10 +142,14 @@ function addFigure(figure, team) {
     $(document.getElementById('markers')).append(g);
 }
 
+function changeTurnValue(turn) {
+    let x = turn + 1;
+    console.log('new turn: ' + x)
+    $('#btnTurn').addClass('highlight').text(x);
+}
+
 function updateTurn(data) {
-    let turn = data.state.turn +1;
-    console.log('new turn: ' + turn)
-    $('#btnTurn').addClass('highlight').text(turn);
+    changeTurnValue(data.state.turn);
 
     let reds = data.state.figures.red;
     let blues = data.state.figures.blue;
@@ -157,14 +161,19 @@ function updateTurn(data) {
         updateFigure(item);
     });
 
+    $('#moves').children('g').addClass('hide');
+    $('#shoots').children('g').addClass('hide');
+    $('#responses').children('g').addClass('hide');
     $('div.weapon').removeClass('used');
 }
 
-function appendLine(text) {
+function appendLine(text, newLine = true) {
     if (end)
         return;
     let textarea = $('#console')
-    textarea.val(textarea.val() + '\n' + text);
+    if (newLine)
+        text = '\n' + text
+    textarea.val(textarea.val() + text);
     textarea.scrollTop(textarea[0].scrollHeight);
 }
 
@@ -175,16 +184,16 @@ function step() {
             return;
         }
 
-        if (data.action === null) {
-            console.log('no actions');
-            appendLine('No actions');
-            return;
-        }
-
         if (data.end) {
             console.log('end game');
             appendLine('End')
             end = true;
+            return;
+        }
+
+        if (data.action === null) {
+            console.log('no actions');
+            appendLine('No actions');
             return;
         }
 
@@ -268,6 +277,12 @@ function shoot(current, figure, mark, data) {
     let los = [action.los[0], action.los.slice(-1)[0]]
     let lof = [action.lof[0], action.lof.slice(-1)[0]]
 
+    if (outcome.success === true) {
+        appendLine(': HIT!', false)
+    } else {
+        appendLine(': MISS!', false)
+    }
+
     $('#shoots').append(
         drawLine(los).addClass('shoot los').addClass(action.team)
     ).append(
@@ -318,6 +333,7 @@ window.onload = function () {
 
     $.get('/game/state', function (data) {
         console.log(data);
+        changeTurnValue(data.state.turn);
 
         figures[gameId] = {};
 

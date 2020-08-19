@@ -120,6 +120,7 @@ class GameJSONEncoder(JSONEncoder):
                 'target_team': obj.target_team,
                 'weapon_id': obj.weapon_id,
                 'guard_id': obj.guard_id,
+                'guard_name': obj.guard_name,
                 'weapon_name': obj.weapon_name,
                 'los': [cube_to_dict(h) for h in obj.los],
                 'lof': [cube_to_dict(h) for h in obj.lof],

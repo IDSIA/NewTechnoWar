@@ -54,6 +54,7 @@ span.blue {
 
 #gameLayout {
     display: flex;
+    height: 94vh;
 }
 
 .units {
@@ -214,7 +215,7 @@ svg {
 }
 
 .weapon.empty {
-    color: black;
+    color: red;
 }
 
 .weapon.used::before {
@@ -256,7 +257,7 @@ svg {
 }
 
 .wAR::before {
-    background-position: 19%;
+    background-position: 18%;
 }
 
 .wMG::before {
@@ -264,7 +265,7 @@ svg {
 }
 
 .wAT::before {
-    background-position: 49%;
+    background-position: 48%;
 }
 
 .wMT::before {
@@ -276,7 +277,7 @@ svg {
 }
 
 .wSM::before {
-    background-position: 93%;
+    background-position: 94%;
 }
 
 /* Figure status */
@@ -286,66 +287,47 @@ svg {
 
 div.unit {
     position: relative;
+    z-index: 10;
 }
 
 .notActivated {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-.moving::before {
-    content: 'M';
-    background-color: cyan;
+.activated::before {
     position: absolute;
-    top: 0;
+    bottom: 0;
     left: 0;
     z-index: 10;
     margin: 5px;
     color: black;
     font-weight: bold;
     padding: 5px;
+}
+
+.moving::before {
+    content: 'M';
+    background-color: cyan;
 }
 
 .attacking::before {
     content: 'A';
     background-color: purple;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 10;
-    margin: 5px;
-    color: black;
-    font-weight: bold;
-    padding: 5px;
 }
 
 .responded::before {
     content: 'R';
     background-color: orange;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 10;
-    margin: 5px;
-    color: black;
-    font-weight: bold;
-    padding: 5px;
 }
 
 .passed::before {
     content: 'P';
     background-color: green;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 10;
-    margin: 5px;
-    color: black;
-    font-weight: bold;
-    padding: 5px;
 }
 
 div.killed {
     background-color: #222222;
+    z-index: 9;
 }
 
 div.killed::before {
@@ -508,4 +490,8 @@ g.shoot.red g > rect {
 g.shoot g > text {
     fill: white;
     font-size: 4pt;
+}
+
+.hide {
+    display: none;
 }
