@@ -105,7 +105,7 @@ class GameManager:
             guard = None
             los = []
             for idx, ls in lines.items():
-                canHit = not any([state.isObstacle(h) or board.isObstacle(h) for h in ls[1:-2]])
+                canHit = not any([state.isObstacle(h) or board.isObstacle(h) for h in ls[1:-1]])
                 if canHit:
                     los = ls
                     guard = state.figures[figure.team][idx]
@@ -114,7 +114,7 @@ class GameManager:
         else:
             # Line-Of-Sight and Line-Of-Fire are equivalent
             los = lof
-            canHit = not any([state.isObstacle(h) or board.isObstacle(h) for h in lof[1:-2]])
+            canHit = not any([state.isObstacle(h) or board.isObstacle(h) for h in lof[1:-1]])
             guard = figure
 
         if not canHit:

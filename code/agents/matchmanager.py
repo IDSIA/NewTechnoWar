@@ -61,7 +61,7 @@ class MatchManager:
         self._goInit()
 
     def reset(self):
-        self.state: GameState = deepcopy(self.state)
+        self.state: GameState = deepcopy(self.origin)
         self._goInit()
 
     def _goInit(self):

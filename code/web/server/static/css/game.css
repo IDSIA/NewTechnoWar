@@ -80,19 +80,22 @@ span.blue {
 }
 
 div.unit.red {
-    border: 1px solid #992222;
+    border: 1px solid #ff6666;;
 }
 
 div.unit.blue {
-    border: 1px solid #222299;
+    border: 1px solid #6666ff;
 }
 
 #gameBoard {
     flex: 1;
+    max-width: 69vw;
+    max-height: 94vh;
 }
 
 svg {
-    height: 92vh;
+    height: inherit;
+    width: inherit;
     display: block;
     margin: 0.5em auto;
 }
@@ -341,10 +344,6 @@ div.unit {
     padding: 5px;
 }
 
-.passed::before {
-
-}
-
 div.killed {
     background-color: #222222;
 }
@@ -352,15 +351,14 @@ div.killed {
 div.killed::before {
     content: 'X';
     position: absolute;
-    top: 0;
-    left: 0;
+    top: -0.11em;
+    left: -0.02em;
     z-index: 10;
     margin: 5px;
     color: white;
     font-weight: bold;
     padding: 5px;
-    font-size: 80px;
-    width: 110px;
+    font-size: 5em;
     text-align: center;
 }
 

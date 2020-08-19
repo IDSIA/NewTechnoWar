@@ -20,7 +20,7 @@
     <div id="gameLayout">
         <div id="redUnits" class="units red"></div>
         <div id="gameBoard">
-            <svg id="view" viewBox="0 0 {{ shape[0] }} {{ shape[1] }}">
+            <svg id="view" viewBox="0 0 640 360">
                 <defs>
                     <polygon id="hex" class="hex" points="5,-9 -5,-9 -10,0 -5,9 5,9 10,0"></polygon>
                     <pattern id="infantryMark" x="0" y="0" patternUnits="userSpaceOnUse" height="1" width="1">
@@ -40,9 +40,9 @@
                                 {% if hex.objective %}
                                     ⭐
                                 {% endif %}
-                                {% if hex.blockLos %}
-                                    🚧
-                                {% endif %}
+                                {# {% if hex.blockLos %}#}
+                                {# 🚧#}
+                                {# {% endif %}#}
                                 {% if hex.terrain.name == 'Building' %}
                                     🏯
                                 {% endif %}
@@ -51,6 +51,9 @@
                                 {% endif %}
                                 {% if hex.terrain.name == 'Forest' %}
                                     🌲
+                                {% endif %}
+                                {% if hex.terrain.name == 'Urban' %}
+                                    🏙
                                 {% endif %}
                             </text>
                             <text class="coord" x="0" y="6">({{ hex.i }},{{ hex.j }})</text>
@@ -70,5 +73,6 @@
 {% endblock %}
 
 {% block additionalscripts %}
-    <script src="{{ url_for('static', filename='js/game.js', version='20191206') }}"></script>
+    <script src="{{ url_for('static', filename='js/game.js', version='20200818') }}"></script>
+    <script src="{{ url_for('static', filename='js/svg-pan-zoom.js', version='20200818') }}"></script>
 {% endblock %}

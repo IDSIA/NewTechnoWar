@@ -115,6 +115,7 @@ def gameReset():
     try:
         _, mm = checkGameId()
         mm.reset()
+        mm.step()
 
         response = make_response(
             redirect(f'/game/')

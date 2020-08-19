@@ -17,6 +17,14 @@ def _battleground16x16() -> GameBoard:
     board: GameBoard = GameBoard(shape)
 
     terrain = np.zeros(shape, dtype='uint8')
+    fillLine(terrain, (6, 3), (6, 5), Terrain.URBAN)
+    fillLine(terrain, (8, 12), (12, 10), Terrain.URBAN)
+    fillLine(terrain, (9, 13), (14, 10), Terrain.URBAN)
+    fillLine(terrain, (10, 13), (14, 11), Terrain.URBAN)
+    fillLine(terrain, (11, 14), (15, 12), Terrain.URBAN)
+    fillLine(terrain, (11, 15), (13, 14), Terrain.URBAN)
+    terrain[5, 3] = Terrain.URBAN
+
     fillLine(terrain, (0, 1), (5, 4), Terrain.ROAD)
     fillLine(terrain, (5, 4), (5, 8), Terrain.ROAD)
     fillLine(terrain, (0, 8), (5, 8), Terrain.ROAD)

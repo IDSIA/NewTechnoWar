@@ -31,7 +31,7 @@ TERRAIN_TYPE = [
     # stops all vehicle from moving
     Terrain('Forest', 4, 1., 1000., blockLos=True),
     # vehicle can move only 1 hexagon on urban terrain
-    Terrain('Urban', 0, 1., 6.),
+    Terrain('Urban', 0, 1., 6., blockLos=True),
     # solid obstacle
     Terrain('Building', 0, 1000., 1000., blockLos=True),
     # terrain type inside a building

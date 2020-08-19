@@ -6,7 +6,7 @@ let vEps = -3;
 
 const SVG = 'http://www.w3.org/2000/svg';
 
-function svg(tag) {
+function svge(tag) {
     return $(document.createElementNS(SVG, tag))
 }
 
@@ -108,21 +108,21 @@ function addFigure(figure, team) {
     );
 
     // unit marker
-    let g = svg('g')
+    let g = svge('g')
         .attr('id', gid)
         .attr('transform', `translate(${figure.x},${figure.y + vEps})`)
         .addClass('unit')
         .addClass(team)
         .addClass(figure.kind)
         .append(
-            svg('circle')
+            svge('circle')
                 .attr('cx', '0')
                 .attr('cy', '0')
                 .attr('r', '5')
                 .attr('fill', `url(#${figure.kind}Mark)`)
         )
         .append(
-            svg('image')
+            svge('image')
                 .attr('href', `/static/img/${figure.kind}.png`)
                 .attr('x', '-5')
                 .attr('y', '-5')
@@ -143,8 +143,9 @@ function addFigure(figure, team) {
 }
 
 function updateTurn(data) {
-    console.log('new turn: ' + data.state.turn)
-    $('#btnTurn').addClass('highlight').text(data.state.turn);
+    let turn = data.state.turn +1;
+    console.log('new turn: ' + turn)
+    $('#btnTurn').addClass('highlight').text(turn);
 
     let reds = data.state.figures.red;
     let blues = data.state.figures.blue;
@@ -230,7 +231,7 @@ function step() {
 }
 
 function drawLine(path) {
-    let g = svg('g');
+    let g = svge('g');
     let n = path.length - 1;
 
     for (let i = 0, j = 1; i < n; i++, j++) {
@@ -238,7 +239,7 @@ function drawLine(path) {
         let end = path[j];
 
         g.append(
-            svg('line')
+            svge('line')
                 .attr("x1", start.x)
                 .attr("y1", start.y + vEps)
                 .attr("x2", end.x)
@@ -271,19 +272,19 @@ function shoot(current, figure, mark, data) {
         drawLine(los).addClass('shoot los').addClass(action.team)
     ).append(
         drawLine(lof).addClass('shoot lof').addClass(action.team)
-            .append(svg('g')
+            .append(svge('g')
                 .attr('transform', `translate(${end.x + 10},${end.y})`)
-                .append(svg('rect'))
-                .append(svg('text')
-                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(`ATK: ${outcome.ATK}`))
-                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(`DEF: ${outcome.DEF}`))
-                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(`END: ${outcome.END}`))
-                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(`INT: ${outcome.INT}`))
-                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(`STAT: ${outcome.STAT}`))
-                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(`HIT SCORE: ${outcome.hitScore}`))
-                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(`SCORES: ${outcome.score}`))
-                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(`HITS: ${outcome.hits}`))
-                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(`SUCCESS: ${outcome.success}`))
+                .append(svge('rect'))
+                .append(svge('text')
+                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(`ATK: ${outcome.ATK}`))
+                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(`DEF: ${outcome.DEF}`))
+                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(`END: ${outcome.END}`))
+                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(`INT: ${outcome.INT}`))
+                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(`STAT: ${outcome.STAT}`))
+                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(`HIT SCORE: ${outcome.hitScore}`))
+                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(`SCORES: ${outcome.score}`))
+                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(`HITS: ${outcome.hits}`))
+                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(`SUCCESS: ${outcome.success}`))
                 )
             )
     );
