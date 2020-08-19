@@ -53,16 +53,17 @@ class GameState:
     def __repr__(self) -> str:
         return f'{self.turn}:\n{self.figures}\n{self.posToFigure}'
 
-    def addFigure(self, figure: Figure) -> None:
+    def addFigure(self, *figures: Figure) -> None:
         """
         Add a figures to the units of the given team and set the index in the matrix at the position of the figure.
         """
-        team = figure.team
-        figures = self.figures[team]
-        index = len(figures)  # to have 0-based index
-        figures.append(figure)
-        figure.index = index
-        self.moveFigure(team, figure, dst=figure.position)
+        for figure in figures:
+            team = figure.team
+            figures = self.figures[team]
+            index = len(figures)  # to have 0-based index
+            figures.append(figure)
+            figure.index = index
+            self.moveFigure(team, figure, dst=figure.position)
 
     def getFigure(self, action: Action) -> Figure:
         """Given an action, returns the figure that performs such action."""

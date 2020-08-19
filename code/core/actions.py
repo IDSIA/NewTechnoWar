@@ -90,7 +90,9 @@ class LoadInto(Move):
 class Attack(Action):
     """Action to attack at another Figure."""
 
-    __slots__ = ['target_id', 'target_name', 'target_team', 'guard_id', 'weapon_id', 'weapon_name', 'los', 'lof']
+    __slots__ = [
+        'target_id', 'target_name', 'target_team', 'guard_id', 'guard_name', 'weapon_id', 'weapon_name', 'los', 'lof'
+    ]
 
     def __init__(self, team: str, figure: Figure, target: Figure, guard: Figure, weapon: Weapon, los: list, lof: list):
         """
@@ -107,6 +109,7 @@ class Attack(Action):
         self.target_name = target.name
         self.target_team = target.team
         self.guard_id = guard.index
+        self.guard_name = guard.name
         self.weapon_id = weapon.wid
         self.weapon_name = repr(weapon)
         self.los = los

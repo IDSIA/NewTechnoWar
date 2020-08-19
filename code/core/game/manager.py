@@ -105,10 +105,14 @@ class GameManager:
             guard = None
             los = []
             for idx, ls in lines.items():
+                possibleGuard = state.figures[figure.team][idx]
+                if possibleGuard.killed:
+                    continue
+
                 canHit = not any([state.isObstacle(h) or board.isObstacle(h) for h in ls[1:-1]])
                 if canHit:
                     los = ls
-                    guard = state.figures[figure.team][idx]
+                    guard = possibleGuard
                     break
 
         else:
