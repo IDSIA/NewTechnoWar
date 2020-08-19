@@ -80,9 +80,9 @@ def scenarioTestBench() -> (GameBoard, GameState):
 
     state.addFigure(Infantry((14, 14), BLUE, 'bInf1'))
     state.addFigure(Infantry((13, 10), BLUE, 'bInf2'))
-    state.addFigure(Infantry((9, 13), BLUE, 'bInf3'))
+    state.addFigure(Infantry((9, 13), BLUE, 'bInf3', stat=HIDDEN))
 
-    state.addFigure(Tank((12, 12), BLUE, 'bTank1'))
+    state.addFigure(Tank((12, 12), BLUE, 'bTank1', stat=HIDDEN))
 
     board.name = state.name = "TestBench"
 

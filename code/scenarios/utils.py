@@ -118,6 +118,7 @@ def basicUrban():
     city[-6, 3:20].fill(Terrain.URBAN)
     city[-5, 4:20].fill(Terrain.URBAN)
     city[-4, 4:18].fill(Terrain.URBAN)
+
     return city
 
 
