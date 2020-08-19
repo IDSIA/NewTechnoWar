@@ -40,8 +40,10 @@ class PlayerDummy(Player):
         if attacks:
             whatDo.append(ACTION_ATTACK)
 
+        p = [[1], [0.1, 0.9], [0.1, 0.45, 0.45]]
+
         # agent chooses type of action
-        toa = np.random.choice(whatDo)
+        toa = np.random.choice(whatDo, p=p[len(whatDo) - 1])
 
         actions = []
 
