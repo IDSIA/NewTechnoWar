@@ -31,7 +31,7 @@ function updateFigure(data, action = '') {
     mark.removeClass('hit');
 
     figure.find('div.uPos').text(`(${data.i}, ${data.j})`);
-    figure.find('div.uHP').text(data.hp);
+    figure.find('div.uHP').text(`${data.hp}/${data.hp_max}`);
     figure.find('div.uLoad').text(data.load);
     figure.find('div.uMove').text(data.move);
     figure.find('div.uStat').text(data.stat);
@@ -68,9 +68,8 @@ function addFigure(figure, team) {
     let fid = `figure-${figure.id}`;
     let gid = `mark-${figure.id}`;
 
+    let uKind = $('<div/>').addClass('uKind').addClass(team).addClass(figure.kind);
     let uData = $('<div/>').addClass('uData')
-        .append($('<div/>').addClass('uKind').addClass(team).addClass(figure.kind))
-        .append($('<div/>').addClass('uName').text(figure.name))
         .append($('<div/>').addClass('uPos'))
         .append(
             $('<dev/>').addClass('uFixed')
@@ -78,6 +77,7 @@ function addFigure(figure, team) {
                 .append($('<div/>').addClass('uLoad'))
                 .append($('<div/>').addClass('uMove'))
         )
+        .append($('<div/>').addClass('uName').text(figure.name))
         .append($('<div/>').addClass('uStat'));
 
     let uWeapons = $('<div/>').addClass('uWeapons');
@@ -85,32 +85,16 @@ function addFigure(figure, team) {
         let item = figure.weapons[key]
         let effect = item.no_effect ? 'wNoEffect' : '';
         let ammo = ammoNum(item);
-        let range = item.max_range > 1000000 ? '∞' : item.max_range;
-        let curved = item.curved ? 'C' : ''; // TODO: find an image
-        let antiTank = item.antitank ? 'T' : ''; // TODO: find an image
-        let first = index === 0 ? 'first' : '';
 
         uWeapons.append(
-            $('<div/>')
-                .addClass('w' + item.id)
-                .addClass(effect)
-                .addClass(first)
-                .addClass('weapon')
-                .addClass(ammoClass(ammo))
-                .append($('<div/>').addClass('wName').text(item.name))
+            $('<div/>').addClass('w' + item.id).addClass(effect).addClass('weapon').addClass(ammoClass(ammo))
                 .append($('<div/>').addClass('wAmmo').text(ammo))
-                .append($('<div/>').addClass('wAtk').text(`${item.atk_normal}|${item.atk_response}`))
-                .append($('<div/>').addClass('wRange').text(range))
-                .append($('<div/>').addClass('wSpecs').text(`${curved}${antiTank}`))
         );
     });
 
     $(`#${team}Units`).append(
-        $('<div/>')
-            .attr('id', fid)
-            .addClass(figure.kind)
-            .addClass('unit')
-            .addClass(team)
+        $('<div/>').attr('id', fid).addClass(figure.kind).addClass('unit').addClass(team)
+            .append(uKind)
             .append(uData)
             .append(uWeapons)
             .hover(function () {
@@ -174,6 +158,12 @@ function updateTurn(data) {
     $('div.weapon').removeClass('used');
 }
 
+function appendLine(text) {
+    let textarea = $('#console')
+    textarea.val(textarea.val() + '\n' + text);
+    textarea.scrollTop(textarea[0].scrollHeight);
+}
+
 function step() {
     $.get('/game/next/step', function (data) {
         if (data.update) {
@@ -183,17 +173,20 @@ function step() {
 
         if (data.action === null) {
             console.log('no actions');
+            appendLine('No actions');
             return;
         }
 
         if (data.end) {
             console.log('end game');
+            appendLine('End')
             return;
         }
 
         let action = data.state.lastAction;
         let figureData = data.state.figures[action.team][action.figure_id]
 
+        appendLine(action.text);
         console.log('step: ' + action.team + ' ' + action.action);
         console.log(data);
 
@@ -204,39 +197,29 @@ function step() {
         let mark = $(document.getElementById(`mark-${figureData.id}`));
         let target;
 
-        let record = $('<div/>').addClass('record')
-            .append($('<span/>').addClass(action.team).text(figureData.name))
-            .append(':&nbsp;')
-
         switch (action.action) {
             case 'DoNothing':
                 break;
             case 'Move':
-                record.append($('<span/>').text('Move'));
                 move(mark, action);
                 break;
             case 'Respond':
-                record.append($('<span/>').text(' In response'));
                 shoot(current, figure, mark, data);
                 target = data.state.figures[action.target_team][action.target_id]
                 updateFigure(target);
                 break;
             case 'Attack':
-                record.append($('<span/>').text(' Attack'));
                 shoot(current, figure, mark, data);
                 target = data.state.figures[action.target_team][action.target_id]
                 updateFigure(target);
                 break;
             case 'Pass':
-                record.append($('<span/>').text('p Passed'));
                 break;
             default:
                 console.info("Not implemented yet: " + action.action);
         }
 
         updateFigure(figureData, action.action);
-        $('#console').append(record);
-
     }).fail(function () {
         console.error('Failed to step!');
     });

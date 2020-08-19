@@ -80,6 +80,7 @@ class GameJSONEncoder(JSONEncoder):
                 'team': obj.team,
                 'figure_id': obj.figure_id,
                 'figure_name': obj.figure_name,
+                'text': str(obj),
             }
 
         if isinstance(obj, LoadInto):
@@ -93,6 +94,7 @@ class GameJSONEncoder(JSONEncoder):
                 'path': [cube_to_dict(h) for h in obj.path],
                 'transporter_id': obj.transporter_id,
                 'transporter_name': obj.transporter_name,
+                'text': str(obj),
             }
 
         if isinstance(obj, Move):
@@ -104,6 +106,7 @@ class GameJSONEncoder(JSONEncoder):
                 'position': obj.position,
                 'destination': obj.destination,
                 'path': [cube_to_dict(h) for h in obj.path],
+                'text': str(obj),
             }
 
         if isinstance(obj, Attack) or isinstance(obj, Respond):
@@ -120,6 +123,7 @@ class GameJSONEncoder(JSONEncoder):
                 'weapon_name': obj.weapon_name,
                 'los': [cube_to_dict(h) for h in obj.los],
                 'lof': [cube_to_dict(h) for h in obj.lof],
+                'text': str(obj),
             }
 
         if isinstance(obj, AttackGround):
@@ -131,6 +135,7 @@ class GameJSONEncoder(JSONEncoder):
                 'ground': obj.ground,
                 'weapon_id': obj.weapon_id,
                 'weapon_name': obj.weapon_name,
+                'text': str(obj),
             }
 
         if isinstance(obj, np.ndarray):

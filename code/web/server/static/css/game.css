@@ -1,53 +1,3 @@
-svg {
-    height: 95vh;
-    margin: 10px;
-}
-
-#title {
-    padding: 10px;
-    display: flex;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background-color: #555555;
-}
-
-#title > h1 {
-    margin: 0;
-    flex-grow: 2;
-}
-
-#title > a {
-    font-size: 1em;
-    border: 1px solid #444444;
-    margin-left: 10px;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-#console {
-    display: none; /* TODO: implement console or info on map */
-    /*display: flex;*/
-    position: sticky;
-    background-color: black;
-    top: 0;
-    z-index: 10;
-    flex-direction: column;
-    max-height: 10vh;
-    color: #cccccc;
-    overflow-y: scroll;
-    padding-bottom: 10vh;
-}
-
-#console::-webkit-scrollbar {
-    display: none;
-
-}
-
-.record {
-    display: flex;
-}
-
 span.red {
     color: red;
     font-weight: bolder;
@@ -62,86 +12,110 @@ span.blue {
     display: none;
 }
 
+/* layout */
 .container {
     display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    justify-content: center;
-    align-items: flex-start;
+    flex-direction: column;
 }
 
-#units {
+#cockpit {
+    display: flex;
+    flex-direction: row;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    color: #999999;
+    background-color: #555555;
+}
+
+#title {
+    padding: 0.2em;
+    display: flex;
+}
+
+#title > h1 {
+    margin-left: 0.5em;
+    font-size: 1.25em;
+}
+
+#title > a {
+    font-size: 1em;
+    border: 1px solid #444444;
+    margin-left: 0.5em;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#console {
+    background-color: black;
+    color: #999999;
+    padding: 0.2em;
+    z-index: 10;
+    flex-grow: 1;
+    resize: none;
+
+}
+
+#gameLayout {
+    display: flex;
+    overflow: auto;
+}
+
+.units {
     flex: 1;
     display: flex;
     flex-direction: column;
     color: #cccccc;
     background-color: #555555;
     overflow-y: scroll;
-    height: 100vh;
 }
 
-#units::-webkit-scrollbar {
+.units::-webkit-scrollbar {
     display: none;
 }
 
-#gameBoard {
-    flex: 2;
-    height: 100vh;
-    overflow: auto;
+.units {
+    z-index: 1;
 }
 
-#red {
+.units.red {
     background-color: #992222;
-    z-index: 1;
 }
 
-
-#blue {
+.units.blue {
     background-color: #222299;
-    z-index: 1;
 }
 
-div.red.unit {
+div.unit.red {
     border: 1px solid #992222;
 }
 
-div.blue.unit {
+div.unit.blue {
     border: 1px solid #222299;
 }
 
-.units {
-    display: flex;
-    flex-wrap: wrap;
+#gameBoard {
+    overflow-y: scroll;
+}
+
+svg {
+    width: 55vw;
+    margin: 0.1em;
 }
 
 /* Figures structure */
 .unit {
-    margin: 5px 5px;
+    margin: 0.1em 0.2em;
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    padding: 5px;
-}
-
-.uData {
-    display: flex;
-    flex-direction: column;
-    align-content: flex-start;
-    position: relative;
-}
-
-.uData > div, .uFixed > div, .weapon > div {
-    background-color: #444444;
-    padding: 5px;
-    text-align: center;
-    position: relative;
-    margin-bottom: 5px;
+    padding: 0.2em;
 }
 
 .uKind {
-    background-size: 117px 97px;
-    width: 110px;
-    height: 85px;
+    background-size: 6.5em 6em;
+    width: 7em;
+    height: 6.5em;
 }
 
 .uKind.red {
@@ -160,8 +134,20 @@ div.blue.unit {
     background-image: url('/static/img/vehicle.png');
 }
 
-.wName {
-    width: 150px;
+.uData {
+    display: flex;
+    flex-direction: column;
+    align-content: flex-start;
+    width: 6em;
+    margin: 0 0.2em;
+}
+
+.uData > div, .uFixed > div, .weapon > div, .wAmmo   {
+    background-color: #444444;
+    padding: 5px;
+    text-align: center;
+    position: relative;
+    margin-bottom: 5px;
 }
 
 .uPos {
@@ -210,21 +196,16 @@ div.blue.unit {
 
 .uWeapons {
     font-size: 10pt;
-}
-
-.uWeapon {
     display: flex;
     flex-direction: row;
-    margin-left: 5px;
+    flex-wrap: wrap;
+    width: 10em;
+    margin-top: 0.75em
 }
 
 .weapon {
     display: flex;
-    margin: 0 5px 0 5px;
-}
-
-.first.weapon {
-    margin: 15px 5px 0;
+    margin: 0 0.2em 0 0;
 }
 
 .wName {
@@ -270,27 +251,6 @@ div.blue.unit {
 
 .wRange {
     width: 30px !important;
-}
-
-.first > .wAmmo::before {
-    content: 'AMMO';
-    font-size: 6pt;
-}
-
-.first > .wAtk::before {
-    content: 'ATK';
-    font-size: 6pt;
-    width: 35px;
-}
-
-.first > .wRange::before {
-    content: 'RANGE';
-    font-size: 6pt;
-}
-
-.first > .wSpecs::before {
-    content: 'SPEC';
-    font-size: 6pt;
 }
 
 .wCA::before {
@@ -391,7 +351,7 @@ div.unit {
 }
 
 div.killed {
-    background-color: black;
+    background-color: #222222;
 }
 
 div.killed::before {

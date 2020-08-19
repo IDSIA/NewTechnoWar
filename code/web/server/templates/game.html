@@ -5,67 +5,67 @@
 {% endblock %}
 
 {% block content %}
-    <div id="units">
+    <div id="cockpit">
         <div id="title">
+            <a id="home" href="{{ url_for('main.index') }}">🏚</a>
             <h1>New Techno War - AI Demo</h1>
             <a id="btnReset" href="{{ url_for('main.gameReset') }}">↩</a>
             <a id="btnNext" onclick="step()">▶</a>
             <a id="btnForward" onclick="turn()">▶▶|</a>
             <a id="btnTurn">{{ turn }}</a>
         </div>
-        <div id="console"></div>
-        <div id="red">
-            <div id="redUnits" class="units"></div>
-        </div>
-        <div id="blue">
-            <div id="blueUnits" class="units"></div>
-        </div>
+        <label for="console"></label>
+        <textarea id="console" readonly></textarea>
     </div>
-    <div id="gameBoard">
-        <svg id="view" viewBox="0 0 {{ shape[0] }} {{ shape[1] }}">
-            <defs>
-                <polygon id="hex" class="hex" points="5,-9 -5,-9 -10,0 -5,9 5,9 10,0"></polygon>
-                <pattern id="infantryMark" x="0" y="0" patternUnits="userSpaceOnUse" height="1" width="1">
-                    <image href="{{ url_for('static', filename='img/infantry.png') }}"></image>
-                </pattern>
-                <pattern id="tankMark" x="0" y="0" patternUnits="userSpaceOnUse" height="1" width="1">
-                    <image href="{{ url_for('static', filename='img/tank.png') }}"></image>
-                </pattern>
-            </defs>
-            <g id="board">
-                {% for hex in board %}
-                    <g id="x{{ hex.i }}y{{ hex.j }}"
-                            {# onclick="alert('{{ hex.position }}');" #}
-                       transform="translate({{ hex.x }}, {{ hex.y }})">
-                        <use href="#hex" class="{{ hex.css() }}"></use>
-                        <text class="content" x="0" y="0">
-                            {% if hex.objective %}
-                                ⭐
-                            {% endif %}
-                            {% if hex.blockLos %}
-                                🚧
-                            {% endif %}
-                            {% if hex.terrain.name == 'Building' %}
-                                🏯
-                            {% endif %}
-                            {% if hex.terrain.name == 'Isolated tree cover' %}
-                                🌳
-                            {% endif %}
-                            {% if hex.terrain.name == 'Forest' %}
-                                🌲
-                            {% endif %}
-                        </text>
-                        <text class="coord" x="0" y="6">({{ hex.i }},{{ hex.j }})</text>
-                    </g>
-                {% endfor %}
-            </g>
-            <g id="actions">
-                <g id="moves"></g>
-                <g id="shoots"></g>
-                <g id="responses"></g>
-            </g>
-            <g id="markers"></g>
-        </svg>
+    <div id="gameLayout">
+        <div id="redUnits" class="units red"></div>
+        <div id="gameBoard">
+            <svg id="view" viewBox="0 0 {{ shape[0] }} {{ shape[1] }}">
+                <defs>
+                    <polygon id="hex" class="hex" points="5,-9 -5,-9 -10,0 -5,9 5,9 10,0"></polygon>
+                    <pattern id="infantryMark" x="0" y="0" patternUnits="userSpaceOnUse" height="1" width="1">
+                        <image href="{{ url_for('static', filename='img/infantry.png') }}"></image>
+                    </pattern>
+                    <pattern id="tankMark" x="0" y="0" patternUnits="userSpaceOnUse" height="1" width="1">
+                        <image href="{{ url_for('static', filename='img/tank.png') }}"></image>
+                    </pattern>
+                </defs>
+                <g id="board">
+                    {% for hex in board %}
+                        <g id="x{{ hex.i }}y{{ hex.j }}"
+                                {# onclick="alert('{{ hex.position }}');" #}
+                           transform="translate({{ hex.x }}, {{ hex.y }})">
+                            <use href="#hex" class="{{ hex.css() }}"></use>
+                            <text class="content" x="0" y="0">
+                                {% if hex.objective %}
+                                    ⭐
+                                {% endif %}
+                                {% if hex.blockLos %}
+                                    🚧
+                                {% endif %}
+                                {% if hex.terrain.name == 'Building' %}
+                                    🏯
+                                {% endif %}
+                                {% if hex.terrain.name == 'Isolated tree cover' %}
+                                    🌳
+                                {% endif %}
+                                {% if hex.terrain.name == 'Forest' %}
+                                    🌲
+                                {% endif %}
+                            </text>
+                            <text class="coord" x="0" y="6">({{ hex.i }},{{ hex.j }})</text>
+                        </g>
+                    {% endfor %}
+                </g>
+                <g id="actions">
+                    <g id="moves"></g>
+                    <g id="shoots"></g>
+                    <g id="responses"></g>
+                </g>
+                <g id="markers"></g>
+            </svg>
+        </div>
+        <div id="blueUnits" class="units blue"></div>
     </div>
 {% endblock %}
 
