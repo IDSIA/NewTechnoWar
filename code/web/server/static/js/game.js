@@ -1,5 +1,6 @@
 let figures = {};
 let gameId = undefined;
+let end = false;
 
 let vEps = -3;
 
@@ -159,6 +160,8 @@ function updateTurn(data) {
 }
 
 function appendLine(text) {
+    if (end)
+        return;
     let textarea = $('#console')
     textarea.val(textarea.val() + '\n' + text);
     textarea.scrollTop(textarea[0].scrollHeight);
@@ -180,6 +183,7 @@ function step() {
         if (data.end) {
             console.log('end game');
             appendLine('End')
+            end = true;
             return;
         }
 

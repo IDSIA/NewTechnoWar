@@ -120,7 +120,6 @@ def gameReset():
             redirect(f'/game/')
         )
 
-        response.delete_cookie("gameId")
         return response
 
     except ValueError as ve:
