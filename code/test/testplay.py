@@ -9,7 +9,7 @@ import numpy as np
 import yaml
 
 from core import TOTAL_TURNS, RED, BLUE
-from core.actions import Attack, Move, Action, ACTION_MOVE, ACTION_ATTACK
+from core.actions import Attack, Move, Action
 from core.game.board import GameBoard
 from core.game.manager import GameManager
 from core.game.state import GameState
@@ -23,6 +23,9 @@ with open(os.path.join(dir_path, 'logger.config.yaml'), 'r') as stream:
 logging.config.dictConfig(config)
 
 DRAW_IMAGE = os.getenv("DRAW_IMAGE", False)
+
+ACTION_MOVE = 0
+ACTION_ATTACK = 1
 
 images = []
 

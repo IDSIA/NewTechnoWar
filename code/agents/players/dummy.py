@@ -1,10 +1,14 @@
 import numpy as np
 
 from agents.players.player import Player
-from core.actions import Action, ACTION_MOVE, ACTION_ATTACK, ACTION_PASS, Pass
+from core.actions import Action, Pass
 from core.game.board import GameBoard
 from core.game.manager import GameManager
 from core.game.state import GameState
+
+ACTION_MOVE = 0
+ACTION_ATTACK = 1
+ACTION_PASS = 2
 
 
 class PlayerDummy(Player):

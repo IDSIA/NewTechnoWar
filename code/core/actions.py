@@ -1,11 +1,6 @@
 from core.figures import Figure
 from core.figures.weapons import Weapon
-from utils.coordinates import Cube
-
-ACTION_PASS = 0
-ACTION_ATTACK = 1
-ACTION_MOVE = 2
-ACTION_RESPONSE = 3
+from utils.coordinates import Cube, cube_to_hex
 
 
 class Action:
@@ -25,6 +20,9 @@ class Action:
     def __repr__(self):
         return f'{self.team:5}: {self.figure_name:10}'
 
+    def __str__(self):
+        return f'{self.team.upper():5}: {self.figure_name:10}'
+
 
 class Pass(Action):
     """Action that just does nothing: used to mark a Figure as activated."""
@@ -38,6 +36,9 @@ class Pass(Action):
 
     def __repr__(self):
         return f'{super().__repr__()}: Pass'
+
+    def __str__(self):
+        return f'{super().__str__()}: Pass'
 
 
 class Move(Action):
@@ -59,6 +60,9 @@ class Move(Action):
     def __repr__(self):
         return f'{super().__repr__()}: Move to {self.destination}'
 
+    def __str__(self):
+        return f'{super().__str__()}: Moved to {cube_to_hex(self.destination)}'
+
 
 class LoadInto(Move):
     """Action to load a Figure in a transporter at the destination."""
@@ -77,7 +81,10 @@ class LoadInto(Move):
         self.transporter_name = transporter.name
 
     def __repr__(self):
-        return f'{super().__repr__()} load into {self.transporter_name}'
+        return f'{super().__repr__()} and load into {self.transporter_name}'
+
+    def __str__(self):
+        return f'{super().__str__()} and loaded into {self.transporter_name}'
 
 
 class Attack(Action):
@@ -108,6 +115,9 @@ class Attack(Action):
     def __repr__(self):
         return f'{super().__repr__()}: Attack {self.target_name} with {self.weapon_name}'
 
+    def __str__(self):
+        return f'{super().__str__()}: Attack {self.target_name} with {self.weapon_name}'
+
 
 class Respond(Attack):
     """Similar to Attack, but created only after a Attack Action."""
@@ -126,6 +136,9 @@ class Respond(Attack):
 
     def __repr__(self):
         return f'{super().__repr__()} in response'
+
+    def __str__(self):
+        return f'{super().__str__()} in response'
 
 
 class AttackGround(Action):
@@ -147,3 +160,6 @@ class AttackGround(Action):
 
     def __repr__(self):
         return f'{super().__repr__()}: Attack ground at {self.ground} with {self.weapon_name}'
+
+    def __str__(self):
+        return f'{super().__str__()}: Attack ground at {cube_to_hex(self.ground)} with {self.weapon_name}'
