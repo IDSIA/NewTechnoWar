@@ -170,7 +170,7 @@ class Exoskeleton(Infantry):
     """
 
     def __init__(self, position: tuple, team: str, name: str = 'Exoskeleton', stat: FigureStatus = NO_EFFECT):
-        super().__init__(position, name, team, stat)
+        super().__init__(position, team, name, stat)
         self.move = 4
         self.load = 0
         self.hp = 4
@@ -194,7 +194,7 @@ class Sniper(Infantry):
     """
 
     def __init__(self, position: tuple, team: str, name: str = 'Sniper', stat: FigureStatus = NO_EFFECT):
-        super().__init__(position, name, team, stat)
+        super().__init__(position, team, name, stat)
         self.move = 0
         self.hp = 4
         self.hp_max = 4

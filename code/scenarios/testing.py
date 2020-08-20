@@ -1,7 +1,7 @@
 import numpy as np
 
 from core import RED, BLUE
-from core.figures import Infantry, Tank
+from core.figures import Infantry, Tank, Exoskeleton, Sniper
 from core.figures.status import HIDDEN
 from core.game.board import GameBoard
 from core.game.state import GameState
@@ -53,9 +53,9 @@ def _battleground16x16() -> GameBoard:
     fillLine(terrain, (12, 1), (15, 1), Terrain.FOREST)
     fillLine(terrain, (13, 2), (14, 2), Terrain.FOREST)
 
-    fillLine(terrain, (6, 11), (8, 10), Terrain.BUILDING)
-    fillLine(terrain, (6, 11), (6, 13), Terrain.BUILDING)
-    fillLine(terrain, (11, 9), (14, 7), Terrain.BUILDING)
+    # fillLine(terrain, (6, 11), (8, 10), Terrain.BUILDING)
+    # fillLine(terrain, (6, 11), (6, 13), Terrain.BUILDING)
+    # fillLine(terrain, (11, 9), (14, 7), Terrain.BUILDING)
 
     board.addTerrain(terrain)
 
@@ -127,5 +127,26 @@ def scenarioTest3v1() -> (GameBoard, GameState):
     state.addFigure(Tank((12, 12), BLUE, 'Tank2', HIDDEN))
 
     board.name = state.name = "3Rv1B"
+
+    return board, state
+
+
+def scenarioTestInfantry() -> (GameBoard, GameState):
+    board: GameBoard = _battleground16x16()
+    state: GameState = GameState(board.shape)
+
+    state.addFigure(Infantry((5, 2), RED, 'rInf1'))
+    state.addFigure(Infantry((6, 2), RED, 'rInf2'))
+    state.addFigure(Exoskeleton((5, 3), RED, 'rExo1'))
+    state.addFigure(Exoskeleton((4, 4), RED, 'rExo2'))
+    state.addFigure(Sniper((5, 3), RED, 'rSniper'))
+
+    state.addFigure(Infantry((11, 13), BLUE, 'bInf1'))
+    state.addFigure(Infantry((14, 8), BLUE, 'bInf2'))
+    state.addFigure(Exoskeleton((14, 10), BLUE, 'bExo1'))
+    state.addFigure(Exoskeleton((10, 11), BLUE, 'bExo2'))
+    state.addFigure(Sniper((11, 12), BLUE, 'bSniper'))
+
+    board.name = state.name = "Infantry"
 
     return board, state
