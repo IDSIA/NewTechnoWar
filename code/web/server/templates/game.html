@@ -18,9 +18,11 @@
         <textarea id="console" readonly></textarea>
     </div>
     <div id="gameLayout">
-        <div id="redUnits" class="units red"></div>
+        <div id="redUnits" class="units red">
+            <h1 id="redPlayer" class="player-title"></h1>
+        </div>
         <div id="gameBoard">
-            <svg id="view" viewBox="0 0 640 420">
+            <svg id="view" viewBox="0 0 400 300">
                 <defs>
                     <polygon id="hex" class="hex" points="5,-9 -5,-9 -10,0 -5,9 5,9 10,0"></polygon>
                     <pattern id="infantryMark" x="0" y="0" patternUnits="userSpaceOnUse" height="1" width="1">
@@ -32,9 +34,7 @@
                 </defs>
                 <g id="board">
                     {% for hex in board %}
-                        <g id="x{{ hex.i }}y{{ hex.j }}"
-                                {# onclick="alert('{{ hex.position }}');" #}
-                           transform="translate({{ hex.x }}, {{ hex.y }})">
+                        <g id="x{{ hex.i }}y{{ hex.j }}" transform="translate({{ hex.x }}, {{ hex.y }})">
                             <use href="#hex" class="{{ hex.css() }}"></use>
                             <text class="content" x="0" y="0">
                                 {% if hex.objective %}
@@ -68,7 +68,9 @@
                 <g id="markers"></g>
             </svg>
         </div>
-        <div id="blueUnits" class="units blue"></div>
+        <div id="blueUnits" class="units blue">
+            <h1 id="bluePlayer" class="player-title"></h1>
+        </div>
     </div>
 {% endblock %}
 

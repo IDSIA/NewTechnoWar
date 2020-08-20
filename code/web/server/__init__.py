@@ -19,6 +19,7 @@ def create_app():
     app.json_encoder = GameJSONEncoder
 
     app.games = dict()
+    app.params = dict()
 
     with app.app_context():
         # Import parts of our application

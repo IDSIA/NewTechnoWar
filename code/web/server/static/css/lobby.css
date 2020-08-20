@@ -2,36 +2,47 @@ body {
     color: #cccccc;
 }
 
-#lobby {
+.lobby {
     margin: 2em;
     padding: 2em;
-    width: 25em;
+    width: 36em;
     border: 1px solid black;
     background-color: #555555;
     color: #cccccc;
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 30% auto;
+    grid-template-rows: auto;
 }
 
-#lobby > * {
+.lobby > * {
     padding: 0.5em;
-    margin: 1em 0;
+    margin: 0.5em 0;
     font-size: 16pt;
 }
 
+.lobby > h1 {
+    grid-column-end: span 2;
+    font-size: 2em;
+}
+
 label {
-    width: 34%;
-    display: inline-block;
     font-weight: bolder;
 }
 
 select {
-    width: 60%;
 }
 
-input {
-    width: 100%;
-    flex-grow: 2;
+input[type=submit] {
+    grid-column-start: 2;
+}
+
+input[type=checkbox] {
+    width: 2em;
+    height: 2em;
+}
+
+input[type=file] {
+    padding: 0.5em 0;
 }
 
 .red {

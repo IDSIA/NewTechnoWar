@@ -1,6 +1,8 @@
 let figures = {};
+let params = {};
 let gameId = undefined;
 let end = false;
+let autoplay = undefined;
 
 let vEps = -3;
 
@@ -188,6 +190,7 @@ function step() {
             console.log('end game');
             appendLine('End')
             end = true;
+            window.clearInterval(autoplay);
             return;
         }
 
@@ -354,7 +357,18 @@ window.onload = function () {
             if (e.key === ' ') step(); // space
         };
 
-    }).fail(function () {
-        console.error('Failed to load figures!');
-    });
+        $.get('/game/params', function (data) {
+            params[gameId] = data
+
+            appendLine('Playing on scenario ' + data.scenario);
+            appendLine('Seed used ' + data.seed);
+            $('#redPlayer').text(data.redPlayer);
+            $('#bluePlayer').text(data.bluePlayer);
+
+            if (data.autoplay) {
+                console.log('Autoplay enabled');
+                autoplay = window.setInterval(step, 2000);
+            }
+        }).fail(() => console.error('Failed to load params!'));
+    }).fail(() => console.error('Failed to load state!'));
 }

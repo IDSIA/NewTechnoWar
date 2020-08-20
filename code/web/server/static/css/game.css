@@ -57,6 +57,19 @@ span.blue {
     height: 94vh;
 }
 
+h1.player-title {
+    text-align: center;
+    margin: 0.1em;
+}
+
+#redPlayer {
+    border: 1px solid red;
+}
+
+#bluePlayer {
+    border: 1px solid dodgerblue;
+}
+
 .units {
     display: flex;
     flex-direction: column;
@@ -214,7 +227,7 @@ svg {
     top: -13px;
 }
 
-.weapon.empty {
+.empty {
     color: red;
 }
 

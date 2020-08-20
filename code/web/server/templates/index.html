@@ -6,7 +6,7 @@
 
 {% block content %}
     <form action="/" method="post">
-        <div id="lobby">
+        <div class="lobby">
             <label class="red" for="redPlayer">Red team</label>
             <select id="redPlayer" name="redPlayer">
                 <option selected>Please select</option>
@@ -14,6 +14,7 @@
                     <option>{{ player }}</option>
                 {% endfor %}
             </select>
+
             <label class="blue" for="bluePlayer">Blue team</label>
             <select id="bluePlayer" name="bluePlayer">
                 <option selected>Please select</option>
@@ -21,6 +22,7 @@
                     <option>{{ player }}</option>
                 {% endfor %}
             </select>
+
             <label for="scenario">Scenario</label>
             <select id="scenario" name="scenario">
                 <option selected>Please select</option>
@@ -28,6 +30,16 @@
                     <option>{{ scenario }}</option>
                 {% endfor %}
             </select>
+
+            <label for="randomSeed">Random seed</label>
+            <input id="randomSeed" name="seed" type="number" value="0"/>
+
+            <label for="autoPlay">Autoplay</label>
+            <input id="autoPlay" name="autoplay" type="checkbox">
+
+            <label for="replay">Replay</label>
+            <input id="replay" name="replay" type="file"/>
+
             <input type="submit" value="Play"/>
         </div>
     </form>
