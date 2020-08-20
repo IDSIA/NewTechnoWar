@@ -20,7 +20,7 @@ def index():
 
         mm = buildMatchManager(
             str(uuid.uuid4()),
-            data['scenario'],
+            'scenario' + data['scenario'],
             data['redPlayer'],
             data['bluePlayer'],
             seed if seed > 0 else random.randint(1, 1000000000)
@@ -33,7 +33,7 @@ def index():
             'scenario': data['scenario'],
             'redPlayer': data['redPlayer'],
             'bluePlayer': data['bluePlayer'],
-            'autoplay': data['autoplay'] == 'on',
+            'autoplay': 'autoplay' in data,
             'replay': data['replay'],
         }
 
@@ -48,16 +48,17 @@ def index():
         logging.info(f'New lobby access')
 
         scenarios = [
-            'scenarioTest1v1',
-            'scenarioTest2v2',
-            'scenarioTest3v1',
-            'scenarioTestBench',
-            'scenarioDummy1',
-            'scenarioDummy2',
-            'scenarioDummy3',
-            'scenarioDummyResponseCheck',
-            'scenarioInSightTest',
-            'scenarioJunction',
+            'Test1v1',
+            'Test2v2',
+            'Test3v1',
+            'TestBench',
+            'TestInfantry',
+            'Dummy1',
+            'Dummy2',
+            'Dummy3',
+            'DummyResponseCheck',
+            'InSightTest',
+            'Junction',
         ]
 
         players = [

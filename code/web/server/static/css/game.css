@@ -75,6 +75,7 @@ h1.player-title {
     flex-direction: column;
     color: #cccccc;
     overflow-y: scroll;
+    width: 17vw;
 }
 
 .units::-webkit-scrollbar {
@@ -93,41 +94,51 @@ h1.player-title {
     background-color: #222299;
 }
 
-div.unit.red {
-    border: 1px solid #ff6666;;
-}
-
-div.unit.blue {
-    border: 1px solid #6666ff;
-}
-
 #gameBoard {
     flex: 1;
-    max-width: 69vw;
-    max-height: 94vh;
+    width: 66vw;
 }
 
 svg {
-    height: inherit;
+    height: 100%;
     width: inherit;
     display: block;
-    margin: 0.5em auto;
+    margin: 0 auto;
 }
 
 /* Figures structure */
 .unit {
     margin: 0.1em 0.2em;
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
     padding: 0.2em;
+    display: grid;
+    grid-template-columns: [img1]2em [img2]2em [stat1]2em [stat2]2em [stat3]2em [weapons]8.2em;
+    grid-template-rows: [header]6pt [top]2em [mid]2em [bottom]2em;
+    column-gap: 0.2em;
+    row-gap: 0.2em;
+    justify-items: stretch;
+    align-items: stretch;
+}
+
+.unit.red {
+    border: 1px solid #ff6666;;
+}
+
+.unit.blue {
+    border: 1px solid #6666ff;
+}
+
+.unit > div:not(.uKind):not(.uTitle):not(.uWeapons), .uWeapons > div {
+    background-color: #444444;
+    text-align: center;
+    padding: 0.4em;
 }
 
 .uKind {
+    grid-column-start: img1;
+    grid-column-end: span 2;
+    grid-row-start: top;
+    grid-row-end: span 2;
     background-size: 4em 4em;
-    width: 4em;
-    height: 4em;
-    margin-top: 0.6em;
 }
 
 .uKind.red {
@@ -146,97 +157,85 @@ svg {
     background-image: url('/static/img/vehicle.png');
 }
 
-.uData {
-    display: flex;
-    flex-direction: column;
-    align-content: flex-start;
-    width: 6em;
-    margin: 0 0.2em;
-}
-
-.uData > div, .uFixed > div, .weapon > div, .wAmmo {
-    background-color: #444444;
-    padding: 5px;
-    text-align: center;
-    position: relative;
-    margin-bottom: 5px;
-}
-
-.uPos {
-    display: none;
-}
-
-.uFixed {
-    display: flex;
-    justify-content: space-between;
-}
-
-.uFixed > div {
-    margin-top: 10px;
-}
-
-.uFixed > ::after, .wName, .wAmmo::before, .wAtk::before, .wRange::before, .wSpecs::before {
+.uTitle {
     color: black;
     font-size: 6pt;
     font-weight: 900;
-    position: absolute;
-    top: -13px;
-    left: 0;
+    text-align: center;
 }
 
-.uFixed > ::after {
-    width: 28px;
+.uTitleHP {
+    grid-column-start: stat1;
 }
 
-.uLoad, .uMove, .uHP {
-    width: 20px;
+.uTitleMove {
+    grid-column-start: stat2;
 }
 
-.uLoad::after {
-    content: 'LOAD';
+.uTitleLoad {
+    grid-column-start: stat3;
 }
 
-.uMove::after {
-    content: 'MOVE';
+.uTitleWeapons {
+    grid-column-start: weapons;
 }
 
-.uHP::after {
-    content: 'HP';
+.uHP {
+    grid-column-start: stat1;
+}
+
+.uLoad {
+    grid-column-start: stat2;
+}
+
+.uMove {
+    grid-column-start: stat3;
+}
+
+.uName {
+    grid-column-start: stat1;
+    grid-column-end: span 3;
+}
+
+.uStat {
+    grid-column-start: stat1;
+    grid-column-end: span 3;
 }
 
 /* weapons area */
 
 .uWeapons {
-    font-size: 10pt;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    width: 9.3em;
-    margin-top: 0.75em
-}
+    display: grid;
+    grid-template-columns: 2em 2.2em 2em 2.2em;
+    grid-template-rows: 1fr 1fr 1fr;
+    row-gap: 0.2em;
+    justify-items: stretch;
+    align-items: stretch;
 
-.weapon {
-    display: flex;
-    margin: 0 0.2em 0 0;
-}
-
-.wName {
-    display: none;
-    background: none !important;
-    position: absolute !important;
-    top: -13px;
+    grid-column-start: weapons;
+    grid-row-start: top;
+    grid-row-end: span 3;
 }
 
 .empty {
     color: red;
 }
 
-.weapon.used::before {
-    background-color: yellow;
+.weapon.ammo {
+    margin-right: 0.2em;
 }
 
-.weapon::before {
-    content: '';
+.weapon.used.attack {
+    background-color: yellow;
+    color: black;
+}
+
+.weapon.used.respond {
+    background-color: darkorange;
+    color: black;
+}
+
+.weapon.image {
     background-image: url('/static/img/weapons.png');
     background-size: auto 85%;
     background-color: #666666;
@@ -244,52 +243,33 @@ svg {
     background-repeat: no-repeat;
     overflow: hidden;
     display: block;
-    width: 28px;
-    height: 28px;
 }
 
-.weapon > div {
-    width: 28px;
-    height: 26px;
-    margin-top: 0;
-    margin-left: 1px;
-    white-space: nowrap;
-    padding: 1px;
-}
-
-.wAtk {
-    width: 35px !important;
-}
-
-.wRange {
-    width: 30px !important;
-}
-
-.wCA::before {
+.weapon.image.wCA {
     background-position: 2%;
 }
 
-.wAR::before {
+.weapon.image.wAR {
     background-position: 18%;
 }
 
-.wMG::before {
+.weapon.image.wMG {
     background-position: 35%;
 }
 
-.wAT::before {
+.weapon.image.wAT {
     background-position: 48%;
 }
 
-.wMT::before {
+.weapon.image.wMT {
     background-position: 62%;
 }
 
-.wGR::before {
+.weapon.image.wGR {
     background-position: 76%;
 }
 
-.wSM::before {
+.weapon.image.wSM {
     background-position: 94%;
 }
 
@@ -298,61 +278,52 @@ svg {
     background-color: rgba(0, 0, 0, 0.0);
 }
 
-div.unit {
-    position: relative;
-    z-index: 10;
-}
-
 .notActivated {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
 .activated::before {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    z-index: 10;
-    margin: 5px;
     color: black;
     font-weight: bold;
     padding: 5px;
+    grid-row-start: bottom;
+    text-align: center;
 }
 
 .moving::before {
     content: 'M';
     background-color: cyan;
+    grid-column-start: img1;
 }
 
 .attacking::before {
     content: 'A';
     background-color: purple;
+    grid-column-start: img1;
 }
 
 .responded::before {
     content: 'R';
     background-color: orange;
+    grid-column-start: img2;
 }
 
 .passed::before {
     content: 'P';
     background-color: green;
+    grid-column-start: img1;
 }
 
 div.killed {
     background-color: #222222;
-    z-index: 9;
+    color: black;
 }
 
 div.killed::before {
     content: 'X';
-    position: absolute;
-    top: -0.11em;
-    left: -0.02em;
     z-index: 10;
-    margin: 5px;
     color: white;
     font-weight: bold;
-    padding: 5px;
     font-size: 5em;
     text-align: center;
 }

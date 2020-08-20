@@ -6,6 +6,7 @@ let autoplay = undefined;
 
 let vEps = -3;
 
+const TIMEOUT = 1000;
 const SVG = 'http://www.w3.org/2000/svg';
 
 function svge(tag) {
@@ -24,13 +25,7 @@ function updateFigure(data, action = '') {
     let figure = $(`#figure-${data.id}`);
     let mark = $(`#mark-${data.id}`);
 
-    figure.removeClass('killed');
-    figure.removeClass('activated');
-    figure.removeClass('notActivated');
-    figure.removeClass('passed');
-    figure.removeClass('moving');
-    figure.removeClass('attacking');
-    figure.removeClass('responded');
+    figure.removeClass('killed activated notActivated passed moving attacking responded');
     mark.removeClass('hit');
 
     figure.find('div.uPos').text(`(${data.i}, ${data.j})`);
@@ -57,7 +52,7 @@ function updateFigure(data, action = '') {
         if (action === 'Move') {
             figure.addClass('moving');
         }
-        if (action === 'Shoot') {
+        if (action === 'Attack') {
             figure.addClass('attacking');
         }
         if (action === 'Respond') {
@@ -71,35 +66,33 @@ function addFigure(figure, team) {
     let fid = `figure-${figure.id}`;
     let gid = `mark-${figure.id}`;
 
-    let uKind = $('<div/>').addClass('uKind').addClass(team).addClass(figure.kind);
-    let uData = $('<div/>').addClass('uData')
-        .append($('<div/>').addClass('uPos'))
-        .append(
-            $('<dev/>').addClass('uFixed')
-                .append($('<div/>').addClass('uHP'))
-                .append($('<div/>').addClass('uLoad'))
-                .append($('<div/>').addClass('uMove'))
-        )
-        .append($('<div/>').addClass('uName').text(figure.name))
-        .append($('<div/>').addClass('uStat'));
-
-    let uWeapons = $('<div/>').addClass('uWeapons');
-    figure.weapons_keys.forEach((key, index) => {
+    let uWeapons = $('<div class="uWeapons"/>')
+    figure.weapons_keys.forEach((key, _) => {
         let item = figure.weapons[key]
         let effect = item.no_effect ? 'wNoEffect' : '';
         let ammo = ammoNum(item);
 
-        uWeapons.append(
-            $('<div/>').addClass('w' + item.id).addClass(effect).addClass('weapon').addClass(ammoClass(ammo))
-                .append($('<div/>').addClass('wAmmo').text(ammo))
-        );
+        uWeapons.append([
+            $(`<div class="w${item.id} ${effect} weapon image"/>`),
+            $(`<div class="w${item.id} ${effect} weapon ammo ${ammoClass(ammo)}">${ammo}</div>`),
+        ]);
     });
 
     $(`#${team}Units`).append(
-        $('<div/>').attr('id', fid).addClass(figure.kind).addClass('unit').addClass(team)
-            .append(uKind)
-            .append(uData)
-            .append(uWeapons)
+        $(`<div id="${fid}" class="unit ${team} ${figure.kind}"/>`)
+            .append([
+                $('<div class="uTitle uTitleHP">HP</div>'),
+                $('<div class="uTitle uTitleMove">MOVE</div>'),
+                $('<div class="uTitle uTitleLoad">LOAD</div>'),
+                $('<div class="uTitle uTitleWeapons">WEAPONS</div>'),
+                $(`<div class="uKind ${team} ${figure.kind}"/>`),
+                $('<div class="uHP"/>'),
+                $('<div class="uLoad"/>'),
+                $('<div class="uMove"/>'),
+                $(`<div class="uName">${figure.name}</div>`),
+                $('<div class="uStat"/>'),
+                uWeapons
+            ])
             .hover(function () {
                 $(`#${fid}`).addClass('highlight');
                 $(`#${gid}`).addClass('highlight');
@@ -147,6 +140,7 @@ function addFigure(figure, team) {
 function changeTurnValue(turn) {
     let x = turn + 1;
     console.log('new turn: ' + x)
+    appendLine('Turn: ' + x)
     $('#btnTurn').addClass('highlight').text(x);
 }
 
@@ -210,8 +204,12 @@ function step() {
         $('#btnTurn').removeClass('highlight');
 
         let current = figures[gameId][figureData.id];
-        let figure = $(`#figure-${figureData.id}`);
-        let mark = $(document.getElementById(`mark-${figureData.id}`));
+        let figure = $(
+            `#figure-${figureData.id}`
+        );
+        let mark = $(document.getElementById(
+            `mark-${figureData.id}`
+        ));
         let target;
 
         switch (action.action) {
@@ -291,32 +289,51 @@ function shoot(current, figure, mark, data) {
     ).append(
         drawLine(lof).addClass('shoot lof').addClass(action.team)
             .append(svge('g')
-                .attr('transform', `translate(${end.x + 10},${end.y})`)
+                .attr('transform',
+                    `translate(${end.x + 10},${end.y})`
+                )
                 .append(svge('rect'))
                 .append(svge('text')
-                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(`ATK: ${outcome.ATK}`))
-                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(`DEF: ${outcome.DEF}`))
-                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(`END: ${outcome.END}`))
-                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(`INT: ${outcome.INT}`))
-                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(`STAT: ${outcome.STAT}`))
-                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(`HIT SCORE: ${outcome.hitScore}`))
-                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(`SCORES: ${outcome.score}`))
-                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(`HITS: ${outcome.hits}`))
-                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(`SUCCESS: ${outcome.success}`))
+                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(
+                        `ATK: ${outcome.ATK}`
+                    ))
+                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(
+                        `DEF: ${outcome.DEF}`
+                    ))
+                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(
+                        `END: ${outcome.END}`
+                    ))
+                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(
+                        `INT: ${outcome.INT}`
+                    ))
+                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(
+                        `STAT: ${outcome.STAT}`
+                    ))
+                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(
+                        `HIT SCORE: ${outcome.hitScore}`
+                    ))
+                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(
+                        `SCORES: ${outcome.score}`
+                    ))
+                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(
+                        `HITS: ${outcome.hits}`
+                    ))
+                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(
+                        `SUCCESS: ${outcome.success}`
+                    ))
                 )
             )
     );
 
     let weapon = data.state.figures[action.team][action.figure_id].weapons[action.weapon_id]
-    let w = figure.find('div.w' + weapon.id);
-    if (data.action === 'Respond')
+    let w = figure.find('div.ammo.w' + weapon.id);
+    if (data.action.action === 'Respond')
         w.addClass('respond');
-    if (data.action === 'Pass')
-        w.addClass('pass');
-    else
-        w.addClass('used');
+    else if (data.action.action === 'Attack')
+        w.addClass('attack')
+    w.addClass('used');
     let ammo = ammoNum(weapon)
-    w.find('div.wAmmo').addClass(ammoClass(ammo)).text(ammo);
+    w.addClass(ammoClass(ammo)).text(ammo);
 }
 
 function turn() {
@@ -367,7 +384,7 @@ window.onload = function () {
 
             if (data.autoplay) {
                 console.log('Autoplay enabled');
-                autoplay = window.setInterval(step, 2000);
+                autoplay = window.setInterval(step, TIMEOUT);
             }
         }).fail(() => console.error('Failed to load params!'));
     }).fail(() => console.error('Failed to load state!'));
