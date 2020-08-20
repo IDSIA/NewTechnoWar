@@ -128,11 +128,14 @@ class GameState:
         defenders = target.team
         attackers = RED if defenders == BLUE else BLUE
 
-        self.figuresLOS[defenders][target.index] = {
-            # attacker's line of sight
-            attacker.index: cube_linedraw(attacker.position, target.position)
-            for attacker in self.figures[attackers]
-        }
+        for attacker in self.figures[attackers]:
+            if target.index not in self.figuresLOS[defenders]:
+                self.figuresLOS[defenders][target.index] = {}
+            if attacker.index not in self.figuresLOS[attackers]:
+                self.figuresLOS[attackers][attacker.index] = {}
+
+            self.figuresLOS[attackers][attacker.index][target.index] = cube_linedraw(target.position, attacker.position)
+            self.figuresLOS[defenders][target.index][attacker.index] = cube_linedraw(attacker.position, target.position)
 
         self.figuresDistance[defenders][target.index] = {
             # defender's line of sight
