@@ -61,7 +61,7 @@ def index():
             'Junction',
             'BridgeHead',
             'Roadblock',
-            'CrossingTheCity',
+            # 'CrossingTheCity', TODO: need fixes and bigger map!
         ]
 
         players = [

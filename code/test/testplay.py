@@ -116,7 +116,7 @@ def play(scene, seed=42):
 
     draw_initial(board, state)
 
-    for turn in range(TOTAL_TURNS):
+    for turn in range(12):
         logging.info(f'Turn {turn + 1}')
 
         while state.getFiguresCanBeActivated(RED) or state.getFiguresCanBeActivated(BLUE):

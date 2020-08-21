@@ -6,7 +6,7 @@ import numpy as np
 import agents.players as players
 import scenarios
 from agents.players.player import Player
-from core import TOTAL_TURNS, RED, BLUE
+from core import RED, BLUE
 from core.actions import Attack, Move
 from core.game.board import GameBoard
 from core.game.manager import GameManager
@@ -139,7 +139,7 @@ class MatchManager:
             self.step = self._goRound
             return
 
-        if self.state.turn + 1 >= TOTAL_TURNS:
+        if self.state.turn + 1 >= self.state.turn_max:
             self._goEnd()
             return
 

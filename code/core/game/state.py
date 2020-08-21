@@ -1,6 +1,6 @@
 import numpy as np
 
-from core import RED, BLUE, TOTAL_TURNS
+from core import RED, BLUE
 from core.actions import Action, Attack, AttackGround, LoadInto
 from core.figures import FigureType, Figure, Weapon
 from core.game import MAX_SMOKE
@@ -19,7 +19,7 @@ class GameState:
     def __init__(self, shape: tuple, name: str = ''):
         self.name: str = name
         self.turn: int = -1
-        self.turn_max: int = TOTAL_TURNS
+        self.turn_max: int = 12
 
         # lists of all figures divided by team
         self.figures: dict = {
