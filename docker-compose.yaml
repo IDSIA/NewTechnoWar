@@ -1,0 +1,23 @@
+version: '3.3'
+
+
+networks: 
+  www:
+    external: true
+
+services:
+
+  ntw:
+    image: ntw:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ntw_web_app
+    networks:
+      - www
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ntw.rule=Host(`ntw.artemis.idsia.ch`)"
+      - "traefik.http.routers.ntw.entrypoints=web"
+      - "traefik.http.services.ntw.loadbalancer.server.port=5000"
+
