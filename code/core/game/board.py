@@ -1,5 +1,6 @@
 import numpy as np
 
+from core import RED, BLUE
 from core.figures import FigureType
 from core.game.terrain import TERRAIN_TYPE
 from utils.coordinates import to_cube, Cube, cube_neighbor, cube_to_hex, cube_range
@@ -11,7 +12,7 @@ class GameBoard:
     """
 
     __slots__ = ['name', 'shape', 'terrain', 'geography', 'objective', 'limits', 'obstacles', 'moveCost',
-                 'protectionLevel']
+                 'protectionLevel', 'placement_zone']
 
     def __init__(self, shape: tuple, name: str = ''):
         self.name = name
@@ -42,6 +43,13 @@ class GameBoard:
 
         self.protectionLevel = np.zeros(shape, dtype='uint8')
 
+        # TODO: manage placement zone
+
+        self.placement_zone = {
+            RED: np.zeros(shape, dtype='uint8'),
+            BLUE: np.zeros(shape, dtype='uint8')
+        }
+
     def addTerrain(self, terrain: np.array):
         """
         Sum a terrain matrix to the current board.
@@ -71,6 +79,10 @@ class GameBoard:
     def addObjective(self, objective: np.array):
         """Add an objective matrix to the current board."""
         self.objective += objective
+
+    def addPlacementZone(self, team: str, zone: np.array):
+        """Add a zone in the board where units can be placed."""
+        self.placement_zone[team] += zone
 
     def getNeighbors(self, position: Cube):
         """Returns all the neighbors of the given position."""

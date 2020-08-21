@@ -59,6 +59,9 @@ def index():
             'DummyResponseCheck',
             'InSightTest',
             'Junction',
+            'BridgeHead',
+            'Roadblock',
+            'CrossingTheCity',
         ]
 
         players = [
