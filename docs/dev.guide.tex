@@ -203,7 +203,8 @@
 	\begin{itemize}
 		\item \texttt{chooseAction()},
 		\item \texttt{chooseResponse()},
-		\item \texttt{initialize()}
+		\item \texttt{initialize()},
+		\item \texttt{chooseFigureGroups()}.
 	\end{itemize}
 
 	Although the first two look similar, they need to be differentiated because the \textit{response} state offers the possibility to skip the generation of an action. This possibility is something that the Player or Agent need to keep in mind during the design stage.
@@ -212,7 +213,9 @@
 
 	There could be the possibility that some scenarios require an initialization step. In this step the Player or Agent need to think on how to setup their figures. There are three possible situations that need to be considered: the units are set; the units are already placed but the Player need to choose which positions to use; the units are not set but there is an area where the units can be placed.
 
-	Please, check the \texttt{agents.players.PlayerDummy} class for an example of implementation of a random player.
+	The methods \texttt{initialize()} and \texttt{chooseFigureGroups()} are intended to be used to fulfill this task and respectively initialize the units in a placement zone, or choose between groups of already placed units.
+
+	Please, check the \texttt{agents.players.PlayerDummy} class for an example of implementation of a random player and on how to properly implement these functions.
 
 	% ---------------------------------------------------------------------------------------------------------
 
