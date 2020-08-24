@@ -49,13 +49,8 @@ def scenarioJunction() -> (GameBoard, GameState):
     terrain[28, 15] = Terrain.ISOLATED_TREE
 
     board.addTerrain(terrain)
-    board.addTerrain(terrain)
-    board.addTerrain(terrain)
 
-    objective = np.zeros(shape, dtype='uint8')
-    objective[(30, 13)] = 1
-
-    board.addObjective(objective)
+    board.setObjectives((30, 13))
 
     # setup dynamic parameters
     state.turn_max = 9
@@ -123,10 +118,7 @@ def scenarioRoadblock() -> (GameBoard, GameState):
 
     board.addTerrain(terrain)
 
-    objective = np.zeros(shape, dtype='uint8')
-    objective[43, 12] = 1
-
-    board.addObjective(objective)
+    board.setObjectives((43, 12))
 
     t1 = Tank((39, 5), RED, 'rTank1')  # dark red 2 units
     i11 = Infantry((39, 5), RED, 'rInf11')
@@ -203,14 +195,7 @@ def scenarioBridgeHead() -> (GameBoard, GameState):
 
     board.addTerrain(terrain)
 
-    objective = np.zeros(shape, dtype='uint8')
-    objective[39, 12] = 1
-    objective[40, 12] = 1
-    objective[40, 13] = 1
-    objective[41, 14] = 1
-    objective[41, 15] = 1
-
-    board.addObjective(objective)
+    board.setObjectives((39, 12), (40, 12), (40, 13), (41, 14), (41, 15))
 
     state.addFigure(
         Tank((39, 19), RED, 'rTank1', HIDDEN),
@@ -291,10 +276,7 @@ def scenarioCrossingTheCity() -> (GameBoard, GameState):
     terrain[30, 1:3] = Terrain.FOREST
     terrain[31, 2] = Terrain.FOREST
 
-    objective = np.zeros(shape, dtype='uint8')
-    objective[30, 9] = 1
-
-    board.addObjective(objective)
+    board.setObjectives((30, 9))
 
     t1 = Tank((29, 1), RED, 'rTank1')  # dark red 2 units
     i1 = Infantry((29, 1), RED, 'rInf11')

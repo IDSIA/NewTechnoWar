@@ -59,9 +59,7 @@ def _battleground16x16() -> GameBoard:
 
     board.addTerrain(terrain)
 
-    objective = np.zeros(shape, dtype='uint8')
-    objective[8, 8] = 1
-    board.addObjective(objective)
+    board.setObjectives((8, 8))
 
     return board
 
@@ -70,19 +68,21 @@ def scenarioTestBench() -> (GameBoard, GameState):
     board: GameBoard = _battleground16x16()
     state: GameState = GameState(board.shape)
 
-    state.addFigure(Infantry((3, 1), RED, 'rInf1'))
-    state.addFigure(Infantry((7, 2), RED, 'rInf2'))
-    state.addFigure(Infantry((6, 2), RED, 'rInf3'))
-    state.addFigure(Infantry((1, 4), RED, 'rInf4'))
+    state.addFigure(
+        Infantry((3, 1), RED, 'rInf1'),
+        Infantry((7, 2), RED, 'rInf2'),
+        Infantry((6, 2), RED, 'rInf3'),
+        Infantry((1, 4), RED, 'rInf4'),
 
-    state.addFigure(Tank((2, 3), RED, 'rTank1'))
-    state.addFigure(Tank((2, 1), RED, 'rTank2'))
+        Tank((2, 3), RED, 'rTank1'),
+        Tank((2, 1), RED, 'rTank2'),
 
-    state.addFigure(Infantry((14, 14), BLUE, 'bInf1'))
-    state.addFigure(Infantry((13, 10), BLUE, 'bInf2'))
-    state.addFigure(Infantry((9, 13), BLUE, 'bInf3', stat=HIDDEN))
+        Infantry((14, 14), BLUE, 'bInf1'),
+        Infantry((13, 10), BLUE, 'bInf2'),
+        Infantry((9, 13), BLUE, 'bInf3', stat=HIDDEN),
 
-    state.addFigure(Tank((12, 12), BLUE, 'bTank1', stat=HIDDEN))
+        Tank((12, 12), BLUE, 'bTank1', stat=HIDDEN),
+    )
 
     board.name = state.name = "TestBench"
 
@@ -93,8 +93,10 @@ def scenarioTest1v1() -> (GameBoard, GameState):
     board: GameBoard = _battleground16x16()
     state: GameState = GameState(board.shape)
 
-    state.addFigure(Tank((2, 3), RED, 'Tank1'))
-    state.addFigure(Tank((12, 12), BLUE, 'Tank2'))
+    state.addFigure(
+        Tank((2, 3), RED, 'Tank1'),
+        Tank((12, 12), BLUE, 'Tank2')
+    )
 
     board.name = state.name = "1Rv1B"
 
@@ -105,11 +107,13 @@ def scenarioTest2v2() -> (GameBoard, GameState):
     board: GameBoard = _battleground16x16()
     state: GameState = GameState(board.shape)
 
-    state.addFigure(Tank((2, 2), RED, 'Tank1'))
-    state.addFigure(Tank((3, 3), RED, 'Tank2'))
+    state.addFigure(
+        Tank((2, 2), RED, 'Tank1'),
+        Tank((3, 3), RED, 'Tank2'),
 
-    state.addFigure(Tank((11, 11), BLUE, 'Tank3'))
-    state.addFigure(Tank((12, 12), BLUE, 'Tank4'))
+        Tank((11, 11), BLUE, 'Tank3'),
+        Tank((12, 12), BLUE, 'Tank4'),
+    )
 
     board.name = state.name = "1Rv1B"
 
@@ -120,11 +124,13 @@ def scenarioTest3v1() -> (GameBoard, GameState):
     board: GameBoard = _battleground16x16()
     state: GameState = GameState(board.shape)
 
-    state.addFigure(Infantry((3, 1), RED, 'Inf1'))
-    state.addFigure(Infantry((7, 2), RED, 'Inf2'))
-    state.addFigure(Tank((2, 3), RED, 'Tank1'))
+    state.addFigure(
+        Infantry((3, 1), RED, 'Inf1'),
+        Infantry((7, 2), RED, 'Inf2'),
+        Tank((2, 3), RED, 'Tank1'),
 
-    state.addFigure(Tank((12, 12), BLUE, 'Tank2', HIDDEN))
+        Tank((12, 12), BLUE, 'Tank2', HIDDEN)
+    )
 
     board.name = state.name = "3Rv1B"
 
@@ -135,17 +141,19 @@ def scenarioTestInfantry() -> (GameBoard, GameState):
     board: GameBoard = _battleground16x16()
     state: GameState = GameState(board.shape)
 
-    state.addFigure(Infantry((5, 2), RED, 'rInf1'))
-    state.addFigure(Infantry((6, 2), RED, 'rInf2'))
-    state.addFigure(Exoskeleton((5, 3), RED, 'rExo1'))
-    state.addFigure(Exoskeleton((4, 4), RED, 'rExo2'))
-    state.addFigure(Sniper((5, 3), RED, 'rSniper'))
+    state.addFigure(
+        Infantry((5, 2), RED, 'rInf1'),
+        Infantry((6, 2), RED, 'rInf2'),
+        Exoskeleton((5, 3), RED, 'rExo1'),
+        Exoskeleton((4, 4), RED, 'rExo2'),
+        Sniper((5, 3), RED, 'rSniper'),
 
-    state.addFigure(Infantry((11, 13), BLUE, 'bInf1'))
-    state.addFigure(Infantry((14, 8), BLUE, 'bInf2'))
-    state.addFigure(Exoskeleton((14, 10), BLUE, 'bExo1'))
-    state.addFigure(Exoskeleton((10, 11), BLUE, 'bExo2'))
-    state.addFigure(Sniper((11, 12), BLUE, 'bSniper'))
+        Infantry((11, 13), BLUE, 'bInf1'),
+        Infantry((14, 8), BLUE, 'bInf2'),
+        Exoskeleton((14, 10), BLUE, 'bExo1'),
+        Exoskeleton((10, 11), BLUE, 'bExo2'),
+        Sniper((11, 12), BLUE, 'bSniper')
+    )
 
     board.name = state.name = "Infantry"
 

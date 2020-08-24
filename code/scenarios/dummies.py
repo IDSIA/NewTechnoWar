@@ -9,33 +9,36 @@ from core.game.state import GameState
 from core.game.terrain import Terrain
 
 
+def _dummyBattleground(shape: tuple):
+    board = GameBoard(shape)
+    state = GameState(shape)
+
+    terrain = np.zeros(shape, dtype='uint8')
+    terrain[(4, 5)] = Terrain.FOREST
+    terrain[(5, 5)] = Terrain.FOREST
+    terrain[(5, 4)] = Terrain.FOREST
+
+    terrain[0, :] = Terrain.ROAD
+
+    return board, state, terrain
+
+
 def scenarioDummy1() -> (GameBoard, GameState):
     """
     Sets up a specific scenario. reset to state of board to an initial state.
     Here this is just a dummy.
     """
 
-    shape = (10, 10)
-    board = GameBoard(shape)
-    state = GameState(shape)
+    board, state, terrain = _dummyBattleground((10, 10))
+    board.addTerrain(terrain)
 
-    forest = np.zeros(shape, dtype='uint8')
-    forest[(4, 5)] = Terrain.FOREST
-    forest[(5, 5)] = Terrain.FOREST
-    forest[(5, 4)] = Terrain.FOREST
-    board.addTerrain(forest)
+    board.setObjectives((9, 9))
 
-    roads = np.zeros(shape, dtype='uint8')
-    roads[0, :] = Terrain.ROAD
-    board.addTerrain(roads)
-
-    objective = np.zeros(shape, dtype='uint8')
-    objective[9, 9] = 1
-    board.addObjective(objective)
-
-    state.addFigure(Infantry((4, 1), RED))
-    state.addFigure(Tank((4, 3), RED))
-    state.addFigure(Infantry((5, 2), BLUE))
+    state.addFigure(
+        Infantry((4, 1), RED),
+        Tank((4, 3), RED),
+        Infantry((5, 2), BLUE)
+    )
 
     board.name = state.name = 'scenario1'
     return board, state
@@ -47,31 +50,18 @@ def scenarioDummy2() -> (GameBoard, GameState):
     Here this is just a dummy.
     """
 
-    shape = (10, 20)
-    board = GameBoard(shape)
-    state = GameState(shape)
+    board, state, terrain = _dummyBattleground((10, 20))
 
-    forest = np.zeros(shape, dtype='uint8')
-    forest[(4, 5)] = Terrain.FOREST
-    forest[(5, 5)] = Terrain.FOREST
-    forest[(5, 4)] = Terrain.FOREST
-    board.addTerrain(forest)
+    terrain[:, 12:20] = Terrain.URBAN
+    board.addTerrain(terrain)
 
-    urban = np.zeros(shape, dtype='uint8')
-    urban[:, 12:20] = Terrain.URBAN
-    board.addTerrain(urban)
+    board.setObjectives((9, 9))
 
-    roads = np.zeros(shape, dtype='uint8')
-    roads[0, :] = Terrain.ROAD
-    board.addTerrain(roads)
-
-    objective = np.zeros(shape, dtype='uint8')
-    objective[9, 9] = 1
-    board.addObjective(objective)
-
-    state.addFigure(Infantry((4, 1), RED))
-    state.addFigure(Tank((4, 3), RED))
-    state.addFigure(Infantry((2, 16), BLUE, stat=HIDDEN))
+    state.addFigure(
+        Infantry((4, 1), RED),
+        Tank((4, 3), RED),
+        Infantry((2, 16), BLUE, stat=HIDDEN)
+    )
 
     board.name = state.name = 'scenario2'
     return board, state
@@ -83,31 +73,18 @@ def scenarioDummy3() -> (GameBoard, GameState):
     Here this is just a dummy.
     """
 
-    shape = (10, 20)
-    board = GameBoard(shape)
-    state = GameState(shape)
+    board, state, terrain = _dummyBattleground((10, 20))
 
-    forest = np.zeros(shape, dtype='uint8')
-    forest[(4, 5)] = Terrain.FOREST
-    forest[(5, 5)] = Terrain.FOREST
-    forest[(5, 4)] = Terrain.FOREST
-    board.addTerrain(forest)
+    terrain[:, 12:20] = Terrain.URBAN
+    board.addTerrain(terrain)
 
-    urban = np.zeros(shape, dtype='uint8')
-    urban[:, 14:20] = Terrain.URBAN
-    board.addTerrain(urban)
+    board.setObjectives((9, 9))
 
-    roads = np.zeros(shape, dtype='uint8')
-    roads[0, :] = Terrain.ROAD
-    board.addTerrain(roads)
-
-    objective = np.zeros(shape, dtype='uint8')
-    objective[9, 9] = 1
-    board.addObjective(objective)
-
-    state.addFigure(Infantry((4, 1), RED))
-    state.addFigure(Tank((4, 3), RED))
-    state.addFigure(Infantry((4, 14), BLUE, stat=HIDDEN))
+    state.addFigure(
+        Infantry((4, 1), RED),
+        Tank((4, 3), RED),
+        Infantry((4, 14), BLUE, stat=HIDDEN)
+    )
 
     board.name = state.name = 'scenario3'
     return board, state
@@ -119,31 +96,19 @@ def scenarioDummyResponseCheck() -> (GameBoard, GameState):
     Here this is just a dummy.
     """
 
-    shape = (10, 20)
-    board = GameBoard(shape)
-    state = GameState(shape)
+    board, state, terrain = _dummyBattleground((10, 20))
 
-    forest = np.zeros(shape, dtype='uint8')
-    forest[(2, 5)] = Terrain.FOREST
-    forest[(3, 5)] = Terrain.FOREST
-    forest[(4, 5)] = Terrain.FOREST
-    forest[(5, 5)] = Terrain.FOREST
-    forest[(6, 5)] = Terrain.FOREST
-    forest[(7, 5)] = Terrain.FOREST
-    forest[(8, 5)] = Terrain.FOREST
-    board.addTerrain(forest)
+    terrain[(2, 5)] = Terrain.FOREST
+    terrain[(3, 5)] = Terrain.FOREST
+    terrain[(6, 5)] = Terrain.FOREST
+    terrain[(7, 5)] = Terrain.FOREST
+    terrain[(8, 5)] = Terrain.FOREST
+    terrain[(5, 4)] = Terrain.OPEN_GROUND
 
-    urban = np.zeros(shape, dtype='uint8')
-    urban[:, 14:20] = Terrain.URBAN
-    board.addTerrain(urban)
+    terrain[:, 14:20] = Terrain.URBAN
+    board.addTerrain(terrain)
 
-    roads = np.zeros(shape, dtype='uint8')
-    roads[0, :] = Terrain.ROAD
-    board.addTerrain(roads)
-
-    objective = np.zeros(shape, dtype='uint8')
-    objective[9, 12] = 1
-    board.addObjective(objective)
+    board.setObjectives((9, 12))
 
     state.addFigure(Infantry((4, 1), RED))
     state.addFigure(Tank((4, 3), RED))
@@ -159,35 +124,25 @@ def scenarioInSightTest() -> (GameBoard, GameState):
     Here this is just a dummy.
     """
 
-    shape = (10, 20)
-    board = GameBoard(shape)
-    state = GameState(shape)
+    board, state, terrain = _dummyBattleground((10, 20))
 
-    forest = np.zeros(shape, dtype='uint8')
-    forest[(2, 5)] = Terrain.FOREST
-    forest[(3, 5)] = Terrain.FOREST
-    forest[(4, 5)] = Terrain.FOREST
-    forest[(5, 5)] = Terrain.FOREST
-    forest[(6, 5)] = Terrain.FOREST
-    forest[(7, 5)] = Terrain.FOREST
-    forest[(8, 5)] = Terrain.FOREST
-    board.addTerrain(forest)
+    terrain[(2, 5)] = Terrain.FOREST
+    terrain[(3, 5)] = Terrain.FOREST
+    terrain[(6, 5)] = Terrain.FOREST
+    terrain[(7, 5)] = Terrain.FOREST
+    terrain[(8, 5)] = Terrain.FOREST
+    terrain[(5, 4)] = Terrain.OPEN_GROUND
 
-    urban = np.zeros(shape, dtype='uint8')
-    urban[:, 14:20] = 1
-    board.addTerrain(urban)
+    terrain[:, 14:20] = Terrain.URBAN
+    board.addTerrain(terrain)
 
-    roads = np.zeros(shape, dtype='uint8')
-    roads[0, :] = 1
-    board.addTerrain(roads)
+    board.setObjectives((9, 12))
 
-    objective = np.zeros(shape, dtype='uint8')
-    objective[9, 12] = 1
-    board.addObjective(objective)
-
-    state.addFigure(Tank((7, 10), RED))
-    state.addFigure(Tank((9, 7), RED))
-    state.addFigure(Infantry((4, 14), BLUE, stat=HIDDEN))
+    state.addFigure(
+        Tank((7, 10), RED),
+        Tank((9, 7), RED),
+        Infantry((4, 14), BLUE, stat=HIDDEN)
+    )
 
     board.name = state.name = 'scenarioInSightTest'
     return board, state

@@ -1,3 +1,5 @@
+from typing import Dict, Set, Tuple, List
+
 import numpy as np
 
 from core import RED, BLUE
@@ -10,22 +12,21 @@ class GameBoard:
     """
     Static parts of the game board.
     """
-
     __slots__ = ['name', 'shape', 'terrain', 'geography', 'objective', 'limits', 'obstacles', 'moveCost',
-                 'protectionLevel', 'placement_zone']
+                 'protectionLevel', 'placement_zone', 'has_placement']
 
-    def __init__(self, shape: tuple, name: str = ''):
-        self.name = name
-        self.shape = shape
+    def __init__(self, shape: Tuple[int, int], name: str = ''):
+        self.name: str = name
+        self.shape: Tuple[int, int] = shape
 
         # matrices filled with -1 so we can use 0-based as index
-        self.terrain = np.zeros(shape, dtype='uint8')
-        self.geography = np.zeros(shape, dtype='uint8')
-        self.objective = np.zeros(shape, dtype='uint8')
+        self.terrain: np.ndarray = np.zeros(shape, dtype='uint8')
+        self.geography: np.ndarray = np.zeros(shape, dtype='uint8')
+        self.objective: np.ndarray = np.zeros(shape, dtype='uint8')
 
         x, y = shape
 
-        self.limits = set(
+        self.limits: Set[Cube] = set(
             [to_cube((q, -1)) for q in range(-1, y + 1)] +
             [to_cube((q, y)) for q in range(-1, y + 1)] +
             [to_cube((-1, r)) for r in range(0, y)] +
@@ -33,19 +34,21 @@ class GameBoard:
         )
 
         # obstructions to LOS
-        self.obstacles = set()
+        self.obstacles: Set[Cube] = set()
 
         # movement obstructions are considered in the cost
-        self.moveCost = {
+        self.moveCost: Dict[int, np.ndarray] = {
             FigureType.INFANTRY: np.zeros(shape, dtype='float'),
             FigureType.VEHICLE: np.zeros(shape, dtype='float'),
         }
 
-        self.protectionLevel = np.zeros(shape, dtype='uint8')
+        self.protectionLevel: np.ndarray = np.zeros(shape, dtype='uint8')
 
         # TODO: manage placement zone
 
-        self.placement_zone = {
+        self.has_placement: Dict[str, bool] = {RED: False, BLUE: False}
+
+        self.placement_zone: Dict[str, np.ndarray] = {
             RED: np.zeros(shape, dtype='uint8'),
             BLUE: np.zeros(shape, dtype='uint8')
         }
@@ -76,12 +79,14 @@ class GameBoard:
         """Add a geography matrix to the current board."""
         self.geography += geography
 
-    def addObjective(self, objective: np.array):
+    def setObjectives(self, *objectives: tuple):
         """Add an objective matrix to the current board."""
-        self.objective += objective
+        for objective in objectives:
+            self.objective[objective] = 1
 
     def addPlacementZone(self, team: str, zone: np.array):
         """Add a zone in the board where units can be placed."""
+        self.has_placement[team] = True
         self.placement_zone[team] += zone
 
     def getNeighbors(self, position: Cube):

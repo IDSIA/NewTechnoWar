@@ -28,62 +28,62 @@ def basicForest(terrain: np.array):
     """
 
     # forest bottom right
-    terrain[51, 2:].fill(Terrain.FOREST)
-    terrain[50, 1:].fill(Terrain.FOREST)
-    terrain[49, 2:].fill(Terrain.FOREST)
+    terrain[51, 2:] = Terrain.FOREST
+    terrain[50, 1:] = Terrain.FOREST
+    terrain[49, 2:] = Terrain.FOREST
     terrain[49, 0] = Terrain.OPEN_GROUND
-    terrain[49, 5:10].fill(Terrain.OPEN_GROUND)
-    terrain[49, 13:18].fill(Terrain.OPEN_GROUND)
-    terrain[48, -7:].fill(Terrain.FOREST)
-    terrain[47, -5:].fill(Terrain.FOREST)
-    terrain[46, -5:].fill(Terrain.FOREST)
-    terrain[45, -4:].fill(Terrain.FOREST)
-    terrain[44, -4:-1].fill(Terrain.FOREST)
+    terrain[49, 5:10] = Terrain.OPEN_GROUND
+    terrain[49, 13:18] = Terrain.OPEN_GROUND
+    terrain[48, -7:] = Terrain.FOREST
+    terrain[47, -5:] = Terrain.FOREST
+    terrain[46, -5:] = Terrain.FOREST
+    terrain[45, -4:] = Terrain.FOREST
+    terrain[44, -4:-1] = Terrain.FOREST
 
     # forest bottom middle
-    terrain[35, -2:].fill(Terrain.FOREST)
-    terrain[34, -3:].fill(Terrain.FOREST)
-    terrain[33, -3:].fill(Terrain.FOREST)
-    terrain[32, -4:].fill(Terrain.FOREST)
-    terrain[31, -4:].fill(Terrain.FOREST)
-    terrain[30, -5:].fill(Terrain.FOREST)
-    terrain[29, -4:].fill(Terrain.FOREST)
-    terrain[28, -5:].fill(Terrain.FOREST)
-    terrain[27, -5:].fill(Terrain.FOREST)
-    terrain[26, -5:].fill(Terrain.FOREST)
-    terrain[25, -3:].fill(Terrain.FOREST)
+    terrain[35, -2:] = Terrain.FOREST
+    terrain[34, -3:] = Terrain.FOREST
+    terrain[33, -3:] = Terrain.FOREST
+    terrain[32, -4:] = Terrain.FOREST
+    terrain[31, -4:] = Terrain.FOREST
+    terrain[30, -5:] = Terrain.FOREST
+    terrain[29, -4:] = Terrain.FOREST
+    terrain[28, -5:] = Terrain.FOREST
+    terrain[27, -5:] = Terrain.FOREST
+    terrain[26, -5:] = Terrain.FOREST
+    terrain[25, -3:] = Terrain.FOREST
 
     # forest bottom left
-    terrain[0, -6:].fill(Terrain.FOREST)
-    terrain[1, -6:].fill(Terrain.FOREST)
-    terrain[2, -6:].fill(Terrain.FOREST)
-    terrain[3, -6:].fill(Terrain.FOREST)
-    terrain[4, -6:].fill(Terrain.FOREST)
-    terrain[5, -6:].fill(Terrain.FOREST)
-    terrain[6, -6:].fill(Terrain.FOREST)
-    terrain[7, -6:].fill(Terrain.FOREST)
-    terrain[8, -6:].fill(Terrain.FOREST)
-    terrain[9, -7:].fill(Terrain.FOREST)
-    terrain[10, -8:].fill(Terrain.FOREST)
-    terrain[11, -9:].fill(Terrain.FOREST)
-    terrain[12, -10:].fill(Terrain.FOREST)
-    terrain[13, -9:].fill(Terrain.FOREST)
-    terrain[14, -10:].fill(Terrain.FOREST)
-    terrain[15, -9:-2].fill(Terrain.FOREST)
-    terrain[16, -9:-5].fill(Terrain.FOREST)
-    terrain[17, -8:-5].fill(Terrain.FOREST)
-    terrain[18, -7:-6].fill(Terrain.FOREST)
+    terrain[0, -6:] = Terrain.FOREST
+    terrain[1, -6:] = Terrain.FOREST
+    terrain[2, -6:] = Terrain.FOREST
+    terrain[3, -6:] = Terrain.FOREST
+    terrain[4, -6:] = Terrain.FOREST
+    terrain[5, -6:] = Terrain.FOREST
+    terrain[6, -6:] = Terrain.FOREST
+    terrain[7, -6:] = Terrain.FOREST
+    terrain[8, -6:] = Terrain.FOREST
+    terrain[9, -7:] = Terrain.FOREST
+    terrain[10, -8:] = Terrain.FOREST
+    terrain[11, -8:] = Terrain.FOREST
+    terrain[12, -10:] = Terrain.FOREST
+    terrain[13, -9:] = Terrain.FOREST
+    terrain[14, -10:] = Terrain.FOREST
+    terrain[15, -9:-2] = Terrain.FOREST
+    terrain[16, -9:-5] = Terrain.FOREST
+    terrain[17, -8:-5] = Terrain.FOREST
+    terrain[18, -7:-6] = Terrain.FOREST
 
     # forest up left
-    terrain[0, 1:14].fill(Terrain.FOREST)
-    terrain[1, 2:15].fill(Terrain.FOREST)
-    terrain[2, 1:14].fill(Terrain.FOREST)
-    terrain[3, 2:15].fill(Terrain.FOREST)
-    terrain[4, 1:14].fill(Terrain.FOREST)
-    terrain[5, 2:14].fill(Terrain.FOREST)
-    terrain[6, 1:13].fill(Terrain.FOREST)
-    terrain[7, 2:12].fill(Terrain.FOREST)
-    terrain[8, 1:10].fill(Terrain.FOREST)
+    terrain[0, 1:14] = Terrain.FOREST
+    terrain[1, 2:15] = Terrain.FOREST
+    terrain[2, 1:14] = Terrain.FOREST
+    terrain[3, 2:15] = Terrain.FOREST
+    terrain[4, 1:14] = Terrain.FOREST
+    terrain[5, 2:14] = Terrain.FOREST
+    terrain[6, 1:13] = Terrain.FOREST
+    terrain[7, 2:12] = Terrain.FOREST
+    terrain[8, 1:10] = Terrain.FOREST
 
 
 def basicUrban(terrain: np.array):
@@ -92,28 +92,28 @@ def basicUrban(terrain: np.array):
     Source: main project source code.
     """
 
-    terrain[-20, 3:9].fill(Terrain.URBAN)
-    terrain[-19, 2:10].fill(Terrain.URBAN)
-    terrain[-18, 1:17].fill(Terrain.URBAN)
-    terrain[-18, 9:14].fill(Terrain.OPEN_GROUND)
-    terrain[-17, 2:18].fill(Terrain.URBAN)
-    terrain[-17, 9:14].fill(Terrain.OPEN_GROUND)
-    terrain[-16, 1:17].fill(Terrain.URBAN)
-    terrain[-16, 8:13].fill(Terrain.OPEN_GROUND)
-    terrain[-15, 2:19].fill(Terrain.URBAN)
-    terrain[-15, 9:12].fill(Terrain.OPEN_GROUND)
-    terrain[-14, 2:18].fill(Terrain.URBAN)
-    terrain[-13, 3:19].fill(Terrain.URBAN)
-    terrain[-12, 2:19].fill(Terrain.URBAN)
-    terrain[-12, 3:19].fill(Terrain.URBAN)
-    terrain[-11, 2:19].fill(Terrain.URBAN)
-    terrain[-10, 2:19].fill(Terrain.URBAN)
-    terrain[-9, 1:20].fill(Terrain.URBAN)
-    terrain[-8, 3:20].fill(Terrain.URBAN)
-    terrain[-7, 3:20].fill(Terrain.URBAN)
-    terrain[-6, 3:20].fill(Terrain.URBAN)
-    terrain[-5, 4:20].fill(Terrain.URBAN)
-    terrain[-4, 4:18].fill(Terrain.URBAN)
+    terrain[-20, 3:9] = Terrain.URBAN
+    terrain[-19, 2:10] = Terrain.URBAN
+    terrain[-18, 1:17] = Terrain.URBAN
+    terrain[-18, 9:14] = Terrain.OPEN_GROUND
+    terrain[-17, 2:18] = Terrain.URBAN
+    terrain[-17, 9:14] = Terrain.OPEN_GROUND
+    terrain[-16, 1:17] = Terrain.URBAN
+    terrain[-16, 8:13] = Terrain.OPEN_GROUND
+    terrain[-15, 2:19] = Terrain.URBAN
+    terrain[-15, 9:12] = Terrain.OPEN_GROUND
+    terrain[-14, 2:18] = Terrain.URBAN
+    terrain[-13, 3:19] = Terrain.URBAN
+    terrain[-12, 2:19] = Terrain.URBAN
+    terrain[-12, 3:19] = Terrain.URBAN
+    terrain[-11, 2:19] = Terrain.URBAN
+    terrain[-10, 2:19] = Terrain.URBAN
+    terrain[-9, 1:20] = Terrain.URBAN
+    terrain[-8, 3:20] = Terrain.URBAN
+    terrain[-7, 3:20] = Terrain.URBAN
+    terrain[-6, 3:20] = Terrain.URBAN
+    terrain[-5, 4:20] = Terrain.URBAN
+    terrain[-4, 4:18] = Terrain.URBAN
 
 
 def basicRoad(terrain: np.array):
@@ -122,9 +122,9 @@ def basicRoad(terrain: np.array):
     Source: main project source code.
     """
 
-    terrain[::2, 0].fill(Terrain.ROAD)
-    terrain[1::2, 1].fill(Terrain.ROAD)
-    terrain[30, 0:17].fill(Terrain.ROAD)
+    terrain[::2, 0] = Terrain.ROAD
+    terrain[1::2, 1] = Terrain.ROAD
+    terrain[30, 0:17] = Terrain.ROAD
     terrain[31, 17] = Terrain.ROAD
     terrain[32, 17] = Terrain.ROAD
     terrain[33, 18] = Terrain.ROAD
