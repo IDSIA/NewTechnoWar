@@ -5,6 +5,7 @@ from core.actions import Action, Pass
 from core.game.board import GameBoard
 from core.game.manager import GameManager
 from core.game.state import GameState
+from utils.coordinates import to_cube
 
 ACTION_MOVE = 0
 ACTION_ATTACK = 1
@@ -78,3 +79,17 @@ class PlayerDummy(Player):
             return response
         else:
             raise ValueError('no response available')
+
+    def placeFigures(self, board: GameBoard, state: GameState) -> None:
+        # select area
+        x, y = np.where(board.placement_zone[self.team] > 0)
+        figures = state.figures[self.team]
+
+        # choose random positions
+        indices = np.random.choice(len(x), size=len(figures), replace=False)
+
+        for i in range(len(figures)):
+            # move each unit to its position
+            figure = figures[i]
+            dst = to_cube((x[indices[i]], y[indices[i]]))
+            state.moveFigure(self.team, figure, figure.position, dst)

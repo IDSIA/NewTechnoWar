@@ -18,3 +18,6 @@ class Player:
 
     def chooseResponse(self, gm: GameManager, board: GameBoard, state: GameState) -> Action:
         raise NotImplemented()
+
+    def placeFigures(self, board: GameBoard, state: GameState) -> None:
+        raise NotImplemented()

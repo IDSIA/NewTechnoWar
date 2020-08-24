@@ -53,7 +53,7 @@ class MatchManager:
 
         self.board: GameBoard = board
         self.state: GameState = state
-        self.origin: GameState = deepcopy(state)
+        self.origin: GameState = None
 
         self.red: Player = red
         self.blue: Player = blue
@@ -73,6 +73,12 @@ class MatchManager:
 
         self.end = False
 
+        if self.board.has_placement[RED]:
+            self.red.placeFigures(self.board, self.state)
+        if self.board.has_placement[BLUE]:
+            self.blue.placeFigures(self.board, self.state)
+
+        self.origin = deepcopy(self.state)
         self.step = self._goUpdate
 
     def _goRound(self):
