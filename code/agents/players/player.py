@@ -21,3 +21,6 @@ class Player:
 
     def placeFigures(self, board: GameBoard, state: GameState) -> None:
         raise NotImplemented()
+
+    def chooseFigureGroups(self, board: GameBoard, state: GameState) -> None:
+        raise NotImplemented()

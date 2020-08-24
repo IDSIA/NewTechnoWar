@@ -1,4 +1,4 @@
-from typing import Dict, Set, Tuple, List
+from typing import Dict, Set, Tuple
 
 import numpy as np
 
@@ -13,7 +13,7 @@ class GameBoard:
     Static parts of the game board.
     """
     __slots__ = ['name', 'shape', 'terrain', 'geography', 'objective', 'limits', 'obstacles', 'moveCost',
-                 'protectionLevel', 'placement_zone', 'has_placement']
+                 'protectionLevel', 'placement_zone', 'has_placement', 'has_choice']
 
     def __init__(self, shape: Tuple[int, int], name: str = ''):
         self.name: str = name
@@ -44,10 +44,7 @@ class GameBoard:
 
         self.protectionLevel: np.ndarray = np.zeros(shape, dtype='uint8')
 
-        # TODO: manage placement zone
-
         self.has_placement: Dict[str, bool] = {RED: False, BLUE: False}
-
         self.placement_zone: Dict[str, np.ndarray] = {
             RED: np.zeros(shape, dtype='uint8'),
             BLUE: np.zeros(shape, dtype='uint8')

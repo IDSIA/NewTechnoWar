@@ -59,6 +59,7 @@ def index():
             'DummyResponseCheck',
             'InSightTest',
             'Junction',
+            'JunctionExo',
             'BridgeHead',
             'Roadblock',
             # 'CrossingTheCity', TODO: need fixes and bigger map!
