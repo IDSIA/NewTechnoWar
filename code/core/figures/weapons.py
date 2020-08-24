@@ -102,5 +102,7 @@ class SmokeGrenade(Weapon):
 class SniperRifle(Weapon):
     """Infantry weapon, special case of Assault Rifle"""
 
+    # TODO: ignore obstacles up to 3 tiles
+
     def __init__(self, ammo=INFINITE, dices_to_roll=1):
         super().__init__('SR', 'Sniper Rifle', 10, 6, 3, ammo, dices_to_roll)
