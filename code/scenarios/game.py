@@ -5,6 +5,7 @@ from core import RED, BLUE
 from core.figures import Tank, Infantry, APC, Exoskeleton
 from core.figures.status import HIDDEN
 from core.game.board import GameBoard
+from core.game.goals import GoalReachPoint, GoalEliminateOpponent, GoalMaxTurn
 from core.game.state import GameState
 from core.game.terrain import Terrain
 from scenarios.utils import basicForest, basicUrban, basicRoad, fillLine
@@ -50,10 +51,14 @@ def scenarioJunction() -> (GameBoard, GameState):
 
     board.addTerrain(terrain)
 
-    board.setObjectives((30, 13))
+    board.addObjectives(
+        GoalReachPoint(RED, BLUE, (30, 13)),
+        GoalEliminateOpponent(RED, BLUE),
+        GoalEliminateOpponent(BLUE, RED),
+        GoalMaxTurn(BLUE, 10)
+    )
 
     # setup dynamic parameters
-    state.turn_max = 9
 
     # orange
     i11 = Infantry((8, 0), RED, 'rInf11')
@@ -135,7 +140,6 @@ def scenarioRoadblock() -> (GameBoard, GameState):
     board = GameBoard(shape)
     state = GameState(shape)
     state.turn = 4  # with initial update -> 5 (6th turn)
-    state.turn_max = 12
 
     # setup static parameters
     terrain = np.zeros(shape, dtype='uint8')
@@ -145,7 +149,12 @@ def scenarioRoadblock() -> (GameBoard, GameState):
 
     board.addTerrain(terrain)
 
-    board.setObjectives((43, 12))
+    board.addObjectives(
+        GoalReachPoint(RED, BLUE, (43, 12)),
+        GoalEliminateOpponent(RED, BLUE),
+        GoalEliminateOpponent(BLUE, RED),
+        GoalMaxTurn(BLUE, 13)
+    )
 
     # orange
     t1 = Tank((37, 4), RED, 'rTank2')
@@ -194,7 +203,6 @@ def scenarioBridgeHead() -> (GameBoard, GameState):
     """
     board = GameBoard(shape)
     state = GameState(shape)
-    state.turn_max = 6
 
     # setup static parameters
     terrain = np.zeros(shape, dtype='uint8')
@@ -224,7 +232,12 @@ def scenarioBridgeHead() -> (GameBoard, GameState):
 
     board.addTerrain(terrain)
 
-    board.setObjectives((39, 12), (40, 12), (40, 13), (41, 14), (41, 15))
+    board.addObjectives(
+        GoalReachPoint(RED, BLUE, (39, 12), (40, 12), (40, 13), (41, 14), (41, 15)),
+        GoalEliminateOpponent(RED, BLUE),
+        GoalEliminateOpponent(BLUE, RED),
+        GoalMaxTurn(BLUE, 7)
+    )
 
     state.addChoice(RED, 'orange',
                     Tank((39, 19), RED, 'rTank1', HIDDEN),
@@ -294,7 +307,6 @@ def scenarioCrossingTheCity() -> (GameBoard, GameState):
     """
     board = GameBoard(shape)
     state = GameState(shape)
-    state.turn_max = 6
 
     # setup static parameters
     # TODO: raise height of shape!
@@ -312,7 +324,12 @@ def scenarioCrossingTheCity() -> (GameBoard, GameState):
     terrain[30, 1:3] = Terrain.FOREST
     terrain[31, 2] = Terrain.FOREST
 
-    board.setObjectives((30, 9))
+    board.addObjectives(
+        GoalReachPoint(RED, BLUE, (30, 9)),
+        GoalEliminateOpponent(RED, BLUE),
+        GoalEliminateOpponent(BLUE, RED),
+        GoalMaxTurn(BLUE, 7)
+    )
 
     t1 = Tank((29, 2), RED, 'rTank2')  # orange
     i11 = Infantry((29, 2), RED, 'rInf21')

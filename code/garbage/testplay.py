@@ -8,9 +8,10 @@ import os
 import numpy as np
 import yaml
 
-from core import TOTAL_TURNS, RED, BLUE
+from core import RED, BLUE
 from core.actions import Attack, Move, Action
 from core.game.board import GameBoard
+from core.game.goals import goalAchieved
 from core.game.manager import GameManager
 from core.game.state import GameState
 from scenarios import scenarioTest1v1, scenarioTest3v1, scenarioTestBench, scenarioTest2v2
@@ -125,8 +126,9 @@ def play(scene, seed=42):
 
         gm.update(state)
 
-        if gm.goalAchieved(board, state):
-            logging.info("End game!")
+        isEnd, winner = goalAchieved(board, state)
+        if isEnd:
+            logging.info(f'End game! Winner is {winner}')
             break
 
     draw_save(gm)

@@ -5,6 +5,7 @@ from core import RED, BLUE
 from core.figures import Infantry, Tank
 from core.figures.status import HIDDEN
 from core.game.board import GameBoard
+from core.game.goals import GoalReachPoint, GoalEliminateOpponent, GoalMaxTurn
 from core.game.state import GameState
 from core.game.terrain import Terrain
 
@@ -32,7 +33,12 @@ def scenarioDummy1() -> (GameBoard, GameState):
     board, state, terrain = _dummyBattleground((10, 10))
     board.addTerrain(terrain)
 
-    board.setObjectives((9, 9))
+    board.addObjectives(
+        GoalReachPoint(RED, BLUE, (9, 9)),
+        GoalEliminateOpponent(RED, BLUE),
+        GoalEliminateOpponent(BLUE, RED),
+        GoalMaxTurn(BLUE, 6)
+    )
 
     state.addFigure(
         Infantry((4, 1), RED),
@@ -55,7 +61,12 @@ def scenarioDummy2() -> (GameBoard, GameState):
     terrain[:, 12:20] = Terrain.URBAN
     board.addTerrain(terrain)
 
-    board.setObjectives((9, 9))
+    board.addObjectives(
+        GoalReachPoint(RED, BLUE, (9, 9)),
+        GoalEliminateOpponent(RED, BLUE),
+        GoalEliminateOpponent(BLUE, RED),
+        GoalMaxTurn(BLUE, 6)
+    )
 
     state.addFigure(
         Infantry((4, 1), RED),
@@ -78,7 +89,12 @@ def scenarioDummy3() -> (GameBoard, GameState):
     terrain[:, 12:20] = Terrain.URBAN
     board.addTerrain(terrain)
 
-    board.setObjectives((9, 9))
+    board.addObjectives(
+        GoalReachPoint(RED, BLUE, (9, 9)),
+        GoalEliminateOpponent(RED, BLUE),
+        GoalEliminateOpponent(BLUE, RED),
+        GoalMaxTurn(BLUE, 6)
+    )
 
     state.addFigure(
         Infantry((4, 1), RED),
@@ -108,7 +124,12 @@ def scenarioDummyResponseCheck() -> (GameBoard, GameState):
     terrain[:, 14:20] = Terrain.URBAN
     board.addTerrain(terrain)
 
-    board.setObjectives((9, 12))
+    board.addObjectives(
+        GoalReachPoint(RED, BLUE, (9, 12)),
+        GoalEliminateOpponent(RED, BLUE),
+        GoalEliminateOpponent(BLUE, RED),
+        GoalMaxTurn(BLUE, 6)
+    )
 
     state.addFigure(Infantry((4, 1), RED))
     state.addFigure(Tank((4, 3), RED))
@@ -136,7 +157,12 @@ def scenarioInSightTest() -> (GameBoard, GameState):
     terrain[:, 14:20] = Terrain.URBAN
     board.addTerrain(terrain)
 
-    board.setObjectives((9, 12))
+    board.addObjectives(
+        GoalReachPoint(RED, BLUE, (9, 12)),
+        GoalEliminateOpponent(RED, BLUE),
+        GoalEliminateOpponent(BLUE, RED),
+        GoalMaxTurn(BLUE, 6)
+    )
 
     state.addFigure(
         Tank((7, 10), RED),

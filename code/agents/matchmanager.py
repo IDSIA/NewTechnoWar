@@ -9,6 +9,7 @@ from agents.players.player import Player
 from core import RED, BLUE
 from core.actions import Attack, Move
 from core.game.board import GameBoard
+from core.game.goals import goalAchieved
 from core.game.manager import GameManager
 from core.game.state import GameState
 
@@ -26,7 +27,7 @@ def buildMatchManager(gid: str, scenario: str, red: str, blue: str, seed: int = 
 class MatchManager:
     __slots__ = [
         'gid', 'seed', 'actionsDone', 'outcome', 'end', 'board', 'state', 'origin', 'gm', 'scenario', 'red', 'blue',
-        'first', 'second', 'step', 'update',
+        'first', 'second', 'step', 'update', 'winner',
     ]
 
     def __init__(self, gid: str, board: GameBoard, state: GameState, red: Player, blue: Player, seed: int = 42):
@@ -46,6 +47,7 @@ class MatchManager:
         self.actionsDone: list = []
         self.outcome: list = []
 
+        self.winner: str = ''
         self.end: bool = False
         self.update: bool = False
 
@@ -61,10 +63,12 @@ class MatchManager:
         self._goInit()
 
     def reset(self):
+        """Restore the match to its original (before initialization) stage."""
         self.state: GameState = deepcopy(self.origin)
         self._goInit()
 
     def _goInit(self):
+        """Initialization step."""
         logging.debug('step: init')
         logging.info(f'SCENARIO: {self.board.name}')
         logging.info(f'SEED:     {self.seed}')
@@ -73,11 +77,13 @@ class MatchManager:
 
         self.end = False
 
+        # check for need of placement
         if self.board.has_placement[RED]:
             self.red.placeFigures(self.board, self.state)
         if self.board.has_placement[BLUE]:
             self.blue.placeFigures(self.board, self.state)
 
+        # check for need of choice
         if self.state.has_choice[RED]:
             self.red.chooseFigureGroups(self.board, self.state)
         if self.state.has_choice[BLUE]:
@@ -87,6 +93,7 @@ class MatchManager:
         self.step = self._goUpdate
 
     def _goRound(self):
+        """Round step."""
         logging.debug(f'step: round {self.first.team:5}')
         self.update = False
 
@@ -106,6 +113,7 @@ class MatchManager:
             self._goCheck()
 
     def _goResponse(self):
+        """Response step."""
         logging.debug(f'step: response {self.second.team:5}')
 
         try:
@@ -126,10 +134,13 @@ class MatchManager:
             self._goCheck()
 
     def _goCheck(self):
+        """Check next step to do."""
         # check if we are at the end of the game
-        if self.gm.goalAchieved(self.board, self.state):
+        isEnd, winner = goalAchieved(self.board, self.state)
+        if isEnd:
             # if we achieved a goal, end
-            self.step = self._goEnd
+            self.winner = winner
+            self._goEnd()
             return
 
         if self.step == self._goRound:
@@ -150,14 +161,11 @@ class MatchManager:
             self.step = self._goRound
             return
 
-        if self.state.turn + 1 >= self.state.turn_max:
-            self._goEnd()
-            return
-
         # if we are at the end of a turn, need to update and then go to next one
         self.step = self._goUpdate
 
     def _goUpdate(self):
+        """Update step."""
         logging.info('=' * 100)
         logging.debug('step: update')
         self.update = True
@@ -171,16 +179,19 @@ class MatchManager:
         self._goCheck()
 
     def _goEnd(self):
+        """End step."""
         logging.debug("step: end")
         self.end = True
         self.step = self._goEnd
 
     def nextStep(self):
+        """Go to the next step"""
         logging.debug('next: step')
 
         self.step()
 
     def nextTurn(self):
+        """Continue to execute nextStep() until the turn changes."""
         logging.debug('next: turn')
 
         t = self.state.turn

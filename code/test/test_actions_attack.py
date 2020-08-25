@@ -8,7 +8,7 @@ from core.game.board import GameBoard
 from core.game.state import GameState
 
 
-class TestAttack(unittest.TestCase):
+class TestAttackAction(unittest.TestCase):
 
     def setUp(self):
         red = PlayerDummy(RED)
@@ -51,7 +51,7 @@ class TestAttack(unittest.TestCase):
     def testActivateAttack(self):
         board = self.mm.board
         state = self.mm.state
-        attack = self.mm.gm.actionAttack(board, state, self.red_inf, self.blue_inf, self.red_tank.weapons['AR'])
+        attack = self.mm.gm.actionAttack(board, state, self.red_tank, self.blue_tank, self.red_tank.weapons['CA'])
 
         t0 = state.getTarget(attack)
         w0 = state.getWeapon(attack)
@@ -74,6 +74,7 @@ class TestAttack(unittest.TestCase):
     def testShootingGround(self):
         board = self.mm.board
         state = self.mm.state
+        # TODO
 
 
 if __name__ == '__main__':

@@ -15,14 +15,13 @@ class GameState:
     """
 
     __slots__ = [
-        'name', 'turn', 'turn_max', 'figures', 'posToFigure', 'smoke', 'figuresLOS', 'figuresDistance', 'lastAction',
+        'name', 'turn', 'figures', 'posToFigure', 'smoke', 'figuresLOS', 'figuresDistance', 'lastAction',
         'has_choice', 'choices'
     ]
 
     def __init__(self, shape: tuple, name: str = ''):
         self.name: str = name
         self.turn: int = -1
-        self.turn_max: int = 12
 
         # lists of all figures divided by team
         self.figures: Dict[str, List[Figure]] = {
@@ -62,11 +61,11 @@ class GameState:
     def __repr__(self) -> str:
         return f'{self.turn}:\n{self.figures}\n{self.posToFigure}'
 
-    def clearFigures(self, team: str):
+    def clearFigures(self, team: str) -> None:
         """Removes all figures from a team."""
         self.figures[team] = []
 
-    def addChoice(self, team: str, color: str, *figures: Figure):
+    def addChoice(self, team: str, color: str, *figures: Figure) -> None:
         """Add a set of figure to the specified color group of figures."""
         self.has_choice[team] = True
         if color not in self.choices[team]:
@@ -74,7 +73,7 @@ class GameState:
         for figure in figures:
             self.choices[team][color].append(figure)
 
-    def choose(self, team: str, color: str):
+    def choose(self, team: str, color: str) -> None:
         """Choose and add the figures to use based on the given color."""
         self.addFigure(*self.choices[team][color])
 
@@ -106,7 +105,7 @@ class GameState:
         """Given a LoadInto action, return the destination transporter."""
         return self.getFigureByIndex(action.team, action.transporter_id)
 
-    def getFiguresByPos(self, team: str, pos: tuple) -> list:
+    def getFiguresByPos(self, team: str, pos: tuple) -> List[Figure]:
         """Returns all the figures that occupy the given position."""
         if len(pos) == 2:
             pos = to_cube(pos)
@@ -118,11 +117,11 @@ class GameState:
         """Given an index of a figure, return the figure."""
         return self.figures[team][index]
 
-    def getFiguresCanBeActivated(self, team: str) -> list:
+    def getFiguresCanBeActivated(self, team: str) -> List[Figure]:
         """Returns a list of figures that have not been activated."""
         return [f for f in self.figures[team] if not f.activated and not f.killed]
 
-    def getFiguresCanRespond(self, team: str) -> list:
+    def getFiguresCanRespond(self, team: str) -> List[Figure]:
         """Returns a list of figures that have not responded."""
         return [f for f in self.figures[team] if not f.responded and not f.killed]
 
@@ -140,11 +139,11 @@ class GameState:
             figure.goto(dst)
             self.updateLOS(figure)
 
-    def getLOS(self, target: Figure) -> dict:
+    def getLOS(self, target: Figure) -> Dict[int, List[Cube]]:
         """Get all the lines of sight of all hostile figures of the given target."""
         return self.figuresLOS[target.team][target.index]
 
-    def getDistance(self, target: Figure) -> dict:
+    def getDistance(self, target: Figure) -> Dict[int, List[Cube]]:
         """Get all the lines of sight of all ally figures of the given target."""
         return self.figuresDistance[target.team][target.index]
 

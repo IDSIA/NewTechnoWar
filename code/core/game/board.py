@@ -4,6 +4,7 @@ import numpy as np
 
 from core import RED, BLUE
 from core.figures import FigureType
+from core.game.goals import Goal, GoalReachPoint
 from core.game.terrain import TERRAIN_TYPE
 from utils.coordinates import to_cube, Cube, cube_neighbor, cube_to_hex, cube_range
 
@@ -12,7 +13,7 @@ class GameBoard:
     """
     Static parts of the game board.
     """
-    __slots__ = ['name', 'shape', 'terrain', 'geography', 'objective', 'limits', 'obstacles', 'moveCost',
+    __slots__ = ['name', 'shape', 'terrain', 'geography', 'objectives', 'limits', 'obstacles', 'moveCost',
                  'protectionLevel', 'placement_zone', 'has_placement', 'has_choice']
 
     def __init__(self, shape: Tuple[int, int], name: str = ''):
@@ -22,7 +23,8 @@ class GameBoard:
         # matrices filled with -1 so we can use 0-based as index
         self.terrain: np.ndarray = np.zeros(shape, dtype='uint8')
         self.geography: np.ndarray = np.zeros(shape, dtype='uint8')
-        self.objective: np.ndarray = np.zeros(shape, dtype='uint8')
+
+        self.objectives: dict = {RED: [], BLUE: []}
 
         x, y = shape
 
@@ -52,8 +54,7 @@ class GameBoard:
 
     def addTerrain(self, terrain: np.array):
         """
-        Sum a terrain matrix to the current board.
-        The values must be of core.Terrain Types.
+        Sum a terrain matrix to the current board. The values must be of core.Terrain Types.
         Default '0' is 'open ground'.
         """
         self.terrain += terrain
@@ -76,10 +77,23 @@ class GameBoard:
         """Add a geography matrix to the current board."""
         self.geography += geography
 
-    def setObjectives(self, *objectives: tuple):
-        """Add an objective matrix to the current board."""
+    def addObjectives(self, *objectives: Goal):
+        """Add the objectives for the given team to the current board."""
         for objective in objectives:
-            self.objective[objective] = 1
+            self.objectives[objective.team].append(objective)
+
+    def getObjectives(self, team: str = None):
+        """Returns the goals for the team."""
+        return self.objectives[team]
+
+    def getObjectiveMark(self):
+        """Return the position of all objectives in the map."""
+        marks = []
+        for team in [RED, BLUE]:
+            for o in self.objectives[team]:
+                if isinstance(o, GoalReachPoint):
+                    marks += o.objectives
+        return marks
 
     def addPlacementZone(self, team: str, zone: np.array):
         """Add a zone in the board where units can be placed."""
@@ -105,11 +119,6 @@ class GameBoard:
         """Return if the given position is an obstacle or not."""
         if pos in self.obstacles:
             return True
-
-    def getGoals(self):
-        """Returns the positions marked as goals."""
-        goals = np.argwhere(self.objective > 0)
-        return set(map(to_cube, goals))
 
     def getRange(self, center: Cube, n: int):
         """Returns all the positions inside a given range and a center."""

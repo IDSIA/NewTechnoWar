@@ -175,16 +175,16 @@ function appendLine(text, newLine = true) {
 
 function step() {
     $.get('/game/next/step', function (data) {
-        if (data.update) {
-            updateTurn(data);
-            return;
-        }
-
         if (data.end) {
             console.log('end game');
             appendLine('End')
             end = true;
             window.clearInterval(autoplay);
+            return;
+        }
+
+        if (data.update) {
+            updateTurn(data);
             return;
         }
 
@@ -386,6 +386,12 @@ window.onload = function () {
                 console.log('Autoplay enabled');
                 autoplay = window.setInterval(step, TIMEOUT);
             }
-        }).fail(() => console.error('Failed to load params!'));
-    }).fail(() => console.error('Failed to load state!'));
+        }).fail(() => {
+            console.error('Failed to load params!');
+            window.clearInterval(autoplay);
+        });
+    }).fail(() => {
+        console.error('Failed to load state!');
+        window.clearInterval(autoplay);
+    });
 }

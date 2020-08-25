@@ -462,15 +462,3 @@ class GameManager:
                     allies = state.getDistance(figure)
                     if min([len(v) for v in allies.values()]) > CUTOFF_RANGE:
                         figure.stat = CUT_OFF
-
-    @staticmethod
-    def goalAchieved(board: GameBoard, state: GameState) -> bool:
-        """
-        Current is a death match goal.
-        """
-
-        # TODO: change with different goals based on board
-        redKilled = all([f.killed for f in state.figures[RED]])
-        blueKilled = all([f.killed for f in state.figures[BLUE]])
-
-        return redKilled or blueKilled

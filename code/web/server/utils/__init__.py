@@ -64,6 +64,8 @@ def fieldShape(board: GameBoard):
 def scroll(board: GameBoard):
     x, y = board.shape
 
+    objectiveMarks = board.getObjectiveMark()
+
     for i in range(0, x):
         for j in range(0, y):
             p = (i, j)
@@ -75,7 +77,7 @@ def scroll(board: GameBoard):
                 p,
                 tt,
                 board.geography[p],
-                board.objective[p] > 0,
+                to_cube(p) in objectiveMarks,
                 tt.blockLos
             )
 
