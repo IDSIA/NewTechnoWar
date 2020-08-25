@@ -93,3 +93,10 @@ class PlayerDummy(Player):
             figure = figures[i]
             dst = to_cube((x[indices[i]], y[indices[i]]))
             state.moveFigure(self.team, figure, figure.position, dst)
+
+    def chooseFigureGroups(self, board: GameBoard, state: GameState) -> None:
+        # randomly choose a color
+        colors = list(state.choices[self.team].keys())
+        color = np.random.choice(colors)
+
+        state.choose(self.team, color)

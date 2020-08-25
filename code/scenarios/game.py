@@ -2,7 +2,7 @@
 import numpy as np
 
 from core import RED, BLUE
-from core.figures import Tank, Infantry, APC
+from core.figures import Tank, Infantry, APC, Exoskeleton
 from core.figures.status import HIDDEN
 from core.game.board import GameBoard
 from core.game.state import GameState
@@ -55,23 +55,29 @@ def scenarioJunction() -> (GameBoard, GameState):
     # setup dynamic parameters
     state.turn_max = 9
 
-    t1 = Tank((8, 0), RED, 'rTank1')
-    t2 = Tank((7, 11), RED, 'rTank2')
-    t3 = Tank((17, 20), RED, 'rTank3')
-
+    # orange
     i11 = Infantry((8, 0), RED, 'rInf11')
     i12 = Infantry((8, 0), RED, 'rInf12')
-    i21 = Infantry((7, 11), RED, 'rInf21')
-    i22 = Infantry((6, 12), RED, 'rInf22')
-    i3 = Infantry((17, 17), RED, 'rInf3')
-    i4 = Infantry((25, 22), RED, 'rInf4')
-
+    t1 = Tank((8, 0), RED, 'rTank1')
     t1.transportLoad(i11)
     t1.transportLoad(i12)
+
+    # red
+    t2 = Tank((7, 11), RED, 'rTank2')
+    i21 = Infantry((7, 11), RED, 'rInf21')
+    i22 = Infantry((6, 12), RED, 'rInf22')
     t2.transportLoad(i21)
 
+    # darkred
+    t3 = Tank((17, 20), RED, 'rTank3')
+    i31 = Infantry((17, 17), RED, 'rInf3')
+    i32 = Infantry((25, 22), RED, 'rInf4')
+
+    state.addChoice(RED, 'orange', t1, i11, i12)
+    state.addChoice(RED, 'red', t2, i21, i22)
+    state.addChoice(RED, 'darkred', t3, i31, i32)
+
     state.addFigure(
-        t1, t2, t3, i11, i12, i21, i22, i3, i4,
         APC((33, 8), BLUE, 'bAPC1', HIDDEN),
         Infantry((36, 14), BLUE, 'bInf1', HIDDEN),
         Infantry((37, 16), BLUE, 'bInf2', HIDDEN)
@@ -101,6 +107,27 @@ def scenarioJunction() -> (GameBoard, GameState):
     return board, state
 
 
+def scenarioJunctionExo() -> (GameBoard, GameState):
+    """
+    Same as scenario Junction but blue uses Exoskeletons.
+    """
+
+    board, state = scenarioJunction()
+
+    # clear
+    state.clearFigures(BLUE)
+
+    state.addFigure(
+        APC((33, 8), BLUE, 'bAPC1', HIDDEN),
+        Exoskeleton((36, 14), BLUE, 'bExo1', HIDDEN),
+        Exoskeleton((37, 16), BLUE, 'bExo2', HIDDEN)
+    )
+
+    board.name = state.name = 'junction-exo'
+
+    return board, state
+
+
 def scenarioRoadblock() -> (GameBoard, GameState):
     """
     Sets up scenario 'roadblock'.
@@ -120,27 +147,29 @@ def scenarioRoadblock() -> (GameBoard, GameState):
 
     board.setObjectives((43, 12))
 
-    t1 = Tank((39, 5), RED, 'rTank1')  # dark red 2 units
-    i11 = Infantry((39, 5), RED, 'rInf11')
-    i12 = Infantry((39, 5), RED, 'rInf12')
+    # orange
+    t1 = Tank((37, 4), RED, 'rTank2')
+    i11 = Infantry((37, 6), RED, 'rInf21')
+    i12 = Infantry((36, 8), RED, 'rInf22')
 
-    t1.transportLoad(i11)
-    t1.transportLoad(i12)
+    # red
+    t2 = Tank((42, 4), RED, 'rTank3')
+    i21 = Infantry((42, 4), RED, 'rInf31')
+    i22 = Infantry((42, 3), RED, 'rInf32')
+    t2.transportLoad(i21)
 
-    t2 = Tank((37, 4), RED, 'rTank2')  # orange
-    i21 = Infantry((37, 6), RED, 'rInf21')
-    i22 = Infantry((36, 8), RED, 'rInf22')
-
-    t3 = Tank((42, 4), RED, 'rTank3')  # red 1 unit
-    i31 = Infantry((42, 4), RED, 'rInf31')
-    i32 = Infantry((42, 3), RED, 'rInf32')
-
+    # darkred
+    i31 = Infantry((39, 5), RED, 'rInf11')
+    i32 = Infantry((39, 5), RED, 'rInf12')
+    t3 = Tank((39, 5), RED, 'rTank1')
     t3.transportLoad(i31)
+    t3.transportLoad(i32)
+
+    state.addChoice(RED, 'orange', t1, i11, i12)
+    state.addChoice(RED, 'red', t2, i21, i22)
+    state.addChoice(RED, 'darkred', t3, i31, i32)
 
     state.addFigure(
-        t1, i11, i12,
-        t2, i21, i22,
-        t3, i31, i32,
         APC((43, 15), BLUE, 'bAPC', HIDDEN),
         Infantry((42, 18), BLUE, 'bInf', HIDDEN),
     )
@@ -197,13 +226,20 @@ def scenarioBridgeHead() -> (GameBoard, GameState):
 
     board.setObjectives((39, 12), (40, 12), (40, 13), (41, 14), (41, 15))
 
+    state.addChoice(RED, 'orange',
+                    Tank((39, 19), RED, 'rTank1', HIDDEN),
+                    Infantry((34, 15), RED, 'rInf11', HIDDEN)
+                    )
+    state.addChoice(RED, 'red',
+                    Tank((37, 18), RED, 'rTank2', HIDDEN),
+                    Infantry((33, 14), RED, 'rInf12', HIDDEN)
+                    )
+    state.addChoice(RED, 'darkred',
+                    Tank((35, 16), RED, 'rTank3', HIDDEN),
+                    Infantry((32, 13), RED, 'rInf21', HIDDEN)
+                    )
+
     state.addFigure(
-        Tank((39, 19), RED, 'rTank1', HIDDEN),
-        Tank((37, 18), RED, 'rTank2', HIDDEN),
-        Tank((35, 16), RED, 'rTank3', HIDDEN),
-        Infantry((34, 15), RED, 'rInf11', HIDDEN),
-        Infantry((33, 14), RED, 'rInf12', HIDDEN),
-        Infantry((32, 13), RED, 'rInf21', HIDDEN),
         APC((40, 11), BLUE, 'bAPC', HIDDEN),
         Infantry((42, 9), BLUE, 'bInf', HIDDEN),
     )
@@ -278,20 +314,29 @@ def scenarioCrossingTheCity() -> (GameBoard, GameState):
 
     board.setObjectives((30, 9))
 
-    t1 = Tank((29, 1), RED, 'rTank1')  # dark red 2 units
-    i1 = Infantry((29, 1), RED, 'rInf11')
-    t1.transportLoad(i1)
+    t1 = Tank((29, 2), RED, 'rTank2')  # orange
+    i11 = Infantry((29, 2), RED, 'rInf21')
+    i12 = Infantry((29, 2), RED, 'rInf21')
+    t1.transportLoad(i11)
+    t1.transportLoad(i12)
 
-    t2 = Tank((29, 2), RED, 'rTank2')  # orange
-    i2 = Infantry((29, 2), RED, 'rInf21')
-    t2.transportLoad(i2)
+    t2 = Tank((24, 4), RED, 'rTank3')  # red 1 unit
+    i21 = Infantry((24, 4), RED, 'rInf31')
+    i22 = Infantry((24, 4), RED, 'rInf31')
+    t2.transportLoad(i21)
+    t2.transportLoad(i22)
 
-    t3 = Tank((24, 4), RED, 'rTank3')  # red 1 unit
-    i3 = Infantry((24, 4), RED, 'rInf31')
-    t3.transportLoad(i3)
+    t3 = Tank((29, 1), RED, 'rTank1')  # dark red 2 units
+    i31 = Infantry((29, 1), RED, 'rInf11')
+    i32 = Infantry((29, 1), RED, 'rInf11')
+    t3.transportLoad(i31)
+    t3.transportLoad(i32)
+
+    state.addChoice(RED, 'orange', t1, i11, i12)
+    state.addChoice(RED, 'red', t2, i21, i22)
+    state.addChoice(RED, 'darkred', t3, i31, i32)
 
     state.addFigure(
-        t1, t2, t3, i1, i2, i3,
         APC((32, 7), BLUE, 'bAPC', HIDDEN),
         Infantry((31, 9), BLUE, 'bInf', HIDDEN),
     )

@@ -198,18 +198,24 @@
 
 	\chapter{Players and Agents}
 
-	The idea for the \textit{Agents} and the \textit{Players} is to use a common interface that can be easily used by the \texttt{MatchManager}. This interface is composed by two methods:
+	The idea for the \textit{Agents} and the \textit{Players} is to use a common interface that can be easily used by the \texttt{MatchManager}. This interface is composed following methods:
 
 	\begin{itemize}
 		\item \texttt{chooseAction()},
-		\item \texttt{chooseResponse()}.
+		\item \texttt{chooseResponse()},
+		\item \texttt{initialize()},
+		\item \texttt{chooseFigureGroups()}.
 	\end{itemize}
 
-	Although they look similar, the need to be differentiated because the \textit{response} state offers the possibility to skip the action. This possibility is something that the Player or Agent need to keep in mind during the design stage.
+	Although the first two look similar, they need to be differentiated because the \textit{response} state offers the possibility to skip the generation of an action. This possibility is something that the Player or Agent need to keep in mind during the design stage.
 
 	In the case that something is not doable, i.e. skip the \textit{response} action or if a figure does not have action doable, please raise the \texttt{ValueError} exception in order to inform the \textit{MatchManager} that there will not be an action available.
 
-	Please, check the \texttt{agents.players.PlayerDummy} class for an example of implementation of a random player.
+	There could be the possibility that some scenarios require an initialization step. In this step the Player or Agent need to think on how to setup their figures. There are three possible situations that need to be considered: the units are set; the units are already placed but the Player need to choose which positions to use; the units are not set but there is an area where the units can be placed.
+
+	The methods \texttt{initialize()} and \texttt{chooseFigureGroups()} are intended to be used to fulfill this task and respectively initialize the units in a placement zone, or choose between groups of already placed units.
+
+	Please, check the \texttt{agents.players.PlayerDummy} class for an example of implementation of a random player and on how to properly implement these functions.
 
 	% ---------------------------------------------------------------------------------------------------------
 

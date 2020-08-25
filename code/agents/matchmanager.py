@@ -53,7 +53,7 @@ class MatchManager:
 
         self.board: GameBoard = board
         self.state: GameState = state
-        self.origin: GameState = None
+        self.origin: GameState or None = None
 
         self.red: Player = red
         self.blue: Player = blue
@@ -77,6 +77,11 @@ class MatchManager:
             self.red.placeFigures(self.board, self.state)
         if self.board.has_placement[BLUE]:
             self.blue.placeFigures(self.board, self.state)
+
+        if self.state.has_choice[RED]:
+            self.red.chooseFigureGroups(self.board, self.state)
+        if self.state.has_choice[BLUE]:
+            self.blue.chooseFigureGroups(self.board, self.state)
 
         self.origin = deepcopy(self.state)
         self.step = self._goUpdate

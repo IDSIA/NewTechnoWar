@@ -1,3 +1,5 @@
+from typing import Dict, List
+
 import numpy as np
 
 from core import RED, BLUE
@@ -13,7 +15,8 @@ class GameState:
     """
 
     __slots__ = [
-        'name', 'turn', 'turn_max', 'figures', 'posToFigure', 'smoke', 'figuresLOS', 'figuresDistance', 'lastAction'
+        'name', 'turn', 'turn_max', 'figures', 'posToFigure', 'smoke', 'figuresLOS', 'figuresDistance', 'lastAction',
+        'has_choice', 'choices'
     ]
 
     def __init__(self, shape: tuple, name: str = ''):
@@ -22,13 +25,13 @@ class GameState:
         self.turn_max: int = 12
 
         # lists of all figures divided by team
-        self.figures: dict = {
+        self.figures: Dict[str, List[Figure]] = {
             RED: [],
             BLUE: []
         }
 
         # contains the figure index at the given position: pos -> [idx, ...]
-        self.posToFigure: dict = {
+        self.posToFigure: Dict[str, Dict[Cube, List[int]]] = {
             RED: dict(),
             BLUE: dict(),
         }
@@ -37,32 +40,54 @@ class GameState:
         self.smoke: np.array = np.zeros(shape, dtype='int8')
 
         # keep track of the line-of-sight to figures (marked by index) of the oppose team
-        self.figuresLOS: dict = {
+        self.figuresLOS: Dict[str, Dict[int, Dict[int, List[Cube]]]] = {
             RED: dict(),
             BLUE: dict()
         }
 
         # keep track of the distance by using a line-of-sight between figures (marked by index) of the same team
-        self.figuresDistance: dict = {
+        self.figuresDistance: Dict[str, Dict[int, Dict[int, List[Cube]]]] = {
             RED: dict(),
             BLUE: dict()
         }
 
         self.lastAction: Action or None = None
 
+        self.has_choice: Dict[str, bool] = {RED: False, BLUE: False}
+        self.choices: Dict[str, Dict[str, List[Figure]]] = {
+            RED: dict(),
+            BLUE: dict()
+        }
+
     def __repr__(self) -> str:
         return f'{self.turn}:\n{self.figures}\n{self.posToFigure}'
 
-    def addFigure(self, *figures: Figure) -> None:
+    def clearFigures(self, team: str):
+        """Removes all figures from a team."""
+        self.figures[team] = []
+
+    def addChoice(self, team: str, color: str, *figures: Figure):
+        """Add a set of figure to the specified color group of figures."""
+        self.has_choice[team] = True
+        if color not in self.choices[team]:
+            self.choices[team][color] = []
+        for figure in figures:
+            self.choices[team][color].append(figure)
+
+    def choose(self, team: str, color: str):
+        """Choose and add the figures to use based on the given color."""
+        self.addFigure(*self.choices[team][color])
+
+    def addFigure(self, *newFigures: Figure) -> None:
         """
         Add a figures to the units of the given team and set the index in the matrix at the position of the figure.
         """
-        for figure in figures:
+        for figure in newFigures:
             team = figure.team
             figures = self.figures[team]
-            index = len(figures)  # to have 0-based index
-            figures.append(figure)
+            index = len(figures)  # to be 0-based index
             figure.index = index
+            figures.append(figure)
             self.moveFigure(team, figure, dst=figure.position)
 
     def getFigure(self, action: Action) -> Figure:
