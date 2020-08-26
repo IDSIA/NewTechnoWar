@@ -62,6 +62,12 @@ h1.player-title {
     margin: 0.1em;
 }
 
+h1.player-info {
+    text-align: center;
+    margin: 0.1em;
+    font-size: 1em;
+}
+
 h1.player-pass {
     text-align: center;
     margin: 0.1em;

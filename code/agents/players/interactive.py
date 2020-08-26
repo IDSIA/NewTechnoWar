@@ -61,10 +61,17 @@ class Human(PlayerDummy):
             return
 
         if action == 'attack':
-            w = data['w']
-            otherTeam = BLUE if self.team == RED else RED
-            target = state.getFiguresByPos(otherTeam, pos)[0]  # TODO: get unit based on index or weapon target type
+            w = data['weapon']
             weapon = figure.weapons[w]
+
+            if 'targetTeam' in data:
+                targetTeam = data['targetTeam']
+                targetIdx = data['targetIdx']
+                target = state.getFigureByIndex(targetTeam, targetIdx)
+
+            else:
+                otherTeam = BLUE if self.team == RED else RED
+                target = state.getFiguresByPos(otherTeam, pos)[0]  # TODO: get unit based on index or weapon target type
 
             self.next_action = gm.actionAttack(board, state, figure, target, weapon)
             self.next_response = gm.actionRespond(board, state, figure, target, weapon)

@@ -137,6 +137,9 @@ function addFigure(figure, team, human = false) {
         $(`#${fid}`).removeClass('highlight');
         $(`#${gid}`).removeClass('highlight');
     };
+    g.onclick = function () {
+        clickMark(team, figure.idx);
+    };
 
     $(document.getElementById('markers')).append(g);
 }
@@ -177,6 +180,31 @@ function appendLine(text, newLine = true) {
     textarea.scrollTop(textarea[0].scrollHeight);
 }
 
+function checkNextPlayer(data) {
+    window.clearInterval(autoplay);
+
+    if (data.next.isHuman) {
+        let team = data.next.player;
+        let info = $(`${team}Info`);
+
+        switch (data.next.step) {
+            case 'round':
+                info.text('Next: Round');
+                break;
+            case 'response':
+                info.text('Next: Response');
+                break;
+            case 'update':
+                info.text('Next: Update');
+                autoplay = window.setInterval(step, TIMEOUT);
+                break;
+            default:
+        }
+    } else {
+        autoplay = window.setInterval(step, TIMEOUT);
+    }
+}
+
 function step() {
     $.get('/game/next/step', function (data) {
         if (data.end) {
@@ -189,12 +217,14 @@ function step() {
 
         if (data.update) {
             updateTurn(data);
+            checkNextPlayer(data);
             return;
         }
 
         if (data.action === null) {
             console.log('no actions');
             appendLine('No actions');
+            checkNextPlayer(data);
             return;
         }
 
@@ -239,6 +269,8 @@ function step() {
         }
 
         updateFigure(figureData, action.action);
+
+        checkNextPlayer(data)
     }).fail(function () {
         console.error('Failed to step!');
     });
@@ -358,20 +390,25 @@ window.onload = function () {
         changeTurnValue(data.state.turn);
 
         figures[gameId] = {};
-        params[gameId] = data.params
+        params[gameId] = data.params;
 
         appendLine('Playing on scenario ' + data.params.scenario);
         appendLine('Seed used ' + data.params.seed);
+
         $('#redPlayer').text(data.params.redPlayer);
         $('#bluePlayer').text(data.params.bluePlayer);
 
         if (data.params.redPlayer === 'Human') {
-            $('#redUnits').append($(`<h1 class="player-pass">Pass</h1>`)
-                .on('click', (e) => clickPass(e, 'red')));
+            $('#redUnits').append([
+                $(`<h1 id="redInfo" class="player-info"></h1>`),
+                $(`<h1 class="player-pass">Pass</h1>`).on('click', (e) => clickPass(e, 'red'))
+            ]);
         }
         if (data.params.bluePlayer === 'Human') {
-            $('#blueUnits').append($(`<h1 class="player-pass">Pass</h1>`)
-                .on('click', (e) => clickPass(e, 'blue')));
+            $('#blueUnits').append([
+                $(`<h1 id="blueInfo" class="player-info"></h1>`),
+                $(`<h1 class="player-pass">Pass</h1>`).on('click', (e) => clickPass(e, 'blue')),
+            ]);
         }
 
         let reds = data.state.figures.red;
@@ -391,7 +428,7 @@ window.onload = function () {
             if (e.key === ' ') step(); // space
         };
 
-        if (data.params.autoplay) {
+        if (data.params.autoplay && !data.next.isHuman) {
             console.log('Autoplay enabled');
             autoplay = window.setInterval(step, TIMEOUT);
         }

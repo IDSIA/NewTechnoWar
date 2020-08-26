@@ -7,7 +7,6 @@ from flask import current_app as app
 
 from agents.matchmanager import MatchManager, buildMatchManager
 from agents.players import Human
-from core import RED
 from web.server.utils import scroll, fieldShape
 
 main = Blueprint('main', __name__, template_folder='templates', static_folder='static')
@@ -20,11 +19,16 @@ def index():
         data = request.form
         seed = int(data['seed'])
 
+        redPlayer = data['redPlayer']
+        bluePlayer = data['bluePlayer']
+
+        autoplay = 'autoplay' in data or redPlayer == 'Human' or bluePlayer == 'Human'
+
         mm = buildMatchManager(
             str(uuid.uuid4()),
             'scenario' + data['scenario'],
-            data['redPlayer'],
-            data['bluePlayer'],
+            redPlayer,
+            bluePlayer,
             seed if seed > 0 else random.randint(1, 1000000000)
         )
         mm.step()
@@ -33,9 +37,9 @@ def index():
         app.params[mm.gid] = {
             'seed': mm.seed,
             'scenario': data['scenario'],
-            'redPlayer': data['redPlayer'],
-            'bluePlayer': data['bluePlayer'],
-            'autoplay': 'autoplay' in data,
+            'redPlayer': redPlayer,
+            'bluePlayer': bluePlayer,
+            'autoplay': autoplay,
             'replay': data['replay'],
         }
         app.actions[mm.gid] = None
@@ -156,7 +160,8 @@ def gameState():
         _, mm = checkGameId()
         return jsonify({
             'state': mm.state,
-            'params': app.params[mm.gid]
+            'params': app.params[mm.gid],
+            'next': mm.nextPlayer(),
         }), 200
 
     except ValueError as e:
@@ -185,6 +190,7 @@ def gameNextStep():
             'state': mm.state,
             'action': lastAction,
             'outcome': lastOutcome,
+            'next': mm.nextPlayer(),
         }), 200
 
     except ValueError as e:

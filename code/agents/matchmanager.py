@@ -60,13 +60,10 @@ class MatchManager:
         self.red: Player = red
         self.blue: Player = blue
 
-        self._goInit()
+        self.first = None
+        self.second = None
 
-    def getPlayer(self, team):
-        """Get the player agent by team color."""
-        if team == RED:
-            return self.red
-        return self.blue
+        self._goInit()
 
     def reset(self):
         """Restore the match to its original (before initialization) stage."""
@@ -193,7 +190,6 @@ class MatchManager:
     def nextStep(self):
         """Go to the next step"""
         logging.debug('next: step')
-
         self.step()
 
     def nextTurn(self):
@@ -203,3 +199,30 @@ class MatchManager:
         t = self.state.turn
         while self.state.turn == t and not self.end:
             self.nextStep()
+
+    def getPlayer(self, team):
+        """Get the player agent by team color."""
+        if team == RED:
+            return self.red
+        return self.blue
+
+    def nextPlayer(self):
+        step = ''
+        nextPlayer = ''
+        nextHuman = False
+        if self.step == self._goRound:
+            step = 'round'
+            nextPlayer = self.first.team
+            nextHuman = self.first.name == 'Human'
+        if self.step == self._goResponse:
+            step = 'response'
+            nextPlayer = self.second.team
+            nextHuman = self.second.name == 'Human'
+        if self.step == self._goUpdate:
+            step = 'update'
+
+        return {
+            'step': step,
+            'player': nextPlayer,
+            'isHuman': nextHuman
+        }

@@ -51,3 +51,16 @@ function clickHexagon(x, y) {
         actionParams = undefined;
     }).fail(() => console.error('Failed to send click on unit!'));
 }
+
+function clickMark(team, idx) {
+    if (actionParams === undefined)
+        return;
+
+    actionParams.targetTeam = team;
+    actionParams.targetIdx = idx;
+
+    $.post('/game/human/click', actionParams, () => {
+        step();
+        actionParams = undefined;
+    }).fail(() => console.error('Failed to send click on unit!'));
+}
