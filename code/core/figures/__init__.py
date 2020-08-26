@@ -21,7 +21,7 @@ class Figure:
         'attacked_by', 'can_transport', 'transport_capacity', 'transporting', 'transported_by', 'bonus'
     ]
 
-    def __init__(self, position: tuple, name: str, team: str, kind: int, stat: FigureStatus):
+    def __init__(self, position: tuple or Cube, name: str, team: str, kind: int, stat: FigureStatus):
         self.fid = str(uuid.uuid4())
         self.team: str = team
 

@@ -64,7 +64,7 @@ class GameBoard:
         # update movement costs, protection level and obstacles
         for i in range(0, x):
             for j in range(0, y):
-                index = terrain[i, j]
+                index = self.terrain[i, j]
                 tt = TERRAIN_TYPE[index]
                 self.protectionLevel[i, j] = tt.protectionLevel
                 self.moveCost[FigureType.INFANTRY][i, j] = tt.moveCostInf
@@ -117,8 +117,7 @@ class GameBoard:
 
     def isObstacle(self, pos: Cube) -> bool:
         """Return if the given position is an obstacle or not."""
-        if pos in self.obstacles:
-            return True
+        return pos in self.obstacles
 
     def getRange(self, center: Cube, n: int):
         """Returns all the positions inside a given range and a center."""

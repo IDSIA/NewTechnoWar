@@ -1,5 +1,6 @@
 import logging
 from copy import deepcopy
+from typing import List
 
 import numpy as np
 
@@ -17,6 +18,9 @@ from utils.coordinates import cube_add, Cube, cube_distance, to_cube
 
 class GameManager:
     """Utility class that helps in manage the states of the game and build actions."""
+
+    def __init__(self):
+        self.DEBUG_HIT: bool = False
 
     @staticmethod
     def actionMove(board: GameBoard, figure: Figure, path: list = None, destination: tuple = None) -> Move:
@@ -73,8 +77,11 @@ class GameManager:
 
         return moves
 
-    @staticmethod
-    def canShoot(board: GameBoard, state: GameState, figure: Figure, target: Figure, weapon: Weapon) -> tuple:
+    def checkLine(self, board: GameBoard, state: GameState, line: List[Cube]) -> bool:
+        """Returns True if the line is valid (has no obstacles), otherwise False."""
+        return not any([state.isObstacle(h) or board.isObstacle(h) for h in line[1:-1]])
+
+    def canShoot(self, board: GameBoard, state: GameState, figure: Figure, target: Figure, weapon: Weapon) -> tuple:
         """Check if the given weapon can shoot against the given target."""
 
         if not weapon.isAvailable():
@@ -104,21 +111,21 @@ class GameManager:
             canHit = False
             guard = None
             los = []
-            for idx, ls in lines.items():
+            for idx, line in lines.items():
                 possibleGuard = state.figures[figure.team][idx]
                 if possibleGuard.killed:
                     continue
 
-                canHit = not any([state.isObstacle(h) or board.isObstacle(h) for h in ls[1:-1]])
+                canHit = self.checkLine(board, state, line)
                 if canHit:
-                    los = ls
+                    los = line
                     guard = possibleGuard
                     break
 
         else:
             # Line-Of-Sight and Line-Of-Fire are equivalent
             los = lof
-            canHit = not any([state.isObstacle(h) or board.isObstacle(h) for h in lof[1:-1]])
+            canHit = self.checkLine(board, state, lof)
             guard = figure
 
         if not canHit:
@@ -129,14 +136,14 @@ class GameManager:
 
         return figure.team, figure, target, guard, weapon, los, lof
 
-    @staticmethod
-    def actionAttack(board: GameBoard, state: GameState, figure: Figure, target: Figure, weapon: Weapon) -> Attack:
+    def actionAttack(self, board: GameBoard, state: GameState, figure: Figure, target: Figure,
+                     weapon: Weapon) -> Attack:
         """
         Creates an Attack action for a figure given the specified target and weapon. Can raise ValueError if the shot
         is not doable.
         """
 
-        args = GameManager.canShoot(board, state, figure, target, weapon)
+        args = self.canShoot(board, state, figure, target, weapon)
         if not args:
             raise ValueError
         return Attack(*args)
@@ -160,14 +167,14 @@ class GameManager:
 
         return attacks
 
-    @staticmethod
-    def actionRespond(board: GameBoard, state: GameState, figure: Figure, target: Figure, weapon: Weapon) -> Respond:
+    def actionRespond(self, board: GameBoard, state: GameState, figure: Figure, target: Figure,
+                      weapon: Weapon) -> Respond:
         """
         Creates a Respond action for a figure given the specified target and weapon. Can raise ValueError if the shot
         is not doable.
         """
 
-        args = GameManager.canShoot(board, state, figure, target, weapon)
+        args = self.canShoot(board, state, figure, target, weapon)
         if not args:
             raise ValueError
         return Respond(*args)
@@ -196,7 +203,7 @@ class GameManager:
         return responses
 
     @staticmethod
-    def actionAttackGround(figure: Figure, ground: tuple, weapon: Weapon):
+    def actionAttackGround(figure: Figure, ground: tuple or Cube, weapon: Weapon):
         """Creates an AttackGround action for a figure given the ground location and the weapon to use."""
 
         if not weapon.attack_ground:
@@ -343,7 +350,7 @@ class GameManager:
                 cloud = [(cube_distance(c, f.position), c) for c in cloud]
                 cloud = sorted(cloud, key=lambda y: -y[0])
 
-                state.addSmoke(cloud[1:3] + [x])
+                state.addSmoke([c[1] for c in cloud[1:3]] + [x])
 
                 logging.info(f'{action}: smoke at {x}')
             return {}
@@ -359,7 +366,10 @@ class GameManager:
             # consume ammunition
             w.shoot()
 
-            score = np.random.choice(range(1, 21), size=w.dices)
+            if self.DEBUG_HIT:
+                score = [0] * w.dices
+            else:
+                score = np.random.choice(range(1, 21), size=w.dices)
 
             # attack/response
             if isinstance(action, Respond):
