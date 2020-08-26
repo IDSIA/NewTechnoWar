@@ -62,6 +62,12 @@ class MatchManager:
 
         self._goInit()
 
+    def getPlayer(self, team):
+        """Get the player agent by team color."""
+        if team == RED:
+            return self.red
+        return self.blue
+
     def reset(self):
         """Restore the match to its original (before initialization) stage."""
         self.state: GameState = deepcopy(self.origin)

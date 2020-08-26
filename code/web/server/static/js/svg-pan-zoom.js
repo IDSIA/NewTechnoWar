@@ -1,29 +1,33 @@
+function svg(tag) {
+    return $(document.createElementNS('http://www.w3.org/2000/svg', tag))
+}
+
 // source: https://css-tricks.com/creating-a-panning-effect-for-svg/
 
 // We select the SVG into the page
-let svg = document.querySelector('svg');
+let SVG = document.querySelector('svg');
 
 // If browser supports pointer events
 if (window.PointerEvent) {
-    svg.addEventListener('pointerdown', onPointerDown); // Pointer is pressed
-    svg.addEventListener('pointerup', onPointerUp); // Releasing the pointer
-    svg.addEventListener('pointerleave', onPointerUp); // Pointer gets out of the SVG area
-    svg.addEventListener('pointermove', onPointerMove); // Pointer is moving
+    SVG.addEventListener('pointerdown', onPointerDown); // Pointer is pressed
+    SVG.addEventListener('pointerup', onPointerUp); // Releasing the pointer
+    SVG.addEventListener('pointerleave', onPointerUp); // Pointer gets out of the SVG area
+    SVG.addEventListener('pointermove', onPointerMove); // Pointer is moving
 } else {
     // Add all mouse events listeners fallback
-    svg.addEventListener('mousedown', onPointerDown); // Pressing the mouse
-    svg.addEventListener('mouseup', onPointerUp); // Releasing the mouse
-    svg.addEventListener('mouseleave', onPointerUp); // Mouse gets out of the SVG area
-    svg.addEventListener('mousemove', onPointerMove); // Mouse is moving
+    SVG.addEventListener('mousedown', onPointerDown); // Pressing the mouse
+    SVG.addEventListener('mouseup', onPointerUp); // Releasing the mouse
+    SVG.addEventListener('mouseleave', onPointerUp); // Mouse gets out of the SVG area
+    SVG.addEventListener('mousemove', onPointerMove); // Mouse is moving
 
     // Add all touch events listeners fallback
-    svg.addEventListener('touchstart', onPointerDown); // Finger is touching the screen
-    svg.addEventListener('touchend', onPointerUp); // Finger is no longer touching the screen
-    svg.addEventListener('touchmove', onPointerMove); // Finger is moving
+    SVG.addEventListener('touchstart', onPointerDown); // Finger is touching the screen
+    SVG.addEventListener('touchend', onPointerUp); // Finger is no longer touching the screen
+    SVG.addEventListener('touchmove', onPointerMove); // Finger is moving
 }
 
 // Create an SVG point that contains x & y values
-let point = svg.createSVGPoint();
+let point = SVG.createSVGPoint();
 
 // This function returns an object with X & Y values from the pointer event
 function getPointFromEvent(event) {
@@ -38,7 +42,7 @@ function getPointFromEvent(event) {
     }
 
     // We get the current transformation matrix of the SVG and we inverse it
-    let invertedSVGMatrix = svg.getScreenCTM().inverse();
+    let invertedSVGMatrix = SVG.getScreenCTM().inverse();
 
     return point.matrixTransform(invertedSVGMatrix);
 }
@@ -58,7 +62,7 @@ function onPointerDown(event) {
 }
 
 // We save the original values from the viewBox
-let viewBox = svg.viewBox.baseVal;
+let viewBox = SVG.viewBox.baseVal;
 
 // Function called by the event listeners when user start moving/dragging
 function onPointerMove(event) {

@@ -4,14 +4,8 @@ let gameId = undefined;
 let end = false;
 let autoplay = undefined;
 
-let vEps = -3;
-
+const vEps = -3;
 const TIMEOUT = 1000;
-const SVG = 'http://www.w3.org/2000/svg';
-
-function svge(tag) {
-    return $(document.createElementNS(SVG, tag))
-}
 
 function ammoNum(data) {
     return data.ammo > 1000000 ? '∞' : data.ammo;
@@ -62,7 +56,7 @@ function updateFigure(data, action = '') {
     figures[gameId][data.id] = data;
 }
 
-function addFigure(figure, team) {
+function addFigure(figure, team, human = false) {
     let fid = `figure-${figure.id}`;
     let gid = `mark-${figure.id}`;
 
@@ -71,53 +65,63 @@ function addFigure(figure, team) {
         let item = figure.weapons[key]
         let effect = item.no_effect ? 'wNoEffect' : '';
         let ammo = ammoNum(item);
+        let wid = `w${item.id}`;
 
-        uWeapons.append([
-            $(`<div class="w${item.id} ${effect} weapon image"/>`),
-            $(`<div class="w${item.id} ${effect} weapon ammo ${ammoClass(ammo)}">${ammo}</div>`),
-        ]);
+        let div1 = $(`<div class="${wid} ${effect} weapon image"/>`);
+        let div2 = $(`<div class="${wid} ${effect} weapon ammo ${ammoClass(ammo)}">${ammo}</div>`)
+
+        if (human) {
+            div1.on('click', (e) => clickWeapon(e, team, figure.idx, key));
+            div2.on('click', (e) => clickWeapon(e, team, figure.idx, key));
+        }
+
+        uWeapons.append([div1, div2]);
     });
 
-    $(`#${team}Units`).append(
-        $(`<div id="${fid}" class="unit ${team} ${figure.kind}"/>`)
-            .append([
-                $('<div class="uTitle uTitleHP">HP</div>'),
-                $('<div class="uTitle uTitleMove">MOVE</div>'),
-                $('<div class="uTitle uTitleLoad">LOAD</div>'),
-                $('<div class="uTitle uTitleWeapons">WEAPONS</div>'),
-                $(`<div class="uKind ${team} ${figure.kind}"/>`),
-                $('<div class="uHP"/>'),
-                $('<div class="uLoad"/>'),
-                $('<div class="uMove"/>'),
-                $(`<div class="uName">${figure.name}</div>`),
-                $('<div class="uStat"/>'),
-                uWeapons
-            ])
-            .hover(function () {
-                $(`#${fid}`).addClass('highlight');
-                $(`#${gid}`).addClass('highlight');
-            }, function () {
-                $(`#${fid}`).removeClass('highlight');
-                $(`#${gid}`).removeClass('highlight');
-            })
-    );
+    let div = $(`<div id="${fid}" class="unit ${team} ${figure.kind}"/>`)
+        .append([
+            $('<div class="uTitle uTitleHP">HP</div>'),
+            $('<div class="uTitle uTitleMove">MOVE</div>'),
+            $('<div class="uTitle uTitleLoad">LOAD</div>'),
+            $('<div class="uTitle uTitleWeapons">WEAPONS</div>'),
+            $(`<div class="uKind ${team} ${figure.kind}"/>`),
+            $('<div class="uHP"/>'),
+            $('<div class="uLoad"/>'),
+            $('<div class="uMove"/>'),
+            $(`<div class="uName">${figure.name}</div>`),
+            $('<div class="uStat"/>'),
+            uWeapons
+        ])
+        .hover(function () {
+            $(`#${fid}`).addClass('highlight');
+            $(`#${gid}`).addClass('highlight');
+        }, function () {
+            $(`#${fid}`).removeClass('highlight');
+            $(`#${gid}`).removeClass('highlight');
+        });
+
+    if (human) {
+        div.on('click', (e) => clickUnit(e, team, figure.idx));
+    }
+
+    $(`#${team}Units`).append(div);
 
     // unit marker
-    let g = svge('g')
+    let g = svg('g')
         .attr('id', gid)
         .attr('transform', `translate(${figure.x},${figure.y + vEps})`)
         .addClass('unit')
         .addClass(team)
         .addClass(figure.kind)
         .append(
-            svge('circle')
+            svg('circle')
                 .attr('cx', '0')
                 .attr('cy', '0')
                 .attr('r', '5')
                 .attr('fill', `url(#${figure.kind}Mark)`)
         )
         .append(
-            svge('image')
+            svg('image')
                 .attr('href', `/static/img/${figure.kind}.png`)
                 .attr('x', '-5')
                 .attr('y', '-5')
@@ -241,7 +245,7 @@ function step() {
 }
 
 function drawLine(path) {
-    let g = svge('g');
+    let g = svg('g');
     let n = path.length - 1;
 
     for (let i = 0, j = 1; i < n; i++, j++) {
@@ -249,7 +253,7 @@ function drawLine(path) {
         let end = path[j];
 
         g.append(
-            svge('line')
+            svg('line')
                 .attr("x1", start.x)
                 .attr("y1", start.y + vEps)
                 .attr("x2", end.x)
@@ -288,37 +292,35 @@ function shoot(current, figure, mark, data) {
         drawLine(los).addClass('shoot los').addClass(action.team)
     ).append(
         drawLine(lof).addClass('shoot lof').addClass(action.team)
-            .append(svge('g')
-                .attr('transform',
-                    `translate(${end.x + 10},${end.y})`
-                )
-                .append(svge('rect'))
-                .append(svge('text')
-                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(
+            .append(svg('g')
+                .attr('transform', `translate(${end.x + 10},${end.y})`)
+                .append(svg('rect'))
+                .append(svg('text')
+                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(
                         `ATK: ${outcome.ATK}`
                     ))
-                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(
+                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(
                         `DEF: ${outcome.DEF}`
                     ))
-                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(
+                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(
                         `END: ${outcome.END}`
                     ))
-                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(
+                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(
                         `INT: ${outcome.INT}`
                     ))
-                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(
+                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(
                         `STAT: ${outcome.STAT}`
                     ))
-                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(
+                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(
                         `HIT SCORE: ${outcome.hitScore}`
                     ))
-                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(
+                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(
                         `SCORES: ${outcome.score}`
                     ))
-                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(
+                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(
                         `HITS: ${outcome.hits}`
                     ))
-                    .append(svge('tspan').attr('x', '0').attr('dy', '1.2em').text(
+                    .append(svg('tspan').attr('x', '0').attr('dy', '1.2em').text(
                         `SUCCESS: ${outcome.success}`
                     ))
                 )
@@ -356,16 +358,31 @@ window.onload = function () {
         changeTurnValue(data.state.turn);
 
         figures[gameId] = {};
+        params[gameId] = data.params
+
+        appendLine('Playing on scenario ' + data.params.scenario);
+        appendLine('Seed used ' + data.params.seed);
+        $('#redPlayer').text(data.params.redPlayer);
+        $('#bluePlayer').text(data.params.bluePlayer);
+
+        if (data.params.redPlayer === 'Human') {
+            $('#redUnits').append($(`<h1 class="player-pass">Pass</h1>`)
+                .on('click', (e) => clickPass(e, 'red')));
+        }
+        if (data.params.bluePlayer === 'Human') {
+            $('#blueUnits').append($(`<h1 class="player-pass">Pass</h1>`)
+                .on('click', (e) => clickPass(e, 'blue')));
+        }
 
         let reds = data.state.figures.red;
         let blues = data.state.figures.blue;
 
         reds.forEach(function (figure, _) {
-            addFigure(figure, 'red');
+            addFigure(figure, 'red', data.params.redPlayer === 'Human');
             updateFigure(figure);
         });
         blues.forEach(function (figure, _) {
-            addFigure(figure, 'blue');
+            addFigure(figure, 'blue', data.params.bluePlayer === 'Human');
             updateFigure(figure);
         });
 
@@ -374,22 +391,10 @@ window.onload = function () {
             if (e.key === ' ') step(); // space
         };
 
-        $.get('/game/params', function (data) {
-            params[gameId] = data
-
-            appendLine('Playing on scenario ' + data.scenario);
-            appendLine('Seed used ' + data.seed);
-            $('#redPlayer').text(data.redPlayer);
-            $('#bluePlayer').text(data.bluePlayer);
-
-            if (data.autoplay) {
-                console.log('Autoplay enabled');
-                autoplay = window.setInterval(step, TIMEOUT);
-            }
-        }).fail(() => {
-            console.error('Failed to load params!');
-            window.clearInterval(autoplay);
-        });
+        if (data.params.autoplay) {
+            console.log('Autoplay enabled');
+            autoplay = window.setInterval(step, TIMEOUT);
+        }
     }).fail(() => {
         console.error('Failed to load state!');
         window.clearInterval(autoplay);

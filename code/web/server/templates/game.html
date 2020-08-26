@@ -34,8 +34,11 @@
                 </defs>
                 <g id="board">
                     {% for hex in board %}
-                        <g id="x{{ hex.i }}y{{ hex.j }}" transform="translate({{ hex.x }}, {{ hex.y }})">
-                            <use href="#hex" class="{{ hex.css() }}"></use>
+                        <g id="x{{ hex.i }}y{{ hex.j }}"
+                           transform="translate({{ hex.x }}, {{ hex.y }})"
+                           onclick="clickHexagon({{ hex.i }}, {{ hex.j }})"
+                        >
+                            <use href="#hex" class="hexagon {{ hex.css() }}"></use>
                             <text class="content" x="0" y="0">
                                 {% if hex.objective %}
                                     ⭐
@@ -75,6 +78,7 @@
 {% endblock %}
 
 {% block additionalscripts %}
-    <script src="{{ url_for('static', filename='js/game.js', version='20200818') }}"></script>
     <script src="{{ url_for('static', filename='js/svg-pan-zoom.js', version='20200818') }}"></script>
+    <script src="{{ url_for('static', filename='js/human.js', version='20200818') }}"></script>
+    <script src="{{ url_for('static', filename='js/game.js', version='20200818') }}"></script>
 {% endblock %}

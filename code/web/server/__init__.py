@@ -20,6 +20,7 @@ def create_app():
 
     app.games = dict()
     app.params = dict()
+    app.actions = dict()
 
     with app.app_context():
         # Import parts of our application

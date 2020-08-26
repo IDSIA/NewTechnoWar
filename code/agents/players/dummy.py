@@ -15,10 +15,7 @@ ACTION_PASS = 2
 class PlayerDummy(Player):
 
     def __init__(self, team: str):
-        super().__init__('dummy', team)
-
-    def __repr__(self):
-        return f'{self.name}-{self.team}'
+        super().__init__('Dummy', team)
 
     def chooseAction(self, gm: GameManager, board: GameBoard, state: GameState) -> Action:
         # choose which figures that can still be activate will be activated

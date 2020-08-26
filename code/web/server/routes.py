@@ -6,6 +6,8 @@ from flask import Blueprint, render_template, make_response, request, jsonify, r
 from flask import current_app as app
 
 from agents.matchmanager import MatchManager, buildMatchManager
+from agents.players import Human
+from core import RED
 from web.server.utils import scroll, fieldShape
 
 main = Blueprint('main', __name__, template_folder='templates', static_folder='static')
@@ -36,6 +38,7 @@ def index():
             'autoplay': 'autoplay' in data,
             'replay': data['replay'],
         }
+        app.actions[mm.gid] = None
 
         logging.info(f'Created game #{mm.gid} with scenario {mm.board.name}')
 
@@ -66,7 +69,7 @@ def index():
         ]
 
         players = [
-            # 'Human', TODO
+            'Human',
             'PlayerDummy',
         ]
 
@@ -145,18 +148,6 @@ def gameReset():
         return redirect('/')
 
 
-@main.route('/game/params', methods=['GET'])
-def gameParams():
-    try:
-        _, mm = checkGameId()
-
-        return jsonify(app.params[mm.gid]), 200
-
-    except ValueError as e:
-        logging.error(e)
-        return None, 404
-
-
 @main.route('/game/state', methods=['GET'])
 def gameState():
     logging.info('Request state')
@@ -164,7 +155,8 @@ def gameState():
     try:
         _, mm = checkGameId()
         return jsonify({
-            'state': mm.state
+            'state': mm.state,
+            'params': app.params[mm.gid]
         }), 200
 
     except ValueError as e:
@@ -220,3 +212,16 @@ def gameNextTurn():
     except ValueError as e:
         logging.error(e)
         return None, 404
+
+
+@main.route('/game/human/click', methods=['POST'])
+def gameHumanClick():
+    gameId, mm = checkGameId()
+
+    data = request.form
+    team = data['team']
+
+    player: Human = mm.getPlayer(team)
+    player.nextAction(mm.board, mm.state, mm.gm, data)
+
+    return jsonify({}), 200
