@@ -44,8 +44,12 @@ class Human(PlayerDummy):
 
     def nextAction(self, board: GameBoard, state: GameState, gm: GameManager, data: dict) -> None:
         action = data['action']
+        self._clear()
 
         if action == 'pass':
+            if 'idx' in action and action['team'] == self.team:
+                f = state.getFigureByIndex(self.team, action['idx'])
+                self.next_action = gm.actionPass(self.team, f)
             return
 
         idx = int(data['idx'])
@@ -66,7 +70,7 @@ class Human(PlayerDummy):
 
             if 'targetTeam' in data:
                 targetTeam = data['targetTeam']
-                targetIdx = data['targetIdx']
+                targetIdx = int(data['targetIdx'])
                 target = state.getFigureByIndex(targetTeam, targetIdx)
 
             else:
@@ -75,6 +79,5 @@ class Human(PlayerDummy):
 
             self.next_action = gm.actionAttack(board, state, figure, target, weapon)
             self.next_response = gm.actionRespond(board, state, figure, target, weapon)
-            pass
 
         # TODO: implement smoke

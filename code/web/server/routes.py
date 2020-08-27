@@ -7,6 +7,7 @@ from flask import current_app as app
 
 from agents.matchmanager import MatchManager, buildMatchManager
 from agents.players import Human
+from core import BLUE, RED
 from web.server.utils import scroll, fieldShape
 
 main = Blueprint('main', __name__, template_folder='templates', static_folder='static')
@@ -37,8 +38,7 @@ def index():
         app.params[mm.gid] = {
             'seed': mm.seed,
             'scenario': data['scenario'],
-            'redPlayer': redPlayer,
-            'bluePlayer': bluePlayer,
+            'player': {RED: redPlayer, BLUE: bluePlayer},
             'autoplay': autoplay,
             'replay': data['replay'],
         }
@@ -227,7 +227,10 @@ def gameHumanClick():
     data = request.form
     team = data['team']
 
-    player: Human = mm.getPlayer(team)
-    player.nextAction(mm.board, mm.state, mm.gm, data)
+    try:
+        player: Human = mm.getPlayer(team)
+        player.nextAction(mm.board, mm.state, mm.gm, data)
+        return jsonify({}), 200
 
-    return jsonify({}), 200
+    except ValueError as e:
+        return jsonify({'error': e}), 403

@@ -1,66 +1,91 @@
-let actionParams = undefined;
+class Human {
 
-function clickUnit(event, team, idx) {
-    event.stopPropagation();
-    actionParams = {
-        action: 'move',
-        team: team,
-        idx: idx,
-        x: -1,
-        y: -1,
-    }
-    console.log(team + ': clicked on figure ' + idx);
-}
-
-function clickWeapon(event, team, idx, w) {
-    event.stopPropagation();
-    actionParams = {
-        action: 'attack',
-        team: team,
-        idx: idx,
-        weapon: w,
-        x: -1,
-        y: -1,
-    }
-    console.log(team + ': clicked on weapon ' + w + ' of figure ' + idx);
-}
-
-function clickPass(event, team) {
-    event.stopPropagation();
-    actionParams = {
-        action: 'pass',
-        team: team,
+    constructor() {
+        this.actionParams = null;
+        this.clicked = false;
     }
 
-    $.post('/game/human/click', actionParams, () => {
-        step();
-        actionParams = undefined;
-    }).fail(() => console.error('Failed to send click on unit!'));
-}
+    clear() {
+        this.actionParams = null;
+        this.clicked = false;
+    }
 
-function clickHexagon(x, y) {
-    if (actionParams === undefined)
-        return;
-    actionParams.x = x;
-    actionParams.y = y;
+    execute() {
+        $.post('/game/human/click', this.actionParams, () => {
+            step();
+            this.clear();
+        }).fail(() => console.error('Failed to send click on unit!'));
+    }
 
-    console.log(`click on hexagon (${x}, ${y}): ${actionParams}`);
+    clickUnit(event, team, idx) {
+        event.stopPropagation();
+        if (this.clicked && this.actionParams.action === 'attack') {
+            console.log(`click on figure (${team}, ${idx}): ${this.actionParams}`);
 
-    $.post('/game/human/click', actionParams, () => {
-        step();
-        actionParams = undefined;
-    }).fail(() => console.error('Failed to send click on unit!'));
-}
+            if (team === this.actionParams.team)
+                return
 
-function clickMark(team, idx) {
-    if (actionParams === undefined)
-        return;
+            this.actionParams.targetTeam = team;
+            this.actionParams.targetIdx = idx;
+            this.execute();
+        } else {
+            console.log(`${team}: click on figure ${idx}`);
 
-    actionParams.targetTeam = team;
-    actionParams.targetIdx = idx;
+            this.clicked = true;
+            this.actionParams = {
+                action: 'move',
+                team: team,
+                idx: idx,
+                x: -1,
+                y: -1,
+            }
+        }
+    }
 
-    $.post('/game/human/click', actionParams, () => {
-        step();
-        actionParams = undefined;
-    }).fail(() => console.error('Failed to send click on unit!'));
+    clickWeapon(event, team, idx, w) {
+        event.stopPropagation();
+        console.log(`${team}: click on weapon ${w} of figure ${idx}`);
+        this.clicked = true;
+        this.actionParams = {
+            action: 'attack',
+            team: team,
+            idx: idx,
+            weapon: w,
+            x: -1,
+            y: -1,
+        }
+    }
+
+    clickPass(event, team) {
+        event.stopPropagation();
+        console.log(`${team}: click on pass`);
+        if (this.actionParams === null)
+            this.actionParams = {}
+
+        this.actionParams.action = 'pass';
+        this.actionParams.team = 'team';
+        this.execute();
+    }
+
+    clickHexagon(x, y) {
+        if (!this.clicked)
+            return;
+
+        console.log(`click on hexagon (${x}, ${y}): ${this.actionParams}`);
+
+        this.actionParams.x = x;
+        this.actionParams.y = y;
+        this.execute();
+    }
+
+    clickMark(team, idx) {
+        if (!this.clicked)
+            return;
+
+        console.log(`click on mark (${team}, ${idx}): ${this.actionParams}`);
+
+        this.actionParams.targetTeam = team;
+        this.actionParams.targetIdx = idx;
+        this.execute();
+    }
 }

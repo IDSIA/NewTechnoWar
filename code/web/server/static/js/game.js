@@ -3,7 +3,10 @@ let params = {};
 let gameId = undefined;
 let end = false;
 let autoplay = undefined;
+let human = new Human();
 
+const RED = 'red';
+const BLUE = 'blue';
 const vEps = -3;
 const TIMEOUT = 1000;
 
@@ -27,6 +30,17 @@ function updateFigure(data, action = '') {
     figure.find('div.uLoad').text(data.load);
     figure.find('div.uMove').text(data.move);
     figure.find('div.uStat').text(data.stat);
+
+    data.weapons_keys.forEach((key, _) => {
+        let item = data.weapons[key]
+        let effect = item.no_effect ? 'disabled' : '';
+        let ammo = ammoNum(item);
+        let w = figure.find(`div.ammo.w${item.id}`);
+        let i = figure.find(`div.image.w${item.id}`);
+
+        i.addClass(effect);
+        w.addClass(effect).addClass(ammoClass(ammo)).text(ammo);
+    });
 
     if (data.killed) {
         figure.addClass('killed');
@@ -56,26 +70,23 @@ function updateFigure(data, action = '') {
     figures[gameId][data.id] = data;
 }
 
-function addFigure(figure, team, human = false) {
+function addFigure(figure, team) {
     let fid = `figure-${figure.id}`;
     let gid = `mark-${figure.id}`;
 
-    let uWeapons = $('<div class="uWeapons"/>')
+    let uWeapons = $('<div class="uWeapons"/>');
     figure.weapons_keys.forEach((key, _) => {
         let item = figure.weapons[key]
-        let effect = item.no_effect ? 'wNoEffect' : '';
+        let effect = item.no_effect ? 'disabled' : '';
         let ammo = ammoNum(item);
         let wid = `w${item.id}`;
 
-        let div1 = $(`<div class="${wid} ${effect} weapon image"/>`);
-        let div2 = $(`<div class="${wid} ${effect} weapon ammo ${ammoClass(ammo)}">${ammo}</div>`)
-
-        if (human) {
-            div1.on('click', (e) => clickWeapon(e, team, figure.idx, key));
-            div2.on('click', (e) => clickWeapon(e, team, figure.idx, key));
-        }
-
-        uWeapons.append([div1, div2]);
+        uWeapons.append([
+            $(`<div class="${wid} ${effect} weapon image"/>`)
+                .on('click', (e) => human.clickWeapon(e, team, figure.idx, key)),
+            $(`<div class="${wid} ${effect} weapon ammo ${ammoClass(ammo)}">${ammo}</div>`)
+                .on('click', (e) => human.clickWeapon(e, team, figure.idx, key))
+        ]);
     });
 
     let div = $(`<div id="${fid}" class="unit ${team} ${figure.kind}"/>`)
@@ -100,33 +111,26 @@ function addFigure(figure, team, human = false) {
             $(`#${gid}`).removeClass('highlight');
         });
 
-    if (human) {
-        div.on('click', (e) => clickUnit(e, team, figure.idx));
-    }
-
     $(`#${team}Units`).append(div);
+    div.on('click', (e) => human.clickUnit(e, team, figure.idx));
 
     // unit marker
     let g = svg('g')
         .attr('id', gid)
         .attr('transform', `translate(${figure.x},${figure.y + vEps})`)
-        .addClass('unit')
-        .addClass(team)
-        .addClass(figure.kind)
-        .append(
-            svg('circle')
-                .attr('cx', '0')
-                .attr('cy', '0')
-                .attr('r', '5')
-                .attr('fill', `url(#${figure.kind}Mark)`)
+        .addClass(`unit ${team} ${figure.kind}`)
+        .append(svg('circle')
+            .attr('cx', '0')
+            .attr('cy', '0')
+            .attr('r', '5')
+            .attr('fill', `url(#${figure.kind}Mark)`)
         )
-        .append(
-            svg('image')
-                .attr('href', `/static/img/${figure.kind}.png`)
-                .attr('x', '-5')
-                .attr('y', '-5')
-                .attr('width', '10')
-                .attr('height', '10')
+        .append(svg('image')
+            .attr('href', `/static/img/${figure.kind}.png`)
+            .attr('x', '-5')
+            .attr('y', '-5')
+            .attr('width', '10')
+            .attr('height', '10')
         );
 
     g.onmouseover = function () {
@@ -138,7 +142,7 @@ function addFigure(figure, team, human = false) {
         $(`#${gid}`).removeClass('highlight');
     };
     g.onclick = function () {
-        clickMark(team, figure.idx);
+        human.clickMark(team, figure.idx);
     };
 
     $(document.getElementById('markers')).append(g);
@@ -154,15 +158,8 @@ function changeTurnValue(turn) {
 function updateTurn(data) {
     changeTurnValue(data.state.turn);
 
-    let reds = data.state.figures.red;
-    let blues = data.state.figures.blue;
-
-    reds.forEach(function (item, _) {
-        updateFigure(item);
-    });
-    blues.forEach(function (item, _) {
-        updateFigure(item);
-    });
+    data.state.figures.red.forEach((item, _) => updateFigure(item));
+    data.state.figures.blue.forEach((item, _) => updateFigure(item));
 
     $('#moves').children('g').addClass('hide');
     $('#shoots').children('g').addClass('hide');
@@ -185,7 +182,7 @@ function checkNextPlayer(data) {
 
     if (data.next.isHuman) {
         let team = data.next.player;
-        let info = $(`${team}Info`);
+        let info = $(`#${team}Info`);
 
         switch (data.next.step) {
             case 'round':
@@ -207,10 +204,7 @@ function checkNextPlayer(data) {
 
 function step() {
     $.get('/game/next/step', function (data) {
-        if (data.end) {
-            console.log('end game');
-            appendLine('End')
-            end = true;
+        if (end) {
             window.clearInterval(autoplay);
             return;
         }
@@ -238,12 +232,8 @@ function step() {
         $('#btnTurn').removeClass('highlight');
 
         let current = figures[gameId][figureData.id];
-        let figure = $(
-            `#figure-${figureData.id}`
-        );
-        let mark = $(document.getElementById(
-            `mark-${figureData.id}`
-        ));
+        let figure = $(`#figure-${figureData.id}`);
+        let mark = $(document.getElementById(`mark-${figureData.id}`));
         let target;
 
         switch (action.action) {
@@ -269,10 +259,18 @@ function step() {
         }
 
         updateFigure(figureData, action.action);
+        checkNextPlayer(data);
 
-        checkNextPlayer(data)
+        if (data.end) {
+            console.log('end game');
+            appendLine('End');
+            end = true;
+            window.clearInterval(autoplay);
+        }
     }).fail(function () {
         console.error('Failed to step!');
+        console.log('Autoplay disabled');
+        window.clearInterval(autoplay);
     });
 }
 
@@ -284,13 +282,12 @@ function drawLine(path) {
         let start = path[i];
         let end = path[j];
 
-        g.append(
-            svg('line')
-                .attr("x1", start.x)
-                .attr("y1", start.y + vEps)
-                .attr("x2", end.x)
-                .attr("y2", end.y + vEps)
-                .addClass(j === n ? 'last' : '')
+        g.append(svg('line')
+            .attr("x1", start.x)
+            .attr("y1", start.y + vEps)
+            .attr("x2", end.x)
+            .attr("y2", end.y + vEps)
+            .addClass(j === n ? 'last' : '')
         );
     }
 
@@ -298,11 +295,9 @@ function drawLine(path) {
 }
 
 function move(mark, data) {
-    $(document.getElementById('moves')).append(
-        drawLine(data.path).addClass('move')
-    );
-
     let end = data.path.slice(-1)[0];
+
+    $(document.getElementById('moves')).append(drawLine(data.path).addClass('move'));
     mark.attr('transform', `translate(${end.x},${end.y + vEps})`);
 }
 
@@ -314,16 +309,14 @@ function shoot(current, figure, mark, data) {
     let los = [action.los[0], action.los.slice(-1)[0]]
     let lof = [action.lof[0], action.lof.slice(-1)[0]]
 
-    if (outcome.success === true) {
+    if (outcome.success === true)
         appendLine(': HIT!', false)
-    } else {
+    else
         appendLine(': MISS!', false)
-    }
 
-    $('#shoots').append(
-        drawLine(los).addClass('shoot los').addClass(action.team)
-    ).append(
-        drawLine(lof).addClass('shoot lof').addClass(action.team)
+    $('#shoots')
+        .append(drawLine(los).addClass('shoot los').addClass(action.team))
+        .append(drawLine(lof).addClass('shoot lof').addClass(action.team)
             .append(svg('g')
                 .attr('transform', `translate(${end.x + 10},${end.y})`)
                 .append(svg('rect'))
@@ -357,15 +350,17 @@ function shoot(current, figure, mark, data) {
                     ))
                 )
             )
-    );
+        );
 
     let weapon = data.state.figures[action.team][action.figure_id].weapons[action.weapon_id]
-    let w = figure.find('div.ammo.w' + weapon.id);
+    let w = figure.find(`div.ammo.w${weapon.id}`);
+
     if (data.action.action === 'Respond')
         w.addClass('respond');
     else if (data.action.action === 'Attack')
         w.addClass('attack')
     w.addClass('used');
+
     let ammo = ammoNum(weapon)
     w.addClass(ammoClass(ammo)).text(ammo);
 }
@@ -392,45 +387,42 @@ window.onload = function () {
         figures[gameId] = {};
         params[gameId] = data.params;
 
+        let init = function (team) {
+            let player = data.params.player[team];
+            appendLine(`Player ${team}: ${player}`);
+
+            $(`#${team}Player`).text(player);
+
+            if (player === 'Human') {
+                $(`#${team}Units`).append([
+                    $(`<h1 id="${team}Info" class="player-info"></h1>`),
+                    $(`<h1 class="player-pass">Pass</h1>`).on('click', (e) => human.clickPass(e, team))
+                ]);
+            }
+
+            data.state.figures[team].forEach(function (figure, _) {
+                addFigure(figure, team);
+                updateFigure(figure);
+            });
+        }
+
+        init(RED);
+        init(BLUE);
+
         appendLine('Playing on scenario ' + data.params.scenario);
         appendLine('Seed used ' + data.params.seed);
 
-        $('#redPlayer').text(data.params.redPlayer);
-        $('#bluePlayer').text(data.params.bluePlayer);
-
-        if (data.params.redPlayer === 'Human') {
-            $('#redUnits').append([
-                $(`<h1 id="redInfo" class="player-info"></h1>`),
-                $(`<h1 class="player-pass">Pass</h1>`).on('click', (e) => clickPass(e, 'red'))
-            ]);
-        }
-        if (data.params.bluePlayer === 'Human') {
-            $('#blueUnits').append([
-                $(`<h1 id="blueInfo" class="player-info"></h1>`),
-                $(`<h1 class="player-pass">Pass</h1>`).on('click', (e) => clickPass(e, 'blue')),
-            ]);
-        }
-
-        let reds = data.state.figures.red;
-        let blues = data.state.figures.blue;
-
-        reds.forEach(function (figure, _) {
-            addFigure(figure, 'red', data.params.redPlayer === 'Human');
-            updateFigure(figure);
-        });
-        blues.forEach(function (figure, _) {
-            addFigure(figure, 'blue', data.params.bluePlayer === 'Human');
-            updateFigure(figure);
-        });
+        checkNextPlayer(data);
 
         window.onkeyup = function (e) {
             if (e.key === 'Enter') turn(); // enter
             if (e.key === ' ') step(); // space
         };
 
-        if (data.params.autoplay && !data.next.isHuman) {
+        if (data.params.autoplay) {
             console.log('Autoplay enabled');
-            autoplay = window.setInterval(step, TIMEOUT);
+            if (!data.next.isHuman)
+                autoplay = window.setInterval(step, TIMEOUT);
         }
     }).fail(() => {
         console.error('Failed to load state!');

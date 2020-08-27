@@ -252,6 +252,11 @@ svg {
     color: black;
 }
 
+.weapon.disabled {
+    background-color: red !important;
+    color: white;
+}
+
 .weapon.image {
     background-image: url('/static/img/weapons.png');
     background-size: auto 85%;
@@ -343,6 +348,7 @@ div.killed::before {
     font-weight: bold;
     font-size: 5em;
     text-align: center;
+    padding: 0 0.075em;
 }
 
 /* SVGs */

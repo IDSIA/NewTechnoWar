@@ -55,7 +55,7 @@ class MatchManager:
 
         self.board: GameBoard = board
         self.state: GameState = state
-        self.origin: GameState or None = None
+        self.origin: GameState = deepcopy(state)
 
         self.red: Player = red
         self.blue: Player = blue
@@ -210,6 +210,7 @@ class MatchManager:
         step = ''
         nextPlayer = ''
         nextHuman = False
+
         if self.step == self._goRound:
             step = 'round'
             nextPlayer = self.first.team
@@ -220,6 +221,8 @@ class MatchManager:
             nextHuman = self.second.name == 'Human'
         if self.step == self._goUpdate:
             step = 'update'
+        if self.step == self._goEnd:
+            step = 'end'
 
         return {
             'step': step,
