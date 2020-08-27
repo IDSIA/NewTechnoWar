@@ -3,6 +3,7 @@ let params = {};
 let gameId = undefined;
 let end = false;
 let autoplay = undefined;
+let autoplay_flag = false;
 let human = new Human();
 
 const RED = 'red';
@@ -197,7 +198,7 @@ function checkNextPlayer(data) {
                 break;
             default:
         }
-    } else {
+    } else if (autoplay_flag) {
         autoplay = window.setInterval(step, TIMEOUT);
     }
 }
@@ -207,6 +208,13 @@ function step() {
         if (end) {
             window.clearInterval(autoplay);
             return;
+        }
+
+        if (data.end) {
+            console.log('end game');
+            appendLine('End');
+            end = true;
+            window.clearInterval(autoplay);
         }
 
         if (data.update) {
@@ -260,13 +268,6 @@ function step() {
 
         updateFigure(figureData, action.action);
         checkNextPlayer(data);
-
-        if (data.end) {
-            console.log('end game');
-            appendLine('End');
-            end = true;
-            window.clearInterval(autoplay);
-        }
     }).fail(function () {
         console.error('Failed to step!');
         console.log('Autoplay disabled');
@@ -421,6 +422,7 @@ window.onload = function () {
 
         if (data.params.autoplay) {
             console.log('Autoplay enabled');
+            autoplay_flag = true;
             if (!data.next.isHuman)
                 autoplay = window.setInterval(step, TIMEOUT);
         }
