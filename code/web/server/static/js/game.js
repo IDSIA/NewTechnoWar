@@ -217,7 +217,7 @@ function step() {
 
         if (data.action === null) {
             console.log('no actions');
-            appendLine('No actions');
+            appendLine(`${data.curr.player.toUpperCase()}: No actions as ${data.curr.step}`);
             checkNextPlayer(data);
             return;
         }

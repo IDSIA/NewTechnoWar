@@ -70,8 +70,10 @@ h1.player-info {
 
 h1.player-pass {
     text-align: center;
-    margin: 0.1em;
+    margin: 0.1em 0.2em;
+    padding: 0.2em;
     font-size: 1em;
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 h1.player-pass:hover {

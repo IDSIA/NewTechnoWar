@@ -142,6 +142,6 @@ class GameJSONEncoder(JSONEncoder):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
         if isinstance(obj, np.generic):
-            return np.asscalar(obj)
+            return obj.item()
 
         return super(GameJSONEncoder, self).default(obj)

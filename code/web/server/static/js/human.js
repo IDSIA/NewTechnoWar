@@ -11,6 +11,7 @@ class Human {
     }
 
     execute() {
+        console.log(this.actionParams)
         $.post('/game/human/click', this.actionParams, () => {
             step();
             this.clear();
@@ -63,7 +64,7 @@ class Human {
             this.actionParams = {}
 
         this.actionParams.action = 'pass';
-        this.actionParams.team = 'team';
+        this.actionParams.team = team;
         this.execute();
     }
 

@@ -382,6 +382,7 @@ class GameManager:
                 INT = f.int_def
                 # can respond only once in a turn
                 f.responded = True
+                figure.activated = False
             else:
                 ATK = w.atk_normal
                 INT = f.int_atk

@@ -175,6 +175,7 @@ def gameNextStep():
 
     try:
         _, mm = checkGameId()
+        curr = mm.nextPlayer()
         mm.nextStep()
 
         lastAction = None
@@ -190,6 +191,7 @@ def gameNextStep():
             'state': mm.state,
             'action': lastAction,
             'outcome': lastOutcome,
+            'curr': curr,
             'next': mm.nextPlayer(),
         }), 200
 
@@ -233,4 +235,4 @@ def gameHumanClick():
         return jsonify({}), 200
 
     except ValueError as e:
-        return jsonify({'error': e}), 403
+        return jsonify({'error': str(e)}), 403

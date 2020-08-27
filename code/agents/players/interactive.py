@@ -47,9 +47,10 @@ class Human(PlayerDummy):
         self._clear()
 
         if action == 'pass':
-            if 'idx' in action and action['team'] == self.team:
-                f = state.getFigureByIndex(self.team, action['idx'])
-                self.next_action = gm.actionPass(self.team, f)
+            if 'idx' in data and data['team'] == self.team:
+                idx = int(data['idx'])
+                transport = state.getFigureByIndex(self.team, idx)
+                self.next_action = gm.actionPass(self.team, transport)
             return
 
         idx = int(data['idx'])
@@ -60,8 +61,13 @@ class Human(PlayerDummy):
         figure = state.getFigureByIndex(self.team, idx)
 
         if action == 'move':
+            fs = state.getFiguresByPos(self.team, pos)
+            for transport in fs:
+                if transport.canTransport(figure):
+                    self.next_action = gm.actionLoadInto(board, figure, transport)
+                    return
+
             self.next_action = gm.actionMove(board, figure, destination=pos)
-            # TODO: check to load in
             return
 
         if action == 'attack':
