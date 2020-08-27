@@ -23,6 +23,10 @@ class GameManager:
         self.DEBUG_HIT: bool = False
 
     @staticmethod
+    def actionPass(team: str, figure: Figure):
+        return Pass(team, figure)
+
+    @staticmethod
     def actionMove(board: GameBoard, figure: Figure, path: list = None, destination: tuple = None) -> Move:
         """
         Creates a Move action for a figure with a specified destination or a path. If path is not given, it will be
@@ -131,7 +135,7 @@ class GameManager:
         if not canHit:
             raise ValueError(f'{weapon} cannot hit {target} from {figure.position}: no LOS on target')
 
-        if not weapon.max_range >= len(lof):
+        if not weapon.max_range >= len(lof) - 1:
             raise ValueError(f'{weapon} cannot hit {target} from {figure.position}: out of max range')
 
         return figure.team, figure, target, guard, weapon, los, lof
@@ -289,9 +293,10 @@ class GameManager:
         else:
             logging.info(f'{action}: ({success} {score}/{hitScore}): HIT!  ({target.hp}/{target.hp_max})')
             # disable a random weapon
-            to_disable = np.random.choice([x for x in target.weapons if not weapon.disabled], weapon.damage)
+            weapons = [x for x in target.weapons if not weapon.disabled]
+            to_disable = np.random.choice(weapons, weapon.damage * success, replace=False)
             for x in to_disable:
-                x.disabled = True
+                target.weapons[x].disable()
 
     def step(self, board: GameBoard, state: GameState, action: Action) -> dict:
         """Update the given state with the given action in a irreversible way."""

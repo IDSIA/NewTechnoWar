@@ -92,6 +92,10 @@ class TestAttackAction(unittest.TestCase):
         self.gm.update(self.state)
         self.assertEqual(self.state.smoke.max(), 0, 'cloud not disappearing correctly')
 
+    def testDisableWeapon(self):
+        # TODO
+        pass
+
 
 if __name__ == '__main__':
     unittest.main()

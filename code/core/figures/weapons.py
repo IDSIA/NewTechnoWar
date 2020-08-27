@@ -46,6 +46,7 @@ class Weapon:
 
     def disable(self):
         self.disabled = True
+        self.ammo = 0
 
 
 class Cannon(Weapon):
