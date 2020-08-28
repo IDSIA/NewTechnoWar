@@ -133,6 +133,54 @@ class TestWebUI(unittest.TestCase):
 
         self.assertTrue(self.response_step.json['end'])
 
+    def testPlayBlueHuman(self):
+        self.initGame('PlayerDummy', 'Human', 'Dummy1', seed=2)
+
+        # 1 ---------------------------------------------------------
+
+        # T1: red action
+        self.action()
+        # T1: blue response
+        self.action(clickAttack(BLUE, 0, 'MG', RED, 0))
+
+        # T1: blue action
+        self.action(clickMove(BLUE, 0, 5, 5))
+        # T1: red response
+        self.action()
+
+        # T1: red action
+        self.action()
+        # T1: blue response
+        self.action(clickAttack(BLUE, 0, 'AT', RED, 1))
+
+        self.step()  # 2 ---------------------------------------------------------
+
+        # T2: red action
+        self.action()
+        # T2: blue response
+        self.action(clickPass(BLUE))
+
+        # T2: blue action
+        self.action(clickAttack(BLUE, 0, 'AT', RED, 1))
+        # T2: red response
+        self.action()
+
+        # T2: red action
+        self.action()
+        # T2: blue response
+        self.action(clickPass(BLUE))
+
+        self.step()  # 3 ---------------------------------------------------------
+
+        # T3: red action
+        self.action()
+        # T3:blue response
+        self.action(clickAttack(BLUE, 0, 'MT', RED, 0))
+
+        self.step()  # check end game --------------------------------------------
+
+        self.assertTrue(self.response_step.json['end'])
+
 
 def clickMove(team, idx, x, y):
     return {
