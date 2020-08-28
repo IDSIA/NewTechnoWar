@@ -210,6 +210,12 @@ function step() {
             return;
         }
 
+        if (data.update) {
+            updateTurn(data);
+            checkNextPlayer(data);
+            return;
+        }
+
         if (data.end) {
             console.log('end game');
             appendLine('End');
@@ -217,15 +223,9 @@ function step() {
             window.clearInterval(autoplay);
         }
 
-        if (data.update) {
-            updateTurn(data);
-            checkNextPlayer(data);
-            return;
-        }
-
         if (data.action === null) {
             console.log('no actions');
-            appendLine(`${data.curr.player.toUpperCase()}: No actions as ${data.curr.step}`);
+            appendLine(`${data.curr.player.toUpperCase().padEnd(5, " ")}: No actions as ${data.curr.step}`);
             checkNextPlayer(data);
             return;
         }

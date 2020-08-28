@@ -184,6 +184,7 @@ class MatchManager:
         """End step."""
         logging.debug("step: end")
         self.end = True
+        self.update = False
         self.step = self._goEnd
 
     def nextStep(self):

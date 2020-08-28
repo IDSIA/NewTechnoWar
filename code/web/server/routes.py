@@ -171,7 +171,7 @@ def gameState():
 
 @main.route('/game/next/step', methods=['GET'])
 def gameNextStep():
-    logging.info('Request next')
+    logging.debug('Request next')
 
     try:
         _, mm = checkGameId()
@@ -202,7 +202,7 @@ def gameNextStep():
 
 @main.route('/game/next/turn', methods=['GET'])
 def gameNextTurn():
-    logging.info('Request next')
+    logging.debug('Request next turn')
 
     try:
         _, mm = checkGameId()
