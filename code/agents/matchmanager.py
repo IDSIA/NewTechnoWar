@@ -26,7 +26,7 @@ def buildMatchManager(gid: str, scenario: str, red: str, blue: str, seed: int = 
 
 class MatchManager:
     __slots__ = [
-        'gid', 'seed', 'actionsDone', 'outcome', 'end', 'board', 'state', 'origin', 'gm', 'scenario', 'red', 'blue',
+        'gid', 'seed', 'actions_history', 'outcome', 'end', 'board', 'state', 'origin', 'gm', 'scenario', 'red', 'blue',
         'first', 'second', 'step', 'update', 'winner',
     ]
 
@@ -44,7 +44,7 @@ class MatchManager:
         self.gid: str = gid
         self.seed: int = seed
 
-        self.actionsDone: list = []
+        self.actions_history: list = []
         self.outcome: list = []
 
         self.winner: str = ''
@@ -104,12 +104,12 @@ class MatchManager:
             action = self.first.chooseAction(self.gm, self.board, self.state)
             outcome = self.gm.step(self.board, self.state, action)
 
-            self.actionsDone.append(action)
+            self.actions_history.append(action)
             self.outcome.append(outcome)
 
         except ValueError as e:
             logging.info(f'{self.first.team:5}: {e}')
-            self.actionsDone.append(None)
+            self.actions_history.append(None)
 
         finally:
             self._goCheck()
@@ -124,12 +124,12 @@ class MatchManager:
 
             logging.info(f'{self.second.team} respond')
 
-            self.actionsDone.append(response)
+            self.actions_history.append(response)
             self.outcome.append(outcome)
 
         except ValueError as e:
             logging.info(f'{self.second.team:5}: {e}')
-            self.actionsDone.append(None)
+            self.actions_history.append(None)
             self.outcome.append({})
 
         finally:
@@ -142,12 +142,12 @@ class MatchManager:
         if isEnd:
             # if we achieved a goal, end
             self.winner = winner
-            self._goEnd()
+            self.step = self._goEnd
             return
 
         if self.step == self._goRound:
             # after a round we have a response
-            action = self.actionsDone[-1] if len(self.actionsDone) > 0 else None
+            action = self.actions_history[-1] if len(self.actions_history) > 0 else None
 
             if isinstance(action, Attack) or isinstance(action, Move):
                 self.step = self._goResponse

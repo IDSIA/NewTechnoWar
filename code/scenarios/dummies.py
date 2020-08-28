@@ -37,7 +37,7 @@ def scenarioDummy1() -> (GameBoard, GameState):
         GoalReachPoint(RED, BLUE, (9, 9)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
-        GoalMaxTurn(BLUE, 6)
+        GoalMaxTurn(BLUE, 12)
     )
 
     state.addFigure(
@@ -65,7 +65,7 @@ def scenarioDummy2() -> (GameBoard, GameState):
         GoalReachPoint(RED, BLUE, (9, 9)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
-        GoalMaxTurn(BLUE, 6)
+        GoalMaxTurn(BLUE, 12)
     )
 
     state.addFigure(
@@ -93,7 +93,7 @@ def scenarioDummy3() -> (GameBoard, GameState):
         GoalReachPoint(RED, BLUE, (9, 9)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
-        GoalMaxTurn(BLUE, 6)
+        GoalMaxTurn(BLUE, 12)
     )
 
     state.addFigure(
@@ -128,7 +128,7 @@ def scenarioDummyResponseCheck() -> (GameBoard, GameState):
         GoalReachPoint(RED, BLUE, (9, 12)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
-        GoalMaxTurn(BLUE, 6)
+        GoalMaxTurn(BLUE, 12)
     )
 
     state.addFigure(Infantry((4, 1), RED))
@@ -161,7 +161,7 @@ def scenarioInSightTest() -> (GameBoard, GameState):
         GoalReachPoint(RED, BLUE, (9, 12)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
-        GoalMaxTurn(BLUE, 6)
+        GoalMaxTurn(BLUE, 12)
     )
 
     state.addFigure(

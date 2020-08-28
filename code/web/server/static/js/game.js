@@ -179,9 +179,8 @@ function appendLine(text, newLine = true) {
 }
 
 function checkNextPlayer(data) {
-    window.clearInterval(autoplay);
-
     if (data.next.isHuman) {
+        human.step = data.next.step;
         let team = data.next.player;
         let info = $(`#${team}Info`);
 
@@ -194,19 +193,18 @@ function checkNextPlayer(data) {
                 break;
             case 'update':
                 info.text('Next: Update');
-                autoplay = window.setInterval(step, TIMEOUT);
-                break;
+                autoplay = window.setTimeout(step, TIMEOUT);
+                break
             default:
         }
     } else if (autoplay_flag) {
-        autoplay = window.setInterval(step, TIMEOUT);
+        autoplay = window.setTimeout(step, TIMEOUT);
     }
 }
 
 function step() {
     $.get('/game/next/step', function (data) {
         if (end) {
-            window.clearInterval(autoplay);
             return;
         }
 
@@ -220,7 +218,6 @@ function step() {
             console.log('end game');
             appendLine('End');
             end = true;
-            window.clearInterval(autoplay);
         }
 
         if (data.action === null) {
@@ -271,7 +268,6 @@ function step() {
     }).fail(function () {
         console.error('Failed to step!');
         console.log('Autoplay disabled');
-        window.clearInterval(autoplay);
     });
 }
 
@@ -383,7 +379,6 @@ window.onload = function () {
 
     $.get('/game/state', function (data) {
         console.log(data);
-        changeTurnValue(data.state.turn);
 
         figures[gameId] = {};
         params[gameId] = data.params;
@@ -412,8 +407,7 @@ window.onload = function () {
 
         appendLine('Playing on scenario ' + data.params.scenario);
         appendLine('Seed used ' + data.params.seed);
-
-        checkNextPlayer(data);
+        changeTurnValue(data.state.turn);
 
         window.onkeyup = function (e) {
             if (e.key === 'Enter') turn(); // enter
@@ -423,11 +417,10 @@ window.onload = function () {
         if (data.params.autoplay) {
             console.log('Autoplay enabled');
             autoplay_flag = true;
-            if (!data.next.isHuman)
-                autoplay = window.setInterval(step, TIMEOUT);
         }
+
+        checkNextPlayer(data);
     }).fail(() => {
         console.error('Failed to load state!');
-        window.clearInterval(autoplay);
     });
 }

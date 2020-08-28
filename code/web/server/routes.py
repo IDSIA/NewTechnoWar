@@ -182,7 +182,7 @@ def gameNextStep():
         lastOutcome = None
 
         if not mm.update:
-            lastAction = mm.actionsDone[-1]
+            lastAction = mm.actions_history[-1]
             lastOutcome = mm.outcome[-1]
 
         return jsonify({
@@ -208,7 +208,7 @@ def gameNextTurn():
         _, mm = checkGameId()
         mm.nextTurn()
 
-        lastAction = mm.actionsDone[-1]
+        lastAction = mm.actions_history[-1]
 
         return jsonify({
             'update': mm.update,

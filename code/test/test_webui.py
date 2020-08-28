@@ -26,15 +26,16 @@ class TestWebUI(unittest.TestCase):
 
         self.assertEqual(r.status_code, 200)
 
+    def step(self):
+        self.response_step = self.client.get('/game/next/step')
+        self.assertEqual(self.response_step.status_code, 200, 'invalid step')
+
     def action(self, data=None):
         if data:
-            r = self.client.post('/game/human/click', data=data)
-            self.assertEqual(r.status_code, 200)
+            self.response_click = self.client.post('/game/human/click', data=data)
+            self.assertEqual(self.response_click.status_code, 200, 'invalid action')
 
-        r = self.client.get('/game/next/step')
-        self.assertEqual(r.status_code, 200)
-
-        return r
+        self.step()
 
     def testPlayRedHuman(self):
         self.initGame('Human', 'PlayerDummy', 'Dummy1', seed=1)
@@ -56,7 +57,7 @@ class TestWebUI(unittest.TestCase):
         # T1: blue response
         self.action()
 
-        # 2 ---------------------------------------------------------
+        self.step()  # 2 ---------------------------------------------------------
 
         # T2: red action
         self.action(clickMove(RED, 0, 5, 4))
@@ -69,34 +70,68 @@ class TestWebUI(unittest.TestCase):
         self.action(clickPass(RED, 0))
 
         # T2: red action
-        self.action(clickMove(RED, 1, 5, 7))
+        self.action(clickMove(RED, 1, 4, 4))
         # T2: blue response
         self.action()
 
-        # 3 ---------------------------------------------------------
+        self.step()  # 3 ---------------------------------------------------------
 
         # T3: red action
-        self.action(clickMove(RED, 0, 5, 5))
+        self.action(clickMove(RED, 0, 4, 5))
         # T3:blue response
         self.action()
 
         # T3: blue action
         self.action()
         # T3: red response
-        self.action(clickAttack(RED, 0, 'AR', BLUE, 0))
+        self.action(clickPass(RED, 0))
+
+        self.assertTrue(self.response_step.json['state']['figures'][RED][1]['killed'], 'tank has not been killed')
+
+        self.step()  # 4 ---------------------------------------------------------
 
         # T3: red action
-        self.action(clickMove(RED, 1, 6, 4))
-        # T3: blue response
+        self.action(clickMove(RED, 0, 5, 5))
+        # T3:blue response
         self.action()
 
-        # 4 ---------------------------------------------------------
+        # T4: blue action
+        self.action()
+        # T4: red response
+        self.action(clickPass(RED, 0))
 
-        # T4: red action
+        self.step()  # 5 ---------------------------------------------------------
+
+        # T5: red action
+        self.action(clickMove(RED, 0, 8, 3))
+        # T5: blue response
+        self.action()
+
+        # T5: blue action
+        self.action()
+        # T5: red response
+        # no response: blue passes!
+
+        self.step()  # 6 ---------------------------------------------------------
+
+        # T6: red action
+        self.action(clickAttack(RED, 0, 'MG', BLUE, 0))
+        # T6: blue response
+        self.action()
+
+        # T6: blue action
+        self.action()
+        # T6: red response
+        self.action(clickPass(RED, 0))
+
+        self.step()  # 7 ---------------------------------------------------------
+
+        # T7: red action
         self.action(clickAttack(RED, 0, 'GR', BLUE, 0))
-        r = self.action()
 
-        self.assertTrue(r.data['end'])
+        self.step()  # check end game --------------------------------------------
+
+        self.assertTrue(self.response_step.json['end'])
 
 
 def clickMove(team, idx, x, y):
@@ -122,13 +157,16 @@ def clickAttack(team, idx, w, target_team, target_idx, x=-1, y=-1):
     }
 
 
-def clickPass(team, idx, x=-1, y=-1):
+def clickPass(team, idx=-1):
+    if idx < 0:
+        return {
+            'action': 'pass',
+            'team': team,
+        }
     return {
         'action': 'pass',
         'team': team,
         'idx': str(idx),
-        'x': str(x),
-        'y': str(y),
     }
 
 

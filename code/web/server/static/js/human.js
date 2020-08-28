@@ -3,6 +3,7 @@ class Human {
     constructor() {
         this.actionParams = null;
         this.clicked = false;
+        this.step = '';
     }
 
     clear() {
@@ -63,9 +64,15 @@ class Human {
         if (this.actionParams === null)
             this.actionParams = {}
 
-        this.actionParams.action = 'pass';
-        this.actionParams.team = team;
-        this.execute();
+        if (this.clicked) {
+            this.actionParams.action = 'pass';
+            this.execute();
+        }
+        if (this.step === 'response') {
+            this.actionParams.action = 'pass';
+            this.actionParams.team = team;
+            this.execute();
+        }
     }
 
     clickHexagon(x, y) {

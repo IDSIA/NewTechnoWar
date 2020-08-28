@@ -50,7 +50,7 @@ class Human(PlayerDummy):
             if 'idx' in data and data['team'] == self.team:
                 idx = int(data['idx'])
                 transport = state.getFigureByIndex(self.team, idx)
-                self.next_action = gm.actionPass(self.team, transport)
+                self.next_action = gm.actionPass(transport)
             return
 
         idx = int(data['idx'])

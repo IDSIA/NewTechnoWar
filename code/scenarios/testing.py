@@ -64,7 +64,7 @@ def _battleground16x16() -> GameBoard:
         GoalReachPoint(RED, BLUE, (8, 8)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
-        GoalMaxTurn(BLUE, 6)
+        GoalMaxTurn(BLUE, 12)
     )
 
     return board

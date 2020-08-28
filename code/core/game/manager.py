@@ -23,8 +23,8 @@ class GameManager:
         self.DEBUG_HIT: bool = False
 
     @staticmethod
-    def actionPass(team: str, figure: Figure):
-        return Pass(team, figure)
+    def actionPass(figure: Figure):
+        return Pass(figure.team, figure)
 
     @staticmethod
     def actionMove(board: GameBoard, figure: Figure, path: list = None, destination: tuple = None) -> Move:
@@ -301,45 +301,45 @@ class GameManager:
     def step(self, board: GameBoard, state: GameState, action: Action) -> dict:
         """Update the given state with the given action in a irreversible way."""
 
-        team = action.team
-        figure = state.getFigure(action)
-        figure.activated = True
+        team: str = action.team  # team performing action
+        f: Figure = state.getFigure(action)  # who performs the attack action
 
         logging.debug(action)
-
         state.lastAction = action
 
         if isinstance(action, Pass):
             logging.info(f'{action}')
+            f.activated = True
             return {}
 
-        figure.stat = NO_EFFECT
+        f.stat = NO_EFFECT
 
         if isinstance(action, Move):
+            f.activated = True
             if isinstance(action, LoadInto):
                 # figure moves inside transporter
                 t = state.getTransporter(action)
-                t.transportLoad(figure)
-            elif figure.transported_by > -1:
+                t.transportLoad(f)
+            elif f.transported_by > -1:
                 # figure leaves transporter
-                t = state.getFigureByIndex(team, figure.transported_by)
-                t.transportUnload(figure)
+                t = state.getFigureByIndex(team, f.transported_by)
+                t.transportUnload(f)
 
-            state.moveFigure(team, figure, figure.position, action.destination)
-            figure.stat = IN_MOTION
+            state.moveFigure(team, f, f.position, action.destination)
+            f.stat = IN_MOTION
             logging.info(f'{action}')
 
-            for transported in figure.transporting:
+            for transported in f.transporting:
                 f = state.getFigureByIndex(team, transported)
                 state.moveFigure(team, f, f.position, action.destination)
 
             return {}
 
         if isinstance(action, AttackGround):
-            f: Figure = state.getFigure(action)
             x: Cube = action.ground
             w: Weapon = state.getWeapon(action)
 
+            f.activated = True
             w.shoot()
 
             if w.smoke:
@@ -361,7 +361,6 @@ class GameManager:
             return {}
 
         if isinstance(action, Attack):  # Respond *is* an attack action
-            f: Figure = figure  # who performs the attack action
             t: Figure = state.getTarget(action)  # target
             # g: Figure = action.guard  # who has line-of-sight on target
             w: Weapon = state.getWeapon(action)
@@ -382,10 +381,10 @@ class GameManager:
                 INT = f.int_def
                 # can respond only once in a turn
                 f.responded = True
-                figure.activated = False
             else:
                 ATK = w.atk_normal
                 INT = f.int_atk
+                f.activated = True
 
             # anti-tank rule
             if state.hasSmoke(lof):
