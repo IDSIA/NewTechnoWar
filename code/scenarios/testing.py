@@ -4,7 +4,7 @@ from core import RED, BLUE
 from core.figures import Infantry, Tank, Exoskeleton, Sniper
 from core.figures.status import HIDDEN
 from core.game.board import GameBoard
-from core.game.goals import GoalReachPoint, GoalEliminateOpponent, GoalMaxTurn
+from core.game.goals import GoalReachPoint, GoalEliminateOpponent, GoalMaxTurn, GoalDefendPoint
 from core.game.state import GameState
 from core.game.terrain import Terrain
 from scenarios.utils import fillLine
@@ -62,7 +62,7 @@ def _battleground16x16() -> GameBoard:
 
     board.addObjectives(
         GoalReachPoint(RED, (8, 8)),
-        GoalReachPoint(BLUE, (8, 8)),
+        GoalDefendPoint(BLUE, (8, 8)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)

@@ -69,7 +69,18 @@ class GoalReachPoint(Goal):
         return False
 
 
-# TODO: add goal to _defend_ point
+class GoalDefendPoint(GoalReachPoint):
+    """
+    The "Defend a position" goal is a subject to another goal like a time limit or mandatory kill.
+    It is always false up until another goal is reached.
+    """
+
+    def __init__(self, team: str, *objectives: tuple, turns: int = 1):
+        super().__init__(team, turns=turns, *objectives)
+
+    def check(self, state: GameState) -> bool:
+        return False
+
 
 class GoalMaxTurn(Goal):
     """The team wins when the maximum number of turns is achieved."""

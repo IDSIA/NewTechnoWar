@@ -5,7 +5,7 @@ from core import RED, BLUE
 from core.figures import Infantry, Tank
 from core.figures.status import HIDDEN
 from core.game.board import GameBoard
-from core.game.goals import GoalReachPoint, GoalEliminateOpponent, GoalMaxTurn
+from core.game.goals import GoalReachPoint, GoalEliminateOpponent, GoalMaxTurn, GoalDefendPoint
 from core.game.state import GameState
 from core.game.terrain import Terrain
 
@@ -35,6 +35,7 @@ def scenarioDummy1() -> (GameBoard, GameState):
 
     board.addObjectives(
         GoalReachPoint(RED, (9, 9)),
+        GoalDefendPoint(BLUE, (9, 9)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
@@ -63,6 +64,7 @@ def scenarioDummy2() -> (GameBoard, GameState):
 
     board.addObjectives(
         GoalReachPoint(RED, (9, 9)),
+        GoalDefendPoint(BLUE, (9, 9)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
@@ -91,6 +93,7 @@ def scenarioDummy3() -> (GameBoard, GameState):
 
     board.addObjectives(
         GoalReachPoint(RED, (9, 9)),
+        GoalDefendPoint(BLUE, (9, 9)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
@@ -126,6 +129,7 @@ def scenarioDummyResponseCheck() -> (GameBoard, GameState):
 
     board.addObjectives(
         GoalReachPoint(RED, (9, 12)),
+        GoalDefendPoint(BLUE, (9, 12)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
@@ -159,6 +163,7 @@ def scenarioInSightTest() -> (GameBoard, GameState):
 
     board.addObjectives(
         GoalReachPoint(RED, (9, 12)),
+        GoalDefendPoint(BLUE, (9, 12)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)

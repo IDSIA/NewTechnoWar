@@ -1,7 +1,7 @@
 import unittest
 
 from agents.matchmanager import MatchManager
-from agents.players import PlayerDummy
+from agents import PlayerDummy
 from core import RED, BLUE
 from core.figures import Tank, Infantry
 from core.figures.status import IN_MOTION

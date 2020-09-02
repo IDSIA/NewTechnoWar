@@ -303,8 +303,8 @@ class GameManager:
     def step(self, board: GameBoard, state: GameState, action: Action, forceHit: bool = False) -> dict:
         """Update the given state with the given action in a irreversible way."""
 
-        team: str = action.team  # team performing action
         f: Figure = state.getFigure(action)  # who performs the attack action
+        team: str = f.team  # team performing action
 
         logging.debug(action)
         state.lastAction = action

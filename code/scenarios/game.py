@@ -5,7 +5,7 @@ from core import RED, BLUE
 from core.figures import Tank, Infantry, APC, Exoskeleton
 from core.figures.status import HIDDEN
 from core.game.board import GameBoard
-from core.game.goals import GoalReachPoint, GoalEliminateOpponent, GoalMaxTurn
+from core.game.goals import GoalReachPoint, GoalEliminateOpponent, GoalMaxTurn, GoalDefendPoint
 from core.game.state import GameState
 from core.game.terrain import Terrain
 from scenarios.utils import basicForest, basicUrban, basicRoad, fillLine
@@ -53,6 +53,7 @@ def scenarioJunction() -> (GameBoard, GameState):
 
     board.addObjectives(
         GoalReachPoint(RED, (30, 13)),
+        GoalDefendPoint(BLUE, (30, 13)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 10)
@@ -151,6 +152,7 @@ def scenarioRoadblock() -> (GameBoard, GameState):
 
     board.addObjectives(
         GoalReachPoint(RED, (43, 12)),
+        GoalDefendPoint(BLUE, (43, 12)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 13)
@@ -234,6 +236,7 @@ def scenarioBridgeHead() -> (GameBoard, GameState):
 
     board.addObjectives(
         GoalReachPoint(RED, (39, 12), (40, 12), (40, 13), (41, 14), (41, 15)),
+        GoalDefendPoint(BLUE, (39, 12), (40, 12), (40, 13), (41, 14), (41, 15)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 7)
@@ -325,7 +328,8 @@ def scenarioCrossingTheCity() -> (GameBoard, GameState):
     terrain[31, 2] = Terrain.FOREST
 
     board.addObjectives(
-        GoalReachPoint(RED,  (30, 9)),
+        GoalReachPoint(RED, (30, 9)),
+        GoalDefendPoint(BLUE, (30, 9)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 7)
