@@ -49,8 +49,8 @@ class Human(PlayerDummy):
         if action == 'pass':
             if 'idx' in data and data['team'] == self.team:
                 idx = int(data['idx'])
-                transport = state.getFigureByIndex(self.team, idx)
-                self.next_action = gm.actionPass(transport)
+                figure = state.getFigureByIndex(self.team, idx)
+                self.next_action = gm.actionPass(figure)
             return
 
         idx = int(data['idx'])

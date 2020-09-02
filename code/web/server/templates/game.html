@@ -22,7 +22,7 @@
             <h1 id="redPlayer" class="player-title"></h1>
         </div>
         <div id="gameBoard">
-            <svg id="view" viewBox="0 0 400 300">
+            <svg id="view" viewBox="{{ vb[0] }} {{ vb[1] }} {{ vb[2] }} {{ vb[3] }}">
                 <defs>
                     <polygon id="hex" class="hex" points="5,-9 -5,-9 -10,0 -5,9 5,9 10,0"></polygon>
                     <pattern id="infantryMark" x="0" y="0" patternUnits="userSpaceOnUse" height="1" width="1">

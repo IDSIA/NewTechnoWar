@@ -8,7 +8,7 @@ from flask import current_app as app
 from agents.matchmanager import MatchManager, buildMatchManager
 from agents.players import Human
 from core import BLUE, RED
-from web.server.utils import scroll, fieldShape
+from web.server.utils import scroll, fieldShape, cube_to_ijxy
 
 main = Blueprint('main', __name__, template_folder='templates', static_folder='static')
 
@@ -24,6 +24,14 @@ def index():
         bluePlayer = data['bluePlayer']
 
         autoplay = 'autoplay' in data or redPlayer == 'Human' or bluePlayer == 'Human'
+
+        if app.config['DEBUG']:
+            logging.info('Using debug configuration!')
+            redPlayer = 'DummyPlayer'
+            bluePlayer = 'DummyPlayer'
+            scen = 'scenario1'
+            autoplay = False
+            seed = 1
 
         mm = buildMatchManager(
             str(uuid.uuid4()),
@@ -114,6 +122,21 @@ def game():
 
         logging.info(f'Restored game #{gameId} with scenario {mm.board.name}')
 
+        # compute view box size and zoom (default is: 0, 0, 400, 300)
+        eps = 20
+        min_x, min_y, max_x, max_y = 1000000, 1000000, 0, 0
+        for team in [RED, BLUE]:
+            for figure in mm.state.figures[team]:
+                _, _, x, y = cube_to_ijxy(figure.position)
+
+                min_x = min(min_x, x - eps)
+                min_y = min(min_y, y - eps)
+                max_x = max(max_x, x + eps)
+                max_y = max(max_y, y + eps)
+
+        w = max_x - min_x
+        h = max_y - min_y
+
         response = make_response(
             render_template(
                 'game.html',
@@ -122,7 +145,8 @@ def game():
                 board=list(scroll(mm.board)),
                 gameId=gameId,
                 shape=fieldShape(mm.board),
-                turn=mm.state.turn
+                turn=mm.state.turn,
+                vb=(min_x, min_y, w, h)
             )
         )
 

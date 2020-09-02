@@ -68,6 +68,14 @@ class MatchManager:
     def reset(self):
         """Restore the match to its original (before initialization) stage."""
         self.state: GameState = deepcopy(self.origin)
+
+        self.actions_history = []
+        self.outcome = []
+
+        self.winner = ''
+        self.end = False
+        self.update = False
+
         self._goInit()
 
     def _goInit(self):
