@@ -1,6 +1,6 @@
 import numpy as np
 
-from agents.players.player import Player
+from agents import Player
 from core.actions import Action, Pass
 from core.game.board import GameBoard
 from core.game.manager import GameManager

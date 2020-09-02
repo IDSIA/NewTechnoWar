@@ -34,7 +34,7 @@ def scenarioDummy1() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, BLUE, (9, 9)),
+        GoalReachPoint(RED, (9, 9)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
@@ -62,7 +62,7 @@ def scenarioDummy2() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, BLUE, (9, 9)),
+        GoalReachPoint(RED, (9, 9)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
@@ -90,7 +90,7 @@ def scenarioDummy3() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, BLUE, (9, 9)),
+        GoalReachPoint(RED, (9, 9)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
@@ -125,7 +125,7 @@ def scenarioDummyResponseCheck() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, BLUE, (9, 12)),
+        GoalReachPoint(RED, (9, 12)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
@@ -158,7 +158,7 @@ def scenarioInSightTest() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, BLUE, (9, 12)),
+        GoalReachPoint(RED, (9, 12)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)

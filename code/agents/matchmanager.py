@@ -3,7 +3,7 @@ from copy import deepcopy
 
 import numpy as np
 
-import agents.players as players
+import agents as players
 import scenarios
 from agents.players.player import Player
 from core import RED, BLUE

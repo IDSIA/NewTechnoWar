@@ -1,4 +1,4 @@
-from typing import Dict, Set, Tuple
+from typing import Dict, Set, Tuple, List
 
 import numpy as np
 
@@ -86,7 +86,8 @@ class GameBoard:
         """Returns the goals for the team."""
         return self.objectives[team]
 
-    def getObjectivesPositions(self, team: str = None):
+    def getObjectivesPositions(self, team: str = None) -> List[Cube]:
+        """Returns a list with the positions referred by the objectives with a point as goal (i.e. GoalReachPoint)."""
         objs = []
         for x in self.objectives[team]:
             if isinstance(x, GoalReachPoint):

@@ -1,4 +1,4 @@
-from agents.players import PlayerDummy
+from agents import PlayerDummy
 from core import RED, BLUE
 from core.actions import Action, Respond
 from core.game.board import GameBoard

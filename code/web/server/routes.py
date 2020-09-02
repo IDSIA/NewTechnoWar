@@ -5,8 +5,8 @@ import uuid
 from flask import Blueprint, render_template, make_response, request, jsonify, redirect
 from flask import current_app as app
 
-from agents.matchmanager import MatchManager, buildMatchManager
-from agents.players import Human
+from agents import MatchManager, buildMatchManager
+from agents import Human
 from core import BLUE, RED
 from web.server.utils import scroll, fieldShape, cube_to_ijxy
 
@@ -24,18 +24,19 @@ def index():
         bluePlayer = data['bluePlayer']
 
         autoplay = 'autoplay' in data or redPlayer == 'Human' or bluePlayer == 'Human'
+        scen = data['scenario']
 
         if app.config['DEBUG']:
             logging.info('Using debug configuration!')
             redPlayer = 'DummyPlayer'
             bluePlayer = 'DummyPlayer'
-            scen = 'scenario1'
+            scen = 'scenarioTestBench'
             autoplay = False
             seed = 1
 
         mm = buildMatchManager(
             str(uuid.uuid4()),
-            'scenario' + data['scenario'],
+            'scenario' + scen,
             redPlayer,
             bluePlayer,
             seed if seed > 0 else random.randint(1, 1000000000)
@@ -45,7 +46,7 @@ def index():
         app.games[mm.gid] = mm
         app.params[mm.gid] = {
             'seed': mm.seed,
-            'scenario': data['scenario'],
+            'scenario': scen,
             'player': {RED: redPlayer, BLUE: bluePlayer},
             'autoplay': autoplay,
             'replay': data['replay'],
@@ -68,11 +69,11 @@ def index():
             'Test3v1',
             'TestBench',
             'TestInfantry',
-            'Dummy1',
-            'Dummy2',
-            'Dummy3',
-            'DummyResponseCheck',
-            'InSightTest',
+            # 'Dummy1',
+            # 'Dummy2',
+            # 'Dummy3',
+            # 'DummyResponseCheck',
+            # 'InSightTest',
             'Junction',
             'JunctionExo',
             'BridgeHead',
@@ -83,6 +84,7 @@ def index():
         players = [
             'Human',
             'PlayerDummy',
+            'GreedyAgent',
         ]
 
         response = make_response(
@@ -134,8 +136,8 @@ def game():
                 max_x = max(max_x, x + eps)
                 max_y = max(max_y, y + eps)
 
-        w = max_x - min_x
-        h = max_y - min_y
+        w = max(max_x - min_x, 400)
+        h = max(max_y - min_y, 300)
 
         response = make_response(
             render_template(
