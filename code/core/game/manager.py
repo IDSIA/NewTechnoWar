@@ -20,7 +20,7 @@ class GameManager:
     """Utility class that helps in manage the states of the game and build actions."""
 
     def __init__(self):
-        self.DEBUG_HIT: bool = False
+        pass
 
     @staticmethod
     def actionPass(figure: Figure):
@@ -183,12 +183,15 @@ class GameManager:
             raise ValueError
         return Respond(*args)
 
-    def buildResponses(self, board: GameBoard, state: GameState, figure: Figure) -> list:
+    def buildResponses(self, board: GameBoard, state: GameState, figure: Figure, lastAction=None) -> list:
         """Returns a list of all possible response action that can be performed."""
 
         responses = []
 
-        target = state.getFigure(state.lastAction)
+        if lastAction:
+            target = state.getFigure(lastAction)
+        else:
+            target = state.getFigure(state.lastAction)
 
         if target.team == figure.team:
             return responses
@@ -266,11 +269,10 @@ class GameManager:
 
         return actions
 
-    def activate(self, board: GameBoard, state: GameState, action: Action) -> (GameState, dict):
+    def activate(self, board: GameBoard, state: GameState, action: Action, forceHit: bool = False) -> (GameState, dict):
         """Apply the step method to a deepcopy of the given GameState."""
-
         s1 = deepcopy(state)
-        outcome = self.step(board, s1, action)
+        outcome = self.step(board, s1, action, forceHit)
         return s1, outcome
 
     @staticmethod
@@ -298,7 +300,7 @@ class GameManager:
             for x in to_disable:
                 target.weapons[x].disable()
 
-    def step(self, board: GameBoard, state: GameState, action: Action) -> dict:
+    def step(self, board: GameBoard, state: GameState, action: Action, forceHit: bool = False) -> dict:
         """Update the given state with the given action in a irreversible way."""
 
         team: str = action.team  # team performing action
@@ -370,7 +372,7 @@ class GameManager:
             # consume ammunition
             w.shoot()
 
-            if self.DEBUG_HIT:
+            if forceHit:
                 score = [0] * w.dices
             else:
                 score = np.random.choice(range(1, 21), size=w.dices)

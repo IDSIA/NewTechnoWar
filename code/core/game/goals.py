@@ -69,6 +69,8 @@ class GoalReachPoint(Goal):
         return False
 
 
+# TODO: add goal to _defend_ point
+
 class GoalMaxTurn(Goal):
     """The team wins when the maximum number of turns is achieved."""
 

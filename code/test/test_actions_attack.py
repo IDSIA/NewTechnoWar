@@ -31,8 +31,6 @@ class TestAttackAction(unittest.TestCase):
         self.gm = GameManager()
 
     def testAttack(self):
-        self.gm.DEBUG_HIT = True
-
         attack = self.gm.actionAttack(
             self.board, self.state, self.red_tank, self.blue_tank, self.red_tank.weapons['CA']
         )
@@ -40,7 +38,7 @@ class TestAttackAction(unittest.TestCase):
         target = self.state.getTarget(attack)
         weapon = self.state.getWeapon(attack)
 
-        o = self.gm.step(self.board, self.state, attack)
+        o = self.gm.step(self.board, self.state, attack, True)
 
         self.assertTrue(o['success'], 'failed to attack target')
         self.assertTrue(target.killed, 'target still alive')
@@ -49,15 +47,13 @@ class TestAttackAction(unittest.TestCase):
         self.assertEqual(weapon.ammo, weapon.ammo_max - 1, 'shell not fired')
 
     def testActivateAttack(self):
-        self.gm.DEBUG_HIT = True
-
         atk = self.gm.actionAttack(self.board, self.state, self.red_tank, self.blue_tank, self.red_tank.weapons['CA'])
 
         t0 = self.state.getTarget(atk)
         w0 = self.state.getWeapon(atk)
 
-        s1, o = self.gm.activate(self.board, self.state, atk)
-        s2, o = self.gm.activate(self.board, self.state, atk)
+        s1, o = self.gm.activate(self.board, self.state, atk, True)
+        s2, o = self.gm.activate(self.board, self.state, atk, True)
 
         self.assertNotEqual(hash(self.state), hash(s1), 'state1 and state0 are the same')
         self.assertNotEqual(hash(self.state), hash(s2), 'state2 and state0 are the same')

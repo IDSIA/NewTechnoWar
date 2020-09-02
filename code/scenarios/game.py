@@ -52,7 +52,7 @@ def scenarioJunction() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, BLUE, (30, 13)),
+        GoalReachPoint(RED, (30, 13)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 10)
@@ -150,7 +150,7 @@ def scenarioRoadblock() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, BLUE, (43, 12)),
+        GoalReachPoint(RED, (43, 12)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 13)
@@ -233,7 +233,7 @@ def scenarioBridgeHead() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, BLUE, (39, 12), (40, 12), (40, 13), (41, 14), (41, 15)),
+        GoalReachPoint(RED, (39, 12), (40, 12), (40, 13), (41, 14), (41, 15)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 7)
@@ -325,7 +325,7 @@ def scenarioCrossingTheCity() -> (GameBoard, GameState):
     terrain[31, 2] = Terrain.FOREST
 
     board.addObjectives(
-        GoalReachPoint(RED, BLUE, (30, 9)),
+        GoalReachPoint(RED,  (30, 9)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 7)

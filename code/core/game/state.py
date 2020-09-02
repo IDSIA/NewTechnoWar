@@ -105,6 +105,10 @@ class GameState:
         """Given a LoadInto action, return the destination transporter."""
         return self.getFigureByIndex(action.team, action.transporter_id)
 
+    def getFigures(self, team: str):
+        """Returns all figures of a team."""
+        return self.figures[team]
+
     def getFiguresByPos(self, team: str, pos: tuple) -> List[Figure]:
         """Returns all the figures that occupy the given position."""
         if len(pos) == 2:

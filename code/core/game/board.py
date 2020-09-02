@@ -86,6 +86,14 @@ class GameBoard:
         """Returns the goals for the team."""
         return self.objectives[team]
 
+    def getObjectivesPositions(self, team: str = None):
+        objs = []
+        for x in self.objectives[team]:
+            if isinstance(x, GoalReachPoint):
+                objs += x.objectives
+
+        return objs
+
     def getObjectiveMark(self):
         """Return the position of all objectives in the map."""
         marks = []
