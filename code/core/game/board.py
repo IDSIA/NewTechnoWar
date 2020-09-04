@@ -133,6 +133,6 @@ class GameBoard:
         r = []
         for x in cube_range(center, n):
             h = cube_to_hex(x)
-            if 0 < h.q < self.shape[0] and 0 < h.r < self.shape[1]:
+            if 0 < h.p2 < self.shape[0] and 0 < h.r < self.shape[1]:
                 r.append(x)
         return r

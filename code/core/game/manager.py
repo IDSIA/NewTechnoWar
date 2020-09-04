@@ -277,7 +277,8 @@ class GameManager:
         return s1, outcome
 
     @staticmethod
-    def applyDamage(action: Attack, hitScore: int, score: int, success: int, target: Figure, weapon: Weapon) -> None:
+    def applyDamage(state: GameState, action: Attack, hitScore: int, score: int, success: int, target: Figure,
+                    weapon: Weapon) -> None:
         """Applies the damage of a weapon to the target, if succeeded."""
 
         target.hp -= success * weapon.damage
@@ -287,11 +288,12 @@ class GameManager:
             logging.info(f'{action}: ({success} {score}/{hitScore}): KILL! ({target.hp}/{target.hp_max})')
             target.killed = True
 
-            for f in target.transporting:
-                # kill all transported units
-                logging.info(f'{action}: {f} killed while transporting')
+            # kill all transported units
+            for idx in target.transporting:
+                f = state.getFigureByIndex(target.team, idx)
                 f.killed = True
                 f.hp = 0
+                logging.info(f'{action}: {f} killed while transporting')
 
         else:
             logging.info(f'{action}: ({success} {score}/{hitScore}): HIT!  ({target.hp}/{target.hp_max})')
@@ -413,7 +415,7 @@ class GameManager:
             logging.debug(f'{action}: (({success}) {score}/{hitScore})')
 
             if success > 0:
-                self.applyDamage(action, hitScore, score, success, t, w)
+                self.applyDamage(state, action, hitScore, score, success, t, w)
 
             elif w.curved:
                 # missing with curved weapons
@@ -425,7 +427,7 @@ class GameManager:
                 logging.info(f'{action}: shell hit {hitLocation}: {len(missed)} hit')
 
                 for m in missed:
-                    self.applyDamage(action, hitScore, score, 1, m, w)
+                    self.applyDamage(state, action, hitScore, score, 1, m, w)
 
             else:
                 logging.info(f'{action}: ({success} {score}/{hitScore}): MISS!')

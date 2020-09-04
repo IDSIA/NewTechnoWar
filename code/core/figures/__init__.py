@@ -2,7 +2,7 @@
 This module defines the available figures and their rules.
 """
 import uuid
-from typing import Dict
+from typing import Dict, List
 
 from core.figures.status import FigureStatus, NO_EFFECT
 from core.figures.types import FigureType
@@ -65,7 +65,7 @@ class Figure:
 
         self.can_transport: bool = False
         self.transport_capacity: int = 0
-        self.transporting: list = []
+        self.transporting: List[int] = []
         self.transported_by: int = -1
 
     def vector(self) -> tuple:
