@@ -2,19 +2,20 @@
 import logging
 import math
 from copy import deepcopy
-from typing import List, Tuple, Any
+from typing import Tuple, Any, List
 
 import numpy as np
 
-from agents.adversarial.probabilities import probabilityOfSuccessfulResponseAccumulated, probabilityOfSuccessfulAttack
 from agents import Player
-from core import RED, BLUE
+from agents.adversarial.probabilities import probabilityOfSuccessfulResponseAccumulated, probabilityOfSuccessfulAttack
+from agents.adversarial.scores import evaluateBoard, evaluateState
+from core import RED
 from core.actions import Action
 from core.figures import Figure
 from core.game.board import GameBoard
 from core.game.manager import GameManager
 from core.game.state import GameState
-from utils.coordinates import to_cube, cube_distance, cube_to_hex
+from utils.coordinates import to_cube
 
 
 class GreedyAgent(Player):
@@ -25,46 +26,10 @@ class GreedyAgent(Player):
         self.maximize: bool = self.team == RED
         self.boardValues = None
 
-    def evaluateBoard(self, board: GameBoard):
-        boardValues = np.zeros(board.shape)
-        objs = board.getObjectivesPositions(self.team)
-
-        for x, y in np.ndindex(board.shape):
-            xy = to_cube((x, y))
-            for o in objs:
-                boardValues[x, y] = cube_distance(xy, o)
-
-        maxBV = np.max(boardValues)
-
-        for x, y in np.ndindex(board.shape):
-            boardValues[x, y] = 1 - boardValues[x, y] / maxBV
-
-        for o in objs:
-            boardValues[cube_to_hex(o)] = 5
-
-        return boardValues
-
-    def evaluateState(self, state: GameState):
-        value = 0
-        bv = self.boardValues
-
-        for figure in state.getFigures(RED):
-            if not figure.killed:
-                value += 0.2 * bv[cube_to_hex(figure.position)] + 1
-
-        for figure in state.getFigures(BLUE):
-            if not figure.killed:
-                value += 0.2 * bv[cube_to_hex(figure.position)] + 1
-
-        # if state.turn >= self.board['totalTurns']: TODO: add penalty to endgame
-        #     return -5
-
-        return value
-
     def scorePass(self, gm: GameManager, board: GameBoard, state: GameState, figure: Figure) -> Tuple[float, Action]:
         action = gm.actionPass(figure)
         s, _ = gm.activate(board, state, action)
-        return self.evaluateState(s), action
+        return evaluateState(self.boardValues, s), action
 
     def scoreMove(self,
                   gm: GameManager, board: GameBoard, state: GameState, figure: Figure) -> List[Tuple[float, Action]]:
@@ -72,12 +37,12 @@ class GreedyAgent(Player):
         for action in gm.buildMovements(board, state, figure):
             # effect of action without enemy response
             s1, _ = gm.activate(board, state, action)
-            noResponseScore = self.evaluateState(s1)
+            noResponseScore = evaluateState(self.boardValues, s1)
 
             # effect of action with enemy response killing the unit
             s2, _ = gm.activate(board, state, action)
             s2.getFigure(action).killed = True
-            responseScore = self.evaluateState(s2)
+            responseScore = evaluateState(self.boardValues, s2)
 
             # accumulated probability of a successful response
             probResponseEffect = probabilityOfSuccessfulResponseAccumulated(gm, board, state, action)
@@ -94,18 +59,18 @@ class GreedyAgent(Player):
         scores = []
 
         # action does not have effect
-        sNoEffect = self.evaluateState(state)
+        sNoEffect = evaluateState(self.boardValues, state)
 
         for action in gm.buildAttacks(board, state, figure):
             # action have effect
             s1, _ = gm.activate(board, state, action, True)
-            sEffect = self.evaluateState(s1)
+            sEffect = evaluateState(self.boardValues, s1)
             pEffect = probabilityOfSuccessfulAttack(gm, board, state, action)
 
             # effect of action with enemy response killing the unit
             s2, _ = gm.activate(board, state, action)
             s2.getFigure(action).killed = True
-            sRespEffect = self.evaluateState(s2)
+            sRespEffect = evaluateState(self.boardValues, s2)
 
             # accumulated probability of a successful response
             pRespEffect = probabilityOfSuccessfulResponseAccumulated(gm, board, state, action)
@@ -124,7 +89,7 @@ class GreedyAgent(Player):
         for action in gm.buildResponses(board, state, figure):
             # action have effect
             s1, _ = gm.activate(board, state, action, True)
-            sEffect = self.evaluateState(s1)
+            sEffect = evaluateState(self.boardValues, s1)
             pEffect = probabilityOfSuccessfulAttack(gm, board, state, action)
 
             score = pEffect * sEffect + (1 - pEffect) * sNoEffect
@@ -155,7 +120,7 @@ class GreedyAgent(Player):
 
     def chooseAction(self, gm: GameManager, board: GameBoard, state: GameState) -> Action:
         if self.boardValues is None:
-            self.boardValues = self.evaluateBoard(board)
+            self.boardValues = evaluateBoard(board, self.team)
 
         scores = []
 
@@ -172,10 +137,10 @@ class GreedyAgent(Player):
 
     def chooseResponse(self, gm: GameManager, board: GameBoard, state: GameState) -> Action:
         if not self.boardValues:
-            self.boardValues = self.evaluateBoard(board)
+            self.boardValues = evaluateBoard(board, self.team)
 
         # action does not have effect
-        sNoEffect = self.evaluateState(state)
+        sNoEffect = evaluateState(self.boardValues, state)
 
         scores = [
             # do not respond
@@ -199,7 +164,7 @@ class GreedyAgent(Player):
 
     def placeFigures(self, board: GameBoard, state: GameState) -> None:
         if not self.boardValues:
-            self.boardValues = self.evaluateBoard(board)
+            self.boardValues = evaluateBoard(self.boardValues, board)
 
         # select area
         x, y = np.where(board.placement_zone[self.team] > 0)
@@ -220,7 +185,7 @@ class GreedyAgent(Player):
                 dst = to_cube((x[group[j]], y[group[j]]))
                 s.moveFigure(self.team, figure, figure.position, dst)
 
-            score = self.evaluateState(s)
+            score = evaluateState(self.boardValues, s)
             scores.append((score, group))
 
         # choose the better group
@@ -235,7 +200,7 @@ class GreedyAgent(Player):
 
     def chooseFigureGroups(self, board: GameBoard, state: GameState) -> None:
         if not self.boardValues:
-            self.boardValues = self.evaluateBoard(board)
+            self.boardValues = evaluateBoard(self.boardValues, board)
 
         colors = list(state.choices[self.team].keys())
         scores = []
@@ -244,7 +209,7 @@ class GreedyAgent(Player):
             s = deepcopy(state)
             s.choose(self.team, color)
 
-            score = self.evaluateState(s)
+            score = evaluateState(self.boardValues, s)
             scores.append((score, color))
 
         score, color = self.opt(scores)
