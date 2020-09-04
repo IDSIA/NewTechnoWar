@@ -58,6 +58,31 @@ class GameState:
             BLUE: dict()
         }
 
+    def vector(self) -> tuple:
+        """Convert the state in a vector, used for internal hashing."""
+        data = []
+
+        for team in [RED, BLUE]:
+            for f in self.figures[team]:
+                data += f.vector()
+
+        return tuple(data)
+
+    def __eq__(self, other):
+        if not other:
+            return False
+        if not isinstance(other, GameState):
+            return False
+        v = self.vector()
+        v_other = other.vector()
+        for i in range(len(v)):
+            if v[i] != v_other[i]:
+                return False
+        return True
+
+    def __hash__(self):
+        return hash(self.vector())
+
     def __repr__(self) -> str:
         return f'{self.turn}:\n{self.figures}\n{self.posToFigure}'
 

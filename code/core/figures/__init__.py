@@ -2,14 +2,17 @@
 This module defines the available figures and their rules.
 """
 import uuid
+from typing import Dict
 
 from core.figures.status import FigureStatus, NO_EFFECT
 from core.figures.types import FigureType
 from core.figures.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, SniperRifle, \
-    Weapon
+    Weapon, WEAPON_KEY_LIST
 from core.game import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, ENDURANCE_EXO
 from utils import INFINITE
 from utils.coordinates import Cube, to_cube
+
+DEFENSE_KEY_LIST = ['basic', 'smoke', 'antitank']
 
 
 class Figure:
@@ -35,11 +38,11 @@ class Figure:
         self.hp: int = 0
         self.hp_max: int = 0
 
-        self.defense: dict = {
+        self.defense: Dict[str, int] = {
             'basic': 1,
             'smoke': 18
         }
-        self.weapons: dict = {}
+        self.weapons: Dict[str, Weapon] = {}
 
         self.int_atk: int = 0
         self.int_def: int = 0
@@ -64,6 +67,59 @@ class Figure:
         self.transport_capacity: int = 0
         self.transporting: list = []
         self.transported_by: int = -1
+
+    def vector(self) -> tuple:
+        """Data on the figure in vectorized version, used for internal hashing."""
+        data = [
+            self.fid,
+            self.team,
+            self.name,
+            self.index,
+            self.kind,
+            self.move,
+            self.load,
+            self.hp,
+            self.hp_max,
+            self.int_atk,
+            self.int_def,
+            self.endurance,
+            self.stat,
+            self.bonus,
+            self.activated,
+            self.responded,
+            self.killed,
+            self.hit,
+            self.attacked_by,
+            self.can_transport,
+            self.transport_capacity,
+            len(self.transporting),
+            self.transported_by
+        ]
+
+        data += list(self.position)
+
+        for d in DEFENSE_KEY_LIST:
+            data.append(self.defense[d] if d in self.defense else 0)
+
+        for w in WEAPON_KEY_LIST:
+            data.append(self.weapons[w].ammo if w in self.weapons else 0)
+
+        return tuple(data)
+
+    def __eq__(self, other):
+        if not isinstance(other, Figure):
+            return False
+        if not other:
+            return False
+        v = self.vector()
+        v_other = other.vector()
+        for i in range(len(v)):
+            if v[i] != v_other[i]:
+                return False
+        return True
+
+    def __hash__(self):
+        return hash(self.vector())
 
     def update(self, turn: int) -> None:
         self.endurance = ENDURANCE[turn]

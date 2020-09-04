@@ -3,6 +3,8 @@ This module contains a description of all weapons and their rules.
 """
 from utils import INFINITE
 
+WEAPON_KEY_LIST = ['CA', 'AR', 'MG', 'AT', 'MT', 'GR', 'SM', 'SR']
+
 
 class Weapon:
     """

@@ -81,7 +81,8 @@ class GameManager:
 
         return moves
 
-    def checkLine(self, board: GameBoard, state: GameState, line: List[Cube]) -> bool:
+    @staticmethod
+    def checkLine(board: GameBoard, state: GameState, line: List[Cube]) -> bool:
         """Returns True if the line is valid (has no obstacles), otherwise False."""
         return not any([state.isObstacle(h) or board.isObstacle(h) for h in line[1:-1]])
 
@@ -163,7 +164,7 @@ class GameManager:
             if target.killed or target.stat == HIDDEN:
                 continue
 
-            for weapon in figure.weapons.values():
+            for _, weapon in figure.weapons.items():
                 try:
                     attacks.append(self.actionAttack(board, state, figure, target, weapon))
                 except ValueError as _:
@@ -198,7 +199,7 @@ class GameManager:
 
         if not any([figure.responded, figure.killed, target.killed, target.stat == HIDDEN]):
 
-            for weapon in figure.weapons.values():
+            for _, weapon in figure.weapons.items():
                 if weapon.smoke:
                     # smoke weapons cannot be used as response since they do no damage
                     continue
@@ -229,7 +230,7 @@ class GameManager:
 
         supports = []
 
-        for weapon in figure.weapons:
+        for _, weapon in figure.weapons.items():
             if weapon.smoke:
                 grounds = board.getRange(figure.position, weapon.max_range)
                 for ground in grounds:
@@ -276,7 +277,7 @@ class GameManager:
         return s1, outcome
 
     @staticmethod
-    def applyDamage(action, hitScore, score, success, target, weapon):
+    def applyDamage(action: Attack, hitScore: int, score: int, success: int, target: Figure, weapon: Weapon) -> None:
         """Applies the damage of a weapon to the target, if succeeded."""
 
         target.hp -= success * weapon.damage

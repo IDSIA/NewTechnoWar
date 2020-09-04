@@ -1,12 +1,7 @@
-class FigureStatus:
-    """Current status of a figure"""
+from collections import namedtuple
 
-    __slots__ = ['name', 'value']
-
-    def __init__(self, name: str, value: int):
-        self.name = name
-        self.value = value
-
+"""Current status of a figure"""
+FigureStatus = namedtuple('FigureStatus', ['name', 'value'])
 
 # units cannot be seen or be a target
 HIDDEN = FigureStatus('Hidden', 0)
