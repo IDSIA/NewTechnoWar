@@ -3,7 +3,7 @@ Source: https://www.redblobgames.com/grids/hexagons/
 """
 from collections import namedtuple
 
-# we are using offset coordinates with even-q and flat hexs
+# we are using offset coordinates with even-q and flat hexagons
 
 Hex = namedtuple('Hex', ['q', 'r'])
 Cube = namedtuple('Cube', ['x', 'y', 'z'])
@@ -18,21 +18,21 @@ def cube_to_hex(cube: Cube):
     return Hex(q, r)
 
 
-def hex_to_cube(hex: Hex):
+def hex_to_cube(h: Hex):
     """Converts offset to cube coordinate system"""
-    x = hex.q
-    z = hex.r - (hex.q + (hex.q % 2)) // 2
+    x = h.q
+    z = h.r - (h.q + (h.q % 2)) // 2
     y = -x - z
     return Cube(x, y, z)
 
 
 def to_hex(pos: tuple):
-    """Converts tuple to Hey, [0] is consideret column, while [1] row"""
+    """Converts tuple to Hex, [0] is considered column, while [1] row"""
     return Hex(q=pos[0], r=pos[1])
 
 
 def to_cube(pos: tuple):
-    """Converts tuple to Cube, [0] is consideret column, while [1] row"""
+    """Converts tuple to Cube, [0] is considered column, while [1] row"""
     return hex_to_cube(to_hex(pos))
 
 
@@ -57,13 +57,17 @@ def hex_add(a: Hex, b: Hex):
 
 
 def hex_subtract(a, b):
-    return Hex(a.q - b.q, a.r - b.r)
+    return Hex(a.p2 - b.p2, a.r - b.r)
+
+
+p1: float = 10 ** 5
+p2: int = int(p1)
 
 
 def cube_round(c: Cube):
-    rx = int(round(c.x))
-    ry = int(round(c.y))
-    rz = int(round(c.z))
+    rx = int(c.x * p1 + 0.5) / p2
+    ry = int(c.y * p1 + 0.5) / p2
+    rz = int(c.z * p1 + 0.5) / p2
 
     x_diff = abs(rx - c.x)
     y_diff = abs(ry - c.y)
@@ -77,11 +81,11 @@ def cube_round(c: Cube):
         else:
             rz = -rx - ry
 
-    return Cube(rx, ry, rz)
+    return Cube(int(rx), int(ry), int(rz))
 
 
-def hex_round(hex: Hex):
-    return cube_to_hex(cube_round(hex_to_cube(hex)))
+def hex_round(h: Hex):
+    return cube_to_hex(cube_round(hex_to_cube(h)))
 
 
 # Neighbors
@@ -102,9 +106,9 @@ hex_directions = [
 ]
 
 
-def hex_neighbor(hex: Hex) -> list:
-    parity = hex.q % 2
-    return [hex_add(hex, direction) for direction in hex_directions[parity]]
+def hex_neighbor(h: Hex) -> list:
+    parity = h.q % 2
+    return [hex_add(h, direction) for direction in hex_directions[parity]]
 
 
 # Distances
@@ -121,8 +125,8 @@ def hex_distance(a: Hex, b: Hex):
 
 # Line drawing
 
-def lerp(a: int, b: int, t: float):  # for floats
-    return a + (b - a) * t
+def lerp(a: int, b: int, t: float) -> int:  # for floats
+    return int((a + (b - a) * t) * p1 + 0.5) // p2
 
 
 def cube_lerp(a: Cube, b: Cube, t: float):  # for hexes
@@ -146,14 +150,14 @@ def cube_linedraw(a: Cube, b: Cube):
 
     results = []
     for i in range(0, n + 1):
-        results.append(cube_round(cube_lerp(A, B, 1.0 / n * i)))
+        results.append(cube_lerp(A, B, 1.0 / n * i))
 
     return results
 
 
 def hex_linedraw(a: Hex, b: Hex):
     line = cube_linedraw(hex_to_cube(a), hex_to_cube(b))
-    return [cube_to_hex(hex) for hex in line]
+    return [cube_to_hex(h) for h in line]
 
 
 # Movement range
@@ -182,8 +186,8 @@ def cube_reachable(start: Cube, movement, obstacles: set):
 
     for k in range(2, movement + 2):
         fringes.append([])
-        for hex in fringes[k - 2]:
-            for neighbor in cube_neighbor(hex):
+        for h in fringes[k - 2]:
+            for neighbor in cube_neighbor(h):
                 if neighbor not in visited and neighbor not in obstacles:
                     visited.add(neighbor)
                     fringes[k - 1].append(neighbor)
