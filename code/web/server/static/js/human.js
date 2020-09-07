@@ -16,7 +16,10 @@ class Human {
         $.post('/game/human/click', this.actionParams, () => {
             step();
             this.clear();
-        }).fail(() => console.error('Failed to send click on unit!'));
+        }).fail(() => {
+            console.error('Failed to send click on unit!');
+            this.clear();
+        });
     }
 
     clickUnit(event, team, idx) {
