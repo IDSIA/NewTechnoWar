@@ -1,18 +1,16 @@
-from core import BLUE, RED
+from core import GM
+from core.const import RED, BLUE
 from core.actions import Attack, Move
 from core.game.board import GameBoard
-from core.game.manager import GameManager
 from core.game.state import GameState
 
 
-def probabilityOfSuccessfulAttack(gm: GameManager, board: GameBoard, state: GameState, action: Attack) -> float:
-    _, outcome = gm.activate(board, state, action)
+def probabilityOfSuccessfulAttack(board: GameBoard, state: GameState, action: Attack) -> float:
+    _, outcome = GM.activate(board, state, action)
     return outcome['hitScore'] / 20.0
 
 
-def probabilityOfSuccessfulResponseAccumulated(
-        gm: GameManager, board: GameBoard, state: GameState, action: Attack or Move
-) -> float:
+def probabilityOfSuccessfulResponseAccumulated(board: GameBoard, state: GameState, action: Attack or Move) -> float:
     prob = 0.0
     _r = 1.0
 
@@ -20,12 +18,12 @@ def probabilityOfSuccessfulResponseAccumulated(
         team = RED if action.team == BLUE else BLUE
 
         for figure in state.getFiguresCanRespond(team):
-            for response in gm.buildResponses(board, state, figure, action):
-                _r *= (1 - probabilityOfSuccessfulAttack(gm, board, state, response))
+            for response in GM.buildResponses(board, state, figure, action):
+                _r *= (1 - probabilityOfSuccessfulAttack(board, state, response))
 
         prob = 1 - _r
 
     if isinstance(action, Attack):
-        prob = probabilityOfSuccessfulAttack(gm, board, state, action)
+        prob = probabilityOfSuccessfulAttack(board, state, action)
 
     return prob

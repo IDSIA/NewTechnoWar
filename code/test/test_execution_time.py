@@ -1,13 +1,15 @@
 import time
-import numpy as np
 import unittest
+
+import numpy as np
 
 from agents import buildMatchManager
 
 
 class TestAttackAction(unittest.TestCase):
 
-    def _testJunction100(self):
+    @unittest.skip('Used only for profiling')
+    def testJunction100(self):
         seed = 42
         np.random.seed(seed)
 

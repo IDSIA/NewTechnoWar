@@ -1,9 +1,9 @@
 import unittest
 
-from core import RED, BLUE
+from core import GM
+from core.const import RED, BLUE
 from core.figures import Tank, Infantry
 from core.game.board import GameBoard
-from core.game.manager import GameManager
 from core.game.state import GameState
 from utils.coordinates import to_cube
 
@@ -28,17 +28,15 @@ class TestAttackAction(unittest.TestCase):
             self.blue_inf
         )
 
-        self.gm = GameManager()
-
     def testAttack(self):
-        attack = self.gm.actionAttack(
+        attack = GM.actionAttack(
             self.board, self.state, self.red_tank, self.blue_tank, self.red_tank.weapons['CA']
         )
 
         target = self.state.getTarget(attack)
         weapon = self.state.getWeapon(attack)
 
-        o = self.gm.step(self.board, self.state, attack, True)
+        o = GM.step(self.board, self.state, attack, True)
 
         self.assertTrue(o['success'], 'failed to attack target')
         self.assertTrue(target.killed, 'target still alive')
@@ -47,13 +45,13 @@ class TestAttackAction(unittest.TestCase):
         self.assertEqual(weapon.ammo, weapon.ammo_max - 1, 'shell not fired')
 
     def testActivateAttack(self):
-        atk = self.gm.actionAttack(self.board, self.state, self.red_tank, self.blue_tank, self.red_tank.weapons['CA'])
+        atk = GM.actionAttack(self.board, self.state, self.red_tank, self.blue_tank, self.red_tank.weapons['CA'])
 
         t0 = self.state.getTarget(atk)
         w0 = self.state.getWeapon(atk)
 
-        s1, o = self.gm.activate(self.board, self.state, atk, True)
-        s2, o = self.gm.activate(self.board, self.state, atk, True)
+        s1, o = GM.activate(self.board, self.state, atk, True)
+        s2, o = GM.activate(self.board, self.state, atk, True)
 
         self.assertNotEqual(hash(self.state), hash(s1), 'state1 and state0 are the same')
         self.assertNotEqual(hash(self.state), hash(s2), 'state2 and state0 are the same')
@@ -69,23 +67,23 @@ class TestAttackAction(unittest.TestCase):
 
     def testShootingGround(self):
         ground = (2, 6)
-        attack = self.gm.actionAttackGround(self.red_tank, to_cube(ground), self.red_tank.weapons['SM'])
+        attack = GM.actionAttackGround(self.red_tank, to_cube(ground), self.red_tank.weapons['SM'])
 
-        self.gm.step(self.board, self.state, attack)
+        GM.step(self.board, self.state, attack)
 
         self.assertEqual(self.state.smoke.max(), 2, 'cloud with wrong value')
         self.assertEqual(self.state.smoke.sum(), 6, 'not enough hex have cloud')
 
-        self.gm.update(self.state)
+        GM.update(self.state)
         self.assertEqual(self.state.smoke.max(), 1, 'cloud decay not working')
 
-        atk = self.gm.actionAttack(self.board, self.state, self.blue_tank, self.red_tank, self.red_tank.weapons['CA'])
-        outcome = self.gm.step(self.board, self.state, atk)
+        atk = GM.actionAttack(self.board, self.state, self.blue_tank, self.red_tank, self.red_tank.weapons['CA'])
+        outcome = GM.step(self.board, self.state, atk)
 
         self.assertGreaterEqual(outcome['DEF'], 18, 'smoke defense not active')
 
-        self.gm.update(self.state)
-        self.gm.update(self.state)
+        GM.update(self.state)
+        GM.update(self.state)
         self.assertEqual(self.state.smoke.max(), 0, 'cloud not disappearing correctly')
 
     def testDisableWeapon(self):

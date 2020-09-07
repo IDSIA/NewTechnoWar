@@ -5,9 +5,9 @@ import uuid
 from flask import Blueprint, render_template, make_response, request, jsonify, redirect
 from flask import current_app as app
 
-from agents import MatchManager, buildMatchManager
 from agents import Human
-from core import BLUE, RED
+from agents import MatchManager, buildMatchManager
+from core.const import BLUE, RED
 from web.server.utils import scroll, fieldShape, cube_to_ijxy
 
 main = Blueprint('main', __name__, template_folder='templates', static_folder='static')
@@ -257,7 +257,7 @@ def gameHumanClick():
 
     try:
         player: Human = mm.getPlayer(team)
-        player.nextAction(mm.board, mm.state, mm.gm, data)
+        player.nextAction(mm.board, mm.state, data)
         return jsonify({}), 200
 
     except ValueError as e:

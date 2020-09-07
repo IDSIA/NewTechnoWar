@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from agents.matchmanager import MatchManager
 from agents.players import PlayerDummy
-from core import RED, BLUE
+from core.const import RED, BLUE
 from core.game.pathfinding import findPath, reachablePath
 from scenarios import scenarioTestBench
 from utils.coordinates import cube_distance, cube_linedraw, cube_to_hex, to_cube

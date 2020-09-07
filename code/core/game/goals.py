@@ -1,6 +1,6 @@
 from typing import List
 
-from core import BLUE, RED
+from core.game import BLUE, RED
 from core.game.state import GameState
 from utils.coordinates import to_cube, Cube
 

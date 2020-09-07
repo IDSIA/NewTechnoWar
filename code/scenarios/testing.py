@@ -1,6 +1,6 @@
 import numpy as np
 
-from core import RED, BLUE
+from core.const import RED, BLUE
 from core.figures import Infantry, Tank, Exoskeleton, Sniper
 from core.figures.status import HIDDEN
 from core.game.board import GameBoard

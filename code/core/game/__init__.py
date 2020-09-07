@@ -1,4 +1,4 @@
-from core import RED, BLUE
+from core.const import RED, BLUE
 from utils.coordinates import Cube
 
 # static parts of the game

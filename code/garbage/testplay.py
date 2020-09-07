@@ -8,7 +8,7 @@ import os
 import numpy as np
 import yaml
 
-from core import RED, BLUE
+from core.const import RED, BLUE
 from core.actions import Attack, Move, Action
 from core.game.board import GameBoard
 from core.game.goals import goalAchieved

@@ -1,6 +1,6 @@
 import unittest
 
-from core import RED, BLUE
+from core.const import RED, BLUE
 from web.server import create_app
 
 

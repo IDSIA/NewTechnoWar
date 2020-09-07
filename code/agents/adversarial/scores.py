@@ -1,6 +1,6 @@
 import numpy as np
 
-from core import RED, BLUE
+from core.const import RED, BLUE
 from core.game.board import GameBoard
 from core.game.state import GameState
 from utils.coordinates import to_cube, cube_distance, cube_to_hex

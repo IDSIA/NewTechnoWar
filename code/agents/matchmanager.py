@@ -6,11 +6,11 @@ import numpy as np
 import agents as players
 import scenarios
 from agents.players.player import Player
-from core import RED, BLUE
+from core import GM
 from core.actions import Attack, Move
+from core.const import RED, BLUE
 from core.game.board import GameBoard
 from core.game.goals import goalAchieved
-from core.game.manager import GameManager
 from core.game.state import GameState
 
 
@@ -50,8 +50,6 @@ class MatchManager:
         self.winner: str = ''
         self.end: bool = False
         self.update: bool = False
-
-        self.gm: GameManager = GameManager()
 
         self.board: GameBoard = board
         self.state: GameState = state
@@ -109,8 +107,8 @@ class MatchManager:
         self.update = False
 
         try:
-            action = self.first.chooseAction(self.gm, self.board, self.state)
-            outcome = self.gm.step(self.board, self.state, action)
+            action = self.first.chooseAction(self.board, self.state)
+            outcome = GM.step(self.board, self.state, action)
 
             self.actions_history.append(action)
             self.outcome.append(outcome)
@@ -127,8 +125,8 @@ class MatchManager:
         logging.debug(f'step: response {self.second.team:5}')
 
         try:
-            response = self.second.chooseResponse(self.gm, self.board, self.state)
-            outcome = self.gm.step(self.board, self.state, response)
+            response = self.second.chooseResponse(self.board, self.state)
+            outcome = GM.step(self.board, self.state, response)
 
             logging.info(f'{self.second.team} respond')
 
@@ -183,7 +181,7 @@ class MatchManager:
         self.first = self.red
         self.second = self.blue
 
-        self.gm.update(self.state)
+        GM.update(self.state)
         logging.info(f'Turn {self.state.turn}')
 
         self._goCheck()

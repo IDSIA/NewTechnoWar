@@ -4,7 +4,7 @@ from typing import List
 
 import numpy as np
 
-from core import RED, BLUE
+from core.const import RED, BLUE
 from core.actions import Action, Move, Attack, Respond, Pass, LoadInto, AttackGround
 from core.figures import Figure, FigureType
 from core.figures.status import IN_MOTION, UNDER_FIRE, NO_EFFECT, HIDDEN, CUT_OFF
@@ -16,18 +16,16 @@ from core.game.state import GameState
 from utils.coordinates import cube_add, Cube, cube_distance, to_cube
 
 
-class GameManager:
+class GameManager(object):
     """Utility class that helps in manage the states of the game and build actions."""
 
     def __init__(self):
         pass
 
-    @staticmethod
-    def actionPass(figure: Figure):
+    def actionPass(self, figure: Figure):
         return Pass(figure.team, figure)
 
-    @staticmethod
-    def actionMove(board: GameBoard, figure: Figure, path: list = None, destination: tuple = None) -> Move:
+    def actionMove(self, board: GameBoard, figure: Figure, path: list = None, destination: tuple = None) -> Move:
         """
         Creates a Move action for a figure with a specified destination or a path. If path is not given, it will be
         computed using the destination argument as a target. It can raise a ValueError exception if destination is

@@ -1,7 +1,7 @@
 """All these scenarios are adapted from the main project source code."""
 import numpy as np
 
-from core import RED, BLUE
+from core.const import RED, BLUE
 from core.figures import Tank, Infantry, APC, Exoskeleton
 from core.figures.status import HIDDEN
 from core.game.board import GameBoard

@@ -1,2 +1,3 @@
-RED = 'red'
-BLUE = 'blue'
+from core.game.manager import GameManager
+
+GM = GameManager()

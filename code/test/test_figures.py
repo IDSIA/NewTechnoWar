@@ -1,9 +1,9 @@
 import unittest
 
-from core import RED, BLUE
+from core import GM
+from core.const import RED, BLUE
 from core.figures import Infantry
 from core.game.board import GameBoard
-from core.game.manager import GameManager
 from core.game.state import GameState
 
 
@@ -31,8 +31,6 @@ class TestFigures(unittest.TestCase):
             self.target_4,
         )
 
-        self.gm = GameManager()
-
     def testAttackAndResponse(self):
         # check default status
         self.assertFalse(self.inf_1.activated)
@@ -40,24 +38,24 @@ class TestFigures(unittest.TestCase):
         self.assertFalse(self.inf_2.activated)
         self.assertFalse(self.inf_2.responded)
 
-        a1 = self.gm.actionAttack(self.board, self.state, self.inf_1, self.target_1, self.inf_1.weapons['AR'])
-        r1 = self.gm.actionRespond(self.board, self.state, self.inf_1, self.target_2, self.inf_1.weapons['AR'])
-        r2 = self.gm.actionRespond(self.board, self.state, self.inf_2, self.target_3, self.inf_1.weapons['AR'])
+        a1 = GM.actionAttack(self.board, self.state, self.inf_1, self.target_1, self.inf_1.weapons['AR'])
+        r1 = GM.actionRespond(self.board, self.state, self.inf_1, self.target_2, self.inf_1.weapons['AR'])
+        r2 = GM.actionRespond(self.board, self.state, self.inf_2, self.target_3, self.inf_1.weapons['AR'])
 
         # check that attack activate unit
-        self.gm.step(self.board, self.state, a1)
+        GM.step(self.board, self.state, a1)
 
         self.assertTrue(self.inf_1.activated, 'unit should be activated')
         self.assertFalse(self.inf_1.responded, 'unit should not have responded')
 
         # check that unit can be both activated and responded
-        self.gm.step(self.board, self.state, r1)
+        GM.step(self.board, self.state, r1)
 
         self.assertTrue(self.inf_1.activated, 'unit should be activated')
         self.assertTrue(self.inf_1.responded, 'unit should have responded')
 
         # check that response does not activate the unit
-        self.gm.step(self.board, self.state, r2)
+        GM.step(self.board, self.state, r2)
 
         self.assertFalse(self.inf_2.activated, 'unit should not be activated')
         self.assertTrue(self.inf_2.responded, 'unit should have responded')
@@ -69,31 +67,31 @@ class TestFigures(unittest.TestCase):
         self.assertFalse(self.inf_2.activated)
         self.assertFalse(self.inf_2.responded)
 
-        m1 = self.gm.actionMove(self.board, self.inf_1, destination=(5, 12))
-        r1 = self.gm.actionRespond(self.board, self.state, self.inf_1, self.target_2, self.inf_1.weapons['AR'])
-        m2 = self.gm.actionMove(self.board, self.inf_2, destination=(8, 12))
-        r2 = self.gm.actionRespond(self.board, self.state, self.inf_2, self.target_3, self.inf_1.weapons['AR'])
+        m1 = GM.actionMove(self.board, self.inf_1, destination=(5, 12))
+        r1 = GM.actionRespond(self.board, self.state, self.inf_1, self.target_2, self.inf_1.weapons['AR'])
+        m2 = GM.actionMove(self.board, self.inf_2, destination=(8, 12))
+        r2 = GM.actionRespond(self.board, self.state, self.inf_2, self.target_3, self.inf_1.weapons['AR'])
 
         # check that attack activate unit
-        self.gm.step(self.board, self.state, m1)
+        GM.step(self.board, self.state, m1)
 
         self.assertTrue(self.inf_1.activated, 'unit should be activated')
         self.assertFalse(self.inf_1.responded, 'unit should not have responded')
 
         # check that unit can responded after move
-        self.gm.step(self.board, self.state, r1)
+        GM.step(self.board, self.state, r1)
 
         self.assertTrue(self.inf_1.activated, 'unit should be activated')
         self.assertTrue(self.inf_1.responded, 'unit should have responded')
 
         # check that response does not activate the unit
-        self.gm.step(self.board, self.state, r2)
+        GM.step(self.board, self.state, r2)
 
         self.assertFalse(self.inf_2.activated, 'unit should not be activated')
         self.assertTrue(self.inf_2.responded, 'unit should have responded')
 
         # check that unit can move after response
-        self.gm.step(self.board, self.state, m2)
+        GM.step(self.board, self.state, m2)
 
         self.assertTrue(self.inf_2.activated, 'unit should be activated')
         self.assertTrue(self.inf_2.responded, 'unit should have responded')
@@ -105,31 +103,31 @@ class TestFigures(unittest.TestCase):
         self.assertFalse(self.inf_2.activated)
         self.assertFalse(self.inf_2.responded)
 
-        p1 = self.gm.actionPass(self.inf_1)
-        r1 = self.gm.actionRespond(self.board, self.state, self.inf_1, self.target_2, self.inf_1.weapons['AR'])
-        p2 = self.gm.actionPass(self.inf_2)
-        r2 = self.gm.actionRespond(self.board, self.state, self.inf_2, self.target_3, self.inf_1.weapons['AR'])
+        p1 = GM.actionPass(self.inf_1)
+        r1 = GM.actionRespond(self.board, self.state, self.inf_1, self.target_2, self.inf_1.weapons['AR'])
+        p2 = GM.actionPass(self.inf_2)
+        r2 = GM.actionRespond(self.board, self.state, self.inf_2, self.target_3, self.inf_1.weapons['AR'])
 
         # check that attack activate unit
-        self.gm.step(self.board, self.state, p1)
+        GM.step(self.board, self.state, p1)
 
         self.assertTrue(self.inf_1.activated, 'unit should be activated')
         self.assertFalse(self.inf_1.responded, 'unit should not have responded')
 
         # check that unit can responded after move
-        self.gm.step(self.board, self.state, r1)
+        GM.step(self.board, self.state, r1)
 
         self.assertTrue(self.inf_1.activated, 'unit should be activated')
         self.assertTrue(self.inf_1.responded, 'unit should have responded')
 
         # check that response does not activate the unit
-        self.gm.step(self.board, self.state, r2)
+        GM.step(self.board, self.state, r2)
 
         self.assertFalse(self.inf_2.activated, 'unit should not be activated')
         self.assertTrue(self.inf_2.responded, 'unit should have responded')
 
         # check that unit can move after response
-        self.gm.step(self.board, self.state, p2)
+        GM.step(self.board, self.state, p2)
 
         self.assertTrue(self.inf_2.activated, 'unit should be activated')
         self.assertTrue(self.inf_2.responded, 'unit should have responded')

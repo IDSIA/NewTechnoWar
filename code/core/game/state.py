@@ -2,7 +2,7 @@ from typing import Dict, List
 
 import numpy as np
 
-from core import RED, BLUE
+from core.const import RED, BLUE
 from core.actions import Action, Attack, AttackGround, LoadInto
 from core.figures import FigureType, Figure, Weapon
 from core.game import MAX_SMOKE

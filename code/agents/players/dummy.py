@@ -1,9 +1,9 @@
 import numpy as np
 
 from agents import Player
+from core import GM
 from core.actions import Action, Pass
 from core.game.board import GameBoard
-from core.game.manager import GameManager
 from core.game.state import GameState
 from utils.coordinates import to_cube
 
@@ -17,7 +17,7 @@ class PlayerDummy(Player):
     def __init__(self, team: str):
         super().__init__('Dummy', team)
 
-    def chooseAction(self, gm: GameManager, board: GameBoard, state: GameState) -> Action:
+    def chooseAction(self, board: GameBoard, state: GameState) -> Action:
         # choose which figures that can still be activate will be activated
         figures = state.getFiguresCanBeActivated(self.team)
         if not figures:
@@ -25,8 +25,8 @@ class PlayerDummy(Player):
 
         f = np.random.choice(figures)
 
-        moves = gm.buildMovements(board, state, f)
-        attacks = gm.buildAttacks(board, state, f)
+        moves = GM.buildMovements(board, state, f)
+        attacks = GM.buildAttacks(board, state, f)
 
         if not moves and not attacks:
             raise ValueError(f"no more moves for {f} {self.team}")
@@ -56,7 +56,7 @@ class PlayerDummy(Player):
 
         return np.random.choice(actions)
 
-    def chooseResponse(self, gm: GameManager, board: GameBoard, state: GameState) -> Action:
+    def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
         # choose to respond or not
         if not np.random.choice([True, False]):
             raise ValueError('no response given')
@@ -69,7 +69,7 @@ class PlayerDummy(Player):
         f = np.random.choice(figures)
 
         # build possible response for the chosen unit
-        responses = gm.buildResponses(board, state, f)
+        responses = GM.buildResponses(board, state, f)
 
         if responses:
             response = np.random.choice(responses)

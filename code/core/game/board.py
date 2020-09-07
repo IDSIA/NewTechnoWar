@@ -2,7 +2,7 @@ from typing import Dict, Set, Tuple, List
 
 import numpy as np
 
-from core import RED, BLUE
+from core.const import RED, BLUE
 from core.figures import FigureType
 from core.game.goals import Goal, GoalReachPoint
 from core.game.terrain import TERRAIN_TYPE

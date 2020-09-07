@@ -1,0 +1,2 @@
+RED = 'red'
+BLUE = 'blue'

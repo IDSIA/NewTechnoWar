@@ -1,8 +1,8 @@
 from agents import PlayerDummy
-from core import RED, BLUE
+from core import GM
 from core.actions import Action, Respond
+from core.const import RED, BLUE
 from core.game.board import GameBoard
-from core.game.manager import GameManager
 from core.game.state import GameState
 from utils.coordinates import to_cube
 
@@ -20,14 +20,14 @@ class Human(PlayerDummy):
         self.next_action = None
         self.next_response = None
 
-    def chooseAction(self, gm: GameManager, board: GameBoard, state: GameState) -> Action:
+    def chooseAction(self, board: GameBoard, state: GameState) -> Action:
         a = self.next_action
         self._clear()
         if not a:
             raise ValueError('no action taken')
         return a
 
-    def chooseResponse(self, gm: GameManager, board: GameBoard, state: GameState) -> Action:
+    def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
         r = self.next_response
         self._clear()
         if not r:
@@ -42,7 +42,7 @@ class Human(PlayerDummy):
         # TODO
         super().chooseFigureGroups(board, state)
 
-    def nextAction(self, board: GameBoard, state: GameState, gm: GameManager, data: dict) -> None:
+    def nextAction(self, board: GameBoard, state: GameState, data: dict) -> None:
         action = data['action']
         self._clear()
 
@@ -50,7 +50,7 @@ class Human(PlayerDummy):
             if 'idx' in data and data['team'] == self.team:
                 idx = int(data['idx'])
                 figure = state.getFigureByIndex(self.team, idx)
-                self.next_action = gm.actionPass(figure)
+                self.next_action = GM.actionPass(figure)
             return
 
         idx = int(data['idx'])
@@ -64,10 +64,10 @@ class Human(PlayerDummy):
             fs = state.getFiguresByPos(self.team, pos)
             for transport in fs:
                 if transport.canTransport(figure):
-                    self.next_action = gm.actionLoadInto(board, figure, transport)
+                    self.next_action = GM.actionLoadInto(board, figure, transport)
                     return
 
-            self.next_action = gm.actionMove(board, figure, destination=pos)
+            self.next_action = GM.actionMove(board, figure, destination=pos)
             return
 
         if action == 'attack':
@@ -83,7 +83,7 @@ class Human(PlayerDummy):
                 otherTeam = BLUE if self.team == RED else RED
                 target = state.getFiguresByPos(otherTeam, pos)[0]  # TODO: get unit based on index or weapon target type
 
-            self.next_action = gm.actionAttack(board, state, figure, target, weapon)
-            self.next_response = gm.actionRespond(board, state, figure, target, weapon)
+            self.next_action = GM.actionAttack(board, state, figure, target, weapon)
+            self.next_response = GM.actionRespond(board, state, figure, target, weapon)
 
         # TODO: implement smoke
