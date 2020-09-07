@@ -1,13 +1,10 @@
+import logging
 import math
-import time
 
 from agents import GreedyAgent
-from agents.adversarial import ACTION_PASS, ACTION_MOVE, ACTION_ATTACK
-from agents.adversarial.probabilities import probabilityOfSuccessfulResponseAccumulated, probabilityOfSuccessfulAttack
-from agents.adversarial.scores import evaluateState, evaluateBoard
 from core import GM
-from core.const import RED, BLUE
 from core.actions import Action
+from core.const import RED, BLUE
 from core.game.board import GameBoard
 from core.game.goals import goalAchieved
 from core.game.state import GameState
@@ -15,107 +12,101 @@ from core.game.state import GameState
 
 class AlphaBetaAgent(GreedyAgent):
 
-    def __init__(self, team: str, maxSearchTime: int = 60, maxDepth: int = 1):
+    def __init__(self, team: str, maxDepth: int = 1):
         super().__init__(team)
 
-        self.maxSearchtime: int = maxSearchTime
         self.maxDepth: int = maxDepth
         self.cache: dict = {}
 
-    def _min(self, board: GameBoard, state: GameState, alpha, beta, depth, maxRoundDepth, team):
-        pass
+    def stateScore(self, board: GameBoard, state: GameState) -> float:
+        goals = board.getObjectives(self.team)
+        return sum([goal.score(state) for goal in goals])
 
-    def _max(self, board: GameBoard, state: GameState, alpha, beta, depth, maxRoundDepth, team):
-        # check if hashed
+    def alpha_beta(self, board: GameBoard, state: GameState, alpha, beta, depth, team, response):
         stateHash = hash(state)
         if stateHash in self.cache:
-            return self.cache[stateHash]
+            return self.cache[stateHash], None
 
-        max_value = -math.inf
-        action = None
-        winner = None
+        if not response:
+            # check for an update
+            reds = state.getFiguresCanBeActivated(RED)
+            blues = state.getFiguresCanBeActivated(BLUE)
 
-        # check if done
-        done, winner = goalAchieved(board, state)
-        if done or depth == self.maxDepth:
-            return evaluateState(self.boardValues, state), action, winner
+            if len(reds) == 0 and len(blues) == 0:
+                GM.update(state)
 
-        if self.boardValues is None:
-            self.boardValues = evaluateBoard(board, self.team)
+        end, _ = goalAchieved(board, state)
 
-        other = RED if team == BLUE else BLUE
+        if depth == 0 or end:
+            score = self.stateScore(board, state)
+            self.cache[hash(state)] = score
+            return score, None
 
-        # compute all scores for possible actions for each available unit
-        for figure in state.getFiguresCanBeActivated(self.team):
-            for kind in [ACTION_ATTACK, ACTION_MOVE, ACTION_PASS]:
-                actions = []
-                if kind == ACTION_ATTACK:
-                    actions += GM.buildAttacks(board, state, figure)
-                if kind == ACTION_MOVE:
-                    actions += GM.buildMovements(board, state, figure)
-                if kind == ACTION_PASS:
-                    actions += [GM.actionPass(figure)]
+        # what will be the reaction from other player
+        if team == RED:
+            otherTeam, otherResponse = (RED, False) if response else (BLUE, True)
+        else:
+            otherTeam, otherResponse = (BLUE, False) if response else (RED, True)
 
-                for action in actions:
-                    if kind == ACTION_PASS:
-                        action = GM.actionPass(figure)
-                        s, _ = GM.activate(board, state, action)
-                        score = evaluateState(self.boardValues, s), action
+        nextActions = []
 
-                    if kind == ACTION_MOVE:
-                        # accumulated probability of a successful response
-                        probResponseEffect = probabilityOfSuccessfulResponseAccumulated(board, state, action)
+        for figure in state.getFiguresCanBeActivated(team):
+            nextActions.append(GM.actionPass(figure))
 
-                        # effect of action without enemy response
-                        s1, _ = GM.activate(board, state, action)
-                        noResponseScore = self._min(board, s1, alpha, beta, depth + 1, maxRoundDepth, other)
+            if response:
+                nextActions += GM.buildResponses(board, state, figure)
+            else:
+                # standard actions
+                nextActions += GM.buildAttacks(board, state, figure)
+                nextActions += GM.buildMovements(board, state, figure)
 
-                        # effect of action with enemy response killing the unit
-                        s2, _ = GM.activate(board, state, action)
-                        s2.getFigure(action).killed = True
-                        responseScore = evaluateState(self.boardValues, s2)
+        # RED maximize...
+        if team == RED:
+            value = -math.inf
+            action = None
+            for action in nextActions:
+                s1, _ = GM.activate(board, state, action)
+                score, _ = self.alpha_beta(board, s1, depth - 1, alpha, beta, otherTeam, otherResponse)
 
-                        score = (1 - probResponseEffect) * noResponseScore + probResponseEffect * responseScore
+                if score > value:
+                    value, action = score, action
+                    logging.info(f'AB: Max {action} [{score}]')
 
-                    if kind == ACTION_ATTACK:
-                        sNoEffect = self._min(board, state, alpha, beta, depth + 1, maxRoundDepth, other)
+                alpha = max(alpha, value)
+                if alpha >= beta:
+                    break
+            return value, action
 
-                        # action have effect
-                        s1, _ = GM.activate(board, state, action, True)
-                        sEffect = evaluateState(self.boardValues, s1)
-                        pEffect = probabilityOfSuccessfulAttack(board, state, action)
+        # ...BLUE minimize
+        else:
+            value = math.inf
+            action = None
+            for action in nextActions:
+                s1, _ = GM.activate(board, state, action)
+                score, _ = self.alpha_beta(board, s1, depth - 1, alpha, beta, otherTeam, otherResponse)
 
-                        # effect of action with enemy response killing the unit
-                        s2, _ = GM.activate(board, state, action)
-                        s2.getFigure(action).killed = True
-                        sRespEffect = evaluateState(self.boardValues, s2)
+                if score < value:
+                    value, action = score, action
+                    logging.info(f'AB: Min {action} [{score}]')
 
-                        # accumulated probability of a successful response
-                        pRespEffect = probabilityOfSuccessfulResponseAccumulated(board, state, action)
+                beta = min(beta, value)
+                if beta <= alpha:
+                    break
 
-                        score = pEffect * sEffect + (1 - pEffect) * (
-                                pRespEffect * sRespEffect + (1 - pRespEffect) * sNoEffect)
+            return value, action
 
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
-        startTime = time.time()
-        val = -1
-        bestAction = None
+        score, action = self.alpha_beta(board, state, -math.inf, math.inf, self.maxDepth, self.team, False)
 
-        for currentDepth in range(1, self.maxDepth + 1):
+        if not action:
+            raise ValueError('no action given')
 
-            if time.time() - startTime > self.maxSearchtime:
-                break
+        return action
 
-            if self.team == RED:
-                score, action, winner = self._max(board, state, -math.inf, math.inf, 0, currentDepth, self.team)
-            else:
-                score, action, winner = self._min(board, state, -math.inf, math.inf, 0, currentDepth, self.team)
+    def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
+        score, action = self.alpha_beta(board, state, -math.inf, math.inf, self.maxDepth, self.team, True)
 
-            if winner:
-                bestAction = action
-                break
-            if score > val:
-                val = score
-                bestAction = action
+        if not action:
+            raise ValueError('no response given')
 
-        return bestAction
+        return action

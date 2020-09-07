@@ -26,6 +26,10 @@ class GreedyAgent(Player):
         self.maximize: bool = self.team == RED
         self.boardValues = None
 
+    def checkBoardValues(self, board: GameBoard):
+        if self.boardValues is None:
+            self.boardValues = evaluateBoard(board, self.team)
+
     def scorePass(self, board: GameBoard, state: GameState, figure: Figure) -> Tuple[float, Action]:
         action = GM.actionPass(figure)
         s, _ = GM.activate(board, state, action)
@@ -117,8 +121,7 @@ class GreedyAgent(Player):
         return min_value, min_action
 
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
-        if self.boardValues is None:
-            self.boardValues = evaluateBoard(board, self.team)
+        self.checkBoardValues(board)
 
         scores = []
 
@@ -161,8 +164,7 @@ class GreedyAgent(Player):
         return action
 
     def placeFigures(self, board: GameBoard, state: GameState) -> None:
-        if not self.boardValues:
-            self.boardValues = evaluateBoard(self.boardValues, board)
+        self.checkBoardValues(board)
 
         # select area
         x, y = np.where(board.placement_zone[self.team] > 0)
@@ -181,7 +183,7 @@ class GreedyAgent(Player):
                 # move each unit to its position
                 figure = figures[j]
                 dst = to_cube((x[group[j]], y[group[j]]))
-                s.moveFigure(self.team, figure, figure.position, dst)
+                s.moveFigure(figure, figure.position, dst)
 
             score = evaluateState(self.boardValues, s)
             scores.append((score, group))
@@ -192,13 +194,13 @@ class GreedyAgent(Player):
         for j in range(len(group)):
             figure = figures[j]
             dst = to_cube((x[group[j]], y[group[j]]))
-            state.moveFigure(self.team, figure, dst=dst)
+            state.moveFigure(figure, dst=dst)
 
         logging.info(f'{self.team:5}: placed his troops in {group} ({score})')
 
     def chooseFigureGroups(self, board: GameBoard, state: GameState) -> None:
         if not self.boardValues:
-            self.boardValues = evaluateBoard(self.boardValues, board)
+            self.boardValues = evaluateBoard(board, self.team)
 
         colors = list(state.choices[self.team].keys())
         scores = []

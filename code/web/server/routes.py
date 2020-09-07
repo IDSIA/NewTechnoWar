@@ -85,6 +85,7 @@ def index():
             'Human',
             'PlayerDummy',
             'GreedyAgent',
+            'AlphaBetaAgent',
         ]
 
         response = make_response(
@@ -261,4 +262,5 @@ def gameHumanClick():
         return jsonify({}), 200
 
     except ValueError as e:
+        logging.exception(f'Human click error: {e}')
         return jsonify({'error': str(e)}), 403
