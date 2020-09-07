@@ -1,22 +1,21 @@
 """
 Source: https://www.redblobgames.com/grids/hexagons/
 """
-from typing import NamedTuple
+from collections import namedtuple
 
 # we are using offset coordinates with even-q and flat hexagons
 
-Hex = NamedTuple('Hex', [('q', int), ('r', int)])
-Cube = NamedTuple('Cube', [('x', float), ('y', float), ('z', float)])
+Hex = namedtuple('Hex', ['q', 'r'])
+Cube = namedtuple('Cube', ['x', 'y', 'z'])
 
 
 # conversions
 
 def cube_to_hex(cube: Cube):
     """Converts cube to offset coordinate system"""
-    cube = cube_round(cube)
     q = cube.x
     r = cube.z + (cube.x + (cube.x % 2)) // 2
-    return Hex(int(q), int(r))
+    return Hex(q, r)
 
 
 def hex_to_cube(h: Hex):
@@ -62,9 +61,9 @@ def hex_subtract(a, b):
 
 
 def cube_round(c: Cube):
-    rx = round(c.x)
-    ry = round(c.y)
-    rz = round(c.z)
+    rx = int(round(c.x))
+    ry = int(round(c.y))
+    rz = int(round(c.z))
 
     x_diff = abs(rx - c.x)
     y_diff = abs(ry - c.y)
@@ -122,7 +121,7 @@ def hex_distance(a: Hex, b: Hex):
 
 # Line drawing
 
-def lerp(a: float, b: float, t: float):  # for floats
+def lerp(a: int, b: int, t: float):  # for floats
     return a + (b - a) * t
 
 
