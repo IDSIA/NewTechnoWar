@@ -66,6 +66,8 @@ class GameManager(object):
         moves = []
 
         for path in movements:
+            if len(path) == 1:
+                continue
             destinationFigures = state.getFiguresByPos(figure.team, path[-1])
             availableTransporters = [f for f in destinationFigures if f.canTransport(figure)]
 

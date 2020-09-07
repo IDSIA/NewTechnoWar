@@ -61,8 +61,8 @@ def _battleground16x16() -> GameBoard:
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, (8, 8)),
-        GoalDefendPoint(BLUE, (8, 8)),
+        GoalReachPoint(RED, board.shape, (8, 8)),
+        GoalDefendPoint(BLUE, RED, board.shape, (8, 8)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)

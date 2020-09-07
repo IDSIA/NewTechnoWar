@@ -7,7 +7,7 @@ from core.figures import Tank, Infantry
 from core.game.board import GameBoard
 from core.game.goals import GoalMaxTurn, GoalReachPoint, GoalEliminateOpponent
 from core.game.state import GameState
-from utils.coordinates import to_cube
+from utils.coordinates import to_cube, cube_to_hex
 
 
 class TestGoals(unittest.TestCase):
@@ -35,7 +35,7 @@ class TestGoals(unittest.TestCase):
     def testReachPoint(self):
         x1 = to_cube((4, 4))
         x2 = to_cube((5, 5))
-        g = GoalReachPoint(RED, x1)
+        g = GoalReachPoint(RED, self.board.shape, cube_to_hex(x1))
 
         GM.update(self.state)
         self.assertFalse(g.check(self.state), 'figure is still in starting position')
