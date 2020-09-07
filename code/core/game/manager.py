@@ -22,7 +22,7 @@ class GameManager(object):
     def __init__(self):
         pass
 
-    def actionPass(self, figure: Figure):
+    def actionPass(self, figure: Figure) -> Pass:
         return Pass(figure.team, figure)
 
     def actionMove(self, board: GameBoard, figure: Figure, path: list = None, destination: tuple = None) -> Move:
@@ -44,7 +44,7 @@ class GameManager(object):
         return Move(figure.team, figure, path)
 
     @staticmethod
-    def actionLoadInto(board: GameBoard, figure: Figure, transporter: Figure, path: list = None) -> LoadInto:
+    def actionLoadInto(board: GameBoard, figure: Figure, transporter: Figure, path: List[Cube] = None) -> LoadInto:
         """
         Creates a LoadInto action for a figure with a specified transporter as destination. If path is not given, then
         it will be computed. It can raise a ValueError exception if the destination is unreachable.
@@ -56,7 +56,7 @@ class GameManager(object):
                 raise ValueError(f'destination unreachable for {figure} to {path[-1]}')
         return LoadInto(figure.team, figure, path, transporter)
 
-    def buildMovements(self, board: GameBoard, state: GameState, figure: Figure) -> list:
+    def buildMovements(self, board: GameBoard, state: GameState, figure: Figure) -> List[Move]:
         """Build all the movement actions for a figure. All the other units are considered as obstacles."""
 
         distance = figure.move - figure.load
@@ -151,7 +151,7 @@ class GameManager(object):
             raise ValueError
         return Attack(*args)
 
-    def buildAttacks(self, board: GameBoard, state: GameState, figure: Figure) -> list:
+    def buildAttacks(self, board: GameBoard, state: GameState, figure: Figure) -> List[Attack]:
         """Returns a list of all the possible shooting actions that can be performed."""
 
         team = figure.team
@@ -182,7 +182,7 @@ class GameManager(object):
             raise ValueError
         return Respond(*args)
 
-    def buildResponses(self, board: GameBoard, state: GameState, figure: Figure, lastAction=None) -> list:
+    def buildResponses(self, board: GameBoard, state: GameState, figure: Figure, lastAction=None) -> List[Respond]:
         """Returns a list of all possible response action that can be performed."""
 
         responses = []
@@ -223,7 +223,7 @@ class GameManager(object):
 
         return AttackGround(figure.team, figure, ground, weapon)
 
-    def buildSupportAttacks(self, board: GameBoard, state: GameState, figure: Figure) -> list:
+    def buildSupportAttacks(self, board: GameBoard, state: GameState, figure: Figure) -> List[AttackGround]:
         """Returns a list of all possible SupportAttack actions that can be performed."""
 
         supports = []
@@ -236,7 +236,7 @@ class GameManager(object):
 
         return supports
 
-    def buildActionsForFigure(self, board: GameBoard, state: GameState, figure: Figure) -> list:
+    def buildActionsForFigure(self, board: GameBoard, state: GameState, figure: Figure) -> List[Action]:
         """Build all possible actions for the given figure."""
 
         actions = []
@@ -250,12 +250,19 @@ class GameManager(object):
         for support in self.buildSupportAttacks(board, state, figure):
             actions.append(support)
 
+        return actions
+
+    def buildResponsesForFigure(self, board: GameBoard, state: GameState, figure: Figure) -> List[Respond]:
+        """Build all possible responses for the given figure."""
+
+        actions = []
+
         for response in self.buildResponses(board, state, figure):
             actions.append(response)
 
         return actions
 
-    def buildActions(self, board: GameBoard, state: GameState, team: str) -> list:
+    def buildActionsForTeam(self, board: GameBoard, state: GameState, team: str) -> List[Action]:
         """
         Build a list with all the possible actions that can be executed by an team with the current status of the board.
         """
@@ -263,8 +270,19 @@ class GameManager(object):
         actions = []
 
         for figure in state.figures[team]:
-            for action in self.buildActionsForFigure(board, state, figure):
-                actions.append(action)
+            actions += self.buildActionsForFigure(board, state, figure)
+
+        return actions
+
+    def buildResponsesForTeam(self, board: GameBoard, state: GameState, team: str) -> List[Respond]:
+        """
+        Build a list with all the possible actions that can be executed by an team with the current status of the board.
+        """
+
+        actions = []
+
+        for figure in state.figures[team]:
+            actions += self.buildResponsesForFigure(board, state, figure)
 
         return actions
 
@@ -328,13 +346,13 @@ class GameManager(object):
                 t = state.getFigureByIndex(team, f.transported_by)
                 t.transportUnload(f)
 
-            state.moveFigure(team, f, f.position, action.destination)
+            state.moveFigure(f, f.position, action.destination)
             f.stat = IN_MOTION
             logging.info(f'{action}')
 
             for transported in f.transporting:
                 f = state.getFigureByIndex(team, transported)
-                state.moveFigure(team, f, f.position, action.destination)
+                state.moveFigure(f, f.position, action.destination)
 
             return {}
 

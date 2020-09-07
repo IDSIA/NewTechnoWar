@@ -1,3 +1,5 @@
+from typing import List
+
 from core.figures import Figure
 from core.figures.weapons import Weapon
 from utils.coordinates import Cube, cube_to_hex
@@ -46,16 +48,16 @@ class Move(Action):
 
     __slots__ = ['position', 'path', 'destination']
 
-    def __init__(self, team: str, figure: Figure, path: list):
+    def __init__(self, team: str, figure: Figure, path: List[Cube]):
         """
         :param team:    name of the team
         :param figure:  Figure that performs the action
         :param path:    path from current position to destination
         """
         super().__init__(team, figure)
-        self.position = figure.position
-        self.path = path
-        self.destination = path[-1]
+        self.position: Cube = figure.position
+        self.path: List[Cube] = path
+        self.destination: Cube = path[-1]
 
     def __repr__(self):
         return f'{super().__repr__()}: Move to {self.destination}'
@@ -69,14 +71,14 @@ class LoadInto(Move):
 
     __slots__ = ['transporter_id', 'transporter_name']
 
-    def __init__(self, team: str, figure: Figure, destination: list, transporter: Figure):
+    def __init__(self, team: str, figure: Figure, path: list, transporter: Figure):
         """
         :param team:            name of the team
         :param figure:          Figure that performs the action
-        :param destination:     path from current position to destination
+        :param path:            path from current position to destination
         :param transporter:     Figure to use as a transporter
         """
-        super().__init__(team, figure, destination)
+        super().__init__(team, figure, path)
         self.transporter_id = transporter.index
         self.transporter_name = transporter.name
 

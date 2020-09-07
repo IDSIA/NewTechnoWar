@@ -8,7 +8,7 @@ from core.figures import Tank, Infantry
 from core.figures.status import IN_MOTION
 from core.game.board import GameBoard
 from core.game.state import GameState
-from utils.coordinates import to_cube
+from utils.coordinates import to_cube, Cube, cube_to_hex
 
 
 class TestMovementAction(unittest.TestCase):
@@ -118,6 +118,45 @@ class TestMovementAction(unittest.TestCase):
 
         self.assertEqual(len(self.tank.transporting), 1, 'transporter has less units than expected')
         self.assertNotEqual(inf1.position, self.tank.position, 'Inf1 has not been moved together with transporter')
+
+    def testMoveInsideShape(self):
+        board = self.mm.board
+        state = self.mm.state
+        figure = self.tank
+
+        # top left
+        state.moveFigure(figure, dst=to_cube((0, 0)))
+
+        moves = GM.buildMovements(board, state, figure)
+
+        for move in moves:
+            d: Cube = move.destination
+            x, y = cube_to_hex(d)
+            self.assertGreaterEqual(x, 0, f'moves outside of map limits: ({x},{y})')
+            self.assertGreaterEqual(y, 0, f'moves outside of map limits: ({x},{y})')
+
+        # bottom right
+        state.moveFigure(figure, dst=to_cube((15, 15)))
+
+        moves = GM.buildMovements(board, state, figure)
+
+        for move in moves:
+            d: Cube = move.destination
+            x, y = cube_to_hex(d)
+            self.assertLess(x, 16, f'moves outside of map limits: ({x},{y})')
+            self.assertLess(y, 16, f'moves outside of map limits: ({x},{y})')
+
+    def testMoveOutsideShape(self):
+        board = self.mm.board
+        state = self.mm.state
+        figure = self.tank
+
+        # outside of map
+        state.moveFigure(figure, dst=to_cube((-1, -1)))
+
+        moves = GM.buildMovements(board, state, figure)
+
+        self.assertEqual(len(moves), 1, 'moves outside of the map!')
 
 
 if __name__ == '__main__':

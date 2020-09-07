@@ -11,14 +11,14 @@ Cube = namedtuple('Cube', ['x', 'y', 'z'])
 
 # conversions
 
-def cube_to_hex(cube: Cube):
+def cube_to_hex(cube: Cube) -> Hex:
     """Converts cube to offset coordinate system"""
     q = cube.x
     r = cube.z + (cube.x + (cube.x % 2)) // 2
     return Hex(q, r)
 
 
-def hex_to_cube(h: Hex):
+def hex_to_cube(h: Hex) -> Cube:
     """Converts offset to cube coordinate system"""
     x = h.q
     z = h.r - (h.q + (h.q % 2)) // 2
@@ -26,12 +26,12 @@ def hex_to_cube(h: Hex):
     return Cube(x, y, z)
 
 
-def to_hex(pos: tuple):
+def to_hex(pos: tuple) -> Hex:
     """Converts tuple to Hex, [0] is considered column, while [1] row"""
     return Hex(q=pos[0], r=pos[1])
 
 
-def to_cube(pos: tuple):
+def to_cube(pos: tuple) -> Cube:
     """Converts tuple to Cube, [0] is considered column, while [1] row"""
     return hex_to_cube(to_hex(pos))
 

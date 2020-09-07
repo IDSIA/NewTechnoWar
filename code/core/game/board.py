@@ -52,6 +52,9 @@ class GameBoard:
             BLUE: np.zeros(shape, dtype='uint8')
         }
 
+        # internal values initialization
+        self.addTerrain(self.terrain)
+
     def addTerrain(self, terrain: np.array):
         """
         Sum a terrain matrix to the current board. The values must be of core.Terrain Types.
@@ -116,7 +119,10 @@ class GameBoard:
     def getMovementCost(self, pos: Cube, kind: int):
         """Returns the cost of move in the given position."""
         try:
-            return self.moveCost[kind][cube_to_hex(pos)]
+            h = cube_to_hex(pos)
+            if 0 <= h.q < self.shape[0] and 0 <= h.r < self.shape[1]:
+                return self.moveCost[kind][h]
+            raise IndexError('Outside map!')
         except IndexError as _:
             return 1000.0
 
@@ -133,6 +139,6 @@ class GameBoard:
         r = []
         for x in cube_range(center, n):
             h = cube_to_hex(x)
-            if 0 < h.p2 < self.shape[0] and 0 < h.r < self.shape[1]:
+            if 0 < h.q < self.shape[0] and 0 < h.r < self.shape[1]:
                 r.append(x)
         return r

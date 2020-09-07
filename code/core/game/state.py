@@ -112,7 +112,7 @@ class GameState:
             index = len(figures)  # to be 0-based index
             figure.index = index
             figures.append(figure)
-            self.moveFigure(team, figure, dst=figure.position)
+            self.moveFigure(figure, dst=figure.position)
 
     def getFigure(self, action: Action) -> Figure:
         """Given an action, returns the figure that performs such action."""
@@ -154,9 +154,9 @@ class GameState:
         """Returns a list of figures that have not responded."""
         return [f for f in self.figures[team] if not f.responded and not f.killed]
 
-    def moveFigure(self, team: str, figure: Figure, curr: Cube = None, dst: Cube = None) -> None:
+    def moveFigure(self, figure: Figure, curr: Cube = None, dst: Cube = None) -> None:
         """Moves a figure from current position to another destination."""
-        ptf = self.posToFigure[team]
+        ptf = self.posToFigure[figure.team]
         if curr:
             ptf[curr].remove(figure.index)
             if len(ptf[curr]) == 0:

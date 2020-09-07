@@ -1,4 +1,5 @@
 from queue import PriorityQueue
+from typing import List, Dict, Set
 
 from core.figures import Figure
 from core.game.manager import GameBoard
@@ -7,7 +8,7 @@ from utils.coordinates import Cube, cube_distance
 heuristic = cube_distance
 
 
-def reachablePath(figure: Figure, board: GameBoard, max_cost: int) -> (set, list):
+def reachablePath(figure: Figure, board: GameBoard, max_cost: int) -> (Set[Cube], List[Cube]):
     """This uses Uniform Cost Search."""
     start = figure.position
 
@@ -53,7 +54,7 @@ def reachablePath(figure: Figure, board: GameBoard, max_cost: int) -> (set, list
     return visited, paths
 
 
-def findPath(start: Cube, goal: Cube, board: GameBoard, kind: int) -> list:
+def findPath(start: Cube, goal: Cube, board: GameBoard, kind: int) -> List[Cube]:
     """This uses A*"""
     frontier = PriorityQueue()
     frontier.put((0, start))
@@ -61,7 +62,7 @@ def findPath(start: Cube, goal: Cube, board: GameBoard, kind: int) -> list:
     came_from = {
         start: None
     }
-    cost_so_far = {
+    cost_so_far: Dict[Cube, float] = {
         start: 0
     }
 
