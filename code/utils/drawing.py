@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 from matplotlib.patches import RegularPolygon
 
-from core import RED, BLUE
+from core.const import RED, BLUE
 from core.figures import FigureType
 from core.game.manager import GameBoard, GameState
 from core.game.terrain import Terrain

@@ -1,21 +1,22 @@
 """
 Source: https://www.redblobgames.com/grids/hexagons/
 """
-from collections import namedtuple
+from typing import NamedTuple
 
 # we are using offset coordinates with even-q and flat hexagons
 
-Hex = namedtuple('Hex', ['q', 'r'])
-Cube = namedtuple('Cube', ['x', 'y', 'z'])
+Hex = NamedTuple('Hex', [('q', int), ('r', int)])
+Cube = NamedTuple('Cube', [('x', float), ('y', float), ('z', float)])
 
 
 # conversions
 
 def cube_to_hex(cube: Cube):
     """Converts cube to offset coordinate system"""
+    cube = cube_round(cube)
     q = cube.x
     r = cube.z + (cube.x + (cube.x % 2)) // 2
-    return Hex(q, r)
+    return Hex(int(q), int(r))
 
 
 def hex_to_cube(h: Hex):
@@ -57,17 +58,13 @@ def hex_add(a: Hex, b: Hex):
 
 
 def hex_subtract(a, b):
-    return Hex(a.p2 - b.p2, a.r - b.r)
-
-
-p1: float = 10 ** 5
-p2: int = int(p1)
+    return Hex(a.q - b.q, a.r - b.r)
 
 
 def cube_round(c: Cube):
-    rx = int(c.x * p1 + 0.5) / p2
-    ry = int(c.y * p1 + 0.5) / p2
-    rz = int(c.z * p1 + 0.5) / p2
+    rx = round(c.x)
+    ry = round(c.y)
+    rz = round(c.z)
 
     x_diff = abs(rx - c.x)
     y_diff = abs(ry - c.y)
@@ -81,7 +78,7 @@ def cube_round(c: Cube):
         else:
             rz = -rx - ry
 
-    return Cube(int(rx), int(ry), int(rz))
+    return Cube(rx, ry, rz)
 
 
 def hex_round(h: Hex):
@@ -125,8 +122,8 @@ def hex_distance(a: Hex, b: Hex):
 
 # Line drawing
 
-def lerp(a: int, b: int, t: float) -> int:  # for floats
-    return int((a + (b - a) * t) * p1 + 0.5) // p2
+def lerp(a: float, b: float, t: float):  # for floats
+    return a + (b - a) * t
 
 
 def cube_lerp(a: Cube, b: Cube, t: float):  # for hexes
@@ -143,6 +140,7 @@ def cube_linedraw(a: Cube, b: Cube):
     if n == 0:
         return [a]
 
+    T = 1.0 / n
     eps = Cube(3e-6, 2e-6, 1e-6)
 
     A = cube_add(a, eps)
@@ -150,7 +148,7 @@ def cube_linedraw(a: Cube, b: Cube):
 
     results = []
     for i in range(0, n + 1):
-        results.append(cube_lerp(A, B, 1.0 / n * i))
+        results.append(cube_round(cube_lerp(A, B, T * i)))
 
     return results
 
