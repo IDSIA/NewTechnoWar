@@ -408,6 +408,14 @@ div.killed::before {
 
 /* figures */
 
+g.loaded {
+    display: none;
+}
+
+g.loaded.highlight {
+    display: block;
+}
+
 g.unit.red > circle {
     fill: red;
 }

@@ -24,7 +24,7 @@ function updateFigure(data, action = '') {
     let mark = $(`#mark-${data.id}`);
 
     figure.removeClass('killed activated notActivated passed moving attacking responded');
-    mark.removeClass('hit');
+    mark.removeClass('hit loaded');
 
     figure.find('div.uPos').text(`(${data.i}, ${data.j})`);
     figure.find('div.uHP').text(`${data.hp}/${data.hp_max}`);
@@ -32,16 +32,19 @@ function updateFigure(data, action = '') {
     figure.find('div.uMove').text(data.move);
     figure.find('div.uStat').text(data.stat);
 
-    data.weapons_keys.forEach((key, _) => {
-        let item = data.weapons[key]
-        let effect = item.no_effect ? 'disabled' : '';
+    Object.entries(data.weapons).forEach(entry => {
+        const [key, item] = entry;
         let ammo = ammoNum(item);
-        let w = figure.find(`div.ammo.w${item.id}`);
-        let i = figure.find(`div.image.w${item.id}`);
+        let effect = item.no_effect ? 'disabled' : '';
 
-        i.addClass(effect);
-        w.addClass(effect).addClass(ammoClass(ammo)).text(ammo);
+        figure.find(`div.image.w${item.id}`).addClass(effect);
+        figure.find(`div.ammo.w${item.id}`).addClass(effect).addClass(ammoClass(ammo)).text(ammo);
     });
+
+    if (data.stat === 'Loaded') {
+        mark.addClass('loaded')
+        mark.attr('transform', `translate(${data.x},${data.y + vEps})`);
+    }
 
     if (data.killed) {
         figure.addClass('killed');
@@ -76,8 +79,9 @@ function addFigure(figure, team) {
     let gid = `mark-${figure.id}`;
 
     let uWeapons = $('<div class="uWeapons"/>');
-    figure.weapons_keys.forEach((key, _) => {
-        let item = figure.weapons[key]
+    Object.entries(figure.weapons).forEach(entry => {
+        const [key, item] = entry;
+
         let effect = item.no_effect ? 'disabled' : '';
         let ammo = ammoNum(item);
         let wid = `w${item.id}`;
@@ -90,30 +94,31 @@ function addFigure(figure, team) {
         ]);
     });
 
-    let div = $(`<div id="${fid}" class="unit ${team} ${figure.kind}"/>`)
-        .append([
-            $('<div class="uTitle uTitleHP">HP</div>'),
-            $('<div class="uTitle uTitleMove">MOVE</div>'),
-            $('<div class="uTitle uTitleLoad">LOAD</div>'),
-            $('<div class="uTitle uTitleWeapons">WEAPONS</div>'),
-            $(`<div class="uKind ${team} ${figure.kind}"/>`),
-            $('<div class="uHP"/>'),
-            $('<div class="uLoad"/>'),
-            $('<div class="uMove"/>'),
-            $(`<div class="uName">${figure.name}</div>`),
-            $('<div class="uStat"/>'),
-            uWeapons
-        ])
-        .hover(function () {
-            $(`#${fid}`).addClass('highlight');
-            $(`#${gid}`).addClass('highlight');
-        }, function () {
-            $(`#${fid}`).removeClass('highlight');
-            $(`#${gid}`).removeClass('highlight');
-        });
-
-    $(`#${team}Units`).append(div);
-    div.on('click', (e) => human.clickUnit(e, team, figure.idx));
+    $(`#${team}Units`)
+        .append(
+            $(`<div id="${fid}" class="unit ${team} ${figure.kind}"/>`)
+                .append([
+                    $('<div class="uTitle uTitleHP">HP</div>'),
+                    $('<div class="uTitle uTitleMove">MOVE</div>'),
+                    $('<div class="uTitle uTitleLoad">LOAD</div>'),
+                    $('<div class="uTitle uTitleWeapons">WEAPONS</div>'),
+                    $(`<div class="uKind ${team} ${figure.kind}"/>`),
+                    $('<div class="uHP"/>'),
+                    $('<div class="uLoad"/>'),
+                    $('<div class="uMove"/>'),
+                    $(`<div class="uName">${figure.name}</div>`),
+                    $('<div class="uStat"/>'),
+                    uWeapons
+                ])
+                .hover(function () {
+                    $(`#${fid}`).addClass('highlight');
+                    $(`#${gid}`).addClass('highlight');
+                }, function () {
+                    $(`#${fid}`).removeClass('highlight');
+                    $(`#${gid}`).removeClass('highlight');
+                })
+                .on('click', (e) => human.clickUnit(e, team, figure.idx))
+        );
 
     // unit marker
     let g = svg('g')
@@ -179,20 +184,30 @@ function appendLine(text, newLine = true) {
 }
 
 function checkNextPlayer(data) {
+    if (data.curr !== undefined) {
+        $(`#${data.curr.player}Info`).text('');
+        $(`#${data.curr.player}Pass`).hide();
+    }
+
+    let next = $(`#${data.next.player}Info`);
+    let pass = $(`#${data.next.player}Pass`);
+    next.text('');
+    pass.hide();
+
     if (data.next.isHuman) {
         human.step = data.next.step;
-        let team = data.next.player;
-        let info = $(`#${team}Info`);
+        next.text('');
+        pass.show();
 
         switch (data.next.step) {
             case 'round':
-                info.text('Next: Round');
+                next.text('Next: Round');
                 break;
             case 'response':
-                info.text('Next: Response');
+                next.text('Next: Response');
                 break;
             case 'update':
-                info.text('Next: Update');
+                next.text('Next: Update');
                 autoplay = window.setTimeout(step, TIMEOUT);
                 break
             default:
@@ -239,7 +254,6 @@ function step() {
         let current = figures[gameId][figureData.id];
         let figure = $(`#figure-${figureData.id}`);
         let mark = $(document.getElementById(`mark-${figureData.id}`));
-        let target;
 
         switch (action.action) {
             case 'DoNothing':
@@ -249,13 +263,9 @@ function step() {
                 break;
             case 'Respond':
                 shoot(current, figure, mark, data);
-                target = data.state.figures[action.target_team][action.target_id]
-                updateFigure(target);
                 break;
             case 'Attack':
                 shoot(current, figure, mark, data);
-                target = data.state.figures[action.target_team][action.target_id]
-                updateFigure(target);
                 break;
             case 'Pass':
                 break;
@@ -263,7 +273,9 @@ function step() {
                 console.info("Not implemented yet: " + action.action);
         }
 
-        updateFigure(figureData, action.action);
+        data.state.figures[RED].forEach((figure, _) => updateFigure(figure));
+        data.state.figures[BLUE].forEach((figure, _) => updateFigure(figure));
+
         checkNextPlayer(data);
     }).fail(function () {
         console.error('Failed to step!');
@@ -362,16 +374,6 @@ function shoot(current, figure, mark, data) {
     w.addClass(ammoClass(ammo)).text(ammo);
 }
 
-function turn() {
-    $.get('/game/next/turn', function (data) {
-        console.log('turn');
-        console.log(data);
-        console.error('not implemented yet')
-    }).fail(function () {
-        console.error('Failed to turn!');
-    });
-}
-
 window.onload = function () {
     console.log('init game');
     gameId = $.cookie("gameId");
@@ -392,11 +394,13 @@ window.onload = function () {
             if (player === 'Human') {
                 $(`#${team}Units`).append([
                     $(`<h1 id="${team}Info" class="player-info"></h1>`),
-                    $(`<h1 class="player-pass">Pass</h1>`).on('click', (e) => human.clickPass(e, team))
+                    $(`<h1 id="${team}Pass" class="player-pass">Pass</h1>`)
+                        .on('click', (e) => human.clickPass(e, team))
+                        .hide()
                 ]);
             }
 
-            data.state.figures[team].forEach(function (figure, _) {
+            data.state.figures[team].forEach((figure, _) => {
                 addFigure(figure, team);
                 updateFigure(figure);
             });
@@ -410,7 +414,6 @@ window.onload = function () {
         changeTurnValue(data.state.turn);
 
         window.onkeyup = function (e) {
-            if (e.key === 'Enter') turn(); // enter
             if (e.key === ' ') step(); // space
         };
 

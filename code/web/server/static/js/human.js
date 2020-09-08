@@ -12,12 +12,19 @@ class Human {
     }
 
     execute() {
-        console.log(this.actionParams)
+        this.actionParams.step = this.step;
+        console.log(this.actionParams);
         $.post('/game/human/click', this.actionParams, () => {
             step();
             this.clear();
-        }).fail(() => {
-            console.error('Failed to send click on unit!');
+        }).fail((e) => {
+            if (e.status === 403) {
+                let msg = e.responseJSON.error;
+                console.log(`Could not execute click! ${msg}`);
+                appendLine(`${this.actionParams.team.toUpperCase().padEnd(5, " ")} ACTION FAILED: ${msg}`);
+            } else {
+                console.error('Failed to send click on unit!');
+            }
             this.clear();
         });
     }

@@ -38,7 +38,6 @@ class GameJSONEncoder(JSONEncoder):
                 'hp_max': obj.hp_max,
                 'defense': obj.defense,
                 'weapons': obj.weapons,
-                'weapons_keys': [k for k in obj.weapons.keys()],
                 'int_atk': obj.int_atk,
                 'int_def': obj.int_def,
                 'endurance': obj.endurance,

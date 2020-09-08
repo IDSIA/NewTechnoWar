@@ -60,6 +60,12 @@ class Human(PlayerDummy):
 
         figure = state.getFigureByIndex(self.team, idx)
 
+        if figure.responded and data['step'] == 'respond':
+            raise ValueError('Unit has already responded!')
+
+        if figure.activated and data['step'] in ('round', 'move'):
+            raise ValueError('Unit has already been activated!')
+
         if action == 'move':
             fs = state.getFiguresByPos(self.team, pos)
             for transport in fs:

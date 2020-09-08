@@ -17,26 +17,28 @@ main = Blueprint('main', __name__, template_folder='templates', static_folder='s
 def index():
     """Serve list of available scenarios."""
     if request.method == 'POST':
-        data = request.form
-        seed = int(data['seed'])
-
-        redPlayer = data['redPlayer']
-        bluePlayer = data['bluePlayer']
-
-        autoplay = 'autoplay' in data or redPlayer == 'Human' or bluePlayer == 'Human'
-        scen = data['scenario']
-
         if app.config['DEBUG']:
             logging.info('Using debug configuration!')
-            redPlayer = 'DummyPlayer'
-            bluePlayer = 'DummyPlayer'
-            scen = 'scenarioTestBench'
+            redPlayer = 'Human'
+            bluePlayer = 'Human'
+            scen = 'scenarioTestLoaded'
             autoplay = False
             seed = 1
+            replay = ''
+        else:
+            data = request.form
+            seed = int(data['seed'])
+
+            redPlayer = data['redPlayer']
+            bluePlayer = data['bluePlayer']
+
+            autoplay = 'autoplay' in data or redPlayer == 'Human' or bluePlayer == 'Human'
+            scen = 'scenario' + data['scenario']
+            replay = data['replay']
 
         mm = buildMatchManager(
             str(uuid.uuid4()),
-            'scenario' + scen,
+            scen,
             redPlayer,
             bluePlayer,
             seed if seed > 0 else random.randint(1, 1000000000)
@@ -49,7 +51,7 @@ def index():
             'scenario': scen,
             'player': {RED: redPlayer, BLUE: bluePlayer},
             'autoplay': autoplay,
-            'replay': data['replay'],
+            'replay': replay,
         }
         app.actions[mm.gid] = None
 
@@ -213,35 +215,13 @@ def gameNextStep():
             lastOutcome = mm.outcome[-1]
 
         return jsonify({
-            'update': mm.update,
             'end': mm.end,
+            'update': mm.update,
             'state': mm.state,
             'action': lastAction,
             'outcome': lastOutcome,
             'curr': curr,
             'next': mm.nextPlayer(),
-        }), 200
-
-    except ValueError as e:
-        logging.error(e)
-        return None, 404
-
-
-@main.route('/game/next/turn', methods=['GET'])
-def gameNextTurn():
-    logging.debug('Request next turn')
-
-    try:
-        _, mm = checkGameId()
-        mm.nextTurn()
-
-        lastAction = mm.actions_history[-1]
-
-        return jsonify({
-            'update': mm.update,
-            'end': mm.end,
-            'state': mm.state,
-            'action': lastAction,
         }), 200
 
     except ValueError as e:
