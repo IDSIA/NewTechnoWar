@@ -165,3 +165,22 @@ def scenarioTestInfantry() -> (GameBoard, GameState):
     board.name = state.name = "Infantry"
 
     return board, state
+
+
+def scenarioTestLoaded() -> (GameBoard, GameState):
+    board: GameBoard = _battleground16x16()
+    state: GameState = GameState(board.shape)
+
+    t1 = Tank((4, 4), RED, 'rTank1')
+    i11 = Infantry((4, 4), RED, 'rTank1')
+    i12 = Infantry((4, 4), RED, 'rTank1')
+
+    t2 = Tank((12, 12), BLUE, 'bTank1')
+
+    state.addFigure(t1, i11, i12, t2)
+    t1.transportLoad(i11)
+    t1.transportLoad(i12)
+
+    board.name = state.name = "loaded"
+
+    return board, state

@@ -4,7 +4,7 @@ This module defines the available figures and their rules.
 import uuid
 from typing import Dict, List
 
-from core.figures.status import FigureStatus, NO_EFFECT
+from core.figures.status import FigureStatus, NO_EFFECT, LOADED
 from core.figures.types import FigureType
 from core.figures.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, SniperRifle, \
     Weapon, WEAPON_KEY_LIST
@@ -134,6 +134,7 @@ class Figure:
             raise ValueError('cannot load figure')
         self.transporting.append(figure.index)
         figure.transported_by = self.index
+        figure.stat = LOADED
 
     def transportUnload(self, figure) -> None:
         self.transporting.remove(figure.index)
@@ -151,7 +152,7 @@ class Figure:
         self.weapons[w.wid] = w
 
     def __repr__(self) -> str:
-        return f'{self.name}({self.position})'
+        return f'{self.name}{self.position}'
 
 
 class Tank(Figure):

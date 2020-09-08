@@ -65,14 +65,11 @@ def scenarioJunction() -> (GameBoard, GameState):
     i11 = Infantry((8, 0), RED, 'rInf11')
     i12 = Infantry((8, 0), RED, 'rInf12')
     t1 = Tank((8, 0), RED, 'rTank1')
-    t1.transportLoad(i11)
-    t1.transportLoad(i12)
 
     # red
     t2 = Tank((7, 11), RED, 'rTank2')
     i21 = Infantry((7, 11), RED, 'rInf21')
     i22 = Infantry((6, 12), RED, 'rInf22')
-    t2.transportLoad(i21)
 
     # darkred
     t3 = Tank((17, 20), RED, 'rTank3')
@@ -88,6 +85,10 @@ def scenarioJunction() -> (GameBoard, GameState):
         Infantry((36, 14), BLUE, 'bInf1', HIDDEN),
         Infantry((37, 16), BLUE, 'bInf2', HIDDEN)
     )
+
+    t1.transportLoad(i11)
+    t1.transportLoad(i12)
+    t2.transportLoad(i21)
 
     placement_zone = np.zeros(shape, dtype='uint8')
     placement_zone[28, 15:21] = 1
@@ -167,14 +168,11 @@ def scenarioRoadblock() -> (GameBoard, GameState):
     t2 = Tank((42, 4), RED, 'rTank3')
     i21 = Infantry((42, 4), RED, 'rInf31')
     i22 = Infantry((42, 3), RED, 'rInf32')
-    t2.transportLoad(i21)
 
     # darkred
     i31 = Infantry((39, 5), RED, 'rInf11')
     i32 = Infantry((39, 5), RED, 'rInf12')
     t3 = Tank((39, 5), RED, 'rTank1')
-    t3.transportLoad(i31)
-    t3.transportLoad(i32)
 
     state.addChoice(RED, 'orange', t1, i11, i12)
     state.addChoice(RED, 'red', t2, i21, i22)
@@ -184,6 +182,10 @@ def scenarioRoadblock() -> (GameBoard, GameState):
         APC((43, 15), BLUE, 'bAPC', HIDDEN),
         Infantry((42, 18), BLUE, 'bInf', HIDDEN),
     )
+
+    t2.transportLoad(i21)
+    t3.transportLoad(i31)
+    t3.transportLoad(i32)
 
     placement_zone = np.zeros(shape, dtype='uint8')
     placement_zone[42, 8:16] = 1
@@ -338,20 +340,14 @@ def scenarioCrossingTheCity() -> (GameBoard, GameState):
     t1 = Tank((29, 2), RED, 'rTank2')  # orange
     i11 = Infantry((29, 2), RED, 'rInf21')
     i12 = Infantry((29, 2), RED, 'rInf21')
-    t1.transportLoad(i11)
-    t1.transportLoad(i12)
 
     t2 = Tank((24, 4), RED, 'rTank3')  # red 1 unit
     i21 = Infantry((24, 4), RED, 'rInf31')
     i22 = Infantry((24, 4), RED, 'rInf31')
-    t2.transportLoad(i21)
-    t2.transportLoad(i22)
 
     t3 = Tank((29, 1), RED, 'rTank1')  # dark red 2 units
     i31 = Infantry((29, 1), RED, 'rInf11')
     i32 = Infantry((29, 1), RED, 'rInf11')
-    t3.transportLoad(i31)
-    t3.transportLoad(i32)
 
     state.addChoice(RED, 'orange', t1, i11, i12)
     state.addChoice(RED, 'red', t2, i21, i22)
@@ -361,6 +357,13 @@ def scenarioCrossingTheCity() -> (GameBoard, GameState):
         APC((32, 7), BLUE, 'bAPC', HIDDEN),
         Infantry((31, 9), BLUE, 'bInf', HIDDEN),
     )
+
+    t1.transportLoad(i11)
+    t1.transportLoad(i12)
+    t2.transportLoad(i21)
+    t2.transportLoad(i22)
+    t3.transportLoad(i31)
+    t3.transportLoad(i32)
 
     placement_zone_blue = np.zeros(shape, dtype='uint8')
     placement_zone_blue[26, 6:8] = Terrain.FOREST

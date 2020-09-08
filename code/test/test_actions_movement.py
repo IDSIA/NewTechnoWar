@@ -156,7 +156,7 @@ class TestMovementAction(unittest.TestCase):
 
         moves = GM.buildMovements(board, state, figure)
 
-        self.assertEqual(len(moves), 1, 'moves outside of the map!')
+        self.assertEqual(len(moves), 0, 'moves outside of the map!')
 
 
 if __name__ == '__main__':

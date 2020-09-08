@@ -7,7 +7,7 @@ import numpy as np
 from core.const import RED, BLUE
 from core.actions import Action, Move, Attack, Respond, Pass, LoadInto, AttackGround
 from core.figures import Figure, FigureType
-from core.figures.status import IN_MOTION, UNDER_FIRE, NO_EFFECT, HIDDEN, CUT_OFF
+from core.figures.status import IN_MOTION, UNDER_FIRE, NO_EFFECT, HIDDEN, CUT_OFF, LOADED
 from core.figures.weapons import Weapon
 from core.game import MISS_MATRIX, hitScoreCalculator, CUTOFF_RANGE
 from core.game.board import GameBoard
@@ -95,8 +95,14 @@ class GameManager(object):
         if not weapon.hasAmmo():
             raise ValueError(f'{weapon} does not have enough ammo')
 
+        if figure.stat == LOADED:
+            raise ValueError(f'{weapon} cannot hit {target}: unit is LOADED in a vehicle')
+
+        if target.stat == LOADED:
+            raise ValueError(f'{weapon} cannot hit {target}: target is LOADED in a vehicle')
+
         if target.stat == HIDDEN:
-            raise ValueError(f'{weapon} cannot hit {target} because it is HIDDEN')
+            raise ValueError(f'{weapon} cannot hit {target}: target is HIDDEN')
 
         if weapon.antitank:
             # can shoot only against vehicles
@@ -106,7 +112,7 @@ class GameManager(object):
             validTarget = target.kind != FigureType.VEHICLE
 
         if not validTarget:
-            raise ValueError(f'{weapon} cannot hit {target} because it is not valid')
+            raise ValueError(f'{weapon} cannot hit {target}: target is not valid')
 
         lines = state.getLOS(target)
         lof = lines[figure.index]
@@ -353,8 +359,9 @@ class GameManager(object):
             logging.info(f'{action}')
 
             for transported in f.transporting:
-                f = state.getFigureByIndex(team, transported)
-                state.moveFigure(f, f.position, action.destination)
+                t = state.getFigureByIndex(team, transported)
+                t.stat = LOADED
+                state.moveFigure(t, t.position, action.destination)
 
             return {}
 
@@ -495,6 +502,9 @@ class GameManager(object):
                 # update status
                 if figure.stat != HIDDEN:
                     figure.stat = NO_EFFECT
+
+                    if figure.transported_by > -1:
+                        figure.stat = LOADED
 
                     # compute there cutoff status
                     allies = state.getDistance(figure)
