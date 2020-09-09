@@ -24,7 +24,7 @@ class AlphaBetaAgent(GreedyAgent):
 
     def alpha_beta(self, board: GameBoard, state: GameState, alpha, beta, depth, team, response):
         stateHash = hash(state)
-        if stateHash in self.cache:
+        if stateHash in self.cache and self.maxDepth != depth:
             return self.cache[stateHash], None
 
         if not response:
@@ -50,12 +50,13 @@ class AlphaBetaAgent(GreedyAgent):
 
         nextActions = []
 
-        for figure in state.getFiguresCanBeActivated(team):
-            nextActions.append(GM.actionPass(figure))
-
-            if response:
+        if response:
+            for figure in state.getFiguresCanRespond(team):
                 nextActions += GM.buildResponses(board, state, figure)
-            else:
+        else:
+            for figure in state.getFiguresCanBeActivated(team):
+                nextActions.append(GM.actionPass(figure))
+
                 # standard actions
                 nextActions += GM.buildAttacks(board, state, figure)
                 nextActions += GM.buildMovements(board, state, figure)
@@ -64,13 +65,13 @@ class AlphaBetaAgent(GreedyAgent):
         if team == RED:
             value = -math.inf
             action = None
-            for action in nextActions:
-                s1, _ = GM.activate(board, state, action)
-                score, _ = self.alpha_beta(board, s1, depth - 1, alpha, beta, otherTeam, otherResponse)
+            for nextAction in nextActions:
+                s1 = self.apply(nextAction, board, state)
+                score, _ = self.alpha_beta(board, s1, alpha, beta, depth - 1, otherTeam, otherResponse)
 
                 if score > value:
-                    value, action = score, action
-                    logging.info(f'AB: Max {action} [{score}]')
+                    value, action = score, nextAction
+                    logging.info(f'       AB{depth}: Max {action} [{score}]')
 
                 alpha = max(alpha, value)
                 if alpha >= beta:
@@ -82,18 +83,24 @@ class AlphaBetaAgent(GreedyAgent):
             value = math.inf
             action = None
             for action in nextActions:
-                s1, _ = GM.activate(board, state, action)
-                score, _ = self.alpha_beta(board, s1, depth - 1, alpha, beta, otherTeam, otherResponse)
+                s1 = self.apply(action, board, state)
+                score, _ = self.alpha_beta(board, s1, alpha, beta, depth - 1, otherTeam, otherResponse)
 
                 if score < value:
                     value, action = score, action
-                    logging.info(f'AB: Min {action} [{score}]')
+                    logging.info(f'       AB{depth}: Min {action} [{score}]')
 
                 beta = min(beta, value)
                 if beta <= alpha:
                     break
-
             return value, action
+
+    def apply(self, action, board, state):
+        logger = logging.getLogger()
+        logger.disabled = True
+        s1, _ = GM.activate(board, state, action)
+        logger.disabled = False
+        return s1
 
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
         score, action = self.alpha_beta(board, state, -math.inf, math.inf, self.maxDepth, self.team, False)
