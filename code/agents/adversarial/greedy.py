@@ -1,7 +1,7 @@
 """This agent is an adaptation from the GreedyAgent in the main project source code."""
 import logging
 import math
-from copy import deepcopy
+from utils.copy import deepcopy
 from typing import Tuple, Any, List
 
 import numpy as np
