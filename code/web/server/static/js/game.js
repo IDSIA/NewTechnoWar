@@ -19,11 +19,12 @@ function ammoClass(data) {
     return data === 0 ? 'empty' : '';
 }
 
-function updateFigure(data, action = '') {
+function updateFigure(data) {
     let figure = $(`#figure-${data.id}`);
     let mark = $(`#mark-${data.id}`);
 
-    figure.removeClass('killed activated notActivated passed moving attacking responded');
+    figure.removeClass('killed activated notActivated');
+    figure.find('div.uOpt').removeClass('passed moving attacking responded').text('');
     mark.removeClass('hit loaded');
 
     figure.find('div.uPos').text(`(${data.i}, ${data.j})`);
@@ -42,35 +43,37 @@ function updateFigure(data, action = '') {
     });
 
     if (data.stat === 'Loaded') {
-        mark.addClass('loaded')
+        mark.addClass('loaded');
         mark.attr('transform', `translate(${data.x},${data.y + vEps})`);
+    } else {
+        mark.removeClass('loaded');
     }
 
     if (data.killed) {
         figure.addClass('killed');
         mark.addClass('killed');
-    } else {
-        if (data.hit) {
-            mark.addClass('hit');
-        }
-        if (data.activated) {
-            figure.addClass('activated');
-        } else {
-            figure.addClass('notActivated');
-        }
-        if (action === 'Pass') {
-            figure.addClass('passed');
-        }
-        if (action === 'Move') {
-            figure.addClass('moving');
-        }
-        if (action === 'Attack') {
-            figure.addClass('attacking');
-        }
-        if (action === 'Respond') {
-            figure.addClass('responded');
-        }
     }
+    if (data.hit) {
+        mark.addClass('hit');
+    }
+    if (data.activated) {
+        figure.addClass('activated');
+    } else {
+        figure.addClass('notActivated');
+    }
+    if (data.passed) {
+        figure.find('div.opt1').addClass('passed').text('P');
+    }
+    if (data.moved) {
+        figure.find('div.opt1').addClass('moving').text('M');
+    }
+    if (data.attacked) {
+        figure.find('div.opt1').addClass('attacking').text('A');
+    }
+    if (data.responded) {
+        figure.find('div.opt2').addClass('responded').text('R');
+    }
+
     figures[gameId][data.id] = data;
 }
 
@@ -108,6 +111,8 @@ function addFigure(figure, team) {
                     $('<div class="uMove"/>'),
                     $(`<div class="uName">${figure.name}</div>`),
                     $('<div class="uStat"/>'),
+                    $('<div class="uOpt opt1" />'),
+                    $('<div class="uOpt opt2" />'),
                     uWeapons
                 ])
                 .hover(function () {

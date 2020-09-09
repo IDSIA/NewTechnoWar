@@ -339,12 +339,14 @@ class GameManager(object):
         if isinstance(action, Pass):
             logging.info(f'{action}')
             f.activated = True
+            f.passed = True
             return {}
 
         f.stat = NO_EFFECT
 
         if isinstance(action, Move):
             f.activated = True
+            f.moved = True
             if isinstance(action, LoadInto):
                 # figure moves inside transporter
                 t = state.getTransporter(action)
@@ -370,6 +372,7 @@ class GameManager(object):
             w: Weapon = state.getWeapon(action)
 
             f.activated = True
+            f.attacked = True
             w.shoot()
 
             if w.smoke:
@@ -415,6 +418,7 @@ class GameManager(object):
                 ATK = w.atk_normal
                 INT = f.int_atk
                 f.activated = True
+                f.attacked = True
 
             # anti-tank rule
             if state.hasSmoke(lof):
@@ -486,18 +490,6 @@ class GameManager(object):
             for figure in state.figures[team]:
                 figure.update(state.turn)
                 state.updateLOS(figure)
-
-                if figure.hp <= 0:
-                    figure.killed = True
-                    figure.activated = True
-                    figure.hit = False
-
-                else:
-                    figure.killed = False
-                    figure.activated = False
-                    figure.responded = False
-                    figure.attacked_by = -1
-                    figure.hit = False
 
                 # update status
                 if figure.stat != HIDDEN:

@@ -306,36 +306,37 @@ svg {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-.activated::before, .responded::before, .passed::before {
+.uOpt {
     color: black;
     font-weight: bold;
     padding: 5px;
     grid-row-start: bottom;
     text-align: center;
+    background-color: transparent !important;
 }
 
-.moving::before {
-    content: 'M';
-    background-color: cyan;
+.opt1 {
     grid-column-start: img1;
 }
 
-.attacking::before {
-    content: 'A';
-    background-color: purple;
-    grid-column-start: img1;
-}
-
-.responded::before {
-    content: 'R';
-    background-color: orange;
+.opt2 {
     grid-column-start: img2;
 }
 
-.passed::before {
-    content: 'P';
-    background-color: green;
-    grid-column-start: img1;
+.moving {
+    background-color: cyan !important;
+}
+
+.attacking {
+    background-color: purple !important;
+}
+
+.responded {
+    background-color: orange !important;
+}
+
+.passed {
+    background-color: green !important;
 }
 
 div.killed {

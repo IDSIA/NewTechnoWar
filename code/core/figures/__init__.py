@@ -6,8 +6,8 @@ from typing import Dict, List
 
 from core.figures.status import FigureStatus, NO_EFFECT, LOADED
 from core.figures.types import FigureType
-from core.figures.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, SniperRifle, \
-    Weapon, WEAPON_KEY_LIST
+from core.figures.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, \
+    SniperRifle, Weapon, WEAPON_KEY_LIST
 from core.game import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, ENDURANCE_EXO
 from utils import INFINITE
 from utils.coordinates import Cube, to_cube
@@ -21,7 +21,8 @@ class Figure:
     __slots__ = [
         'fid', 'team', 'name', 'index', 'kind', 'move', 'load', 'hp', 'hp_max', 'defense', 'weapons',
         'int_atk', 'int_def', 'endurance', 'stat', 'position', 'activated', 'responded', 'killed', 'hit',
-        'attacked_by', 'can_transport', 'transport_capacity', 'transporting', 'transported_by', 'bonus'
+        'attacked_by', 'can_transport', 'transport_capacity', 'transporting', 'transported_by', 'bonus',
+        'attacked', 'moved', 'passed'
     ]
 
     def __init__(self, position: tuple or Cube, name: str, team: str, kind: int, stat: FigureStatus):
@@ -58,6 +59,9 @@ class Figure:
 
         self.activated: bool = False
         self.responded: bool = False
+        self.attacked: bool = False
+        self.moved: bool = False
+        self.passed: bool = False
         self.killed: bool = False
         self.hit: bool = False
 
@@ -125,6 +129,21 @@ class Figure:
         self.endurance = ENDURANCE[turn]
         self.int_atk = INTELLIGENCE_ATTACK[turn]
         self.int_def = INTELLIGENCE_DEFENSE[turn]
+
+        self.activated: bool = False
+        self.responded: bool = False
+        self.attacked: bool = False
+        self.moved: bool = False
+        self.passed: bool = False
+        self.killed: bool = False
+        self.hit: bool = False
+
+        self.attacked_by = -1
+
+        if self.hp <= 0:
+            self.killed = True
+            self.activated = True
+            self.hit = False
 
     def goto(self, destination: Cube) -> None:
         self.position = destination
