@@ -190,6 +190,10 @@ function appendLine(text, newLine = true) {
 }
 
 function checkNextPlayer(data) {
+    if (data.next.step === 'init') {
+        return
+    }
+
     if (data.curr !== undefined) {
         $(`#${data.curr.player}Info`).text('');
         $(`#${data.curr.player}Pass`).hide();
