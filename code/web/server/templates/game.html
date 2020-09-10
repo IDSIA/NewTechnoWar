@@ -63,6 +63,25 @@
                         </g>
                     {% endfor %}
                 </g>
+                <g id="zones">
+                    {% for hex in pzRed %}
+                        <g id="x{{ hex.i }}y{{ hex.j }}"
+                           transform="translate({{ hex.x }}, {{ hex.y }})"
+                           onclick="human.clickHexagon({{ hex.i }}, {{ hex.j }})"
+                        >
+                            <use href="#hex" class="pz-red"></use>
+                        </g>
+                    {% endfor %}
+                    {% for hex in pzBlue %}
+                        <g id="x{{ hex.i }}y{{ hex.j }}"
+                           transform="translate({{ hex.x }}, {{ hex.y }})"
+                           onclick="human.clickHexagon({{ hex.i }}, {{ hex.j }})"
+                        >
+                            <use href="#hex" class="pz-blue"></use>
+                        </g>
+
+                    {% endfor %}
+                </g>
                 <g id="actions">
                     <g id="moves"></g>
                     <g id="shoots"></g>

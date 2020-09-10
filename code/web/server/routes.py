@@ -8,7 +8,7 @@ from flask import current_app as app
 from agents import Human
 from agents import MatchManager, buildMatchManager
 from core.const import BLUE, RED
-from web.server.utils import scroll, fieldShape, cube_to_ijxy
+from web.server.utils import scroll, fieldShape, cube_to_ijxy, pzoneToHex, pos_to_dict
 
 main = Blueprint('main', __name__, template_folder='templates', static_folder='static')
 
@@ -17,51 +17,54 @@ main = Blueprint('main', __name__, template_folder='templates', static_folder='s
 def index():
     """Serve list of available scenarios."""
     if request.method == 'POST':
-        if app.config['DEBUG']:
-            logging.info('Using debug configuration!')
-            redPlayer = 'Human'
-            bluePlayer = 'Human'
-            scen = 'scenarioTestLoaded'
-            autoplay = False
-            seed = 1
-            replay = ''
-        else:
-            data = request.form
-            seed = int(data['seed'])
+        try:
+            if app.config['DEBUG']:
+                logging.info('Using debug configuration!')
+                redPlayer = 'Human'
+                bluePlayer = 'Human'
+                scen = 'scenarioJunction'
+                autoplay = False
+                seed = 1
+                replay = ''
+            else:
+                data = request.form
+                seed = int(data['seed'])
 
-            redPlayer = data['redPlayer']
-            bluePlayer = data['bluePlayer']
+                redPlayer = data['redPlayer']
+                bluePlayer = data['bluePlayer']
 
-            autoplay = 'autoplay' in data or redPlayer == 'Human' or bluePlayer == 'Human'
-            scen = 'scenario' + data['scenario']
-            replay = data['replay']
+                autoplay = 'autoplay' in data or redPlayer == 'Human' or bluePlayer == 'Human'
+                scen = 'scenario' + data['scenario']
+                replay = data['replay']
 
-        mm = buildMatchManager(
-            str(uuid.uuid4()),
-            scen,
-            redPlayer,
-            bluePlayer,
-            seed if seed > 0 else random.randint(1, 1000000000)
-        )
-        mm.step()
+            mm = buildMatchManager(
+                str(uuid.uuid4()),
+                scen,
+                redPlayer,
+                bluePlayer,
+                seed if seed > 0 else random.randint(1, 1000000000)
+            )
+            # mm.step() TODO: no more init until humans have chosen the start positions
 
-        app.games[mm.gid] = mm
-        app.params[mm.gid] = {
-            'seed': mm.seed,
-            'scenario': scen,
-            'player': {RED: redPlayer, BLUE: bluePlayer},
-            'autoplay': autoplay,
-            'replay': replay,
-        }
-        app.actions[mm.gid] = None
+            app.games[mm.gid] = mm
+            app.params[mm.gid] = {
+                'seed': mm.seed,
+                'scenario': scen,
+                'player': {RED: redPlayer, BLUE: bluePlayer},
+                'autoplay': autoplay,
+                'replay': replay,
+            }
+            app.actions[mm.gid] = None
 
-        logging.info(f'Created game #{mm.gid} with scenario {mm.board.name}')
+            logging.info(f'Created game #{mm.gid} with scenario {mm.board.name}')
 
-        response = make_response(
-            redirect(f'/game/')
-        )
-        response.set_cookie('gameId', mm.gid)
-
+            response = make_response(
+                redirect(f'/game/')
+            )
+            response.set_cookie('gameId', mm.gid)
+        except Exception as e:
+            logging.error(e)
+            return redirect('/')
     else:
         logging.info(f'New lobby access')
 
@@ -71,11 +74,6 @@ def index():
             'Test3v1',
             'TestBench',
             'TestInfantry',
-            # 'Dummy1',
-            # 'Dummy2',
-            # 'Dummy3',
-            # 'DummyResponseCheck',
-            # 'InSightTest',
             'Junction',
             'JunctionExo',
             'BridgeHead',
@@ -139,8 +137,25 @@ def game():
                 max_x = max(max_x, x + eps)
                 max_y = max(max_y, y + eps)
 
+            if mm.state.has_choice[team]:
+                for color in mm.state.choices[team]:
+                    for figure in mm.state.choices[team][color]:
+                        _, _, x, y = cube_to_ijxy(figure.position)
+
+                        min_x = min(min_x, x - eps)
+                        min_y = min(min_y, y - eps)
+                        max_x = max(max_x, x + eps)
+                        max_y = max(max_y, y + eps)
+
         w = max(max_x - min_x, 400)
         h = max(max_y - min_y, 300)
+
+        pzRed = None
+        pzBlue = None
+        if mm.state.has_placement[RED]:
+            pzRed = mm.state.placement_zone[RED] if RED in mm.state.placement_zone else None
+        if mm.state.has_placement[BLUE]:
+            pzBlue = mm.state.placement_zone[BLUE] if BLUE in mm.state.placement_zone else None
 
         response = make_response(
             render_template(
@@ -151,7 +166,9 @@ def game():
                 gameId=gameId,
                 shape=fieldShape(mm.board),
                 turn=mm.state.turn,
-                vb=(min_x, min_y, w, h)
+                vb=(min_x, min_y, w, h),
+                pzRed=list(pzoneToHex(pzRed)),
+                pzBlue=list(pzoneToHex(pzBlue)),
             )
         )
 
@@ -206,6 +223,7 @@ def gameNextStep():
         _, mm = checkGameId()
         curr = mm.nextPlayer()
         mm.nextStep()
+        nxt = mm.nextPlayer()
 
         lastAction = None
         lastOutcome = None
@@ -221,7 +239,7 @@ def gameNextStep():
             'action': lastAction,
             'outcome': lastOutcome,
             'curr': curr,
-            'next': mm.nextPlayer(),
+            'next': nxt,
         }), 200
 
     except ValueError as e:
@@ -239,7 +257,15 @@ def gameHumanClick():
     try:
         player: Human = mm.getPlayer(team)
         player.nextAction(mm.board, mm.state, data)
-        return jsonify({}), 200
+
+        ret = {}
+        if data['action'] == 'place':
+            i = int(data['x'])
+            j = int(data['y'])
+            ret = pos_to_dict(i, j)
+            ret['team'] = team
+
+        return jsonify(ret), 200
 
     except ValueError as e:
         logging.exception(f'Human click error: {e}')

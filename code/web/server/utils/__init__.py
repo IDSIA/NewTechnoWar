@@ -1,4 +1,5 @@
 from math import sqrt
+import numpy as np
 
 from core.game.terrain import Terrain, TERRAIN_TYPE
 from core.game.board import GameBoard
@@ -20,6 +21,11 @@ def pos_to_xy(position):
         y = h / 2 + h * j
 
     return x, y
+
+
+def pos_to_dict(i, j):
+    x, y = pos_to_xy((i, j))
+    return {'i': i, 'j': j, 'x': x, 'y': y}
 
 
 def cube_to_ijxy(position):
@@ -82,3 +88,21 @@ def scroll(board: GameBoard):
             )
 
             yield h
+
+
+def pzoneToHex(zone):
+    if zone is None:
+        return []
+
+    x, y = np.where(zone > 0)
+
+    for item in zip(x, y):
+        h = Hexagon(
+            item,
+            Terrain.OPEN_GROUND,
+            0,
+            False,
+            False
+        )
+
+        yield h

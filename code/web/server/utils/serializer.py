@@ -2,6 +2,7 @@ import numpy as np
 from flask.json import JSONEncoder
 
 from core.actions import Move, Pass, Attack, Respond, LoadInto, AttackGround
+from core.const import RED, BLUE
 from core.figures import Figure
 from core.figures import FigureType
 from core.figures.weapons import Weapon
@@ -13,7 +14,7 @@ class GameJSONEncoder(JSONEncoder):
 
     def default(self, obj):
         if isinstance(obj, GameState):
-            return {
+            o = {
                 'name': obj.name,
                 'turn': obj.turn,
                 'figures': obj.figures,
@@ -21,7 +22,19 @@ class GameJSONEncoder(JSONEncoder):
                 'los': obj.figuresLOS,
                 'distances': obj.figuresDistance,
                 'lastAction': obj.lastAction,
+                'initialized': obj.initialized,
             }
+
+            if obj.initialized:
+                return o
+
+            o['colors'] = {}
+
+            for team in [RED, BLUE]:
+                if obj.has_choice[team]:
+                    o['colors'][team] = obj.choices[team]
+
+            return o
 
         if isinstance(obj, Figure):
             i, j, x, y = cube_to_ijxy(obj.position)
@@ -143,6 +156,7 @@ class GameJSONEncoder(JSONEncoder):
 
         if isinstance(obj, np.ndarray):
             return obj.tolist()
+
         if isinstance(obj, np.generic):
             return obj.item()
 

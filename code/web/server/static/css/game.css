@@ -68,6 +68,17 @@ h1.player-info {
     font-size: 1em;
 }
 
+h1.player-choose {
+    text-align: center;
+    margin: 0.1em;
+    font-size: 1em;
+}
+
+h1.player-choose:hover {
+    background-color: darkorange;
+    cursor: pointer;
+}
+
 h1.player-pass {
     text-align: center;
     margin: 0.1em 0.2em;
@@ -144,6 +155,21 @@ svg {
 
 .unit.blue {
     border: 1px solid #6666ff;
+}
+
+.orange, .unit.orange, .unit.orange > circle {
+    background-color: orangered;
+    fill: orangered !important;
+}
+
+.darkred, .unit.darkred, .unit.darkred > circle {
+    background-color: darkred;
+    fill: darkred !important;
+}
+
+.lightred, .unit.lightred, .unit.lightred > circle {
+    background-color: indianred;
+    fill: indianred !important;
 }
 
 .unit > div:not(.uKind):not(.uTitle):not(.uWeapons), .uWeapons > div {
@@ -439,7 +465,7 @@ g.killed.blue > circle {
 
 g.hit.red > circle {
     /* this inversion is done on purpose! */
-    stroke: dodgerblue;
+    stroke: #1e90ff;
     stroke-width: 1;
 }
 
@@ -447,6 +473,14 @@ g.hit.blue > circle {
     /* this inversion is done on purpose! */
     stroke: darkred;
     stroke-width: 1;
+}
+
+.pz-red {
+    fill: rgba(255, 0, 0, 0.5);
+}
+
+.pz-blue {
+    fill: rgba(30, 144, 255, 0.5);
 }
 
 .highlight {

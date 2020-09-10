@@ -167,7 +167,7 @@ class GreedyAgent(Player):
         self.checkBoardValues(board)
 
         # select area
-        x, y = np.where(board.placement_zone[self.team] > 0)
+        x, y = np.where(state.placement_zone[self.team] > 0)
         figures = state.getFigures(self.team)
 
         # choose groups of random positions

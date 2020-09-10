@@ -61,7 +61,7 @@ class MatchManager:
         self.first = None
         self.second = None
 
-        self._goInit()
+        self.step = self._goInit
 
     def reset(self):
         """Restore the match to its original (before initialization) stage."""
@@ -87,9 +87,9 @@ class MatchManager:
         self.end = False
 
         # check for need of placement
-        if self.board.has_placement[RED]:
+        if self.state.has_placement[RED]:
             self.red.placeFigures(self.board, self.state)
-        if self.board.has_placement[BLUE]:
+        if self.state.has_placement[BLUE]:
             self.blue.placeFigures(self.board, self.state)
 
         # check for need of choice
@@ -98,8 +98,10 @@ class MatchManager:
         if self.state.has_choice[BLUE]:
             self.blue.chooseFigureGroups(self.board, self.state)
 
-        self.origin = deepcopy(self.state)
+        self.state.completeInit()
+
         self.step = self._goUpdate
+        self._goUpdate()
 
     def _goRound(self):
         """Round step."""
@@ -217,6 +219,8 @@ class MatchManager:
         nextPlayer = ''
         nextHuman = False
 
+        if self.step == self._goInit:
+            step = 'init'
         if self.step == self._goRound:
             step = 'round'
             nextPlayer = self.first.team

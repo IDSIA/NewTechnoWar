@@ -14,7 +14,7 @@ class GameBoard:
     Static parts of the game board.
     """
     __slots__ = ['name', 'shape', 'terrain', 'geography', 'objectives', 'limits', 'obstacles', 'moveCost',
-                 'protectionLevel', 'placement_zone', 'has_placement', 'has_choice']
+                 'protectionLevel']
 
     def __init__(self, shape: Tuple[int, int], name: str = ''):
         self.name: str = name
@@ -45,12 +45,6 @@ class GameBoard:
         }
 
         self.protectionLevel: np.ndarray = np.zeros(shape, dtype='uint8')
-
-        self.has_placement: Dict[str, bool] = {RED: False, BLUE: False}
-        self.placement_zone: Dict[str, np.ndarray] = {
-            RED: np.zeros(shape, dtype='uint8'),
-            BLUE: np.zeros(shape, dtype='uint8')
-        }
 
         # internal values initialization
         self.addTerrain(self.terrain)
@@ -106,11 +100,6 @@ class GameBoard:
                 if isinstance(o, GoalReachPoint):
                     marks += o.objectives
         return marks
-
-    def addPlacementZone(self, team: str, zone: np.array):
-        """Add a zone in the board where units can be placed."""
-        self.has_placement[team] = True
-        self.placement_zone[team] += zone
 
     def getNeighbors(self, position: Cube):
         """Returns all the neighbors of the given position."""

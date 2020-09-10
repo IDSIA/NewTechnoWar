@@ -77,7 +77,7 @@ def scenarioJunction() -> (GameBoard, GameState):
     i32 = Infantry((25, 22), RED, 'rInf4')
 
     state.addChoice(RED, 'orange', t1, i11, i12)
-    state.addChoice(RED, 'red', t2, i21, i22)
+    state.addChoice(RED, 'lightred', t2, i21, i22)
     state.addChoice(RED, 'darkred', t3, i31, i32)
 
     state.addFigure(
@@ -93,12 +93,12 @@ def scenarioJunction() -> (GameBoard, GameState):
     placement_zone = np.zeros(shape, dtype='uint8')
     placement_zone[28, 15:21] = 1
     placement_zone[29, 7:21] = 1
-    placement_zone[30, 2:20] = 1
+    placement_zone[30, 1:20] = 1
     placement_zone[31, 2:21] = 1
     placement_zone[32, 2:20] = 1
     placement_zone[33, 2:20] = 1
     placement_zone[34, 2:20] = 1
-    placement_zone[35, 2:19] = 1
+    placement_zone[35, 2:20] = 1
     placement_zone[36, 2:20] = 1
     placement_zone[37, 3:20] = 1
     placement_zone[38, 2:19] = 1
@@ -107,7 +107,7 @@ def scenarioJunction() -> (GameBoard, GameState):
     placement_zone[41, 3:20] = 1
     placement_zone[42, 3:19] = 1
 
-    board.addPlacementZone(BLUE, placement_zone)
+    state.addPlacementZone(BLUE, placement_zone)
 
     board.name = state.name = 'junction'
 
@@ -175,7 +175,7 @@ def scenarioRoadblock() -> (GameBoard, GameState):
     t3 = Tank((39, 5), RED, 'rTank1')
 
     state.addChoice(RED, 'orange', t1, i11, i12)
-    state.addChoice(RED, 'red', t2, i21, i22)
+    state.addChoice(RED, 'lightred', t2, i21, i22)
     state.addChoice(RED, 'darkred', t3, i31, i32)
 
     state.addFigure(
@@ -193,7 +193,7 @@ def scenarioRoadblock() -> (GameBoard, GameState):
     placement_zone[44, 7:15] = 1
     placement_zone[45, 7:15] = 1
 
-    board.addPlacementZone(BLUE, placement_zone)
+    state.addPlacementZone(BLUE, placement_zone)
 
     board.name = state.name = 'junction'
 
@@ -248,7 +248,7 @@ def scenarioBridgeHead() -> (GameBoard, GameState):
                     Tank((39, 19), RED, 'rTank1', HIDDEN),
                     Infantry((34, 15), RED, 'rInf11', HIDDEN)
                     )
-    state.addChoice(RED, 'red',
+    state.addChoice(RED, 'lightred',
                     Tank((37, 18), RED, 'rTank2', HIDDEN),
                     Infantry((33, 14), RED, 'rInf12', HIDDEN)
                     )
@@ -298,8 +298,8 @@ def scenarioBridgeHead() -> (GameBoard, GameState):
     placement_zone_blue[34, 8:10] = 1
     placement_zone_blue[33, 9] = 1
 
-    board.addPlacementZone(RED, placement_zone_red)
-    board.addPlacementZone(BLUE, placement_zone_blue)
+    state.addPlacementZone(RED, placement_zone_red)
+    state.addPlacementZone(BLUE, placement_zone_blue)
 
     board.name = state.name = 'bridgehead'
 
@@ -350,7 +350,7 @@ def scenarioCrossingTheCity() -> (GameBoard, GameState):
     i32 = Infantry((29, 1), RED, 'rInf11')
 
     state.addChoice(RED, 'orange', t1, i11, i12)
-    state.addChoice(RED, 'red', t2, i21, i22)
+    state.addChoice(RED, 'lightred', t2, i21, i22)
     state.addChoice(RED, 'darkred', t3, i31, i32)
 
     state.addFigure(
@@ -379,7 +379,7 @@ def scenarioCrossingTheCity() -> (GameBoard, GameState):
     placement_zone_blue[26, 0:8] = Terrain.FOREST
     placement_zone_blue[26, 0:9] = Terrain.FOREST
 
-    board.addPlacementZone(BLUE, placement_zone_blue)
+    state.addPlacementZone(BLUE, placement_zone_blue)
 
     board.name = state.name = 'crossingthecity'
 

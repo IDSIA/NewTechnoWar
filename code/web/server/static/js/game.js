@@ -1,9 +1,10 @@
 let figures = {};
 let params = {};
 let gameId = undefined;
-let end = false;
 let autoplay = undefined;
 let autoplay_flag = false;
+let initialized = false;
+let end = false;
 let human = new Human();
 
 const RED = 'red';
@@ -77,7 +78,7 @@ function updateFigure(data) {
     figures[gameId][data.id] = data;
 }
 
-function addFigure(figure, team) {
+function addFigure(figure, team, color = '') {
     let fid = `figure-${figure.id}`;
     let gid = `mark-${figure.id}`;
 
@@ -99,7 +100,7 @@ function addFigure(figure, team) {
 
     $(`#${team}Units`)
         .append(
-            $(`<div id="${fid}" class="unit ${team} ${figure.kind}"/>`)
+            $(`<div id="${fid}" class="unit ${team} ${figure.kind} ${color}"/>`)
                 .append([
                     $('<div class="uTitle uTitleHP">HP</div>'),
                     $('<div class="uTitle uTitleMove">MOVE</div>'),
@@ -129,7 +130,7 @@ function addFigure(figure, team) {
     let g = svg('g')
         .attr('id', gid)
         .attr('transform', `translate(${figure.x},${figure.y + vEps})`)
-        .addClass(`unit ${team} ${figure.kind}`)
+        .addClass(`unit ${team} ${figure.kind} ${color}`)
         .append(svg('circle')
             .attr('cx', '0')
             .attr('cy', '0')
@@ -224,6 +225,20 @@ function checkNextPlayer(data) {
 
 function step() {
     $.get('/game/next/step', function (data) {
+        if (!initialized && data.state.initialized) {
+            $('#zones').empty();
+            $('#redUnits').empty().append($('<h1 id="redPlayer" class="player-title"></h1>'));
+            $('#blueUnits').empty().append($('<h1 id="bluePlayer" class="player-title"></h1>'));
+            $('#markers').empty();
+
+            initState(data.state, RED);
+            initState(data.state, BLUE);
+
+            checkNextPlayer(data);
+
+            initialized = true;
+        }
+
         if (end) {
             return;
         }
@@ -315,6 +330,46 @@ function move(mark, data) {
     mark.attr('transform', `translate(${end.x},${end.y + vEps})`);
 }
 
+function initState(state, team) {
+    let player = params[gameId].player[team];
+    $(`#${team}Player`).text(player);
+
+    let teamUnits = $(`#${team}Units`);
+
+    if (player === 'Human') {
+        teamUnits.append([
+            $(`<h1 id="${team}Info" class="player-info"></h1>`),
+            $(`<h1 id="${team}Pass" class="player-pass">Pass</h1>`)
+                .on('click', (e) => human.clickPass(e, team))
+                .hide()
+        ]);
+    }
+
+    state.figures[team].forEach((figure, _) => {
+        addFigure(figure, team);
+        updateFigure(figure);
+    });
+
+    if (!state.initialized) {
+        // groups
+        if (team in state.colors) {
+            Object.entries(state.colors[team]).forEach(entry => {
+                const [color, figures] = entry;
+
+                teamUnits.append(
+                    $(`<h1 id="${team}Choose" class="player-choose ${color}">Choose ${color}</h1>`)
+                        .on('click', (e) => human.clickChoose(e, team, color))
+                );
+
+                figures.forEach((figure, _) => {
+                    addFigure(figure, team, color);
+                    updateFigure(figure);
+                });
+            });
+        }
+    }
+}
+
 function shoot(current, figure, mark, data) {
     let outcome = data.outcome;
     let action = data.action;
@@ -390,25 +445,14 @@ window.onload = function () {
         figures[gameId] = {};
         params[gameId] = data.params;
 
+        if (!data.state.initialized) {
+            human.step = 'setup';
+        }
+
         let init = function (team) {
-            let player = data.params.player[team];
+            let player = params[gameId].player[team];
             appendLine(`Player ${team}: ${player}`);
-
-            $(`#${team}Player`).text(player);
-
-            if (player === 'Human') {
-                $(`#${team}Units`).append([
-                    $(`<h1 id="${team}Info" class="player-info"></h1>`),
-                    $(`<h1 id="${team}Pass" class="player-pass">Pass</h1>`)
-                        .on('click', (e) => human.clickPass(e, team))
-                        .hide()
-                ]);
-            }
-
-            data.state.figures[team].forEach((figure, _) => {
-                addFigure(figure, team);
-                updateFigure(figure);
-            });
+            initState(data.state, team);
         }
 
         init(RED);

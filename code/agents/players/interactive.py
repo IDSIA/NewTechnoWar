@@ -1,4 +1,6 @@
-from agents import PlayerDummy
+import numpy as np
+
+from agents import Player
 from core import GM
 from core.actions import Action, Respond
 from core.const import RED, BLUE
@@ -7,14 +9,16 @@ from core.game.state import GameState
 from utils.coordinates import to_cube
 
 
-class Human(PlayerDummy):
-    __slots__ = ['next_action', 'next_response']
+class Human(Player):
+    __slots__ = ['next_action', 'next_response', 'color', 'place']
 
     def __init__(self, team: str):
-        super().__init__(team)
-        self.name = 'Human'
+        super().__init__('Human', team)
         self.next_action: Action or None = None
         self.next_response: Respond or None = None
+
+        self.color: str = ''
+        self.place: dict = {}
 
     def _clear(self):
         self.next_action = None
@@ -35,16 +39,34 @@ class Human(PlayerDummy):
         return r
 
     def placeFigures(self, board: GameBoard, state: GameState) -> None:
-        # TODO
-        super().placeFigures(board, state)
+        for figure in state.getFigures(self.team):
+            if figure.index in self.place:
+                dst = self.place[figure.index]
+                state.moveFigure(figure, figure.position, dst)
 
     def chooseFigureGroups(self, board: GameBoard, state: GameState) -> None:
-        # TODO
-        super().chooseFigureGroups(board, state)
+        if self.color == '':
+            colors = list(state.choices[self.team].keys())
+            self.color = np.random.choice(colors)
+
+        state.choose(self.team, self.color)
 
     def nextAction(self, board: GameBoard, state: GameState, data: dict) -> None:
         action = data['action']
         self._clear()
+
+        if action == 'choose':
+            self.color = data['color']
+            return
+
+        if action == 'place':
+            idx = int(data['idx'])
+            x = int(data['x'])
+            y = int(data['y'])
+            pos = to_cube((x, y))
+
+            self.place[idx] = pos
+            return
 
         if action == 'pass':
             if 'idx' in data and data['team'] == self.team:

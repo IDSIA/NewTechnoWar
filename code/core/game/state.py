@@ -16,7 +16,7 @@ class GameState:
 
     __slots__ = [
         'name', 'turn', 'figures', 'posToFigure', 'smoke', 'figuresLOS', 'figuresDistance', 'lastAction',
-        'has_choice', 'choices'
+        'has_choice', 'choices', 'has_placement', 'placement_zone', 'initialized'
     ]
 
     def __init__(self, shape: tuple, name: str = ''):
@@ -52,11 +52,21 @@ class GameState:
 
         self.lastAction: Action or None = None
 
+        # group of units that can be chosen
         self.has_choice: Dict[str, bool] = {RED: False, BLUE: False}
         self.choices: Dict[str, Dict[str, List[Figure]]] = {
             RED: dict(),
             BLUE: dict()
         }
+
+        # zones where units can be placed
+        self.has_placement: Dict[str, bool] = {RED: False, BLUE: False}
+        self.placement_zone: Dict[str, np.ndarray] = {
+            RED: np.zeros(shape, dtype='uint8'),
+            BLUE: np.zeros(shape, dtype='uint8')
+        }
+
+        self.initialized: bool = False
 
     def vector(self) -> tuple:
         """Convert the state in a vector, used for internal hashing."""
@@ -86,17 +96,34 @@ class GameState:
     def __repr__(self) -> str:
         return f'{self.turn}:\n{self.figures}\n{self.posToFigure}'
 
+    def completeInit(self):
+        """Removes part used for placement of figures."""
+        self.has_choice = {RED: False, BLUE: False}
+        self.choices = None
+
+        self.has_placement = {RED: False, BLUE: False}
+        self.placement_zone = None
+
+        self.initialized = True
+
     def clearFigures(self, team: str) -> None:
         """Removes all figures from a team."""
         self.figures[team] = []
 
-    def addChoice(self, team: str, color: str, *figures: Figure) -> None:
+    def addPlacementZone(self, team: str, zone: np.array):
+        """Add a zone in the board where units can be placed."""
+        self.has_placement[team] = True
+        self.placement_zone[team] += zone
+
+    def addChoice(self, team: str, color: str, *newFigures: Figure) -> None:
         """Add a set of figure to the specified color group of figures."""
         self.has_choice[team] = True
         if color not in self.choices[team]:
             self.choices[team][color] = []
-        for figure in figures:
-            self.choices[team][color].append(figure)
+        for figure in newFigures:
+            figures = self.choices[team][color]
+            figure.index = len(figures)
+            figures.append(figure)
 
     def choose(self, team: str, color: str) -> None:
         """Choose and add the figures to use based on the given color."""

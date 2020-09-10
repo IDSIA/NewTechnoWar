@@ -14,8 +14,19 @@ class Human {
     execute() {
         this.actionParams.step = this.step;
         console.log(this.actionParams);
-        $.post('/game/human/click', this.actionParams, () => {
-            step();
+        $.post('/game/human/click', this.actionParams, (data) => {
+            if (this.step === 'setup') {
+                if (this.actionParams.action === 'place') {
+                    // move marker
+                    let team = data.team;
+                    let id = this.actionParams.fid.split(/-(.+)/)[1];
+                    let mark = $(document.getElementById(`mark-${id}`));
+                    mark.attr('transform', `translate(${data.x},${data.y + vEps})`);
+                    appendLine(`${team.toUpperCase().padEnd(5, " ")} moved unit to (${data.i},${data.j})`);
+                }
+            } else {
+                step();
+            }
             this.clear();
         }).fail((e) => {
             if (e.status === 403) {
@@ -45,11 +56,12 @@ class Human {
 
             this.clicked = true;
             this.actionParams = {
-                action: 'move',
+                action: this.step === 'setup' ? 'place' : 'move',
                 team: team,
                 idx: idx,
                 x: -1,
                 y: -1,
+                fid: event.currentTarget.id,
             }
         }
     }
@@ -104,6 +116,19 @@ class Human {
 
         this.actionParams.targetTeam = team;
         this.actionParams.targetIdx = idx;
+        this.execute();
+    }
+
+    clickChoose(event, team, color) {
+        event.stopPropagation();
+
+        this.actionParams = {
+            action: 'choose',
+            team: team,
+            color: color,
+        }
+
+        appendLine(`${team.toUpperCase().padEnd(5, " ")} choose ${color}`);
         this.execute();
     }
 }

@@ -79,7 +79,7 @@ class PlayerDummy(Player):
 
     def placeFigures(self, board: GameBoard, state: GameState) -> None:
         # select area
-        x, y = np.where(board.placement_zone[self.team] > 0)
+        x, y = np.where(state.placement_zone[self.team] > 0)
         figures = state.getFigures(self.team)
 
         # choose random positions
