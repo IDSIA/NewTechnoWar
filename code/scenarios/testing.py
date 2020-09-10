@@ -172,8 +172,8 @@ def scenarioTestLoaded() -> (GameBoard, GameState):
     state: GameState = GameState(board.shape)
 
     t1 = Tank((4, 4), RED, 'rTank1')
-    i11 = Infantry((4, 4), RED, 'rTank1')
-    i12 = Infantry((4, 4), RED, 'rTank1')
+    i11 = Infantry((4, 4), RED, 'rInf1')
+    i12 = Infantry((4, 4), RED, 'rInf2')
 
     t2 = Tank((12, 12), BLUE, 'bTank1')
 
