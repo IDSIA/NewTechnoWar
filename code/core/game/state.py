@@ -74,7 +74,7 @@ class GameState:
 
         for team in [RED, BLUE]:
             for f in self.figures[team]:
-                data += f.vector()
+                data += list(f.vector())
 
         return tuple(data)
 
