@@ -1,4 +1,5 @@
 import logging
+
 from utils.copy import deepcopy
 
 import numpy as np
@@ -6,6 +7,7 @@ import numpy as np
 import agents as players
 import scenarios
 from agents.players.player import Player
+from agents.players.interactive import Human
 from core import GM
 from core.actions import Attack, Move
 from core.const import RED, BLUE
@@ -27,7 +29,7 @@ def buildMatchManager(gid: str, scenario: str, red: str, blue: str, seed: int = 
 class MatchManager:
     __slots__ = [
         'gid', 'seed', 'actions_history', 'outcome', 'end', 'board', 'state', 'origin', 'gm', 'scenario', 'red', 'blue',
-        'first', 'second', 'step', 'update', 'winner',
+        'first', 'second', 'step', 'update', 'winner', 'humans'
     ]
 
     def __init__(self, gid: str, board: GameBoard, state: GameState, red: Player, blue: Player, seed: int = 42):
@@ -57,6 +59,7 @@ class MatchManager:
 
         self.red: Player = red
         self.blue: Player = blue
+        self.humans: bool = isinstance(self.red, Human) or isinstance(self.blue, Human)
 
         self.first = None
         self.second = None
@@ -86,17 +89,17 @@ class MatchManager:
 
         self.end = False
 
-        # check for need of placement
-        if self.state.has_placement[RED]:
-            self.red.placeFigures(self.board, self.state)
-        if self.state.has_placement[BLUE]:
-            self.blue.placeFigures(self.board, self.state)
-
         # check for need of choice
         if self.state.has_choice[RED]:
             self.red.chooseFigureGroups(self.board, self.state)
         if self.state.has_choice[BLUE]:
             self.blue.chooseFigureGroups(self.board, self.state)
+
+        # check for need of placement
+        if self.state.has_placement[RED]:
+            self.red.placeFigures(self.board, self.state)
+        if self.state.has_placement[BLUE]:
+            self.blue.placeFigures(self.board, self.state)
 
         self.state.completeInit()
 

@@ -190,7 +190,7 @@ function appendLine(text, newLine = true) {
 }
 
 function checkNextPlayer(data) {
-    if (data.next.step === 'init') {
+    if (data.next.step === 'init' && data.humans) {
         return
     }
 

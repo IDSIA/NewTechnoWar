@@ -1,6 +1,6 @@
 import numpy as np
 
-from agents import Player
+from agents.players.player import Player
 from core import GM
 from core.actions import Action, Respond
 from core.const import RED, BLUE

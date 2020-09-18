@@ -20,11 +20,11 @@ def index():
         try:
             if app.config['DEBUG']:
                 logging.info('Using debug configuration!')
-                redPlayer = 'Human'
-                bluePlayer = 'Human'
-                scen = 'scenarioJunction'
-                autoplay = False
-                seed = 1
+                redPlayer = 'AlphaBetaAgent'
+                bluePlayer = 'AlphaBetaAgent'
+                scen = 'scenarioJunctionExo'
+                autoplay = True
+                seed = 0
                 replay = ''
             else:
                 data = request.form
@@ -63,7 +63,7 @@ def index():
             )
             response.set_cookie('gameId', mm.gid)
         except Exception as e:
-            logging.error(e)
+            logging.exception(e)
             return redirect('/')
     else:
         logging.info(f'New lobby access')
@@ -208,6 +208,7 @@ def gameState():
             'state': mm.state,
             'params': app.params[mm.gid],
             'next': mm.nextPlayer(),
+            'humans': mm.humans,
         }), 200
 
     except ValueError as e:
@@ -240,6 +241,7 @@ def gameNextStep():
             'outcome': lastOutcome,
             'curr': curr,
             'next': nxt,
+            'humans': mm.humans,
         }), 200
 
     except ValueError as e:
