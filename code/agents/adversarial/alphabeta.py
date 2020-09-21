@@ -52,6 +52,7 @@ class AlphaBetaAgent(Player):
         nextActions = []
 
         if response:
+            nextActions.append(GM.actionPassResponse(team))
             for figure in state.getFiguresCanRespond(team):
                 nextActions += GM.buildResponses(board, state, figure)
         else:
