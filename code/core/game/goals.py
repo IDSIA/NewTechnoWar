@@ -5,6 +5,24 @@ from core.game.state import GameState
 from utils.coordinates import to_cube, Cube, cube_distance, cube_to_hex
 
 
+class GoalParams:
+    # parameters GoalEliminateOpponent
+    unit_team_lost: float = -2.0
+    unit_team_alive: float = 1.0
+    unit_enemy_killed: float = 5.0
+    unit_enemy_alive: float = 0.0
+
+    # parameters GoalReachPoint
+    reach_team_near: float = 2.0
+
+    # parameters GoalDefendPoint
+    defend_team_near: float = 2.0
+    defend_enemy_near: float = 0.5
+
+    # parameters GoalMaxTurn
+    wait_for_turn: float = 10.0
+
+
 class Goal:
     """A team has a specific goal."""
     __slots__ = ['team']
@@ -15,7 +33,7 @@ class Goal:
     def check(self, state: GameState) -> bool:
         raise NotImplementedError()
 
-    def score(self, state: GameState) -> float:
+    def score(self, state: GameState, p: GoalParams) -> float:
         return 0
 
 
@@ -30,14 +48,16 @@ class GoalEliminateOpponent(Goal):
         alive = [f for f in state.figures[self.hostiles] if not f.killed]
         return len(alive) == 0
 
-    def score(self, state: GameState):
+    def score(self, state: GameState, p: GoalParams):
         score = 0
 
+        # malus: lost a unit
         for f in state.figures[self.team]:
-            score += -2 if f.killed else +1
+            score += p.unit_team_lost if f.killed else p.unit_team_alive
 
+        # bonus kill a unit
         for f in state.figures[self.hostiles]:
-            score += +5 if f.killed else 0
+            score += p.unit_enemy_killed if f.killed else p.unit_enemy_alive
 
         return score
 
@@ -98,12 +118,13 @@ class GoalReachPoint(Goal):
 
         return False
 
-    def score(self, state: GameState) -> float:
+    def score(self, state: GameState, p: GoalParams) -> float:
         score = 0
 
+        # bonus: be near the target
         for figure in state.getFigures(self.team):
             if not figure.killed:
-                score += 2. * self.values[cube_to_hex(figure.position)] + 1
+                score += p.reach_team_near * self.values[cube_to_hex(figure.position)] + 1
 
         return score
 
@@ -121,12 +142,18 @@ class GoalDefendPoint(GoalReachPoint):
     def check(self, state: GameState) -> bool:
         return False
 
-    def score(self, state: GameState) -> float:
+    def score(self, state: GameState, p: GoalParams) -> float:
         score = 0
 
+        # bonus: be near the target
+        for figure in state.getFigures(self.team):
+            if not figure.killed:
+                score += p.defend_team_near * self.values[cube_to_hex(figure.position)] + 1
+
+        # malus: having enemy units near the target
         for figure in state.getFigures(self.hostiles):
             if not figure.killed:
-                score -= 0.2 * self.values[cube_to_hex(figure.position)] + 1
+                score -= p.defend_enemy_near * self.values[cube_to_hex(figure.position)] + 1
 
         return score
 
@@ -141,8 +168,9 @@ class GoalMaxTurn(Goal):
     def check(self, state: GameState) -> bool:
         return state.turn + 1 >= self.turn_max
 
-    def score(self, state: GameState) -> float:
-        return 10.0 / (self.turn_max - state.turn + 1)
+    def score(self, state: GameState, p: GoalParams) -> float:
+        # bonus: if waits until the end
+        return p.wait_for_turn / (self.turn_max - state.turn + 1)
 
 
 def goalAchieved(board, state: GameState) -> (bool, str):

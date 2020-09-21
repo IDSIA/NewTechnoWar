@@ -1,6 +1,6 @@
 from typing import List
 
-from core.figures import Figure
+from core.figures import Figure, NO_EFFECT
 from core.figures.weapons import Weapon
 from utils.coordinates import Cube, cube_to_hex
 
@@ -41,6 +41,19 @@ class Pass(Action):
 
     def __str__(self):
         return f'{super().__str__()}: Pass'
+
+
+class PassResponse(Pass):
+    """Action that just does nothing: used to avoid a response."""
+
+    def __init__(self, team: str):
+        super().__init__(team, Figure((0, 0), '', team, 0, NO_EFFECT))
+
+    def __repr__(self):
+        return f'{super().__repr__()} response'
+
+    def __str__(self):
+        return f'{super().__str__()} response'
 
 
 class Move(Action):

@@ -88,7 +88,9 @@ class GreedyAgent(Player):
                       sNoEffect: float) -> List[Tuple[float, Action]]:
         scores = []
 
-        for action in GM.buildResponses(board, state, figure):
+        responses = [GM.actionPassResponse(self.team)] + GM.buildResponses(board, state, figure)
+
+        for action in responses:
             # action have effect
             s1, _ = GM.activate(board, state, action, True)
             sEffect = evaluateState(self.boardValues, s1)

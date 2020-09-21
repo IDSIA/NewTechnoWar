@@ -73,6 +73,8 @@ class Human(Player):
                 idx = int(data['idx'])
                 figure = state.getFigureByIndex(self.team, idx)
                 self.next_action = GM.actionPass(figure)
+            else:
+                self.next_action = GM.actionPassResponse(self.team)
             return
 
         idx = int(data['idx'])

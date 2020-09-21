@@ -275,20 +275,25 @@ function step() {
 
         $('#btnTurn').removeClass('highlight');
 
-        let current = figures[gameId][figureData.id];
-        let figure = $(`#figure-${figureData.id}`);
-        let mark = $(document.getElementById(`mark-${figureData.id}`));
+        let mark, figure, current;
 
         switch (action.action) {
             case 'DoNothing':
                 break;
             case 'Move':
+                mark = $(document.getElementById(`mark-${figureData.id}`));
                 move(mark, action);
                 break;
             case 'Respond':
+                current = figures[gameId][figureData.id];
+                figure = $(`#figure-${figureData.id}`);
+                mark = $(document.getElementById(`mark-${figureData.id}`));
                 shoot(current, figure, mark, data);
                 break;
             case 'Attack':
+                current = figures[gameId][figureData.id];
+                figure = $(`#figure-${figureData.id}`);
+                mark = $(document.getElementById(`mark-${figureData.id}`));
                 shoot(current, figure, mark, data);
                 break;
             case 'Pass':

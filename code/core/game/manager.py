@@ -5,7 +5,7 @@ from typing import List
 import numpy as np
 
 from core.const import RED, BLUE
-from core.actions import Action, Move, Attack, Respond, Pass, LoadInto, AttackGround
+from core.actions import Action, Move, Attack, Respond, Pass, LoadInto, AttackGround, PassResponse
 from core.figures import Figure, FigureType
 from core.figures.status import IN_MOTION, UNDER_FIRE, NO_EFFECT, HIDDEN, CUT_OFF, LOADED
 from core.figures.weapons import Weapon
@@ -24,6 +24,9 @@ class GameManager(object):
 
     def actionPass(self, figure: Figure) -> Pass:
         return Pass(figure.team, figure)
+
+    def actionPassResponse(self, team: str) -> PassResponse:
+        return PassResponse(team)
 
     def actionMove(self, board: GameBoard, figure: Figure, path: list = None, destination: tuple = None) -> Move:
         """
@@ -338,8 +341,9 @@ class GameManager(object):
 
         if isinstance(action, Pass):
             logging.info(f'{action}')
-            f.activated = True
-            f.passed = True
+            if not isinstance(action, PassResponse):
+                f.activated = True
+                f.passed = True
             return {}
 
         f.stat = NO_EFFECT

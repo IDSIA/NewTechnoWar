@@ -114,6 +114,8 @@ class GameBoard:
             raise IndexError('Outside map!')
         except IndexError as _:
             return 1000.0
+        except KeyError as _:
+            return 1000.0
 
     def getProtectionLevel(self, pos: Cube):
         """Returns the protection level in the given position."""
