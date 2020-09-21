@@ -1,26 +1,26 @@
 import logging
 import math
 
-from agents import GreedyAgent
+from agents import Player
 from core import GM
 from core.actions import Action
 from core.const import RED, BLUE
 from core.game.board import GameBoard
-from core.game.goals import goalAchieved
+from core.game.goals import goalAchieved, GoalParams
 from core.game.state import GameState
 
 
-class AlphaBetaAgent(GreedyAgent):
+class AlphaBetaAgent(Player):
 
-    def __init__(self, team: str, maxDepth: int = 1):
-        super().__init__(team)
+    def __init__(self, team: str, maxDepth: int = 5):
+        super().__init__('AlphaBetaAgent', team)
 
         self.maxDepth: int = maxDepth
         self.cache: dict = {}
 
     def stateScore(self, board: GameBoard, state: GameState) -> float:
         goals = board.getObjectives(self.team)
-        return sum([goal.score(state) for goal in goals])
+        return sum([goal.score(state, self.goal_params) for goal in goals])
 
     def alpha_beta(self, board: GameBoard, state: GameState, alpha, beta, depth, team, response):
         stateHash = hash(state)
@@ -62,7 +62,7 @@ class AlphaBetaAgent(GreedyAgent):
                 nextActions += GM.buildMovements(board, state, figure)
 
         # RED maximize...
-        if team == RED:
+        if team == self.team:
             value = -math.inf
             action = None
             for nextAction in nextActions:
