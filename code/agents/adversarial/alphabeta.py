@@ -17,6 +17,7 @@ class AlphaBetaAgent(Player):
 
         self.maxDepth: int = maxDepth
         self.cache: dict = {}
+        self.goal_params: GoalParams = GoalParams()
 
     def stateScore(self, board: GameBoard, state: GameState) -> float:
         goals = board.getObjectives(self.team)
