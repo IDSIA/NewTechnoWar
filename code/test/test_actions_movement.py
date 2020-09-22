@@ -25,7 +25,7 @@ class TestMovementAction(unittest.TestCase):
         state.addFigure(self.tank)
 
         # initialization
-        self.mm = MatchManager('', board, state, red, blue)
+        self.mm = MatchManager('', red, blue, board, state)
 
     def testMoveToDestination(self):
         dst = (4, 4)

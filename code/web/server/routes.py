@@ -23,7 +23,7 @@ def index():
                 redPlayer = 'AlphaBetaAgent'
                 bluePlayer = 'AlphaBetaAgent'
                 scen = 'scenarioTest1v1ArmedRace'
-                autoplay = True
+                autoplay = not True
                 seed = 0
                 replay = ''
             else:
@@ -207,7 +207,7 @@ def gameState():
         return jsonify({
             'state': mm.state,
             'params': app.params[mm.gid],
-            'next': mm.nextPlayer(),
+            'next': mm.nextPlayerDict(),
             'humans': mm.humans,
         }), 200
 
@@ -222,9 +222,9 @@ def gameNextStep():
 
     try:
         _, mm = checkGameId()
-        curr = mm.nextPlayer()
+        curr = mm.nextPlayerDict()
         mm.nextStep()
-        nxt = mm.nextPlayer()
+        nxt = mm.nextPlayerDict()
 
         lastAction = None
         lastOutcome = None

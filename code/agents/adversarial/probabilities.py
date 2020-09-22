@@ -1,11 +1,14 @@
 from core import GM
 from core.const import RED, BLUE
-from core.actions import Attack, Move
+from core.actions import Attack, Move, PassResponse, Pass
 from core.game.board import GameBoard
 from core.game.state import GameState
 
 
 def probabilityOfSuccessfulAttack(board: GameBoard, state: GameState, action: Attack) -> float:
+    if isinstance(action, Pass) or isinstance(action, PassResponse):
+        return 0.0
+
     _, outcome = GM.activate(board, state, action)
     return outcome['hitScore'] / 20.0
 

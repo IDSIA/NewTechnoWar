@@ -285,7 +285,9 @@ def scenarioTest1v1ArmedRace() -> (GameBoard, GameState):
         GoalDefendPoint(BLUE, RED, board.shape, (8, 8)),
         # GoalReachPoint(BLUE, board.shape, (8, 8)),
         # GoalDefendPoint(RED, BLUE, board.shape, (8, 8)),
-        GoalMaxTurn(BLUE, 12)
+        GoalMaxTurn(BLUE, 12),
+        GoalEliminateOpponent(RED, BLUE),
+        GoalEliminateOpponent(BLUE, RED),
     )
 
     state.addFigure(
