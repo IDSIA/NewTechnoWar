@@ -151,6 +151,7 @@ class MatchManager:
             # if we achieved a goal, end
             self.winner = winner
             self.step = self._goEnd
+            logging.info(f'End game! Winner is {winner}')
             return
 
         if self.step == self._goRound:
