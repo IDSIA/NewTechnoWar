@@ -12,7 +12,7 @@ with open(op.join(dir_path, 'logger.config.yaml'), 'r') as stream:
 logging.config.dictConfig(config)
 
 if __name__ == '__main__':
-    mm = buildMatchManager('', 'scenarioTest1v1', 'PlayerDummy', 'PlayerDummy', seed=42)
+    mm = buildMatchManager('', 'scenarioTest1v1', 'PlayerDummy', 'PlayerDummy', seed=0)
 
     while not mm.end:
         mm.nextTurn()
