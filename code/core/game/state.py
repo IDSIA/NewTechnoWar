@@ -76,6 +76,7 @@ class GameState:
             for f in self.figures[team]:
                 data += f.vector()
 
+
         return tuple(data)
 
     def __eq__(self, other):

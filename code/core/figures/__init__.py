@@ -74,6 +74,38 @@ class Figure:
 
     def vector(self) -> tuple:
         """Data on the figure in vectorized version, used for internal hashing."""
+        info = [
+            "fid",
+            "team",
+            "name",
+            "index",
+            "kind",
+            "move",
+            "load",
+            "hp",
+            "hp_max",
+            "int_atk",
+            "int_def",
+            "endurance",
+            "stat_name",
+            "stat_value"
+            "bonus",
+            "activated",
+            "responded",
+            "attacked",
+            "moved",
+            "passed",
+            "killed",
+            "hit",
+            "attacked_by",
+            "can_transport",
+            "transport_capacity",
+            "len transporting",
+            "transported_by",
+            "positionX",
+            "positionY",
+            "positionZ"
+        ]
         data = [
             self.fid,
             self.team,
@@ -87,7 +119,8 @@ class Figure:
             self.int_atk,
             self.int_def,
             self.endurance,
-            self.stat,
+            self.stat.name,
+            self.stat.value,
             self.bonus,
             self.activated,
             self.responded,
@@ -106,12 +139,15 @@ class Figure:
         data += list(self.position)
 
         for d in DEFENSE_KEY_LIST:
+            info.append("defense " + d)
             data.append(self.defense[d] if d in self.defense else 0)
 
         for w in WEAPON_KEY_LIST:
+            info.append("weapon " + w)
             data.append(self.weapons[w].ammo if w in self.weapons else 0)
 
-        return tuple(data)
+
+        return tuple(zip(info, data))
 
     def __eq__(self, other):
         if not isinstance(other, Figure):

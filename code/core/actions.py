@@ -25,6 +25,9 @@ class Action:
     def __str__(self):
         return f'{self.team.upper():5}: {self.figure_name:10}'
 
+    def vector(self) -> tuple:
+        return self.team, self.figure_id, self.figure_name
+
 
 class Pass(Action):
     """Action that just does nothing: used to mark a Figure as activated."""
@@ -41,6 +44,10 @@ class Pass(Action):
 
     def __str__(self):
         return f'{super().__str__()}: Pass'
+
+    def vector(self) -> tuple:
+        v = super.vector()
+        return tuple(['Pass'] + list(v))
 
 
 class Move(Action):
@@ -65,6 +72,10 @@ class Move(Action):
     def __str__(self):
         return f'{super().__str__()}: Moved to {cube_to_hex(self.destination)}'
 
+    def vector(self) -> tuple:
+        v = super.vector()
+        return tuple(['Move'] + list(v))
+
 
 class LoadInto(Move):
     """Action to load a Figure in a transporter at the destination."""
@@ -87,6 +98,10 @@ class LoadInto(Move):
 
     def __str__(self):
         return f'{super().__str__()} and loaded into {self.transporter_name}'
+
+    def vector(self) -> tuple:
+        v = super.vector()
+        return tuple(['Load'] + list(v))
 
 
 class Attack(Action):
@@ -123,6 +138,10 @@ class Attack(Action):
     def __str__(self):
         return f'{super().__str__()}: Attack {self.target_name} with {self.weapon_name}'
 
+    def vector(self) -> tuple:
+        v = super.vector()
+        return tuple(['Attack'] + list(v))
+
 
 class Respond(Attack):
     """Similar to Attack, but created only after a Attack Action."""
@@ -144,6 +163,10 @@ class Respond(Attack):
 
     def __str__(self):
         return f'{super().__str__()} in response'
+
+    def vector(self) -> tuple:
+        v = super.vector()
+        return tuple(['Respond'] + list(v))
 
 
 class AttackGround(Action):
@@ -168,3 +191,7 @@ class AttackGround(Action):
 
     def __str__(self):
         return f'{super().__str__()}: Attack ground at {cube_to_hex(self.ground)} with {self.weapon_name}'
+
+    def vector(self) -> tuple:
+        v = super.vector()
+        return tuple(['Attack Ground'] + list(v))
