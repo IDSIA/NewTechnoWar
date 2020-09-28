@@ -75,39 +75,39 @@ class Figure:
     def vector(self) -> tuple:
         """Data on the figure in vectorized version, used for internal hashing."""
         info = [
-            "fid",
-            "team",
-            "name",
-            "index",
-            "kind",
-            "move",
-            "load",
-            "hp",
-            "hp_max",
-            "int_atk",
-            "int_def",
-            "endurance",
-            "stat_name",
-            "stat_value"
-            "bonus",
-            "activated",
-            "responded",
-            "attacked",
-            "moved",
-            "passed",
-            "killed",
-            "hit",
-            "attacked_by",
-            "can_transport",
-            "transport_capacity",
-            "len transporting",
-            "transported_by",
-            "positionX",
-            "positionY",
-            "positionZ"
+            #"fid" + self.team + self.name,
+            "team" + self.team + self.name,
+            "name" + self.team + self.name,
+            "index" + self.team + self.name,
+            "kind" + self.team + self.name,
+            "move" + self.team + self.name,
+            "load" + self.team + self.name,
+            "hp" + self.team + self.name,
+            "hp_max" + self.team + self.name,
+            "int_atk" + self.team + self.name,
+            "int_def" + self.team + self.name,
+            "endurance" + self.team + self.name,
+            "stat_name" + self.team + self.name,
+            "stat_value" + self.team + self.name,
+            "bonus" + self.team + self.name,
+            "activated" + self.team + self.name,
+            "responded" + self.team + self.name,
+            "attacked" + self.team + self.name,
+            "moved" + self.team + self.name,
+            "passed" + self.team + self.name,
+            "killed" + self.team + self.name,
+            "hit" + self.team + self.name,
+            "attacked_by" + self.team + self.name,
+            "can_transport" + self.team + self.name,
+            "transport_capacity" + self.team + self.name,
+            "len transporting" + self.team + self.name,
+            "transported_by" + self.team + self.name,
+            "positionX" + self.team + self.name,
+            "positionY" + self.team + self.name,
+            "positionZ" + self.team + self.name
         ]
         data = [
-            self.fid,
+            #self.fid,
             self.team,
             self.name,
             self.index,
@@ -135,19 +135,48 @@ class Figure:
             len(self.transporting),
             self.transported_by
         ]
+        '''print("FID",self.fid,
+            "TEAM",self.team,
+            "NAME",self.name,
+            "INDEX",self.index,
+            "KIND",self.kind,
+            "MOVE",self.move,
+            "LOAD",self.load,
+            "HP",self.hp,
+            "HP-M",self.hp_max,
+            "INT-ATK",self.int_atk,
+            "INT-DEF",self.int_def,
+            "ENDURANCE",self.endurance,
+            "STATN",self.stat.name,
+            "STATV",self.stat.value,
+            "BONUS",self.bonus,
+            "ACTIV",self.activated,
+            "RESPIN",self.responded,
+            "ATTACK",self.attacked,
+            "MOVED",self.moved,
+            "PASSED",self.passed,
+            "KILLED",self.killed,
+            "HIT",self.hit,
+            "ATTACKEDBY",self.attacked_by,
+            "CANTRAN",self.can_transport,
+            "TANSOCAP",self.transport_capacity,
+            "LENTRA",len(self.transporting),
+            "TRANBY",self.transported_by)'''
 
         data += list(self.position)
 
         for d in DEFENSE_KEY_LIST:
-            info.append("defense " + d)
+            info.append("defense " + d + self.team + self.name)
             data.append(self.defense[d] if d in self.defense else 0)
+            # print("D",self.defense[d])
 
         for w in WEAPON_KEY_LIST:
-            info.append("weapon " + w)
+            info.append("weapon " + w + self.team + self.name)
             data.append(self.weapons[w].ammo if w in self.weapons else 0)
+            # print("W",self.weapons[w].ammo)
 
-
-        return tuple(zip(info, data))
+        #return tuple(zip(info, data))
+        return tuple(data)
 
     def __eq__(self, other):
         if not isinstance(other, Figure):

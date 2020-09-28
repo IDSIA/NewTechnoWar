@@ -130,7 +130,7 @@ class MatchManager:
             response = self.second.chooseResponse(self.board, self.state)
             outcome = GM.step(self.board, self.state, response)
 
-            logging.info(f'{self.second.team} respond')
+            logging.debug(f'{self.second.team} respond')
 
             self.actions_history.append(response)
             self.outcome.append(outcome)
@@ -152,6 +152,7 @@ class MatchManager:
             self.winner = winner
             self.step = self._goEnd
             logging.info(f'End game! Winner is {winner}')
+
             return
 
         if self.step == self._goRound:

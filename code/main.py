@@ -12,8 +12,8 @@ with open(op.join(dir_path, 'logger.config.yaml'), 'r') as stream:
 logging.config.dictConfig(config)
 
 if __name__ == '__main__':
-    mm = buildMatchManager('', 'scenarioTest1v1', 'PlayerDummy', 'PlayerDummy', seed=0)
+    mm = buildMatchManager('', 'scenarioTest1v1', 'PlayerDummy', 'PlayerDummy', seed=532237451)
 
     while not mm.end:
-        mm.nextTurn()
-    #print(mm.state.vector())
+        mm.nextStep()
+    print(mm.winner)
