@@ -2,7 +2,7 @@ import numpy as np
 
 from agents import Player
 from core import GM
-from core.actions import Action, Pass
+from core.actions import Action, PassTeam, PassFigure
 from core.game.board import GameBoard
 from core.game.state import GameState
 from utils.coordinates import to_cube
@@ -46,7 +46,7 @@ class PlayerDummy(Player):
         actions = []
 
         if toa == ACTION_PASS:
-            actions = [Pass(self.team, f)]
+            actions = [PassTeam(self.team), PassFigure(f)]
 
         if toa == ACTION_MOVE:
             actions = moves

@@ -10,7 +10,7 @@ import scenarios
 from agents.players.player import Player
 from agents.players.interactive import Human
 from core import GM
-from core.actions import Attack, Move, Action, Respond
+from core.actions import Attack, Move, Action, Response
 from core.const import RED, BLUE
 from core.game.board import GameBoard
 from core.game.goals import goalAchieved
@@ -263,7 +263,7 @@ class MatchManager:
         self.end = False
         self.update = False
 
-        action = state.lastAction
+        action: Action = state.lastAction
         self.actions_history.append(action)
 
         if not action:
@@ -272,7 +272,7 @@ class MatchManager:
             self.first = self.red
             self.second = self.blue
 
-        elif isinstance(action, Respond):
+        elif isinstance(action, Response):
             self.step = self._goResponse
 
             if action.team == RED:

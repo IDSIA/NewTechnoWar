@@ -2,7 +2,7 @@ import numpy as np
 
 from agents.players.player import Player
 from core import GM
-from core.actions import Action, Respond
+from core.actions import Action, Response
 from core.const import RED, BLUE
 from core.game.board import GameBoard
 from core.game.state import GameState
@@ -15,7 +15,7 @@ class Human(Player):
     def __init__(self, team: str):
         super().__init__('Human', team)
         self.next_action: Action or None = None
-        self.next_response: Respond or None = None
+        self.next_response: Response or None = None
 
         self.color: str = ''
         self.place: dict = {}

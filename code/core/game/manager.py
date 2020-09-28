@@ -1,11 +1,11 @@
 import logging
-from utils.copy import deepcopy
 from typing import List
 
 import numpy as np
 
+from core.actions import Action, Move, LoadInto, Attack, AttackGround, AttackRespond, Pass, PassTeam, PassFigure, \
+    PassRespond, Response
 from core.const import RED, BLUE
-from core.actions import Action, Move, Attack, Respond, Pass, LoadInto, AttackGround, PassResponse
 from core.figures import Figure, FigureType
 from core.figures.status import IN_MOTION, UNDER_FIRE, NO_EFFECT, HIDDEN, CUT_OFF, LOADED
 from core.figures.weapons import Weapon
@@ -14,6 +14,7 @@ from core.game.board import GameBoard
 from core.game.pathfinding import reachablePath, findPath
 from core.game.state import GameState
 from utils.coordinates import cube_add, Cube, cube_distance, to_cube
+from utils.copy import deepcopy
 
 
 class GameManager(object):
@@ -22,11 +23,17 @@ class GameManager(object):
     def __init__(self):
         pass
 
-    def actionPass(self, figure: Figure) -> Pass:
-        return Pass(figure.team, figure)
+    def actionPassTeam(self, team: str) -> PassTeam:
+        """Creates a PassTeam action where the whole team will do nothing in this step."""
+        return PassTeam(team)
 
-    def actionPassResponse(self, team: str) -> PassResponse:
-        return PassResponse(team)
+    def actionPassFigure(self, figure: Figure) -> PassFigure:
+        """Creates a PassFigure action where the given figure will be activated but no action will be performed."""
+        return PassFigure(figure)
+
+    def actionPassResponse(self, team: str) -> PassRespond:
+        """Creates a PassResponse action where a team will give no response in this step."""
+        return PassRespond(team)
 
     def actionMove(self, board: GameBoard, figure: Figure, path: list = None, destination: tuple = None) -> Move:
         """
@@ -44,7 +51,7 @@ class GameManager(object):
             path = findPath(figure.position, destination, board, figure.kind)
             if len(path) - 1 > (figure.move - figure.load):
                 raise ValueError(f'destination unreachable for {figure} to {path[-1]}')
-        return Move(figure.team, figure, path)
+        return Move(figure, path)
 
     @staticmethod
     def actionLoadInto(board: GameBoard, figure: Figure, transporter: Figure, path: List[Cube] = None) -> LoadInto:
@@ -57,7 +64,7 @@ class GameManager(object):
             path = findPath(figure.position, transporter.position, board, figure.kind)
             if len(path) - 1 > (figure.move - figure.load):
                 raise ValueError(f'destination unreachable for {figure} to {path[-1]}')
-        return LoadInto(figure.team, figure, path, transporter)
+        return LoadInto(figure, path, transporter)
 
     def buildMovements(self, board: GameBoard, state: GameState, figure: Figure) -> List[Move]:
         """Build all the movement actions for a figure. All the other units are considered as obstacles."""
@@ -73,6 +80,10 @@ class GameManager(object):
                 continue
             destinationFigures = state.getFiguresByPos(figure.team, path[-1])
             availableTransporters = [f for f in destinationFigures if f.canTransport(figure)]
+
+            if len(destinationFigures) > 1 and not availableTransporters:
+                # we have already another unit on the destination
+                continue
 
             # move to destination
             moves.append(self.actionMove(board, figure, path))
@@ -148,7 +159,7 @@ class GameManager(object):
         if not weapon.max_range >= len(lof) - 1:
             raise ValueError(f'{weapon} cannot hit {target} from {figure.position}: out of max range')
 
-        return figure.team, figure, target, guard, weapon, los, lof
+        return figure, target, guard, weapon, los, lof
 
     def actionAttack(self, board: GameBoard, state: GameState, figure: Figure, target: Figure,
                      weapon: Weapon) -> Attack:
@@ -182,7 +193,7 @@ class GameManager(object):
         return attacks
 
     def actionRespond(self, board: GameBoard, state: GameState, figure: Figure, target: Figure,
-                      weapon: Weapon) -> Respond:
+                      weapon: Weapon) -> AttackRespond:
         """
         Creates a Respond action for a figure given the specified target and weapon. Can raise ValueError if the shot
         is not doable.
@@ -191,9 +202,9 @@ class GameManager(object):
         args = self.canShoot(board, state, figure, target, weapon)
         if not args:
             raise ValueError
-        return Respond(*args)
+        return AttackRespond(*args)
 
-    def buildResponses(self, board: GameBoard, state: GameState, figure: Figure, lastAction=None) -> List[Respond]:
+    def buildResponses(self, board: GameBoard, state: GameState, figure: Figure, lastAction=None) -> List[Response]:
         """Returns a list of all possible response action that can be performed."""
 
         responses = []
@@ -232,7 +243,7 @@ class GameManager(object):
         if cube_distance(figure.position, ground) > weapon.max_range:
             raise ValueError(f'weapon {weapon} cannot reach {ground} from {figure.position}')
 
-        return AttackGround(figure.team, figure, ground, weapon)
+        return AttackGround(figure, ground, weapon)
 
     def buildSupportAttacks(self, board: GameBoard, state: GameState, figure: Figure) -> List[AttackGround]:
         """Returns a list of all possible SupportAttack actions that can be performed."""
@@ -250,7 +261,9 @@ class GameManager(object):
     def buildActionsForFigure(self, board: GameBoard, state: GameState, figure: Figure) -> List[Action]:
         """Build all possible actions for the given figure."""
 
-        actions = []
+        actions = [
+            self.actionPassFigure(figure)
+        ]
 
         for movement in self.buildMovements(board, state, figure):
             actions.append(movement)
@@ -263,7 +276,7 @@ class GameManager(object):
 
         return actions
 
-    def buildResponsesForFigure(self, board: GameBoard, state: GameState, figure: Figure) -> List[Respond]:
+    def buildResponsesForFigure(self, board: GameBoard, state: GameState, figure: Figure) -> List[Response]:
         """Build all possible responses for the given figure."""
 
         actions = []
@@ -278,24 +291,24 @@ class GameManager(object):
         Build a list with all the possible actions that can be executed by an team with the current status of the board.
         """
 
-        actions = []
+        actions = [self.actionPassTeam(team)]
 
         for figure in state.figures[team]:
             actions += self.buildActionsForFigure(board, state, figure)
 
         return actions
 
-    def buildResponsesForTeam(self, board: GameBoard, state: GameState, team: str) -> List[Respond]:
+    def buildResponsesForTeam(self, board: GameBoard, state: GameState, team: str) -> List[Response]:
         """
         Build a list with all the possible actions that can be executed by an team with the current status of the board.
         """
 
-        actions = []
+        responses = [self.actionPassResponse(team)]
 
         for figure in state.figures[team]:
-            actions += self.buildResponsesForFigure(board, state, figure)
+            responses += self.buildResponsesForFigure(board, state, figure)
 
-        return actions
+        return responses
 
     def activate(self, board: GameBoard, state: GameState, action: Action, forceHit: bool = False) -> (GameState, dict):
         """Apply the step method to a deepcopy of the given GameState."""
@@ -333,24 +346,24 @@ class GameManager(object):
     def step(self, board: GameBoard, state: GameState, action: Action, forceHit: bool = False) -> dict:
         """Update the given state with the given action in a irreversible way."""
 
-        f: Figure = state.getFigure(action)  # who performs the attack action
-        team: str = f.team  # team performing action
+        team: str = action.team  # team performing action
 
         logging.debug(action)
         state.lastAction = action
 
         if isinstance(action, Pass):
             logging.info(f'{action}')
-            if not isinstance(action, PassResponse):
+            if isinstance(action, PassFigure):
+                f: Figure = state.getFigure(action)  # who performs the action
                 f.activated = True
                 f.passed = True
             return {}
 
-        f.stat = NO_EFFECT
-
         if isinstance(action, Move):
+            f: Figure = state.getFigure(action)  # who performs the action
             f.activated = True
             f.moved = True
+            f.stat = IN_MOTION
             if isinstance(action, LoadInto):
                 # figure moves inside transporter
                 t = state.getTransporter(action)
@@ -361,7 +374,6 @@ class GameManager(object):
                 t.transportUnload(f)
 
             state.moveFigure(f, f.position, action.destination)
-            f.stat = IN_MOTION
             logging.info(f'{action}')
 
             for transported in f.transporting:
@@ -372,9 +384,11 @@ class GameManager(object):
             return {}
 
         if isinstance(action, AttackGround):
+            f: Figure = state.getFigure(action)  # who performs the action
             x: Cube = action.ground
             w: Weapon = state.getWeapon(action)
 
+            f.stat = NO_EFFECT
             f.activated = True
             f.attacked = True
             w.shoot()
@@ -398,6 +412,7 @@ class GameManager(object):
             return {}
 
         if isinstance(action, Attack):  # Respond *is* an attack action
+            f: Figure = state.getFigure(action)  # who performs the action
             t: Figure = state.getTarget(action)  # target
             # g: Figure = action.guard  # who has line-of-sight on target
             w: Weapon = state.getWeapon(action)
@@ -405,6 +420,7 @@ class GameManager(object):
             lof: list = action.lof  # line-of-fire on target of figure
 
             # consume ammunition
+            f.stat = NO_EFFECT
             w.shoot()
 
             if forceHit:
@@ -413,7 +429,7 @@ class GameManager(object):
                 score = np.random.choice(range(1, 21), size=w.dices)
 
             # attack/response
-            if isinstance(action, Respond):
+            if isinstance(action, Response):
                 ATK = w.atk_response
                 INT = f.int_def
                 # can respond only once in a turn
