@@ -71,6 +71,7 @@ class GameState:
     def vector(self) -> tuple:
         """Convert the state in a vector, used for internal hashing."""
         data = []
+        info=[]
 
         for team in [RED, BLUE]:
             for f in self.figures[team]:
