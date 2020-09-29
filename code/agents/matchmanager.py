@@ -7,8 +7,8 @@ import numpy as np
 
 import agents as players
 import scenarios
-from agents.players.player import Player
-from agents.players.interactive import Human
+from agents import Agent
+from agents.interactive.interactive import Human
 from core import GM
 from core.actions import Attack, Move, Action, Response
 from core.const import RED, BLUE
@@ -21,8 +21,8 @@ def buildMatchManager(gid: str, scenario: str, red: str, blue: str, seed: int = 
     """Utility function to create a standard MatchManager from string parameters."""
     board, state = getattr(scenarios, scenario)()
 
-    pRed: Player = getattr(players, red)(RED)
-    pBlue: Player = getattr(players, blue)(BLUE)
+    pRed: Agent = getattr(players, red)(RED)
+    pBlue: Agent = getattr(players, blue)(BLUE)
 
     return MatchManager(gid, pRed, pBlue, board, state, seed)
 
@@ -33,7 +33,7 @@ class MatchManager:
         'first', 'second', 'step', 'update', 'winner', 'humans'
     ]
 
-    def __init__(self, gid: str, red: Player, blue: Player, board: GameBoard = None, state: GameState = None,
+    def __init__(self, gid: str, red: Agent, blue: Agent, board: GameBoard = None, state: GameState = None,
                  seed: int = 42):
         """
         Initialize the state-machine.
@@ -41,8 +41,8 @@ class MatchManager:
         :param gid:         Unique identifier.
         :param board:       Static descriptor of the game.
         :param state:       Dynamic descriptor of the game.
-        :param red:         String value of the player to use. Check module agent.players for a list.
-        :param blue:        String value of the player to use. Check module agent.players for a list.
+        :param red:         String value of the player to use. Check module agent.interactive for a list.
+        :param blue:        String value of the player to use. Check module agent.interactive for a list.
         :param seed:        Random seed value (default: 42)
         """
         self.gid: str = gid
@@ -59,8 +59,8 @@ class MatchManager:
         self.state: GameState = state
         self.origin: GameState = deepcopy(state)
 
-        self.red: Player = red
-        self.blue: Player = blue
+        self.red: Agent = red
+        self.blue: Agent = blue
         self.humans: bool = isinstance(self.red, Human) or isinstance(self.blue, Human)
 
         self.first = None

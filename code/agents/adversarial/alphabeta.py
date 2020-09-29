@@ -1,18 +1,20 @@
 import logging
 import math
 
-from agents import Player, MatchManager
+from agents import Agent, MatchManager, GreedyAgent
+from agents.commons import stateScore
 from core import GM
 from core.actions import Action
 from core.const import RED, BLUE
 from core.game.board import GameBoard
 from core.game.goals import GoalParams
 from core.game.state import GameState
+from utils.copy import deepcopy
 
 logger = logging.getLogger()
 
 
-class ABPuppet(Player):
+class ABPuppet(Agent):
     """This is just a "puppet", a fake-agent that answer always with the same action/response, that can be changed."""
 
     def __init__(self, team: str):
@@ -28,7 +30,7 @@ class ABPuppet(Player):
         return self.response
 
 
-class AlphaBetaAgent(Player):
+class AlphaBetaAgent(Agent):
 
     def __init__(self, team: str, maxDepth: int = 3):
         super().__init__('AlphaBetaAgent', team)
@@ -39,10 +41,6 @@ class AlphaBetaAgent(Player):
 
         self.puppets = {RED: ABPuppet(RED), BLUE: ABPuppet(BLUE)}
         self.mm = MatchManager('', self.puppets[RED], self.puppets[BLUE])
-
-    def stateScore(self, board: GameBoard, state: GameState) -> float:
-        goals = board.getObjectives(self.team)
-        return sum([goal.score(state, self.goal_params) for goal in goals])
 
     def alpha_beta(self, board: GameBoard, state: GameState, alpha, beta, depth):
         stateHash = hash(state)
@@ -57,19 +55,19 @@ class AlphaBetaAgent(Player):
             step, team, _ = self.mm.nextPlayer()
 
         if depth == 0 or step == 'end' or team == '':
-            score = self.stateScore(board, state)
+            score = stateScore(self.team, self.goal_params, board, state)
             self.cache[hash(state)] = score
             return score, None
 
         nextActions = []
 
         if step == 'response':
-            nextActions.append(GM.actionPassResponse(team))
+            nextActions += [GM.actionPassResponse(team)]
             for figure in state.getFiguresCanRespond(team):
                 nextActions += GM.buildResponses(board, state, figure)
         else:
             for figure in state.getFiguresCanBeActivated(team):
-                nextActions.append(GM.actionPass(figure))
+                nextActions += [GM.actionPassFigure(figure)]
 
                 # standard actions
                 nextActions += GM.buildAttacks(board, state, figure)
@@ -138,3 +136,28 @@ class AlphaBetaAgent(Player):
             raise ValueError('no response given')
 
         return action
+
+    def placeFigures(self, board: GameBoard, state: GameState) -> None:
+        """Uses GreedyAgent placer method."""
+        # TODO: find a better placer
+        ga = GreedyAgent(self.team)
+        ga.placeFigures(board, state)
+
+    def chooseFigureGroups(self, board: GameBoard, state: GameState) -> None:
+        """Plays a game for each color and choose the best score."""
+        colors = list(state.choices[self.team].keys())
+
+        max_color = None
+        max_value = -math.inf
+
+        for color in colors:
+            s: GameState = deepcopy(state)
+            s.choose(self.team, color)
+            score, _ = self.alpha_beta(board, s, -math.inf, math.inf, self.maxDepth)
+
+            if score > max_value:
+                max_value = score
+                max_color = color
+
+        state.choose(self.team, max_color)
+        logging.info(f'{self.team:5}: choose positions color {max_color}')

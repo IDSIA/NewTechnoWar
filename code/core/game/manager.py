@@ -60,6 +60,9 @@ class GameManager(object):
         it will be computed. It can raise a ValueError exception if the destination is unreachable.
         """
 
+        if transporter.killed:
+            raise ValueError(f'transporter {transporter} has been destroyed')
+
         if not path:
             path = findPath(figure.position, transporter.position, board, figure.kind)
             if len(path) - 1 > (figure.move - figure.load):
@@ -81,17 +84,18 @@ class GameManager(object):
             destinationFigures = state.getFiguresByPos(figure.team, path[-1])
             availableTransporters = [f for f in destinationFigures if f.canTransport(figure)]
 
-            if len(destinationFigures) > 1 and not availableTransporters:
+            if len(destinationFigures) > 0 and not availableTransporters:
                 # we have already another unit on the destination
                 continue
-
-            # move to destination
-            moves.append(self.actionMove(board, figure, path))
 
             if availableTransporters:
                 # load into transporter action
                 for transporter in availableTransporters:
-                    moves.append(self.actionLoadInto(board, figure, transporter, path))
+                    if not transporter.killed:
+                        moves.append(self.actionLoadInto(board, figure, transporter, path))
+            else:
+                # move to destination
+                moves.append(self.actionMove(board, figure, path))
 
         return moves
 

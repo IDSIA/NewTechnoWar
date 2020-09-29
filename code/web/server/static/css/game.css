@@ -365,6 +365,10 @@ svg {
     background-color: green !important;
 }
 
+.transported {
+    background-color: white !important;
+}
+
 div.killed {
     background-color: #222222;
     color: black;

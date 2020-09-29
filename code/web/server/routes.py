@@ -84,7 +84,7 @@ def index():
 
         players = [
             'Human',
-            'PlayerDummy',
+            'RandomAgent',
             'GreedyAgent',
             'AlphaBetaAgent',
         ]

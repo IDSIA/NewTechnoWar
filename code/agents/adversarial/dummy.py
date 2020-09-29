@@ -1,6 +1,6 @@
 import numpy as np
 
-from agents import Player
+from agents import Agent
 from core import GM
 from core.actions import Action, PassTeam, PassFigure
 from core.game.board import GameBoard
@@ -12,7 +12,7 @@ ACTION_ATTACK = 1
 ACTION_PASS = 2
 
 
-class PlayerDummy(Player):
+class RandomAgent(Agent):
 
     def __init__(self, team: str):
         super().__init__('Dummy', team)

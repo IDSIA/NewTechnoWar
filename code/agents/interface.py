@@ -3,7 +3,7 @@ from core.game.board import GameBoard
 from core.game.state import GameState
 
 
-class Player:
+class Agent:
 
     def __init__(self, name: str, team: str):
         self.name = name
