@@ -2,6 +2,7 @@ from typing import Dict, List
 
 import numpy as np
 
+from core.actions.basics import ActionFigure
 from core.const import RED, BLUE
 from core.actions import Action, Attack, AttackGround, LoadInto
 from core.figures import FigureType, Figure, Weapon
@@ -141,7 +142,7 @@ class GameState:
             figures.append(figure)
             self.moveFigure(figure, dst=figure.position)
 
-    def getFigure(self, action: Action) -> Figure:
+    def getFigure(self, action: ActionFigure) -> Figure:
         """Given an action, returns the figure that performs such action."""
         return self.getFigureByIndex(action.team, action.figure_id)
 
@@ -163,6 +164,9 @@ class GameState:
 
     def getFiguresByPos(self, team: str, pos: tuple) -> List[Figure]:
         """Returns all the figures that occupy the given position."""
+
+        # TODO: only one unit per hexagon!
+
         if len(pos) == 2:
             pos = to_cube(pos)
         if pos not in self.posToFigure[team]:

@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 from utils.copy import deepcopy
 
@@ -6,10 +7,10 @@ import numpy as np
 
 import agents as players
 import scenarios
-from agents.players.player import Player
-from agents.players.interactive import Human
+from agents import Agent
+from agents.interactive.interactive import Human
 from core import GM
-from core.actions import Attack, Move
+from core.actions import Attack, Move, Action, Response
 from core.const import RED, BLUE
 from core.game.board import GameBoard
 from core.game.goals import goalAchieved
@@ -20,10 +21,10 @@ def buildMatchManager(gid: str, scenario: str, red: str, blue: str, seed: int = 
     """Utility function to create a standard MatchManager from string parameters."""
     board, state = getattr(scenarios, scenario)()
 
-    pRed: Player = getattr(players, red)(RED)
-    pBlue: Player = getattr(players, blue)(BLUE)
+    pRed: Agent = getattr(players, red)(RED)
+    pBlue: Agent = getattr(players, blue)(BLUE)
 
-    return MatchManager(gid, board, state, pRed, pBlue, seed)
+    return MatchManager(gid, pRed, pBlue, board, state, seed)
 
 
 class MatchManager:
@@ -32,22 +33,23 @@ class MatchManager:
         'first', 'second', 'step', 'update', 'winner', 'humans'
     ]
 
-    def __init__(self, gid: str, board: GameBoard, state: GameState, red: Player, blue: Player, seed: int = 42):
+    def __init__(self, gid: str, red: Agent, blue: Agent, board: GameBoard = None, state: GameState = None,
+                 seed: int = 42):
         """
         Initialize the state-machine.
 
         :param gid:         Unique identifier.
         :param board:       Static descriptor of the game.
         :param state:       Dynamic descriptor of the game.
-        :param red:         String value of the player to use. Check module agent.players for a list.
-        :param blue:        String value of the player to use. Check module agent.players for a list.
+        :param red:         String value of the player to use. Check module agent.interactive for a list.
+        :param blue:        String value of the player to use. Check module agent.interactive for a list.
         :param seed:        Random seed value (default: 42)
         """
         self.gid: str = gid
         self.seed: int = seed
 
-        self.actions_history: list = []
-        self.outcome: list = []
+        self.actions_history: List[Action] = []
+        self.outcome: List[dict] = []
 
         self.winner: str = ''
         self.end: bool = False
@@ -57,8 +59,8 @@ class MatchManager:
         self.state: GameState = state
         self.origin: GameState = deepcopy(state)
 
-        self.red: Player = red
-        self.blue: Player = blue
+        self.red: Agent = red
+        self.blue: Agent = blue
         self.humans: bool = isinstance(self.red, Human) or isinstance(self.blue, Human)
 
         self.first = None
@@ -78,6 +80,10 @@ class MatchManager:
         self.update = False
 
         self._goInit()
+
+    def _store(self, action: Action = None, outcome: dict = None):
+        self.actions_history.append(action)
+        self.outcome.append(outcome if outcome else {})
 
     def _goInit(self):
         """Initialization step."""
@@ -115,12 +121,11 @@ class MatchManager:
             action = self.first.chooseAction(self.board, self.state)
             outcome = GM.step(self.board, self.state, action)
 
-            self.actions_history.append(action)
-            self.outcome.append(outcome)
+            self._store(action, outcome)
 
         except ValueError as e:
             logging.info(f'{self.first.team:5}: {e}')
-            self.actions_history.append(None)
+            self._store()
 
         finally:
             self._goCheck()
@@ -135,13 +140,11 @@ class MatchManager:
 
             logging.info(f'{self.second.team} respond')
 
-            self.actions_history.append(response)
-            self.outcome.append(outcome)
+            self._store(response, outcome)
 
         except ValueError as e:
             logging.info(f'{self.second.team:5}: {e}')
-            self.actions_history.append(None)
-            self.outcome.append({})
+            self._store()
 
         finally:
             self._goCheck()
@@ -164,12 +167,16 @@ class MatchManager:
                 self.step = self._goResponse
                 return
 
-        if self.state.getFiguresCanBeActivated(self.first.team) or self.state.getFiguresCanBeActivated(
-                self.second.team):
+        firsts = self.state.getFiguresCanBeActivated(self.first.team)
+        seconds = self.state.getFiguresCanBeActivated(self.second.team)
+        if firsts or seconds:
             # if there are still figure to activate, continue with a round
-            if not self.step == self._goUpdate:
-                # invert only if it is not an update
-                self.first, self.second = self.second, self.first
+            if self.step == self._goUpdate:
+                self.first, self.second = self.red, self.blue
+            else:
+                # invert only if it is not an update and seconds still have figures
+                if seconds:
+                    self.first, self.second = self.second, self.first
 
             self.step = self._goRound
             return
@@ -218,6 +225,7 @@ class MatchManager:
         return self.blue
 
     def nextPlayer(self):
+        """Returns the next step, the next player, and if it is human or not"""
         step = ''
         nextPlayer = ''
         nextHuman = False
@@ -237,8 +245,51 @@ class MatchManager:
         if self.step == self._goEnd:
             step = 'end'
 
+        return step, nextPlayer, nextHuman
+
+    def nextPlayerDict(self):
+        step, nextPlayer, nextHuman = self.nextPlayer()
         return {
             'step': step,
             'player': nextPlayer,
             'isHuman': nextHuman
         }
+
+    def loadState(self, board: GameBoard, state: GameState):
+        """Use this method to override the current state of a MatchManager object."""
+        self.board = board
+        self.state = state
+
+        self.end = False
+        self.update = False
+
+        action: Action = state.lastAction
+        self.actions_history.append(action)
+
+        if not action:
+            self.step = self._goUpdate
+            self.update = True
+            self.first = self.red
+            self.second = self.blue
+
+        elif isinstance(action, Response):
+            self.step = self._goResponse
+
+            if action.team == RED:
+                self.first = self.blue
+                self.second = self.red
+            else:
+                self.first = self.red
+                self.second = self.blue
+
+        else:
+            self.step = self._goRound
+
+            if action.team == RED:
+                self.first = self.red
+                self.second = self.blue
+            else:
+                self.first = self.blue
+                self.second = self.red
+
+        self._goCheck()

@@ -103,9 +103,9 @@ class TestFigures(unittest.TestCase):
         self.assertFalse(self.inf_2.activated)
         self.assertFalse(self.inf_2.responded)
 
-        p1 = GM.actionPass(self.inf_1)
+        p1 = GM.actionPassFigure(self.inf_1)
         r1 = GM.actionRespond(self.board, self.state, self.inf_1, self.target_2, self.inf_1.weapons['AR'])
-        p2 = GM.actionPass(self.inf_2)
+        p2 = GM.actionPassFigure(self.inf_2)
         r2 = GM.actionRespond(self.board, self.state, self.inf_2, self.target_3, self.inf_1.weapons['AR'])
 
         # check that attack activate unit

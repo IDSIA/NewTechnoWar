@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block pagestyles %}
-    <link href="{{ url_for('static', filename='css/lobby.css', version='20200717') }}" rel="stylesheet" type="text/css">
+    <link href="{{ url_for('static', filename='css/lobby.css') | autoversion }}" rel="stylesheet" type="text/css">
 {% endblock %}
 
 {% block content %}
@@ -46,5 +46,5 @@
 {% endblock %}
 
 {% block additionalscripts %}
-    <script src="{{ url_for('static', filename='js/lobby.js', version='20200717') }}"></script>
+    <script src="{{ url_for('static', filename='js/lobby.js') | autoversion }}"></script>
 {% endblock %}

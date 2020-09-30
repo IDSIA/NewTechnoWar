@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block pagestyles %}
-    <link href="{{ url_for('static', filename='css/game.css', version='20200603') }}" rel="stylesheet" type="text/css">
+    <link href="{{ url_for('static', filename='css/game.css') | autoversion }}" rel="stylesheet" type="text/css">
 {% endblock %}
 
 {% block content %}
@@ -97,7 +97,7 @@
 {% endblock %}
 
 {% block additionalscripts %}
-    <script src="{{ url_for('static', filename='js/svg-pan-zoom.js', version='20200818') }}"></script>
-    <script src="{{ url_for('static', filename='js/human.js', version='20200818') }}"></script>
-    <script src="{{ url_for('static', filename='js/game.js', version='20200818') }}"></script>
+    <script src="{{ url_for('static', filename='js/svg-pan-zoom.js') | autoversion }}"></script>
+    <script src="{{ url_for('static', filename='js/human.js') | autoversion }}"></script>
+    <script src="{{ url_for('static', filename='js/game.js') | autoversion }}"></script>
 {% endblock %}
