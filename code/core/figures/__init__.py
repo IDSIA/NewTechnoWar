@@ -74,7 +74,7 @@ class Figure:
 
     def vectorInfo(self) -> tuple:
         info = [
-            "fid_" + self.team + "_" + self.name,
+            #"fid_" + self.team + "_" + self.name,
             "team_" + self.team + "_" + self.name,
             "name_" + self.team + "_" + self.name,
             "index_" + self.team + "_" + self.name,
@@ -116,7 +116,7 @@ class Figure:
     def vector(self) -> tuple:
         """Data on the figure in vectorized version, used for internal hashing."""
         data = [
-            self.fid,
+            #self.fid,
             self.team,
             self.name,
             self.index,
