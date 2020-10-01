@@ -71,14 +71,22 @@ class GameState:
     def vector(self) -> tuple:
         """Convert the state in a vector, used for internal hashing."""
         data = []
-        info=[]
 
         for team in [RED, BLUE]:
             for f in self.figures[team]:
                 data += f.vector()
 
-
         return tuple(data)
+
+    def vectorInfo(self) -> tuple:
+        """Convert the state in a vector, used for internal hashing."""
+        info = []
+
+        for team in [RED, BLUE]:
+            for f in self.figures[team]:
+                info += f.vectorInfo()
+
+        return tuple(info)
 
     def __eq__(self, other):
         if not other:

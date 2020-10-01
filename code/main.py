@@ -16,4 +16,3 @@ if __name__ == '__main__':
 
     while not mm.end:
         mm.nextStep()
-    print(mm.winner)
