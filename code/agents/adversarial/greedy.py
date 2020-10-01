@@ -35,10 +35,13 @@ class GreedyAgent(Agent):
 
         return score
 
-    def scorePass(self, board: GameBoard, state: GameState) -> List[Tuple[float, Action]]:
-        action = GM.actionPassTeam(self.team)
+    def scorePass(self, board: GameBoard, state: GameState, figure: Figure = None) -> List[Tuple[float, Action]]:
+        if figure:
+            action = GM.actionPassFigure(figure)
+        else:
+            action = GM.actionPassTeam(self.team)
         score = self.evaluateState(board, state, action)
-        return [score, action]
+        return [(score, action)]
 
     def scoreMove(self, board: GameBoard, state: GameState, figure: Figure) -> List[Tuple[float, Action]]:
         scores = []
@@ -96,10 +99,11 @@ class GreedyAgent(Agent):
         return min_value, min_action
 
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
-        scores = [self.scorePass(board, state)]
+        scores = []
 
         # compute all scores for possible actions for each available unit
         for figure in state.getFiguresCanBeActivated(self.team):
+            scores += self.scorePass(board, state, figure)
             scores += self.scoreMove(board, state, figure)
             scores += self.scoreAttack(board, state, figure)
 
