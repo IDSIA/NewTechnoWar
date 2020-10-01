@@ -4,7 +4,6 @@ class Terrain:
     OPEN_GROUND = 0
     ROAD = 1
     ISOLATED_TREE = 2
-    # TODO: how to model 'edge of the forest'? This should be something that gives no cover but protection only
     FOREST = 3
     URBAN = 4
     BUILDING = 5

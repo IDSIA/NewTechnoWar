@@ -365,6 +365,10 @@ svg {
     background-color: green !important;
 }
 
+.transported {
+    background-color: white !important;
+}
+
 div.killed {
     background-color: #222222;
     color: black;
@@ -465,7 +469,7 @@ g.killed.blue > circle {
 
 g.hit.red > circle {
     /* this inversion is done on purpose! */
-    stroke: #1e90ff;
+    stroke: dodgerblue;
     stroke-width: 1;
 }
 

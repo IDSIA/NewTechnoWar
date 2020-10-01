@@ -1,4 +1,5 @@
 import logging
+import os
 import random
 import uuid
 
@@ -20,11 +21,11 @@ def index():
         try:
             if app.config['DEBUG']:
                 logging.info('Using debug configuration!')
-                redPlayer = 'Human'
-                bluePlayer = 'Human'
-                scen = 'scenarioJunction'
-                autoplay = False
-                seed = 1
+                redPlayer = 'AlphaBetaAgent'
+                bluePlayer = 'AlphaBetaAgent'
+                scen = 'scenarioTest1v1ArmedRace'
+                autoplay = not True
+                seed = 0
                 replay = ''
             else:
                 data = request.form
@@ -63,7 +64,7 @@ def index():
             )
             response.set_cookie('gameId', mm.gid)
         except Exception as e:
-            logging.error(e)
+            logging.exception(e)
             return redirect('/')
     else:
         logging.info(f'New lobby access')
@@ -83,7 +84,7 @@ def index():
 
         players = [
             'Human',
-            'PlayerDummy',
+            'RandomAgent',
             'GreedyAgent',
             'AlphaBetaAgent',
         ]
@@ -207,7 +208,8 @@ def gameState():
         return jsonify({
             'state': mm.state,
             'params': app.params[mm.gid],
-            'next': mm.nextPlayer(),
+            'next': mm.nextPlayerDict(),
+            'humans': mm.humans,
         }), 200
 
     except ValueError as e:
@@ -221,9 +223,9 @@ def gameNextStep():
 
     try:
         _, mm = checkGameId()
-        curr = mm.nextPlayer()
+        curr = mm.nextPlayerDict()
         mm.nextStep()
-        nxt = mm.nextPlayer()
+        nxt = mm.nextPlayerDict()
 
         lastAction = None
         lastOutcome = None
@@ -240,6 +242,7 @@ def gameNextStep():
             'outcome': lastOutcome,
             'curr': curr,
             'next': nxt,
+            'humans': mm.humans,
         }), 200
 
     except ValueError as e:
@@ -270,3 +273,14 @@ def gameHumanClick():
     except ValueError as e:
         logging.exception(f'Human click error: {e}')
         return jsonify({'error': str(e)}), 403
+
+
+@app.template_filter('autoversion')
+def autoversion_filter(filename):
+    try:
+        path = os.path.join('gui/', filename[1:])
+        timestamp = str(os.path.getmtime(path)).split('.')[0]
+    except OSError:
+        return filename
+
+    return f'{filename}?v={timestamp}'

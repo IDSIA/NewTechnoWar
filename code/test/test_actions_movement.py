@@ -1,6 +1,6 @@
 import unittest
 
-from agents import PlayerDummy
+from agents import AgentDummy
 from agents.matchmanager import MatchManager
 from core import GM
 from core.const import RED, BLUE
@@ -14,8 +14,8 @@ from utils.coordinates import to_cube, Cube, cube_to_hex
 class TestMovementAction(unittest.TestCase):
 
     def setUp(self):
-        red = PlayerDummy(RED)
-        blue = PlayerDummy(BLUE)
+        red = AgentDummy(RED)
+        blue = AgentDummy(BLUE)
 
         shape = (16, 16)
         board = GameBoard(shape)
@@ -25,7 +25,7 @@ class TestMovementAction(unittest.TestCase):
         state.addFigure(self.tank)
 
         # initialization
-        self.mm = MatchManager('', board, state, red, blue)
+        self.mm = MatchManager('', red, blue, board, state)
 
     def testMoveToDestination(self):
         dst = (4, 4)

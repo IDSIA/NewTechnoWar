@@ -234,6 +234,8 @@ class Figure:
         figure.transported_by = -1
 
     def canTransport(self, figure) -> bool:
+        if self.killed:
+            return False
         if figure.kind == FigureType.VEHICLE:
             return False
         return self.can_transport and len(self.transporting) < self.transport_capacity

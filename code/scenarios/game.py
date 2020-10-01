@@ -156,7 +156,7 @@ def scenarioRoadblock() -> (GameBoard, GameState):
         GoalDefendPoint(BLUE, RED, board.shape, (43, 12)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
-        GoalMaxTurn(BLUE, 13)
+        GoalMaxTurn(BLUE, 12)
     )
 
     # orange

@@ -1,21 +1,21 @@
 import numpy as np
 
-from agents import Player
+from agents import Agent
 from core import GM
-from core.actions import Action, Respond
+from core.actions import Action, Response
 from core.const import RED, BLUE
 from core.game.board import GameBoard
 from core.game.state import GameState
 from utils.coordinates import to_cube
 
 
-class Human(Player):
+class Human(Agent):
     __slots__ = ['next_action', 'next_response', 'color', 'place']
 
     def __init__(self, team: str):
         super().__init__('Human', team)
         self.next_action: Action or None = None
-        self.next_response: Respond or None = None
+        self.next_response: Response or None = None
 
         self.color: str = ''
         self.place: dict = {}
@@ -72,7 +72,11 @@ class Human(Player):
             if 'idx' in data and data['team'] == self.team:
                 idx = int(data['idx'])
                 figure = state.getFigureByIndex(self.team, idx)
-                self.next_action = GM.actionPass(figure)
+                self.next_action = GM.actionPassFigure(figure)
+            elif data['step'] == 'respond':
+                self.next_action = GM.actionPassResponse(self.team)
+            else:
+                self.next_action = GM.actionPassTeam(self.team)
             return
 
         idx = int(data['idx'])

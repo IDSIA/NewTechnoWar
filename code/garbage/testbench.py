@@ -3,7 +3,7 @@
 import matplotlib.pyplot as plt
 
 from agents.matchmanager import MatchManager
-from agents.players import PlayerDummy
+from agents.interactive import PlayerDummy
 from core.const import RED, BLUE
 from core.game.pathfinding import findPath, reachablePath
 from scenarios import scenarioTestBench

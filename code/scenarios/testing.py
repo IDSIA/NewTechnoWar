@@ -1,16 +1,13 @@
 import numpy as np
 
 from core.const import RED, BLUE
-from core.figures import Infantry, Tank, Exoskeleton, Sniper
+from core.figures import Infantry, Tank, Exoskeleton, Sniper, Civilian
 from core.figures.status import HIDDEN
 from core.game.board import GameBoard
 from core.game.goals import GoalReachPoint, GoalEliminateOpponent, GoalMaxTurn, GoalDefendPoint
 from core.game.state import GameState
 from core.game.terrain import Terrain
 from scenarios.utils import fillLine
-
-
-# TODO: maybe define a class with a win condition?
 
 
 def _battleground16x16() -> GameBoard:
@@ -182,5 +179,123 @@ def scenarioTestLoaded() -> (GameBoard, GameState):
     t1.transportLoad(i12)
 
     board.name = state.name = "loaded"
+
+    return board, state
+
+
+def scenarioTest1v1Race() -> (GameBoard, GameState):
+    shape = (17, 17)
+    board: GameBoard = GameBoard(shape)
+    state: GameState = GameState(shape)
+
+    terrain = np.zeros(shape, dtype='uint8')
+    fillLine(terrain, (8, 0), (8, 16), Terrain.BUILDING)
+    board.addTerrain(terrain)
+
+    board.addObjectives(
+        GoalReachPoint(RED, board.shape, (3, 16)),
+        GoalReachPoint(BLUE, board.shape, (13, 16)),
+        GoalMaxTurn(BLUE, 12)
+    )
+
+    state.addFigure(
+        Tank((3, 0), RED, 'Tank1'),
+        Tank((13, 0), BLUE, 'Tank2')
+    )
+
+    board.name = state.name = "1Rv1BRace"
+
+    return board, state
+
+
+def scenarioTest1v1ArmedRace() -> (GameBoard, GameState):
+    shape = (16, 16)
+    board: GameBoard = GameBoard(shape)
+    state: GameState = GameState(shape)
+
+    terrain = np.zeros(shape, dtype='uint8')
+    fillLine(terrain, (0, 5), (11, 0), Terrain.ISOLATED_TREE)
+    fillLine(terrain, (3, 4), (15, 10), Terrain.ISOLATED_TREE)
+    fillLine(terrain, (1, 5), (13, 11), Terrain.ISOLATED_TREE)
+    fillLine(terrain, (4, 15), (15, 10), Terrain.ISOLATED_TREE)
+    fillLine(terrain, (0, 0), (8, 4), Terrain.ROAD)
+    fillLine(terrain, (8, 4), (8, 15), Terrain.ROAD)
+    board.addTerrain(terrain)
+
+    board.addObjectives(
+        GoalReachPoint(RED, board.shape, (8, 8)),
+        GoalDefendPoint(BLUE, RED, board.shape, (8, 8)),
+        # GoalReachPoint(BLUE, board.shape, (8, 8)),
+        # GoalDefendPoint(RED, BLUE, board.shape, (8, 8)),
+        GoalMaxTurn(BLUE, 12)
+    )
+
+    state.addFigure(
+        Infantry((1, 1), RED, 'Tank'),
+        Civilian((13, 4), BLUE, 'Spotter'),
+        Exoskeleton((14, 14), BLUE, 'Exo')
+    )
+
+    board.name = state.name = "1Rv1BRace"
+
+    return board, state
+
+
+def scenarioTest1v1Race() -> (GameBoard, GameState):
+    shape = (17, 17)
+    board: GameBoard = GameBoard(shape)
+    state: GameState = GameState(shape)
+
+    terrain = np.zeros(shape, dtype='uint8')
+    fillLine(terrain, (8, 0), (8, 16), Terrain.BUILDING)
+    board.addTerrain(terrain)
+
+    board.addObjectives(
+        GoalReachPoint(RED, board.shape, (3, 16)),
+        GoalReachPoint(BLUE, board.shape, (13, 16)),
+        GoalMaxTurn(BLUE, 12)
+    )
+
+    state.addFigure(
+        Tank((3, 0), RED, 'Tank1'),
+        Tank((13, 0), BLUE, 'Tank2')
+    )
+
+    board.name = state.name = "1Rv1BRace"
+
+    return board, state
+
+
+def scenarioTest1v1ArmedRace() -> (GameBoard, GameState):
+    shape = (16, 16)
+    board: GameBoard = GameBoard(shape)
+    state: GameState = GameState(shape)
+
+    terrain = np.zeros(shape, dtype='uint8')
+    fillLine(terrain, (0, 5), (11, 0), Terrain.ISOLATED_TREE)
+    fillLine(terrain, (3, 4), (15, 10), Terrain.ISOLATED_TREE)
+    fillLine(terrain, (1, 5), (13, 11), Terrain.ISOLATED_TREE)
+    fillLine(terrain, (4, 15), (15, 10), Terrain.ISOLATED_TREE)
+    fillLine(terrain, (0, 0), (8, 4), Terrain.ROAD)
+    fillLine(terrain, (8, 4), (8, 15), Terrain.ROAD)
+    board.addTerrain(terrain)
+
+    board.addObjectives(
+        GoalReachPoint(RED, board.shape, (8, 8)),
+        GoalDefendPoint(BLUE, RED, board.shape, (8, 8)),
+        # GoalReachPoint(BLUE, board.shape, (8, 8)),
+        # GoalDefendPoint(RED, BLUE, board.shape, (8, 8)),
+        GoalMaxTurn(BLUE, 12),
+        GoalEliminateOpponent(RED, BLUE),
+        GoalEliminateOpponent(BLUE, RED),
+    )
+
+    state.addFigure(
+        Infantry((1, 1), RED, 'Tank'),
+        Civilian((13, 4), BLUE, 'Spotter'),
+        Exoskeleton((14, 14), BLUE, 'Exo')
+    )
+
+    board.name = state.name = "1Rv1BRace"
 
     return board, state

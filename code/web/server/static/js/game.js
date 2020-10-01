@@ -25,7 +25,7 @@ function updateFigure(data) {
     let mark = $(`#mark-${data.id}`);
 
     figure.removeClass('killed activated notActivated');
-    figure.find('div.uOpt').removeClass('passed moving attacking responded').text('');
+    figure.find('div.uOpt').removeClass('passed moving attacking responded transported').text('');
     mark.removeClass('hit loaded');
 
     figure.find('div.uPos').text(`(${data.i}, ${data.j})`);
@@ -42,13 +42,6 @@ function updateFigure(data) {
         figure.find(`div.image.w${item.id}`).addClass(effect);
         figure.find(`div.ammo.w${item.id}`).addClass(effect).addClass(ammoClass(ammo)).text(ammo);
     });
-
-    if (data.stat === 'Loaded') {
-        mark.addClass('loaded');
-        mark.attr('transform', `translate(${data.x},${data.y + vEps})`);
-    } else {
-        mark.removeClass('loaded');
-    }
 
     if (data.killed) {
         figure.addClass('killed');
@@ -73,6 +66,15 @@ function updateFigure(data) {
     }
     if (data.responded) {
         figure.find('div.opt2').addClass('responded').text('R');
+    }
+
+    if (data.stat === 'Loaded') {
+        figure.find('div.opt1').removeClass('moving');
+        figure.find('div.opt1').addClass('transported').text(`T${data.transported_by}`);
+        mark.addClass('loaded');
+        mark.attr('transform', `translate(${data.x},${data.y + vEps})`);
+    } else {
+        mark.removeClass('loaded');
     }
 
     figures[gameId][data.id] = data;
@@ -190,7 +192,7 @@ function appendLine(text, newLine = true) {
 }
 
 function checkNextPlayer(data) {
-    if (data.next.step === 'init') {
+    if (data.next.step === 'init' && data.humans) {
         return
     }
 
@@ -275,20 +277,25 @@ function step() {
 
         $('#btnTurn').removeClass('highlight');
 
-        let current = figures[gameId][figureData.id];
-        let figure = $(`#figure-${figureData.id}`);
-        let mark = $(document.getElementById(`mark-${figureData.id}`));
+        let mark, figure, current;
 
         switch (action.action) {
             case 'DoNothing':
                 break;
             case 'Move':
+                mark = $(document.getElementById(`mark-${figureData.id}`));
                 move(mark, action);
                 break;
             case 'Respond':
+                current = figures[gameId][figureData.id];
+                figure = $(`#figure-${figureData.id}`);
+                mark = $(document.getElementById(`mark-${figureData.id}`));
                 shoot(current, figure, mark, data);
                 break;
             case 'Attack':
+                current = figures[gameId][figureData.id];
+                figure = $(`#figure-${figureData.id}`);
+                mark = $(document.getElementById(`mark-${figureData.id}`));
                 shoot(current, figure, mark, data);
                 break;
             case 'Pass':
