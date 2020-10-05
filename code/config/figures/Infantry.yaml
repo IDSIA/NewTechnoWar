@@ -1,0 +1,16 @@
+figure:
+
+  Infantry:
+    kind: infantry
+
+    move: 4
+    load: 1
+    hp: 4
+    hp_max: 4
+
+    weapons:
+      AssaultRifle: inf
+      MachineGun: 5
+      AntiTank: 4
+      Mortar: 2
+      Grenade: 2

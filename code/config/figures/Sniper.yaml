@@ -1,0 +1,13 @@
+figure:
+
+  Sniper:
+    kind: infantry
+
+    move: 0
+    hp: 4
+    hp_max: 4
+
+    weapons:
+      SniperRifle: inf
+
+    bonus: 5

@@ -1,0 +1,11 @@
+weapon:
+
+  MG:
+    id: 'MachineGun'
+    max_range: 24
+
+    atk:
+      normal: 8
+      response: 4
+
+    damage: 4

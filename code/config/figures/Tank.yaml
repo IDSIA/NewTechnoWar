@@ -1,0 +1,20 @@
+figure:
+
+  Tank:
+    kind: vehicle
+
+    move: 7
+    load: 1
+    hp: 1
+    hp_max: 1
+
+    defense:
+      antitank: 0
+
+    weapons:
+      MachineGun: inf
+      Cannon: 8
+      SmokeGrenade: 2
+
+    can_transport: true
+    transport_capacity: 2

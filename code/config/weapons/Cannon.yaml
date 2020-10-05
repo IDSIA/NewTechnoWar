@@ -1,0 +1,11 @@
+weapon:
+
+  CA:
+    name: 'Cannon'
+    max_range: 75
+
+    atk:
+      normal: 8
+      response: 4
+
+    antitank: true

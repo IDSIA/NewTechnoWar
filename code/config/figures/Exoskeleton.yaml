@@ -1,0 +1,20 @@
+figure:
+
+  Exoscheleton:
+    kind: infantry
+
+    move: 4
+    load: 0
+    hp: 4
+    hp_max: 4
+
+    weapons:
+      AssaultRifle: inf
+      MachineGun: 2
+      AntiTank: 4
+      Mortar: 5
+      Grenade: 2
+
+    endurance:
+      value: 4
+      type: fixed

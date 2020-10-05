@@ -1,0 +1,15 @@
+weapon:
+
+  MT:
+    name: 'Mortar'
+    max_range: inf
+
+    atk:
+      normal: 12
+      response: 6
+
+    damage: 4
+
+    curved: true
+    miss_matrix: true
+    attack_ground: true

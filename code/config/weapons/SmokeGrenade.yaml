@@ -1,0 +1,13 @@
+weapon:
+
+  SG:
+    name: 'Smoke Grenade'
+    max_range: 3
+
+    atk:
+      normal: 20
+      response: 10
+
+    damage: 0
+
+    curved: true

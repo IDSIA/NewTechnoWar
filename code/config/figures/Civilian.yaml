@@ -1,0 +1,8 @@
+figure:
+
+  Civilian:
+    kind: other
+    move: 0
+    load: 0
+    hp: 1
+    hp_max: 1
