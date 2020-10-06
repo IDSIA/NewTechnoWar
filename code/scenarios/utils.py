@@ -88,32 +88,32 @@ def basicForest(terrain: np.array):
 
 def basicUrban(terrain: np.array):
     """
-    Basic urban cover for default map.
+    Basic CONCRETE_BUILDING cover for default map.
     Source: main project source code.
     """
 
-    terrain[-20, 3:9] = Terrain.URBAN
-    terrain[-19, 2:10] = Terrain.URBAN
-    terrain[-18, 1:17] = Terrain.URBAN
+    terrain[-20, 3:9] = Terrain.CONCRETE_BUILDING
+    terrain[-19, 2:10] = Terrain.CONCRETE_BUILDING
+    terrain[-18, 1:17] = Terrain.CONCRETE_BUILDING
     terrain[-18, 9:14] = Terrain.OPEN_GROUND
-    terrain[-17, 2:18] = Terrain.URBAN
+    terrain[-17, 2:18] = Terrain.CONCRETE_BUILDING
     terrain[-17, 9:14] = Terrain.OPEN_GROUND
-    terrain[-16, 1:17] = Terrain.URBAN
+    terrain[-16, 1:17] = Terrain.CONCRETE_BUILDING
     terrain[-16, 8:13] = Terrain.OPEN_GROUND
-    terrain[-15, 2:19] = Terrain.URBAN
+    terrain[-15, 2:19] = Terrain.CONCRETE_BUILDING
     terrain[-15, 9:12] = Terrain.OPEN_GROUND
-    terrain[-14, 2:18] = Terrain.URBAN
-    terrain[-13, 3:19] = Terrain.URBAN
-    terrain[-12, 2:19] = Terrain.URBAN
-    terrain[-12, 3:19] = Terrain.URBAN
-    terrain[-11, 2:19] = Terrain.URBAN
-    terrain[-10, 2:19] = Terrain.URBAN
-    terrain[-9, 1:20] = Terrain.URBAN
-    terrain[-8, 3:20] = Terrain.URBAN
-    terrain[-7, 3:20] = Terrain.URBAN
-    terrain[-6, 3:20] = Terrain.URBAN
-    terrain[-5, 4:20] = Terrain.URBAN
-    terrain[-4, 4:18] = Terrain.URBAN
+    terrain[-14, 2:18] = Terrain.CONCRETE_BUILDING
+    terrain[-13, 3:19] = Terrain.CONCRETE_BUILDING
+    terrain[-12, 2:19] = Terrain.CONCRETE_BUILDING
+    terrain[-12, 3:19] = Terrain.CONCRETE_BUILDING
+    terrain[-11, 2:19] = Terrain.CONCRETE_BUILDING
+    terrain[-10, 2:19] = Terrain.CONCRETE_BUILDING
+    terrain[-9, 1:20] = Terrain.CONCRETE_BUILDING
+    terrain[-8, 3:20] = Terrain.CONCRETE_BUILDING
+    terrain[-7, 3:20] = Terrain.CONCRETE_BUILDING
+    terrain[-6, 3:20] = Terrain.CONCRETE_BUILDING
+    terrain[-5, 4:20] = Terrain.CONCRETE_BUILDING
+    terrain[-4, 4:18] = Terrain.CONCRETE_BUILDING
 
 
 def basicRoad(terrain: np.array):

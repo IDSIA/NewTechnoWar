@@ -8,6 +8,7 @@ from core.figures import Tank, Infantry
 from core.figures.status import IN_MOTION
 from core.game.board import GameBoard
 from core.game.state import GameState
+from core.game.terrain import Terrain
 from utils.coordinates import to_cube, Cube, cube_to_hex
 
 
@@ -33,60 +34,53 @@ class TestMovementAction(unittest.TestCase):
         self.assertEqual(self.tank.position, to_cube(dst), 'figure not at the correct destination')
 
     def testMoveOnRoad(self):
-        shape = (3, 16)
+        shape = (1, 16)
         board = GameBoard(shape)
-        state = GameState(shape)
 
-        terrain = np.zeros(shape, 'uint8')
-        terrain[0, :] = 1  # road
-        terrain[1, :] = 5  # building
+        t = Tank((0, 0), RED)
+        i = Infantry((0, 15), RED)
 
-        board.addTerrain(terrain)
+        stateTank = GameState(shape)
+        stateTank.addFigure(t)
 
-        t1 = Tank((0, 0), RED)
-        t2 = Tank((2, 0), RED)
+        stateInf = GameState(shape)
+        stateInf.addFigure(i)
 
-        i1 = Infantry((0, 15), RED)
-        i2 = Infantry((2, 15), RED)
+        # movements without road
+        nTankNoRoad = len(GM.buildMovements(board, stateTank, t))
+        nInfNoRoad = len(GM.buildMovements(board, stateInf, i))
 
-        state.addFigure(t1, t2, i1, i2)
+        # adding road
+        road = np.zeros(shape, 'uint8')
+        road[0, :] = Terrain.ROAD
+
+        board.addTerrain(road)
 
         # test for vehicles
-        movesWithRoad = GM.buildMovements(board, state, t1)
-        movesWithoutRoad = GM.buildMovements(board, state, t2)
+        nTankRoad = len(GM.buildMovements(board, stateTank, t))
+        nInfRoad = len(GM.buildMovements(board, stateInf, i))
 
-        nRoad = len(movesWithRoad)
-        nNotRoad = len(movesWithoutRoad)
+        # tank
+        self.assertNotEqual(nTankRoad, nTankNoRoad, 'road has no influence for tank')
+        self.assertEqual(nTankRoad, 8, 'invalid distance with road for tank')
+        self.assertEqual(nTankNoRoad, 6, 'invalid distance without road for tank')
+        self.assertEqual(nTankRoad - nTankNoRoad, 2, 'road does not increase by 2 the distance for tank')
 
-        self.assertNotEqual(nRoad, nNotRoad, 'road has no influence for tank')
-        self.assertEqual(nRoad, 8, 'invalid distance with road for tank')
-        self.assertEqual(nNotRoad, 6, 'invalid distance without road for tank')
-        self.assertEqual(nRoad - nNotRoad, 2, 'road does not increase by 2 the distance for tank')
+        # infantry
+        self.assertNotEqual(nInfRoad, nInfNoRoad, 'road has no influence on infantry')
+        self.assertEqual(nInfRoad, 4, 'invalid distance with road for infantry')
+        self.assertEqual(nInfNoRoad, 3, 'invalid distance without road  for infantry')
+        self.assertEqual(nInfRoad - nInfNoRoad, 1, 'road does not increase by 1 the distance for infantry')
 
-        # test for infantry
-        movesWithRoad = GM.buildMovements(board, state, i1)
-        movesWithoutRoad = GM.buildMovements(board, state, i2)
-
-        nRoad = len(movesWithRoad)
-        nNotRoad = len(movesWithoutRoad)
-
-        self.assertNotEqual(nRoad, nNotRoad, 'road has no influence on infantry')
-        self.assertEqual(nRoad, 4, 'invalid distance with road for infantry')
-        self.assertEqual(nNotRoad, 3, 'invalid distance without road  for infantry')
-        self.assertEqual(nRoad - nNotRoad, 1, 'road does not increase by 1 the distance for infantry')
-
-        # test for terrain change
+        # test for road change
         board.terrain[0, 0] = 0
         board.terrain[0, 15] = 0
 
-        movesTank = GM.buildMovements(board, state, t1)
-        movesInf = GM.buildMovements(board, state, i1)
+        nTankRoad = len(GM.buildMovements(board, stateTank, t))
+        nInfRoad = len(GM.buildMovements(board, stateInf, i))
 
-        nMovesTank = len(movesTank)
-        nMovesInf = len(movesInf)
-
-        self.assertEqual(nMovesTank, 8, 'invalid distance for tank')
-        self.assertEqual(nMovesInf, 4, 'invalid distance for infantry')
+        self.assertEqual(nTankRoad, 8, 'invalid distance for tank')
+        self.assertEqual(nInfRoad, 4, 'invalid distance for infantry')
 
     def testActivateMoveToDestination(self):
         dst = (4, 4)

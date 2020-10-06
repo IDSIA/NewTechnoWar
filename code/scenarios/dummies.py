@@ -59,7 +59,7 @@ def scenarioDummy2() -> (GameBoard, GameState):
 
     board, state, terrain = _dummyBattleground((10, 20))
 
-    terrain[:, 12:20] = Terrain.URBAN
+    terrain[:, 12:20] = Terrain.CONCRETE_BUILDING
     board.addTerrain(terrain)
 
     board.addObjectives(
@@ -88,7 +88,7 @@ def scenarioDummy3() -> (GameBoard, GameState):
 
     board, state, terrain = _dummyBattleground((10, 20))
 
-    terrain[:, 12:20] = Terrain.URBAN
+    terrain[:, 12:20] = Terrain.CONCRETE_BUILDING
     board.addTerrain(terrain)
 
     board.addObjectives(
@@ -124,7 +124,7 @@ def scenarioDummyResponseCheck() -> (GameBoard, GameState):
     terrain[(8, 5)] = Terrain.FOREST
     terrain[(5, 4)] = Terrain.OPEN_GROUND
 
-    terrain[:, 14:20] = Terrain.URBAN
+    terrain[:, 14:20] = Terrain.CONCRETE_BUILDING
     board.addTerrain(terrain)
 
     board.addObjectives(
@@ -158,7 +158,7 @@ def scenarioInSightTest() -> (GameBoard, GameState):
     terrain[(8, 5)] = Terrain.FOREST
     terrain[(5, 4)] = Terrain.OPEN_GROUND
 
-    terrain[:, 14:20] = Terrain.URBAN
+    terrain[:, 14:20] = Terrain.CONCRETE_BUILDING
     board.addTerrain(terrain)
 
     board.addObjectives(

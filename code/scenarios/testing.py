@@ -15,13 +15,13 @@ def _battleground16x16() -> GameBoard:
     board: GameBoard = GameBoard(shape)
 
     terrain = np.zeros(shape, dtype='uint8')
-    fillLine(terrain, (6, 3), (6, 5), Terrain.URBAN)
-    fillLine(terrain, (8, 12), (12, 10), Terrain.URBAN)
-    fillLine(terrain, (9, 13), (14, 10), Terrain.URBAN)
-    fillLine(terrain, (10, 13), (14, 11), Terrain.URBAN)
-    fillLine(terrain, (11, 14), (15, 12), Terrain.URBAN)
-    fillLine(terrain, (11, 15), (13, 14), Terrain.URBAN)
-    terrain[5, 3] = Terrain.URBAN
+    fillLine(terrain, (6, 3), (6, 5), Terrain.CONCRETE_BUILDING)
+    fillLine(terrain, (8, 12), (12, 10), Terrain.CONCRETE_BUILDING)
+    fillLine(terrain, (9, 13), (14, 10), Terrain.CONCRETE_BUILDING)
+    fillLine(terrain, (10, 13), (14, 11), Terrain.CONCRETE_BUILDING)
+    fillLine(terrain, (11, 14), (15, 12), Terrain.CONCRETE_BUILDING)
+    fillLine(terrain, (11, 15), (13, 14), Terrain.CONCRETE_BUILDING)
+    terrain[5, 3] = Terrain.CONCRETE_BUILDING
 
     fillLine(terrain, (0, 1), (5, 4), Terrain.ROAD)
     fillLine(terrain, (5, 4), (5, 8), Terrain.ROAD)
@@ -32,13 +32,13 @@ def _battleground16x16() -> GameBoard:
     fillLine(terrain, (2, 12), (8, 9), Terrain.ROAD)
     fillLine(terrain, (2, 12), (2, 15), Terrain.ROAD)
 
-    terrain[9, 4] = Terrain.BUILDING
-    terrain[9, 5] = Terrain.BUILDING
-    terrain[10, 4] = Terrain.BUILDING
+    terrain[9, 4] = Terrain.CONCRETE_BUILDING
+    terrain[9, 5] = Terrain.CONCRETE_BUILDING
+    terrain[10, 4] = Terrain.CONCRETE_BUILDING
 
-    terrain[4, 9] = Terrain.BUILDING
-    terrain[3, 9] = Terrain.BUILDING
-    terrain[3, 10] = Terrain.BUILDING
+    terrain[4, 9] = Terrain.CONCRETE_BUILDING
+    terrain[3, 9] = Terrain.CONCRETE_BUILDING
+    terrain[3, 10] = Terrain.CONCRETE_BUILDING
 
     terrain[6, 9] = Terrain.ISOLATED_TREE
     terrain[7, 8] = Terrain.ISOLATED_TREE
@@ -51,9 +51,9 @@ def _battleground16x16() -> GameBoard:
     fillLine(terrain, (12, 1), (15, 1), Terrain.FOREST)
     fillLine(terrain, (13, 2), (14, 2), Terrain.FOREST)
 
-    # fillLine(terrain, (6, 11), (8, 10), Terrain.BUILDING)
-    # fillLine(terrain, (6, 11), (6, 13), Terrain.BUILDING)
-    # fillLine(terrain, (11, 9), (14, 7), Terrain.BUILDING)
+    # fillLine(terrain, (6, 11), (8, 10), Terrain.CONCRETE_BUILDING)
+    # fillLine(terrain, (6, 11), (6, 13), Terrain.CONCRETE_BUILDING)
+    # fillLine(terrain, (11, 9), (14, 7), Terrain.CONCRETE_BUILDING)
 
     board.addTerrain(terrain)
 
@@ -189,7 +189,7 @@ def scenarioTest1v1Race() -> (GameBoard, GameState):
     state: GameState = GameState(shape)
 
     terrain = np.zeros(shape, dtype='uint8')
-    fillLine(terrain, (8, 0), (8, 16), Terrain.BUILDING)
+    fillLine(terrain, (8, 0), (8, 16), Terrain.CONCRETE_BUILDING)
     board.addTerrain(terrain)
 
     board.addObjectives(
@@ -228,66 +228,6 @@ def scenarioTest1v1ArmedRace() -> (GameBoard, GameState):
         # GoalReachPoint(BLUE, board.shape, (8, 8)),
         # GoalDefendPoint(RED, BLUE, board.shape, (8, 8)),
         GoalMaxTurn(BLUE, 12)
-    )
-
-    state.addFigure(
-        Infantry((1, 1), RED, 'Tank'),
-        Civilian((13, 4), BLUE, 'Spotter'),
-        Exoskeleton((14, 14), BLUE, 'Exo')
-    )
-
-    board.name = state.name = "1Rv1BRace"
-
-    return board, state
-
-
-def scenarioTest1v1Race() -> (GameBoard, GameState):
-    shape = (17, 17)
-    board: GameBoard = GameBoard(shape)
-    state: GameState = GameState(shape)
-
-    terrain = np.zeros(shape, dtype='uint8')
-    fillLine(terrain, (8, 0), (8, 16), Terrain.BUILDING)
-    board.addTerrain(terrain)
-
-    board.addObjectives(
-        GoalReachPoint(RED, board.shape, (3, 16)),
-        GoalReachPoint(BLUE, board.shape, (13, 16)),
-        GoalMaxTurn(BLUE, 12)
-    )
-
-    state.addFigure(
-        Tank((3, 0), RED, 'Tank1'),
-        Tank((13, 0), BLUE, 'Tank2')
-    )
-
-    board.name = state.name = "1Rv1BRace"
-
-    return board, state
-
-
-def scenarioTest1v1ArmedRace() -> (GameBoard, GameState):
-    shape = (16, 16)
-    board: GameBoard = GameBoard(shape)
-    state: GameState = GameState(shape)
-
-    terrain = np.zeros(shape, dtype='uint8')
-    fillLine(terrain, (0, 5), (11, 0), Terrain.ISOLATED_TREE)
-    fillLine(terrain, (3, 4), (15, 10), Terrain.ISOLATED_TREE)
-    fillLine(terrain, (1, 5), (13, 11), Terrain.ISOLATED_TREE)
-    fillLine(terrain, (4, 15), (15, 10), Terrain.ISOLATED_TREE)
-    fillLine(terrain, (0, 0), (8, 4), Terrain.ROAD)
-    fillLine(terrain, (8, 4), (8, 15), Terrain.ROAD)
-    board.addTerrain(terrain)
-
-    board.addObjectives(
-        GoalReachPoint(RED, board.shape, (8, 8)),
-        GoalDefendPoint(BLUE, RED, board.shape, (8, 8)),
-        # GoalReachPoint(BLUE, board.shape, (8, 8)),
-        # GoalDefendPoint(RED, BLUE, board.shape, (8, 8)),
-        GoalMaxTurn(BLUE, 12),
-        GoalEliminateOpponent(RED, BLUE),
-        GoalEliminateOpponent(BLUE, RED),
     )
 
     state.addFigure(
