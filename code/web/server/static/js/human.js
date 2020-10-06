@@ -9,6 +9,7 @@ class Human {
     clear() {
         this.actionParams = null;
         this.clicked = false;
+        $('div.weapon').removeClass('highlight');
     }
 
     execute() {
@@ -78,6 +79,9 @@ class Human {
             x: -1,
             y: -1,
         }
+
+        $('div.weapon').removeClass('highlight');
+        $(`#w-${team}-${idx}-${w}`).addClass('highlight');
     }
 
     clickPass(event, team) {
