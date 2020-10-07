@@ -96,10 +96,10 @@ class Human(Agent):
             fs = state.getFiguresByPos(self.team, pos)
             for transport in fs:
                 if transport.canTransport(figure):
-                    self.next_action = GM.actionLoadInto(board, figure, transport)
+                    self.next_action = GM.actionLoadInto(board, state, figure, transport)
                     return
 
-            self.next_action = GM.actionMove(board, figure, destination=pos)
+            self.next_action = GM.actionMove(board, state, figure, destination=pos)
             return
 
         if action == 'attack':

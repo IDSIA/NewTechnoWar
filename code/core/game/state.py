@@ -124,11 +124,14 @@ class GameState:
         for figure in newFigures:
             figures = self.choices[team][color]
             figure.index = len(figures)
+            figure.color = color
             figures.append(figure)
 
     def choose(self, team: str, color: str) -> None:
         """Choose and add the figures to use based on the given color."""
-        self.addFigure(*self.choices[team][color])
+        for f in self.choices[team][color]:
+            f.color = ''
+            self.addFigure(f)
 
     def addFigure(self, *newFigures: Figure) -> None:
         """
@@ -184,6 +187,13 @@ class GameState:
     def getFiguresCanRespond(self, team: str) -> List[Figure]:
         """Returns a list of figures that have not responded."""
         return [f for f in self.figures[team] if not f.responded and not f.killed]
+
+    def getMovementCost(self, pos: Cube) -> float:
+        figures = self.getFiguresByPos(RED, pos) + self.getFiguresByPos(BLUE, pos)
+        for figure in figures:
+            if not figure.killed:
+                return 1000.0
+        return 0.0
 
     def moveFigure(self, figure: Figure, curr: Cube = None, dst: Cube = None) -> None:
         """Moves a figure from current position to another destination."""

@@ -54,13 +54,13 @@ class TestLOS(unittest.TestCase):
         self.assertFalse(GM.checkLine(self.board, self.state, self.los_tank), 'forest: tank has LOS on target')
         self.assertTrue(GM.checkLine(self.board, self.state, self.los_inf), 'forest: infantry has no LOS on target')
 
-        # urban
+        # wooden building
         self.board.addTerrain(blocker)
 
         self.assertFalse(GM.checkLine(self.board, self.state, self.los_tank), 'urban: tank has LOS on target')
         self.assertTrue(GM.checkLine(self.board, self.state, self.los_inf), 'urban: infantry has no LOS on target')
 
-        # building
+        # concrete building
         self.board.addTerrain(blocker)
 
         self.assertFalse(GM.checkLine(self.board, self.state, self.los_tank), 'building: tank has LOS on target')
@@ -88,19 +88,19 @@ class TestLOS(unittest.TestCase):
         self.assertTrue(GM.checkLine(self.board, self.state, self.los_tank), 'forest: tank has LOS on target')
         self.assertTrue(GM.checkLine(self.board, self.state, self.los_inf), 'forest: infantry has LOS on target')
 
-    def testUrbanBlock(self):
+    def testBuildingBlock(self):
         blocker = np.zeros(self.shape, 'uint8')
-        blocker[4, 4] = Terrain.URBAN
-        blocker[3, 6] = Terrain.URBAN
-        blocker[4, 6] = Terrain.URBAN
-        blocker[5, 6] = Terrain.URBAN
+        blocker[4, 4] = Terrain.CONCRETE_BUILDING
+        blocker[3, 6] = Terrain.CONCRETE_BUILDING
+        blocker[4, 6] = Terrain.CONCRETE_BUILDING
+        blocker[5, 6] = Terrain.CONCRETE_BUILDING
         self.board.addTerrain(blocker)
 
         self.assertFalse(GM.checkLine(self.board, self.state, self.los_tank), 'urban: tank has LOS on target')
         self.assertFalse(GM.checkLine(self.board, self.state, self.los_inf), 'urban: infantry has LOS on target')
 
     def testArmoredUnitBlock(self):
-        m1 = GM.actionMove(self.board, self.red_tank, destination=(3, 5))
+        m1 = GM.actionMove(self.board, self.state, self.red_tank, destination=(3, 5))
 
         # we move the tank in a blocking position
         GM.step(self.board, self.state, m1)
@@ -112,8 +112,8 @@ class TestLOS(unittest.TestCase):
 
     def testIndirectFire(self):
         blocker = np.zeros(self.shape, 'uint8')
-        blocker[2, 5] = Terrain.URBAN
-        blocker[3, 5] = Terrain.URBAN
+        blocker[2, 5] = Terrain.CONCRETE_BUILDING
+        blocker[3, 5] = Terrain.CONCRETE_BUILDING
         self.board.addTerrain(blocker)
 
         # we replace the blue tank with an infantry so we can use the mortar for an indirect hit
