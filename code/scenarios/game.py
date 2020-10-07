@@ -203,25 +203,25 @@ def scenarioBridgeHead() -> (GameBoard, GameState):
     # setup static parameters
     terrain = basicTerrain()
 
-    terrain[34, 32:35] = Terrain.FOREST
-    terrain[33, 32:35] = Terrain.FOREST
+    terrain[34, 32:35] = Terrain.ISOLATED_TREE
+    terrain[33, 32:35] = Terrain.ISOLATED_TREE
 
-    terrain[34, 35:37] = Terrain.FOREST
-    terrain[35, 35:38] = Terrain.FOREST
-    terrain[36, 35:37] = Terrain.FOREST
-    terrain[37, 36] = Terrain.FOREST
+    terrain[34, 35:37] = Terrain.ISOLATED_TREE
+    terrain[35, 35:38] = Terrain.ISOLATED_TREE
+    terrain[36, 35:37] = Terrain.ISOLATED_TREE
+    terrain[37, 36] = Terrain.ISOLATED_TREE
 
-    terrain[35, 28] = Terrain.FOREST
+    terrain[35, 28] = Terrain.ISOLATED_TREE
 
-    terrain[42, 36] = Terrain.FOREST
+    terrain[42, 36] = Terrain.ISOLATED_TREE
 
-    terrain[38, 35:37] = Terrain.FOREST
-    terrain[39, 36:37] = Terrain.FOREST
-    terrain[40, 36:37] = Terrain.FOREST
-    terrain[41, 37:38] = Terrain.FOREST
-    terrain[42, 37:40] = Terrain.FOREST
-    terrain[43, 38:40] = Terrain.FOREST
-    terrain[44, 38] = Terrain.FOREST
+    terrain[38, 35:37] = Terrain.ISOLATED_TREE
+    terrain[39, 36:37] = Terrain.ISOLATED_TREE
+    terrain[40, 36:37] = Terrain.ISOLATED_TREE
+    terrain[41, 37:38] = Terrain.ISOLATED_TREE
+    terrain[42, 37:40] = Terrain.ISOLATED_TREE
+    terrain[43, 38:40] = Terrain.ISOLATED_TREE
+    terrain[44, 38] = Terrain.ISOLATED_TREE
 
     board.addTerrain(terrain)
 
@@ -305,13 +305,13 @@ def scenarioCrossingTheCity() -> (GameBoard, GameState):
     # setup static parameters
     terrain = basicTerrain()
 
-    terrain[25, 17:20] = Terrain.FOREST
-    terrain[26, 16:19] = Terrain.FOREST
-    terrain[27, 18:19] = Terrain.FOREST
-    terrain[28, 17:18] = Terrain.FOREST
-    terrain[29, 17:18] = Terrain.FOREST
-    terrain[30, 15:17] = Terrain.FOREST
-    terrain[31, 16] = Terrain.FOREST
+    terrain[25, 17:20] = Terrain.ISOLATED_TREE
+    terrain[26, 16:19] = Terrain.ISOLATED_TREE
+    terrain[27, 18:19] = Terrain.ISOLATED_TREE
+    terrain[28, 17:18] = Terrain.ISOLATED_TREE
+    terrain[29, 17:18] = Terrain.ISOLATED_TREE
+    terrain[30, 15:17] = Terrain.ISOLATED_TREE
+    terrain[31, 16] = Terrain.ISOLATED_TREE
 
     board.addTerrain(terrain)
 
@@ -355,17 +355,17 @@ def scenarioCrossingTheCity() -> (GameBoard, GameState):
     t3.transportLoad(i32)
 
     placement_zone_blue = np.zeros(MAP_SHAPE, dtype='uint8')
-    placement_zone_blue[45, 17:26] = Terrain.FOREST
-    placement_zone_blue[44, 17:25] = Terrain.FOREST
-    placement_zone_blue[43, 17:26] = Terrain.FOREST
-    placement_zone_blue[42, 17:26] = Terrain.FOREST
-    placement_zone_blue[41, 18:26] = Terrain.FOREST
-    placement_zone_blue[40, 17:26] = Terrain.FOREST
-    placement_zone_blue[39, 18:26] = Terrain.FOREST
-    placement_zone_blue[38, 17:26] = Terrain.FOREST
-    placement_zone_blue[37, 18:26] = Terrain.FOREST
-    placement_zone_blue[36, 18:26] = Terrain.FOREST
-    placement_zone_blue[35, 24:26] = Terrain.FOREST
+    placement_zone_blue[45, 17:26] = Terrain.ISOLATED_TREE
+    placement_zone_blue[44, 17:25] = Terrain.ISOLATED_TREE
+    placement_zone_blue[43, 17:26] = Terrain.ISOLATED_TREE
+    placement_zone_blue[42, 17:26] = Terrain.ISOLATED_TREE
+    placement_zone_blue[41, 18:26] = Terrain.ISOLATED_TREE
+    placement_zone_blue[40, 17:26] = Terrain.ISOLATED_TREE
+    placement_zone_blue[39, 18:26] = Terrain.ISOLATED_TREE
+    placement_zone_blue[38, 17:26] = Terrain.ISOLATED_TREE
+    placement_zone_blue[37, 18:26] = Terrain.ISOLATED_TREE
+    placement_zone_blue[36, 18:26] = Terrain.ISOLATED_TREE
+    placement_zone_blue[35, 24:26] = Terrain.ISOLATED_TREE
 
     state.addPlacementZone(BLUE, placement_zone_blue)
 

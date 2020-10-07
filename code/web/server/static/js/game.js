@@ -257,7 +257,7 @@ function step() {
 
         if (data.end) {
             console.log('end game');
-            appendLine('End');
+            appendLine(`${data.winner.toUpperCase()} wins!`);
             end = true;
         }
 
@@ -277,26 +277,21 @@ function step() {
 
         $('#btnTurn').removeClass('highlight');
 
-        let mark, figure, current;
+        let current;
 
         switch (action.action) {
             case 'DoNothing':
                 break;
             case 'Move':
-                mark = $(document.getElementById(`mark-${figureData.team}-${figureData.idx}`));
-                move(mark, action);
+                move(figureData, action);
                 break;
             case 'Respond':
                 current = figures[gameId][figureData.id];
-                figure = $(`#figure-${figureData.team}-${figureData.idx}`);
-                mark = $(document.getElementById(`mark-${figureData.team}-${figureData.idx}`));
-                shoot(current, figure, mark, data);
+                shoot(current, figureData, data);
                 break;
             case 'Attack':
                 current = figures[gameId][figureData.id];
-                figure = $(`#figure-${figureData.team}-${figureData.idx}`);
-                mark = $(document.getElementById(`mark-${figureData.team}-${figureData.idx}`));
-                shoot(current, figure, mark, data);
+                shoot(current, figureData, data);
                 break;
             case 'Pass':
                 break;
@@ -334,7 +329,8 @@ function drawLine(path) {
     return g;
 }
 
-function move(mark, data) {
+function move(figureData, data) {
+    let mark = $(document.getElementById(`mark-${figureData.team}${figureData.color}-${figureData.idx}`));
     let end = data.path.slice(-1)[0];
 
     $(document.getElementById('moves')).append(drawLine(data.path).addClass('move'));
@@ -381,7 +377,9 @@ function initState(state, team) {
     }
 }
 
-function shoot(current, figure, mark, data) {
+function shoot(current, figureData, data) {
+    let figure = $(`#figure-${figureData.team}${figureData.color}-${figureData.idx}`);
+
     let outcome = data.outcome;
     let action = data.action;
     let end = action.los.slice(-1)[0];

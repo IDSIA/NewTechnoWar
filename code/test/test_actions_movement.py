@@ -24,7 +24,7 @@ class TestMovementAction(unittest.TestCase):
 
     def testMoveToDestination(self):
         dst = (4, 4)
-        move = GM.actionMove(self.board, self.tank, destination=dst)
+        move = GM.actionMove(self.board, self.state, self.tank, destination=dst)
 
         GM.step(self.board, self.state, move)
 
@@ -84,7 +84,7 @@ class TestMovementAction(unittest.TestCase):
 
     def testActivateMoveToDestination(self):
         dst = (4, 4)
-        move = GM.actionMove(self.board, self.tank, destination=dst)
+        move = GM.actionMove(self.board, self.state, self.tank, destination=dst)
 
         self.state1, _ = GM.activate(self.board, self.state, move)
         self.assertNotEqual(hash(self.state1), hash(self.state),
@@ -117,9 +117,9 @@ class TestMovementAction(unittest.TestCase):
         self.state.addFigure(inf3)
 
         # load 2 units
-        load1 = GM.actionLoadInto(self.board, inf1, self.tank)
-        load2 = GM.actionLoadInto(self.board, inf2, self.tank)
-        load3 = GM.actionLoadInto(self.board, inf3, self.tank)
+        load1 = GM.actionLoadInto(self.board, self.state, inf1, self.tank)
+        load2 = GM.actionLoadInto(self.board, self.state, inf2, self.tank)
+        load3 = GM.actionLoadInto(self.board, self.state, inf3, self.tank)
 
         GM.step(self.board, self.state, load1)
         GM.step(self.board, self.state, load2)
@@ -132,7 +132,7 @@ class TestMovementAction(unittest.TestCase):
         self.assertNotEqual(inf3.position, self.tank.position)
 
         # move figure in same position of tank
-        move = GM.actionMove(self.board, inf3, destination=self.tank.position)
+        move = GM.actionMove(self.board, self.state, inf3, destination=self.tank.position)
         GM.step(self.board, self.state, move)
 
         figures = self.state.getFiguresByPos(RED, self.tank.position)
@@ -142,7 +142,7 @@ class TestMovementAction(unittest.TestCase):
         self.assertEqual(inf3.transported_by, -1, 'Inf3 is in transporter')
 
         # move tank
-        move = GM.actionMove(self.board, self.tank, destination=(8, 2))
+        move = GM.actionMove(self.board, self.state, self.tank, destination=(8, 2))
         GM.step(self.board, self.state, move)
 
         # figures moves along with tank
@@ -153,7 +153,7 @@ class TestMovementAction(unittest.TestCase):
         self.assertGreater(inf1.transported_by, -1)
 
         # unload 1 figure
-        move = GM.actionMove(self.board, inf1, destination=(8, 4))
+        move = GM.actionMove(self.board, self.state, inf1, destination=(8, 4))
         GM.step(self.board, self.state, move)
 
         self.assertEqual(len(self.tank.transporting), 1, 'transporter has less units than expected')

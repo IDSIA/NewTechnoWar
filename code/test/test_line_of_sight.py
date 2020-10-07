@@ -100,7 +100,7 @@ class TestLOS(unittest.TestCase):
         self.assertFalse(GM.checkLine(self.board, self.state, self.los_inf), 'urban: infantry has LOS on target')
 
     def testArmoredUnitBlock(self):
-        m1 = GM.actionMove(self.board, self.red_tank, destination=(3, 5))
+        m1 = GM.actionMove(self.board, self.state, self.red_tank, destination=(3, 5))
 
         # we move the tank in a blocking position
         GM.step(self.board, self.state, m1)

@@ -21,8 +21,8 @@ def index():
         try:
             if app.config['DEBUG']:
                 logging.info('Using debug configuration!')
-                redPlayer = 'AlphaBetaAgent'
-                bluePlayer = 'AlphaBetaAgent'
+                redPlayer = 'Human'
+                bluePlayer = 'Human'
                 scen = 'scenarioCrossingTheCity'
                 autoplay = not True
                 seed = 0
@@ -186,7 +186,6 @@ def gameReset():
     try:
         _, mm = checkGameId()
         mm.reset()
-        mm.step()
 
         response = make_response(
             redirect(f'/game/')
@@ -236,6 +235,7 @@ def gameNextStep():
 
         return jsonify({
             'end': mm.end,
+            'winner': mm.winner,
             'update': mm.update,
             'state': mm.state,
             'action': lastAction,
