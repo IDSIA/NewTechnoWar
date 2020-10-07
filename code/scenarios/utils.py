@@ -5,6 +5,8 @@ from core.game.state import GameState
 from core.game.terrain import Terrain
 from utils.coordinates import hex_linedraw, to_hex
 
+MAP_SHAPE = (52, 42)  # entire map: 52x42
+
 
 def blank(shape) -> (GameBoard, GameState):
     return GameBoard(shape), GameState(shape)
@@ -27,18 +29,40 @@ def basicForest(terrain: np.array):
     Source: main project source code.
     """
 
+    # forest top left
+    terrain[:32, :3] = Terrain.FOREST
+    terrain[:30, 3] = Terrain.FOREST
+    terrain[:27, 4] = Terrain.FOREST
+    terrain[:26, 5] = Terrain.FOREST
+    terrain[:22, 6] = Terrain.FOREST
+    terrain[23, 6] = Terrain.FOREST
+    terrain[:21, 7] = Terrain.FOREST
+    terrain[:20, 8] = Terrain.FOREST
+    terrain[:18, 9] = Terrain.FOREST
+    terrain[:16, 10] = Terrain.FOREST
+    terrain[:14, 11] = Terrain.FOREST
+    terrain[:10, 12] = Terrain.FOREST
+    terrain[:8, 13:18] = Terrain.FOREST
+
+    # forest middle left
+    terrain[:8, 18:29] = Terrain.FOREST
+    terrain[8, 18:27] = Terrain.FOREST
+    terrain[:7, 29] = Terrain.FOREST
+    terrain[:6, 30] = Terrain.FOREST
+    terrain[1, 31] = Terrain.FOREST
+    terrain[3, 31] = Terrain.FOREST
+
     # forest bottom right
-    terrain[51, 2:] = Terrain.FOREST
-    terrain[50, 1:] = Terrain.FOREST
-    terrain[49, 2:] = Terrain.FOREST
-    terrain[49, 0] = Terrain.OPEN_GROUND
-    terrain[49, 5:10] = Terrain.OPEN_GROUND
-    terrain[49, 13:18] = Terrain.OPEN_GROUND
-    terrain[48, -7:] = Terrain.FOREST
-    terrain[47, -5:] = Terrain.FOREST
-    terrain[46, -5:] = Terrain.FOREST
-    terrain[45, -4:] = Terrain.FOREST
-    terrain[44, -4:-1] = Terrain.FOREST
+    terrain[51, 19:] = Terrain.FOREST
+    terrain[50, 18:] = Terrain.FOREST
+    terrain[49, 19:22] = Terrain.FOREST
+    terrain[49, 27:30] = Terrain.FOREST
+    terrain[49, 35:] = Terrain.FOREST
+    terrain[48, 35:] = Terrain.FOREST
+    terrain[47, 37:] = Terrain.FOREST
+    terrain[46, 37:] = Terrain.FOREST
+    terrain[45, 38:] = Terrain.FOREST
+    terrain[44, 38:41] = Terrain.FOREST
 
     # forest bottom middle
     terrain[35, -2:] = Terrain.FOREST
@@ -74,17 +98,6 @@ def basicForest(terrain: np.array):
     terrain[17, -8:-5] = Terrain.FOREST
     terrain[18, -7:-6] = Terrain.FOREST
 
-    # forest up left
-    terrain[0, 1:14] = Terrain.FOREST
-    terrain[1, 2:15] = Terrain.FOREST
-    terrain[2, 1:14] = Terrain.FOREST
-    terrain[3, 2:15] = Terrain.FOREST
-    terrain[4, 1:14] = Terrain.FOREST
-    terrain[5, 2:14] = Terrain.FOREST
-    terrain[6, 1:13] = Terrain.FOREST
-    terrain[7, 2:12] = Terrain.FOREST
-    terrain[8, 1:10] = Terrain.FOREST
-
 
 def basicUrban(terrain: np.array):
     """
@@ -92,28 +105,34 @@ def basicUrban(terrain: np.array):
     Source: main project source code.
     """
 
-    terrain[-20, 3:9] = Terrain.CONCRETE_BUILDING
-    terrain[-19, 2:10] = Terrain.CONCRETE_BUILDING
-    terrain[-18, 1:17] = Terrain.CONCRETE_BUILDING
-    terrain[-18, 9:14] = Terrain.OPEN_GROUND
-    terrain[-17, 2:18] = Terrain.CONCRETE_BUILDING
-    terrain[-17, 9:14] = Terrain.OPEN_GROUND
-    terrain[-16, 1:17] = Terrain.CONCRETE_BUILDING
-    terrain[-16, 8:13] = Terrain.OPEN_GROUND
-    terrain[-15, 2:19] = Terrain.CONCRETE_BUILDING
-    terrain[-15, 9:12] = Terrain.OPEN_GROUND
-    terrain[-14, 2:18] = Terrain.CONCRETE_BUILDING
-    terrain[-13, 3:19] = Terrain.CONCRETE_BUILDING
-    terrain[-12, 2:19] = Terrain.CONCRETE_BUILDING
-    terrain[-12, 3:19] = Terrain.CONCRETE_BUILDING
-    terrain[-11, 2:19] = Terrain.CONCRETE_BUILDING
-    terrain[-10, 2:19] = Terrain.CONCRETE_BUILDING
-    terrain[-9, 1:20] = Terrain.CONCRETE_BUILDING
-    terrain[-8, 3:20] = Terrain.CONCRETE_BUILDING
-    terrain[-7, 3:20] = Terrain.CONCRETE_BUILDING
-    terrain[-6, 3:20] = Terrain.CONCRETE_BUILDING
-    terrain[-5, 4:20] = Terrain.CONCRETE_BUILDING
-    terrain[-4, 4:18] = Terrain.CONCRETE_BUILDING
+    # city
+    terrain[-20, 20:26] = Terrain.CONCRETE_BUILDING
+    terrain[-19, 19:27] = Terrain.CONCRETE_BUILDING
+    terrain[-18, 18:34] = Terrain.CONCRETE_BUILDING
+    terrain[-18, 26:31] = Terrain.OPEN_GROUND
+    terrain[-17, 19:35] = Terrain.CONCRETE_BUILDING
+    terrain[-17, 26:31] = Terrain.OPEN_GROUND
+    terrain[-16, 18:34] = Terrain.CONCRETE_BUILDING
+    terrain[-16, 25:30] = Terrain.OPEN_GROUND
+    terrain[-15, 19:36] = Terrain.CONCRETE_BUILDING
+    terrain[-15, 26:30] = Terrain.OPEN_GROUND
+    terrain[-14, 19:35] = Terrain.CONCRETE_BUILDING
+    terrain[-13, 20:36] = Terrain.CONCRETE_BUILDING
+    terrain[-12, 19:36] = Terrain.CONCRETE_BUILDING
+    terrain[-12, 20:36] = Terrain.CONCRETE_BUILDING
+    terrain[-11, 19:36] = Terrain.CONCRETE_BUILDING
+    terrain[-10, 19:36] = Terrain.CONCRETE_BUILDING
+    terrain[-9, 18:37] = Terrain.CONCRETE_BUILDING
+    terrain[-8, 20:37] = Terrain.CONCRETE_BUILDING
+    terrain[-7, 20:37] = Terrain.CONCRETE_BUILDING
+    terrain[-6, 20:37] = Terrain.CONCRETE_BUILDING
+    terrain[-5, 21:37] = Terrain.CONCRETE_BUILDING
+    terrain[-4, 21:35] = Terrain.CONCRETE_BUILDING
+
+    # village
+    terrain[15, 29:31] = Terrain.WOODEN_BUILDING
+    terrain[16, 29:31] = Terrain.WOODEN_BUILDING
+    terrain[17, 30:32] = Terrain.WOODEN_BUILDING
 
 
 def basicRoad(terrain: np.array):
@@ -122,41 +141,37 @@ def basicRoad(terrain: np.array):
     Source: main project source code.
     """
 
-    terrain[::2, 0] = Terrain.ROAD
-    terrain[1::2, 1] = Terrain.ROAD
-    terrain[30, 0:17] = Terrain.ROAD
-    terrain[31, 17] = Terrain.ROAD
-    terrain[32, 17] = Terrain.ROAD
-    terrain[33, 18] = Terrain.ROAD
-    terrain[34, 18] = Terrain.ROAD
-    terrain[35, 19] = Terrain.ROAD
-    terrain[36, 19] = Terrain.ROAD
-    terrain[37, 20] = Terrain.ROAD
-    terrain[38, 20] = Terrain.ROAD
-    terrain[39, 21] = Terrain.ROAD
-    terrain[40, 21] = Terrain.ROAD
-    terrain[41, 22] = Terrain.ROAD
-    terrain[42, 22] = Terrain.ROAD
-    terrain[43, 23] = Terrain.ROAD
-    terrain[44, 23] = Terrain.ROAD
-    terrain[45, 24] = Terrain.ROAD
+    # main road
+    for i in range(MAP_SHAPE[0]):
+        j = 17 if i % 2 == 0 else 18
+        terrain[i, j] = Terrain.ROAD
 
-    terrain[30, 13] = Terrain.ROAD
-    terrain[29, 14] = Terrain.ROAD
-    terrain[28, 14] = Terrain.ROAD
-    terrain[27, 15] = Terrain.ROAD
-    terrain[26, 15] = Terrain.ROAD
-    terrain[25, 16] = Terrain.ROAD
-    terrain[24, 16] = Terrain.ROAD
-    terrain[23, 17] = Terrain.ROAD
-    terrain[22, 17] = Terrain.ROAD
-    terrain[21, 18] = Terrain.ROAD
-    terrain[20, 18] = Terrain.ROAD
-    terrain[19, 19] = Terrain.ROAD
-    terrain[18, 19] = Terrain.ROAD
-    terrain[17, 20] = Terrain.ROAD
-    terrain[17, 21] = Terrain.ROAD
-    terrain[16, 21] = Terrain.ROAD
-    terrain[16, 22] = Terrain.ROAD
-    terrain[15, 23] = Terrain.ROAD
-    terrain[15, 24] = Terrain.ROAD
+    # secondary roads
+    terrain[30, 18:34] = Terrain.ROAD
+
+    fillLine(terrain, (30, 33), (46, 41), Terrain.ROAD)
+    fillLine(terrain, (30, 30), (17, 37), Terrain.ROAD)
+    fillLine(terrain, (17, 37), (15, 41), Terrain.ROAD)
+    fillLine(terrain, (20, 35), (18, 31), Terrain.ROAD)
+    fillLine(terrain, (41, 36), (41, 39), Terrain.ROAD)
+
+    # city roads
+    fillLine(terrain, (31, 25), (38, 22), Terrain.ROAD)
+    fillLine(terrain, (36, 21), (38, 22), Terrain.ROAD)
+    fillLine(terrain, (39, 23), (42, 21), Terrain.ROAD)
+    fillLine(terrain, (39, 23), (42, 26), Terrain.ROAD)
+    fillLine(terrain, (42, 26), (45, 25), Terrain.ROAD)
+    fillLine(terrain, (43, 26), (44, 30), Terrain.ROAD)
+    fillLine(terrain, (41, 30), (41, 38), Terrain.ROAD)
+    fillLine(terrain, (41, 32), (47, 30), Terrain.ROAD)
+
+    terrain[40, 28:30] = Terrain.ROAD
+
+
+def basicTerrain():
+    terrain = np.zeros(MAP_SHAPE, dtype='uint8')
+    basicUrban(terrain)
+    basicForest(terrain)
+    basicRoad(terrain)
+
+    return terrain

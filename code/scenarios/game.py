@@ -8,52 +8,47 @@ from core.game.board import GameBoard
 from core.game.goals import GoalReachPoint, GoalEliminateOpponent, GoalMaxTurn, GoalDefendPoint
 from core.game.state import GameState
 from core.game.terrain import Terrain
-from scenarios.utils import basicForest, basicUrban, basicRoad, fillLine
-
-shape = (52, 25)  # entire map: 52x42
+from scenarios.utils import fillLine, MAP_SHAPE, basicTerrain
 
 
 def scenarioJunction() -> (GameBoard, GameState):
     """
     Sets up scenario 'junction'.
     """
-    board = GameBoard(shape)
-    state = GameState(shape)
+    board = GameBoard(MAP_SHAPE)
+    state = GameState(MAP_SHAPE)
 
     # setup static parameters
-    terrain = np.zeros(shape, dtype='uint8')
-    basicForest(terrain)
-    basicUrban(terrain)
-    basicRoad(terrain)
+    terrain = basicTerrain()
 
-    terrain[16, 3:6] = Terrain.FOREST
-    terrain[17, 4:7] = Terrain.FOREST
-    terrain[20, 7:10] = Terrain.FOREST
-    terrain[21, 7:10] = Terrain.FOREST
+    terrain[16, 20:23] = Terrain.ISOLATED_TREE
+    terrain[17, 21:24] = Terrain.ISOLATED_TREE
+    terrain[20, 24:27] = Terrain.ISOLATED_TREE
+    terrain[21, 24:27] = Terrain.ISOLATED_TREE
 
-    fillLine(terrain, (15, 10), (21, 7), Terrain.FOREST)
-    fillLine(terrain, (20, 8), (21, 8), Terrain.FOREST)
-    fillLine(terrain, (20, 9), (21, 9), Terrain.FOREST)
-    terrain[16, 10] = Terrain.FOREST
+    fillLine(terrain, (15, 27), (21, 24), Terrain.ISOLATED_TREE)
+    fillLine(terrain, (20, 25), (21, 25), Terrain.ISOLATED_TREE)
+    fillLine(terrain, (20, 26), (21, 26), Terrain.ISOLATED_TREE)
+    terrain[16, 27] = Terrain.ISOLATED_TREE
 
-    terrain[19, 2] = Terrain.FOREST
-    terrain[20, 1] = Terrain.FOREST
-    terrain[21, 2] = Terrain.FOREST
+    terrain[19, 19] = Terrain.ISOLATED_TREE
+    terrain[20, 18] = Terrain.ISOLATED_TREE
+    terrain[21, 19] = Terrain.ISOLATED_TREE
 
-    fillLine(terrain, (25, 4), (26, 3), Terrain.FOREST)
-    fillLine(terrain, (25, 5), (27, 4), Terrain.FOREST)
-    fillLine(terrain, (26, 5), (28, 4), Terrain.FOREST)
+    fillLine(terrain, (25, 21), (26, 20), Terrain.ISOLATED_TREE)
+    fillLine(terrain, (25, 22), (27, 21), Terrain.ISOLATED_TREE)
+    fillLine(terrain, (26, 22), (28, 21), Terrain.ISOLATED_TREE)
 
-    terrain[23, 14] = Terrain.ISOLATED_TREE
-    terrain[27, 18] = Terrain.ISOLATED_TREE
+    terrain[23, 31] = Terrain.ISOLATED_TREE
+    terrain[27, 35] = Terrain.ISOLATED_TREE
 
-    terrain[28, 15] = Terrain.ISOLATED_TREE
+    terrain[28, 32] = Terrain.ISOLATED_TREE
 
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (30, 13)),
-        GoalDefendPoint(BLUE, RED, board.shape, (30, 13)),
+        GoalReachPoint(RED, board.shape, (30, 30)),
+        GoalDefendPoint(BLUE, RED, board.shape, (30, 30)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 10)
@@ -62,50 +57,50 @@ def scenarioJunction() -> (GameBoard, GameState):
     # setup dynamic parameters
 
     # orange
-    i11 = Infantry((8, 0), RED, 'rInf11')
-    i12 = Infantry((8, 0), RED, 'rInf12')
-    t1 = Tank((8, 0), RED, 'rTank1')
+    i11 = Infantry((8, 17), RED, 'rInf11')
+    i12 = Infantry((8, 17), RED, 'rInf12')
+    t1 = Tank((8, 17), RED, 'rTank1')
 
     # red
-    t2 = Tank((7, 11), RED, 'rTank2')
-    i21 = Infantry((7, 11), RED, 'rInf21')
-    i22 = Infantry((6, 12), RED, 'rInf22')
+    t2 = Tank((7, 28), RED, 'rTank2')
+    i21 = Infantry((7, 28), RED, 'rInf21')
+    i22 = Infantry((6, 29), RED, 'rInf22')
 
     # darkred
-    t3 = Tank((17, 20), RED, 'rTank3')
-    i31 = Infantry((17, 17), RED, 'rInf3')
-    i32 = Infantry((25, 22), RED, 'rInf4')
+    t3 = Tank((17, 37), RED, 'rTank3')
+    i31 = Infantry((17, 34), RED, 'rInf3')
+    i32 = Infantry((25, 39), RED, 'rInf4')
 
     state.addChoice(RED, 'orange', t1, i11, i12)
     state.addChoice(RED, 'lightred', t2, i21, i22)
     state.addChoice(RED, 'darkred', t3, i31, i32)
 
     state.addFigure(
-        APC((33, 8), BLUE, 'bAPC1', HIDDEN),
-        Infantry((36, 14), BLUE, 'bInf1', HIDDEN),
-        Infantry((37, 16), BLUE, 'bInf2', HIDDEN)
+        APC((33, 25), BLUE, 'bAPC1', HIDDEN),
+        Infantry((36, 31), BLUE, 'bInf1', HIDDEN),
+        Infantry((37, 33), BLUE, 'bInf2', HIDDEN)
     )
 
     t1.transportLoad(i11)
     t1.transportLoad(i12)
     t2.transportLoad(i21)
 
-    placement_zone = np.zeros(shape, dtype='uint8')
-    placement_zone[28, 15:21] = 1
-    placement_zone[29, 7:21] = 1
-    placement_zone[30, 1:20] = 1
-    placement_zone[31, 2:21] = 1
-    placement_zone[32, 2:20] = 1
-    placement_zone[33, 2:20] = 1
-    placement_zone[34, 2:20] = 1
-    placement_zone[35, 2:20] = 1
-    placement_zone[36, 2:20] = 1
-    placement_zone[37, 3:20] = 1
-    placement_zone[38, 2:19] = 1
-    placement_zone[39, 3:20] = 1
-    placement_zone[40, 3:19] = 1
-    placement_zone[41, 3:20] = 1
-    placement_zone[42, 3:19] = 1
+    placement_zone = np.zeros(MAP_SHAPE, dtype='uint8')
+    placement_zone[28, 32:38] = 1
+    placement_zone[29, 24:38] = 1
+    placement_zone[30, 18:37] = 1
+    placement_zone[31, 19:38] = 1
+    placement_zone[32, 19:37] = 1
+    placement_zone[33, 19:37] = 1
+    placement_zone[34, 19:37] = 1
+    placement_zone[35, 19:37] = 1
+    placement_zone[36, 19:37] = 1
+    placement_zone[37, 20:37] = 1
+    placement_zone[38, 19:36] = 1
+    placement_zone[39, 20:37] = 1
+    placement_zone[40, 20:36] = 1
+    placement_zone[41, 20:37] = 1
+    placement_zone[42, 20:36] = 1
 
     state.addPlacementZone(BLUE, placement_zone)
 
@@ -125,9 +120,9 @@ def scenarioJunctionExo() -> (GameBoard, GameState):
     state.clearFigures(BLUE)
 
     state.addFigure(
-        APC((33, 8), BLUE, 'bAPC1', HIDDEN),
-        Exoskeleton((36, 14), BLUE, 'bExo1', HIDDEN),
-        Exoskeleton((37, 16), BLUE, 'bExo2', HIDDEN)
+        APC((33, 25), BLUE, 'bAPC1', HIDDEN),
+        Exoskeleton((36, 31), BLUE, 'bExo1', HIDDEN),
+        Exoskeleton((37, 33), BLUE, 'bExo2', HIDDEN)
     )
 
     board.name = state.name = 'junction-exo'
@@ -139,59 +134,56 @@ def scenarioRoadblock() -> (GameBoard, GameState):
     """
     Sets up scenario 'roadblock'.
     """
-    board = GameBoard(shape)
-    state = GameState(shape)
+    board = GameBoard(MAP_SHAPE)
+    state = GameState(MAP_SHAPE)
     state.turn = 4  # with initial update -> 5 (6th turn)
 
     # setup static parameters
-    terrain = np.zeros(shape, dtype='uint8')
-    basicForest(terrain)
-    basicUrban(terrain)
-    basicRoad(terrain)
+    terrain = basicTerrain()
 
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (43, 12)),
-        GoalDefendPoint(BLUE, RED, board.shape, (43, 12)),
+        GoalReachPoint(RED, board.shape, (43, 29)),
+        GoalDefendPoint(BLUE, RED, board.shape, (43, 29)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
     )
 
     # orange
-    t1 = Tank((37, 4), RED, 'rTank2')
-    i11 = Infantry((37, 6), RED, 'rInf21')
-    i12 = Infantry((36, 8), RED, 'rInf22')
+    t1 = Tank((39, 22), RED, 'rTank1')
+    i11 = Infantry((39, 24), RED, 'rInf11')
+    i12 = Infantry((38, 26), RED, 'rInf12')
 
     # red
-    t2 = Tank((42, 4), RED, 'rTank3')
-    i21 = Infantry((42, 4), RED, 'rInf31')
-    i22 = Infantry((42, 3), RED, 'rInf32')
+    t2 = Tank((42, 21), RED, 'rTank2')
+    i21 = Infantry((42, 21), RED, 'rInf21')
+    i22 = Infantry((42, 20), RED, 'rInf22')
 
     # darkred
-    i31 = Infantry((39, 5), RED, 'rInf11')
-    i32 = Infantry((39, 5), RED, 'rInf12')
-    t3 = Tank((39, 5), RED, 'rTank1')
+    t3 = Tank((37, 21), RED, 'rTank3')
+    i31 = Infantry((37, 21), RED, 'rInf31')
+    i32 = Infantry((37, 21), RED, 'rInf32')
 
     state.addChoice(RED, 'orange', t1, i11, i12)
     state.addChoice(RED, 'lightred', t2, i21, i22)
     state.addChoice(RED, 'darkred', t3, i31, i32)
 
     state.addFigure(
-        APC((43, 15), BLUE, 'bAPC', HIDDEN),
-        Infantry((42, 18), BLUE, 'bInf', HIDDEN),
+        APC((44, 27), BLUE, 'bAPC', HIDDEN),
+        Infantry((43, 30), BLUE, 'bInf', HIDDEN),
     )
 
     t2.transportLoad(i21)
     t3.transportLoad(i31)
     t3.transportLoad(i32)
 
-    placement_zone = np.zeros(shape, dtype='uint8')
-    placement_zone[42, 8:16] = 1
-    placement_zone[43, 8:16] = 1
-    placement_zone[44, 7:15] = 1
-    placement_zone[45, 7:15] = 1
+    placement_zone = np.zeros(MAP_SHAPE, dtype='uint8')
+    placement_zone[42, 25:33] = 1
+    placement_zone[43, 25:33] = 1
+    placement_zone[44, 24:32] = 1
+    placement_zone[45, 24:32] = 1
 
     state.addPlacementZone(BLUE, placement_zone)
 
@@ -205,98 +197,95 @@ def scenarioBridgeHead() -> (GameBoard, GameState):
     Sets up scenario 'bridgehead'.
     Multiple objectives.
     """
-    board = GameBoard(shape)
-    state = GameState(shape)
+    board = GameBoard(MAP_SHAPE)
+    state = GameState(MAP_SHAPE)
 
     # setup static parameters
-    terrain = np.zeros(shape, dtype='uint8')
-    basicForest(terrain)
-    basicUrban(terrain)
-    basicRoad(terrain)
+    terrain = basicTerrain()
 
-    terrain[34, 15:18] = Terrain.FOREST
-    terrain[33, 15:18] = Terrain.FOREST
+    terrain[34, 32:35] = Terrain.FOREST
+    terrain[33, 32:35] = Terrain.FOREST
 
-    terrain[34, 18:20] = Terrain.FOREST
-    terrain[35, 18:21] = Terrain.FOREST
-    terrain[36, 18:20] = Terrain.FOREST
-    terrain[37, 19] = Terrain.FOREST
+    terrain[34, 35:37] = Terrain.FOREST
+    terrain[35, 35:38] = Terrain.FOREST
+    terrain[36, 35:37] = Terrain.FOREST
+    terrain[37, 36] = Terrain.FOREST
 
-    terrain[35, 11] = Terrain.FOREST
+    terrain[35, 28] = Terrain.FOREST
 
-    terrain[42, 19] = Terrain.FOREST
+    terrain[42, 36] = Terrain.FOREST
 
-    terrain[38, 18:20] = Terrain.FOREST
-    terrain[39, 19:20] = Terrain.FOREST
-    terrain[40, 19:20] = Terrain.FOREST
-    terrain[41, 20:21] = Terrain.FOREST
-    terrain[42, 20:23] = Terrain.FOREST
-    terrain[43, 21:23] = Terrain.FOREST
-    terrain[44, 21] = Terrain.FOREST
+    terrain[38, 35:37] = Terrain.FOREST
+    terrain[39, 36:37] = Terrain.FOREST
+    terrain[40, 36:37] = Terrain.FOREST
+    terrain[41, 37:38] = Terrain.FOREST
+    terrain[42, 37:40] = Terrain.FOREST
+    terrain[43, 38:40] = Terrain.FOREST
+    terrain[44, 38] = Terrain.FOREST
 
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (39, 12), (40, 12), (40, 13), (41, 14), (41, 15)),
-        GoalDefendPoint(BLUE, RED, board.shape, (39, 12), (40, 12), (40, 13), (41, 14), (41, 15)),
+        GoalReachPoint(RED, board.shape, (39, 29), (40, 29), (40, 30), (41, 31), (41, 32)),
+        GoalDefendPoint(BLUE, RED, board.shape, (39, 29), (40, 29), (40, 30), (41, 31), (41, 32)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 7)
     )
 
     state.addChoice(RED, 'orange',
-                    Tank((39, 19), RED, 'rTank1', HIDDEN),
-                    Infantry((34, 15), RED, 'rInf11', HIDDEN)
+                    Tank((39, 36), RED, 'rTank1', HIDDEN),
+                    Infantry((34, 32), RED, 'rInf11', HIDDEN)
                     )
     state.addChoice(RED, 'lightred',
-                    Tank((37, 18), RED, 'rTank2', HIDDEN),
-                    Infantry((33, 14), RED, 'rInf12', HIDDEN)
+                    Tank((37, 35), RED, 'rTank2', HIDDEN),
+                    Infantry((33, 31), RED, 'rInf12', HIDDEN)
                     )
     state.addChoice(RED, 'darkred',
-                    Tank((35, 16), RED, 'rTank3', HIDDEN),
-                    Infantry((32, 13), RED, 'rInf21', HIDDEN)
+                    Tank((35, 33), RED, 'rTank3', HIDDEN),
+                    Infantry((32, 30), RED, 'rInf21', HIDDEN)
                     )
 
     state.addFigure(
-        APC((40, 11), BLUE, 'bAPC', HIDDEN),
-        Infantry((42, 9), BLUE, 'bInf', HIDDEN),
+        APC((40, 28), BLUE, 'bAPC', HIDDEN),
+        Infantry((42, 26), BLUE, 'bInf', HIDDEN),
     )
 
-    placement_zone_red = np.zeros(shape, dtype='uint8')
-    placement_zone_red[28, 11:24] = 1
-    placement_zone_red[29, 12:24] = 1
-    placement_zone_red[30, 12:24] = 1
-    placement_zone_red[31, 13:24] = 1
-    placement_zone_red[32, 13:24] = 1
-    placement_zone_red[33, 14:24] = 1
-    placement_zone_red[34, 14:24] = 1
-    placement_zone_red[35, 15:24] = 1
-    placement_zone_red[36, 15:24] = 1
-    placement_zone_red[37, 17:24] = 1
-    placement_zone_red[38, 17:24] = 1
-    placement_zone_red[39, 18:24] = 1
-    placement_zone_red[40, 18:24] = 1
-    placement_zone_red[41, 19:24] = 1
-    placement_zone_red[42, 19:24] = 1
-    placement_zone_red[43, 20:23] = 1
-    placement_zone_red[44, 19:22] = 1
-    placement_zone_red[45, 21:22] = 1
-    placement_zone_red[46, 20:21] = 1
-    placement_zone_red[47, 21] = 1
+    placement_zone_red = np.zeros(MAP_SHAPE, dtype='uint8')
+    placement_zone_red[28, 28:42] = 1
+    placement_zone_red[29, 29:42] = 1
+    placement_zone_red[30, 29:42] = 1
+    placement_zone_red[31, 30:42] = 1
+    placement_zone_red[32, 30:42] = 1
+    placement_zone_red[33, 31:42] = 1
+    placement_zone_red[34, 31:42] = 1
+    placement_zone_red[35, 32:42] = 1
+    placement_zone_red[36, 32:42] = 1
+    placement_zone_red[37, 34:42] = 1
+    placement_zone_red[38, 34:42] = 1
+    placement_zone_red[39, 35:42] = 1
+    placement_zone_red[40, 35:42] = 1
+    placement_zone_red[41, 36:42] = 1
+    placement_zone_red[42, 36:41] = 1
+    placement_zone_red[43, 37:41] = 1
+    placement_zone_red[44, 36:40] = 1
+    placement_zone_red[45, 38:40] = 1
+    placement_zone_red[46, 37:39] = 1
+    placement_zone_red[47, 38] = 1
 
-    placement_zone_blue = np.zeros(shape, dtype='uint8')
-    placement_zone_blue[44, 3:15] = 1
-    placement_zone_blue[43, 4:15] = 1
-    placement_zone_blue[42, 4:16] = 1
-    placement_zone_blue[41, 5:17] = 1
-    placement_zone_blue[40, 5:17] = 1
-    placement_zone_blue[39, 6:17] = 1
-    placement_zone_blue[38, 6:15] = 1
-    placement_zone_blue[37, 7:14] = 1
-    placement_zone_blue[36, 7:12] = 1
-    placement_zone_blue[35, 8:11] = 1
-    placement_zone_blue[34, 8:10] = 1
-    placement_zone_blue[33, 9] = 1
+    placement_zone_blue = np.zeros(MAP_SHAPE, dtype='uint8')
+    placement_zone_blue[44, 20:33] = 1
+    placement_zone_blue[43, 21:34] = 1
+    placement_zone_blue[42, 21:34] = 1
+    placement_zone_blue[41, 22:35] = 1
+    placement_zone_blue[40, 22:35] = 1
+    placement_zone_blue[39, 23:35] = 1
+    placement_zone_blue[38, 23:33] = 1
+    placement_zone_blue[37, 24:32] = 1
+    placement_zone_blue[36, 24:30] = 1
+    placement_zone_blue[35, 25:30] = 1
+    placement_zone_blue[34, 25:28] = 1
+    placement_zone_blue[33, 26] = 1
 
     state.addPlacementZone(RED, placement_zone_red)
     state.addPlacementZone(BLUE, placement_zone_blue)
@@ -310,52 +299,52 @@ def scenarioCrossingTheCity() -> (GameBoard, GameState):
     """
     Sets up scenario 'CrossingTheCity'.
     """
-    board = GameBoard(shape)
-    state = GameState(shape)
+    board = GameBoard(MAP_SHAPE)
+    state = GameState(MAP_SHAPE)
 
     # setup static parameters
-    # TODO: raise height of shape!
-    # better TODO: use complete map
-    terrain = np.zeros(shape, dtype='uint8')
-    basicForest(terrain)
-    basicUrban(terrain)
-    basicRoad(terrain)
+    terrain = basicTerrain()
 
-    terrain[25, 3:6] = Terrain.FOREST
-    terrain[26, 2:5] = Terrain.FOREST
-    terrain[27, 4:5] = Terrain.FOREST
-    terrain[28, 3:4] = Terrain.FOREST
-    terrain[29, 3:4] = Terrain.FOREST
-    terrain[30, 1:3] = Terrain.FOREST
-    terrain[31, 2] = Terrain.FOREST
+    terrain[25, 17:20] = Terrain.FOREST
+    terrain[26, 16:19] = Terrain.FOREST
+    terrain[27, 18:19] = Terrain.FOREST
+    terrain[28, 17:18] = Terrain.FOREST
+    terrain[29, 17:18] = Terrain.FOREST
+    terrain[30, 15:17] = Terrain.FOREST
+    terrain[31, 16] = Terrain.FOREST
+
+    board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (30, 9)),
-        GoalDefendPoint(BLUE, RED, board.shape, (30, 9)),
+        GoalReachPoint(RED, board.shape, (39, 23)),
+        GoalDefendPoint(BLUE, RED, board.shape, (39, 23)),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 7)
     )
 
-    t1 = Tank((29, 2), RED, 'rTank2')  # orange
-    i11 = Infantry((29, 2), RED, 'rInf21')
-    i12 = Infantry((29, 2), RED, 'rInf21')
+    # orange
+    t1 = Tank((26, 16), RED, 'rTank2')
+    i11 = Infantry((26, 16), RED, 'rInf21')
+    i12 = Infantry((26, 16), RED, 'rInf21')
 
-    t2 = Tank((24, 4), RED, 'rTank3')  # red 1 unit
-    i21 = Infantry((24, 4), RED, 'rInf31')
-    i22 = Infantry((24, 4), RED, 'rInf31')
+    # red 1 unit
+    t2 = Tank((30, 15), RED, 'rTank3')
+    i21 = Infantry((30, 15), RED, 'rInf31')
+    i22 = Infantry((30, 15), RED, 'rInf31')
 
-    t3 = Tank((29, 1), RED, 'rTank1')  # dark red 2 units
-    i31 = Infantry((29, 1), RED, 'rInf11')
-    i32 = Infantry((29, 1), RED, 'rInf11')
+    # dark red 2 units
+    t3 = Tank((25, 19), RED, 'rTank1')
+    i31 = Infantry((25, 19), RED, 'rInf11')
+    i32 = Infantry((25, 19), RED, 'rInf11')
 
     state.addChoice(RED, 'orange', t1, i11, i12)
     state.addChoice(RED, 'lightred', t2, i21, i22)
     state.addChoice(RED, 'darkred', t3, i31, i32)
 
     state.addFigure(
-        APC((32, 7), BLUE, 'bAPC', HIDDEN),
-        Infantry((31, 9), BLUE, 'bInf', HIDDEN),
+        APC((38, 21), BLUE, 'bAPC', HIDDEN),
+        Infantry((41, 23), BLUE, 'bInf', HIDDEN),
     )
 
     t1.transportLoad(i11)
@@ -365,19 +354,18 @@ def scenarioCrossingTheCity() -> (GameBoard, GameState):
     t3.transportLoad(i31)
     t3.transportLoad(i32)
 
-    placement_zone_blue = np.zeros(shape, dtype='uint8')
-    placement_zone_blue[26, 6:8] = Terrain.FOREST
-    placement_zone_blue[26, 1:9] = Terrain.FOREST
-    placement_zone_blue[26, 0:8] = Terrain.FOREST
-    placement_zone_blue[26, 0:9] = Terrain.FOREST
-    placement_zone_blue[26, 0:8] = Terrain.FOREST
-    placement_zone_blue[26, 0:9] = Terrain.FOREST
-    placement_zone_blue[26, 0:8] = Terrain.FOREST
-    placement_zone_blue[26, 0:9] = Terrain.FOREST
-    placement_zone_blue[26, 0:8] = Terrain.FOREST
-    placement_zone_blue[26, 0:9] = Terrain.FOREST
-    placement_zone_blue[26, 0:8] = Terrain.FOREST
-    placement_zone_blue[26, 0:9] = Terrain.FOREST
+    placement_zone_blue = np.zeros(MAP_SHAPE, dtype='uint8')
+    placement_zone_blue[45, 17:26] = Terrain.FOREST
+    placement_zone_blue[44, 17:25] = Terrain.FOREST
+    placement_zone_blue[43, 17:26] = Terrain.FOREST
+    placement_zone_blue[42, 17:26] = Terrain.FOREST
+    placement_zone_blue[41, 18:26] = Terrain.FOREST
+    placement_zone_blue[40, 17:26] = Terrain.FOREST
+    placement_zone_blue[39, 18:26] = Terrain.FOREST
+    placement_zone_blue[38, 17:26] = Terrain.FOREST
+    placement_zone_blue[37, 18:26] = Terrain.FOREST
+    placement_zone_blue[36, 18:26] = Terrain.FOREST
+    placement_zone_blue[35, 24:26] = Terrain.FOREST
 
     state.addPlacementZone(BLUE, placement_zone_blue)
 

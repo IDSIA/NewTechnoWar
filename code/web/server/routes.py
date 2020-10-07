@@ -23,7 +23,7 @@ def index():
                 logging.info('Using debug configuration!')
                 redPlayer = 'AlphaBetaAgent'
                 bluePlayer = 'AlphaBetaAgent'
-                scen = 'scenarioJunction'
+                scen = 'scenarioCrossingTheCity'
                 autoplay = not True
                 seed = 0
                 replay = ''
@@ -79,7 +79,7 @@ def index():
             'JunctionExo',
             'BridgeHead',
             'Roadblock',
-            # 'CrossingTheCity', TODO: need fixes and bigger map!
+            'CrossingTheCity',
         ]
 
         players = [
