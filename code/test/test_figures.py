@@ -67,9 +67,9 @@ class TestFigures(unittest.TestCase):
         self.assertFalse(self.inf_2.activated)
         self.assertFalse(self.inf_2.responded)
 
-        m1 = GM.actionMove(self.board, self.inf_1, destination=(5, 12))
+        m1 = GM.actionMove(self.board, self.state, self.inf_1, destination=(5, 12))
         r1 = GM.actionRespond(self.board, self.state, self.inf_1, self.target_2, self.inf_1.weapons['AR'])
-        m2 = GM.actionMove(self.board, self.inf_2, destination=(8, 12))
+        m2 = GM.actionMove(self.board, self.state, self.inf_2, destination=(8, 12))
         r2 = GM.actionRespond(self.board, self.state, self.inf_2, self.target_3, self.inf_1.weapons['AR'])
 
         # check that attack activate unit

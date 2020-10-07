@@ -3,12 +3,13 @@ from typing import List, Dict, Set
 
 from core.figures import Figure
 from core.game.manager import GameBoard
+from core.game.state import GameState
 from utils.coordinates import Cube, cube_distance
 
 heuristic = cube_distance
 
 
-def reachablePath(figure: Figure, board: GameBoard, max_cost: int) -> (Set[Cube], List[Cube]):
+def reachablePath(figure: Figure, board: GameBoard, state: GameState, max_cost: int) -> (Set[Cube], List[Cube]):
     """This uses Uniform Cost Search."""
     start = figure.position
 
@@ -29,7 +30,7 @@ def reachablePath(figure: Figure, board: GameBoard, max_cost: int) -> (Set[Cube]
         visited.add(current)
 
         for next in board.getNeighbors(current):
-            new_cost = cost_so_far[current] + board.getMovementCost(next, figure.kind)
+            new_cost = cost_so_far[current] + board.getMovementCost(next, figure.kind) + state.getMovementCost(next)
 
             if new_cost > max_cost:
                 continue
@@ -54,7 +55,7 @@ def reachablePath(figure: Figure, board: GameBoard, max_cost: int) -> (Set[Cube]
     return visited, paths
 
 
-def findPath(start: Cube, goal: Cube, board: GameBoard, kind: int) -> List[Cube]:
+def findPath(start: Cube, goal: Cube, board: GameBoard, state: GameState, kind: int) -> List[Cube]:
     """This uses A*"""
     frontier = PriorityQueue()
     frontier.put((0, start))
@@ -73,7 +74,7 @@ def findPath(start: Cube, goal: Cube, board: GameBoard, kind: int) -> List[Cube]
             break
 
         for next in board.getNeighbors(current):
-            new_cost = cost_so_far[current] + board.getMovementCost(next, kind)
+            new_cost = cost_so_far[current] + board.getMovementCost(next, kind) + state.getMovementCost(next)
             if next not in cost_so_far or new_cost < cost_so_far[next]:
                 cost_so_far[next] = new_cost
                 priority = new_cost + heuristic(goal, next)

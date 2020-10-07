@@ -25,11 +25,11 @@ class TestExecutionFlow(unittest.TestCase):
         )
 
         self.red = ABPuppet(RED)
-        self.red.action = GM.actionMove(self.board, self.inf_1, destination=self.inf_1.position)
+        self.red.action = GM.actionMove(self.board, self.state, self.inf_1, destination=self.inf_1.position)
         self.red.response = GM.actionPassResponse(RED)
 
         self.blue = ABPuppet(BLUE)
-        self.blue.action = GM.actionMove(self.board, self.inf_2, destination=self.inf_2.position)
+        self.blue.action = GM.actionMove(self.board, self.state, self.inf_2, destination=self.inf_2.position)
         self.blue.response = GM.actionPassResponse(BLUE)
 
         self.mm = MatchManager('', self.red, self.blue)

@@ -35,7 +35,8 @@ class GameManager(object):
         """Creates a PassResponse action where a team will give no response in this step."""
         return PassRespond(team)
 
-    def actionMove(self, board: GameBoard, figure: Figure, path: list = None, destination: tuple = None) -> Move:
+    def actionMove(self, board: GameBoard, state: GameState, figure: Figure, path: list = None,
+                   destination: tuple = None) -> Move:
         """
         Creates a Move action for a figure with a specified destination or a path. If path is not given, it will be
         computed using the destination argument as a target. It can raise a ValueError exception if destination is
@@ -48,13 +49,14 @@ class GameManager(object):
         if not path:
             if len(destination) == 2:
                 destination = to_cube(destination)
-            path = findPath(figure.position, destination, board, figure.kind)
+            path = findPath(figure.position, destination, board, state, figure.kind)
             if len(path) - 1 > (figure.move - figure.load):
                 raise ValueError(f'destination unreachable for {figure} to {path[-1]}')
         return Move(figure, path)
 
     @staticmethod
-    def actionLoadInto(board: GameBoard, figure: Figure, transporter: Figure, path: List[Cube] = None) -> LoadInto:
+    def actionLoadInto(board: GameBoard, state: GameState, figure: Figure, transporter: Figure,
+                       path: List[Cube] = None) -> LoadInto:
         """
         Creates a LoadInto action for a figure with a specified transporter as destination. If path is not given, then
         it will be computed. It can raise a ValueError exception if the destination is unreachable.
@@ -64,7 +66,7 @@ class GameManager(object):
             raise ValueError(f'transporter {transporter} has been destroyed')
 
         if not path:
-            path = findPath(figure.position, transporter.position, board, figure.kind)
+            path = findPath(figure.position, transporter.position, board, state, figure.kind)
             if len(path) - 1 > (figure.move - figure.load):
                 raise ValueError(f'destination unreachable for {figure} to {path[-1]}')
         return LoadInto(figure, path, transporter)
@@ -74,7 +76,7 @@ class GameManager(object):
 
         distance = figure.move - figure.load
 
-        _, movements = reachablePath(figure, board, distance)
+        _, movements = reachablePath(figure, board, state, distance)
 
         moves = []
 
@@ -92,10 +94,10 @@ class GameManager(object):
                 # load into transporter action
                 for transporter in availableTransporters:
                     if not transporter.killed:
-                        moves.append(self.actionLoadInto(board, figure, transporter, path))
+                        moves.append(self.actionLoadInto(board, state, figure, transporter, path))
             else:
                 # move to destination
-                moves.append(self.actionMove(board, figure, path))
+                moves.append(self.actionMove(board, state, figure, path))
 
         return moves
 
