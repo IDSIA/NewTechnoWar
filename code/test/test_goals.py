@@ -40,8 +40,8 @@ class TestGoals(unittest.TestCase):
         GM.update(self.state)
         self.assertFalse(g.check(self.state), 'figure is still in starting position')
 
-        m1 = Move(RED, self.red_tank, [x1])
-        m2 = Move(RED, self.red_tank, [x2])
+        m1 = Move(self.red_tank, [x1])
+        m2 = Move(self.red_tank, [x2])
 
         GM.step(self.board, self.state, m1)
         self.assertFalse(g.check(self.state), 'figure moved to goal in this turn')

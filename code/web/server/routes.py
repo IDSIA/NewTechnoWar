@@ -1,4 +1,5 @@
 import logging
+import os
 import random
 import uuid
 
@@ -23,7 +24,7 @@ def index():
                 redPlayer = 'AlphaBetaAgent'
                 bluePlayer = 'AlphaBetaAgent'
                 scen = 'scenarioTest1v1ArmedRace'
-                autoplay = True
+                autoplay = not True
                 seed = 0
                 replay = ''
             else:
@@ -83,7 +84,7 @@ def index():
 
         players = [
             'Human',
-            'PlayerDummy',
+            'RandomAgent',
             'GreedyAgent',
             'AlphaBetaAgent',
         ]
@@ -207,7 +208,7 @@ def gameState():
         return jsonify({
             'state': mm.state,
             'params': app.params[mm.gid],
-            'next': mm.nextPlayer(),
+            'next': mm.nextPlayerDict(),
             'humans': mm.humans,
         }), 200
 
@@ -222,9 +223,9 @@ def gameNextStep():
 
     try:
         _, mm = checkGameId()
-        curr = mm.nextPlayer()
+        curr = mm.nextPlayerDict()
         mm.nextStep()
-        nxt = mm.nextPlayer()
+        nxt = mm.nextPlayerDict()
 
         lastAction = None
         lastOutcome = None
@@ -272,3 +273,14 @@ def gameHumanClick():
     except ValueError as e:
         logging.exception(f'Human click error: {e}')
         return jsonify({'error': str(e)}), 403
+
+
+@app.template_filter('autoversion')
+def autoversion_filter(filename):
+    try:
+        path = os.path.join('gui/', filename[1:])
+        timestamp = str(os.path.getmtime(path)).split('.')[0]
+    except OSError:
+        return filename
+
+    return f'{filename}?v={timestamp}'

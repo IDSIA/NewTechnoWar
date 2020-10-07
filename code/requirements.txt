@@ -1,12 +1,9 @@
-# remember to use 
+# remember to use
 #   pip install -r requirements.txt -f https://download.pytorch.org/whl/torch_stable.html
 
 numpy==1.18.3
 pandas==1.0.3
-gym==0.17.1
 PyYAML==5.3.1
-matplotlib==3.2.1
-seaborn==0.10.1
 
 # require for web
 flask==1.1.2

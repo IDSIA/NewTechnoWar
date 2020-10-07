@@ -295,6 +295,11 @@ svg {
     display: block;
 }
 
+.weapon.image:hover, .weapon.highlight {
+    background-color: cyan;
+    cursor: pointer;
+}
+
 .weapon.image.wCA {
     background-position: 2%;
 }
@@ -363,6 +368,10 @@ svg {
 
 .passed {
     background-color: green !important;
+}
+
+.transported {
+    background-color: white !important;
 }
 
 div.killed {
