@@ -42,6 +42,7 @@ class GameJSONEncoder(JSONEncoder):
             return {
                 'id': obj.fid,
                 'team': obj.team,
+                'color': obj.color,
                 'name': obj.name,
                 'idx': obj.index,
                 'kind': kind,

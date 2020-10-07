@@ -23,7 +23,7 @@ def index():
                 logging.info('Using debug configuration!')
                 redPlayer = 'AlphaBetaAgent'
                 bluePlayer = 'AlphaBetaAgent'
-                scen = 'scenarioTest1v1ArmedRace'
+                scen = 'scenarioJunction'
                 autoplay = not True
                 seed = 0
                 replay = ''
