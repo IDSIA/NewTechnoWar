@@ -1,0 +1,18 @@
+figure:
+
+  template:
+    kind: other
+
+    move: 0
+    load: 0
+    hp: 0
+
+    defense:
+      basic: 1
+      smoke: 18
+      antitank: 0
+
+    bonus: 0
+    can_transport: false
+    transport_capacity: 0
+

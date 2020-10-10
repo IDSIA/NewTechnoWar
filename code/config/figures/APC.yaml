@@ -4,7 +4,6 @@ APC:
   move: 7
   load: 1
   hp: 1
-  hp_max: 1
 
   defense:
     antitank: 0

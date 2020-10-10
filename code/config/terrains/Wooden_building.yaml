@@ -1,0 +1,9 @@
+terrain:
+
+  WOODEN_BUILDING:
+    name: 'Wooden building'
+    protection: 6
+    move_cost:
+      infantry: 1.0
+      vehicle: 1.0
+    block_los: true

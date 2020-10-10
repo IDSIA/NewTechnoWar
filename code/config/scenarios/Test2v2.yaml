@@ -1,0 +1,30 @@
+scenario:
+
+  Test2v2:
+    map: battleground16x16
+
+    figures:
+      red:
+        - Tank:
+            name: Tank1
+            position: [ 2, 2 ]
+        - Tank:
+            name: Tank2
+            position: [ 3, 3 ]
+
+      blue:
+        - Tank:
+            name: Tank3
+            position: [ 11, 11 ]
+        - Tank:
+            name: Tank4
+            position: [ 12, 12 ]
+
+    objectives:
+      red:
+        reach_point: [ [ 8, 8 ] ]
+        eliminate_opponent:
+      blue:
+        defend_point: [ [ 8, 8 ] ]
+        eliminate_opponent:
+        max_turn: 12

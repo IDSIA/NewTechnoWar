@@ -1,0 +1,9 @@
+terrain:
+
+  FOREST:
+    name: 'Forest'
+    protection: 4
+    move_cost:
+      infantry: 1.0
+      vehicle: 1000.0
+    block_los: true

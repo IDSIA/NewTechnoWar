@@ -1,0 +1,9 @@
+terrain:
+
+  TREE:
+    name: 'Isolated tree cover'
+    protection: 2
+    move_cost:
+      infantry: 1.0
+      vehicle: 1.0
+    block_los: true

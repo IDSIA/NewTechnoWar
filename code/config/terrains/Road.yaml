@@ -1,0 +1,9 @@
+terrain:
+
+  ROAD:
+    name: 'Road'
+    protection: 0
+    move_cost:
+      infantry: 0.75
+      vehicle: 0.75
+    block_los: false

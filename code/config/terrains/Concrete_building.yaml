@@ -1,0 +1,9 @@
+terrain:
+
+  CONCRETE_BUILDING:
+    name: 'Concrete building'
+    protection: 8
+    move_cost:
+      infantry: 1.0
+      vehicle: 6.0
+    block_los: true

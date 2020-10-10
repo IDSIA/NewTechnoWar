@@ -6,7 +6,6 @@ figure:
     move: 4
     load: 0
     hp: 4
-    hp_max: 4
 
     weapons:
       AssaultRifle: inf

@@ -1,0 +1,9 @@
+terrain:
+
+  OPEN_GROUND:
+    name: 'Open Ground'
+    protection: 0
+    move_cost:
+      infantry: 1.0
+      vehicle: 1.0
+    block_los: false
