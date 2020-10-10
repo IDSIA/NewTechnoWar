@@ -22,12 +22,13 @@ class Figure:
         'fid', 'team', 'name', 'index', 'kind', 'move', 'load', 'hp', 'hp_max', 'defense', 'weapons',
         'int_atk', 'int_def', 'endurance', 'stat', 'position', 'activated', 'responded', 'killed', 'hit',
         'attacked_by', 'can_transport', 'transport_capacity', 'transporting', 'transported_by', 'bonus',
-        'attacked', 'moved', 'passed'
+        'attacked', 'moved', 'passed', 'color'
     ]
 
     def __init__(self, position: tuple or Cube, name: str, team: str, kind: int, stat: FigureStatus):
         self.fid = str(uuid.uuid4())
         self.team: str = team
+        self.color: str = ''
 
         self.name: str = name
         self.index: int = -1

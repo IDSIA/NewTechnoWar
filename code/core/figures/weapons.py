@@ -15,10 +15,10 @@ class Weapon:
         'antitank', 'miss_matrix', 'disabled', 'attack_ground', 'smoke',
     ]
 
-    def __init__(self, _id: str, name: str, max_range: int, atk_normal: int, atk_response: int, ammo: int, dices: int,
+    def __init__(self, wid: str, name: str, max_range: int, atk_normal: int, atk_response: int, ammo: int, dices: int,
                  curved: bool = False, damage: int = 1, antitank: bool = False, miss_matrix: bool = False,
                  attack_ground: bool = False, smoke: bool = False):
-        self.wid: str = _id
+        self.wid: str = wid
         self.name: str = name
         self.max_range: int = max_range
         self.atk_normal: int = atk_normal

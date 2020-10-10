@@ -21,9 +21,9 @@ def index():
         try:
             if app.config['DEBUG']:
                 logging.info('Using debug configuration!')
-                redPlayer = 'AlphaBetaAgent'
-                bluePlayer = 'AlphaBetaAgent'
-                scen = 'scenarioTest1v1ArmedRace'
+                redPlayer = 'Human'
+                bluePlayer = 'Human'
+                scen = 'scenarioCrossingTheCity'
                 autoplay = not True
                 seed = 0
                 replay = ''
@@ -79,7 +79,7 @@ def index():
             'JunctionExo',
             'BridgeHead',
             'Roadblock',
-            # 'CrossingTheCity', TODO: need fixes and bigger map!
+            'CrossingTheCity',
         ]
 
         players = [
@@ -186,7 +186,6 @@ def gameReset():
     try:
         _, mm = checkGameId()
         mm.reset()
-        mm.step()
 
         response = make_response(
             redirect(f'/game/')
@@ -236,6 +235,7 @@ def gameNextStep():
 
         return jsonify({
             'end': mm.end,
+            'winner': mm.winner,
             'update': mm.update,
             'state': mm.state,
             'action': lastAction,
