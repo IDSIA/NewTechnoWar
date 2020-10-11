@@ -95,7 +95,7 @@ class GameState:
         return hash(self.vector())
 
     def __repr__(self) -> str:
-        return f'{self.turn}:\n{self.figures}\n{self.posToFigure}'
+        return f'GameState({self.name}): {self.turn}:\n{self.figures}\n{self.posToFigure}'
 
     def completeInit(self):
         """Removes part used for placement of figures."""
