@@ -1,6 +1,7 @@
 weapon:
 
-  AR:
+  AssaultRifle:
+    wid: AR
     name: 'Assault Rifle'
     max_range: 10
 

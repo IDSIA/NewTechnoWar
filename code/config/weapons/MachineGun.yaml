@@ -1,7 +1,8 @@
 weapon:
 
-  MG:
-    id: 'MachineGun'
+  MachineGun:
+    wid: MG
+    name: 'MachineGun'
     max_range: 24
 
     atk:

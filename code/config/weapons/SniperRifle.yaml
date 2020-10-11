@@ -1,6 +1,7 @@
 weapon:
 
-  SR:
+  SniperRifle:
+    wid: SR
     name: 'Sniper Rifle'
     max_range: 10
 

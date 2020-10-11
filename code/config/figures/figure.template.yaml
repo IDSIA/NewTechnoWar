@@ -1,7 +1,7 @@
 figure:
 
   template:
-    kind: other
+    type: other
 
     move: 0
     load: 0
@@ -10,7 +10,6 @@ figure:
     defense:
       basic: 1
       smoke: 18
-      antitank: 0
 
     bonus: 0
     can_transport: false

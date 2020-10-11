@@ -2,6 +2,7 @@ board:
 
   battleground16x16:
     shape: [ 16, 16 ]
+    default: OPEN_GROUND
 
     terrain:
       CONCRETE_BUILDING:

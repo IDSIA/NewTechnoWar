@@ -1,7 +1,8 @@
 weapon:
 
   template:
-    name: 'Weapon'
+    wid: ''
+    name: Weapon
     max_range: inf
 
     atk:
@@ -14,6 +15,6 @@ weapon:
 
     curved: false
     antitank: false
-    miss_matrix: true
-    attack_ground: true
+    miss_matrix: false
+    attack_ground: false
     smoke: false

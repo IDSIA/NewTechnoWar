@@ -1,6 +1,7 @@
 weapon:
 
-  SG:
+  SmokeGrenade:
+    wid: SG
     name: 'Smoke Grenade'
     max_range: 3
 
@@ -11,3 +12,4 @@ weapon:
     damage: 0
 
     curved: true
+    attack_ground: true

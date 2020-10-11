@@ -1,6 +1,7 @@
 weapon:
 
-  CA:
+  Cannon:
+    wid: CA
     name: 'Cannon'
     max_range: 75
 

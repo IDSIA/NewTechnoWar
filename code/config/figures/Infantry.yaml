@@ -1,7 +1,7 @@
 figure:
 
   Infantry:
-    kind: infantry
+    type: infantry
 
     move: 4
     load: 1

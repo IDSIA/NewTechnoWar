@@ -1,6 +1,7 @@
 weapon:
 
-  MT:
+  Mortar:
+    wid: MT
     name: 'Mortar'
     max_range: inf
 

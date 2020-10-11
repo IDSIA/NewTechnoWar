@@ -3,45 +3,45 @@ scenario:
   TestBench:
     map: battleground16x16
 
-    figures:
-      red:
-        - Infantry:
-            name: rInf1
+    red:
+      figures:
+        - rInf1:
+            type: Infantry
             position: [ 3, 1 ]
-        - Infantry:
-            name: rInf2
+        - rInf2:
+            type: Infantry
             position: [ 7, 2 ]
-        - Infantry:
-            name: rInf3
+        - rInf3:
+            type: Infantry
             position: [ 6, 2 ]
-        - Infantry:
-            name: rInf4
+        - rInf4:
+            type: Infantry
             position: [ 1, 4 ]
-        - Tank:
-            name: rTank1
+        - rTank1:
+            type: Tank
             position: [ 2, 3 ]
-        - Tank:
-            name: rTank2
+        - rTank2:
+            type: Tank
             position: [ 2, 1 ]
+      objectives:
+        reach_point: [ [ 8, 8 ] ]
+        eliminate_opponent:
 
-      blue:
-        - Infantry:
-            name: bInf1
+    blue:
+      figures:
+        - bInf1:
+            type: Infantry
             position: [ 14, 14 ]
-        - Infantry:
-            name: bInf2
+        - bInf2:
+            type: Infantry
             position: [ 13, 10 ]
             status: HIDDEN
-        - Tank:
-            name: bTank1
+        - bTank1:
+            type: Tank
             position: [ 9, 13 ]
             status: HIDDEN
 
-    objectives:
-      red:
-        reach_point: [ [ 8, 8 ] ]
-        eliminate_opponent:
-      blue:
+      objectives:
         defend_point: [ [ 8, 8 ] ]
         eliminate_opponent:
         max_turn: 12

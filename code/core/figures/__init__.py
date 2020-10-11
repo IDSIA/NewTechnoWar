@@ -25,7 +25,7 @@ class Figure:
         'attacked', 'moved', 'passed', 'color'
     ]
 
-    def __init__(self, position: tuple or Cube, name: str, team: str, kind: int, stat: FigureStatus):
+    def __init__(self, position: tuple or Cube, name: str, team: str, kind: int, stat: FigureStatus = NO_EFFECT):
         self.fid = str(uuid.uuid4())
         self.team: str = team
         self.color: str = ''

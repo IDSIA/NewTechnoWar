@@ -1,16 +1,18 @@
-APC:
-  kind: vehicle
+figure:
 
-  move: 7
-  load: 1
-  hp: 1
+  APC:
+    type: vehicle
 
-  defense:
-    antitank: 0
+    move: 7
+    load: 1
+    hp: 1
 
-  weapons:
-    MachineGun: inf
-    SmokeGrenade: 2
+    defense:
+      antitank: 0
 
-  can_transport: true
-  transport_capacity: 2
+    weapons:
+      MachineGun: inf
+      SmokeGrenade: 2
+
+    can_transport: true
+    transport_capacity: 2
