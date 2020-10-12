@@ -11,7 +11,7 @@ board:
         - point: [ 5, 4 ]
 
       ROAD:
-        - column: 0
+        - region: "0, :"
 
   battlegroundDummy10x20:
     template: battlegroundDummy10x10
@@ -22,9 +22,7 @@ board:
         - column: 0
 
       CONCRETE_BUILDING:
-        - row:
-            start: 12
-            end: 20
+        - region: ":, 12:20"
 
   battlegroundDummy10x20Forest:
     template: battlegroundDummy10x10
@@ -39,6 +37,4 @@ board:
         - point: [ 8, 5 ]
 
       CONCRETE_BUILDING:
-        - row:
-            start: 14
-            end: 20
+        - region: ":, 14:20"

@@ -13,6 +13,7 @@ from core.game.terrain import Terrain
 from scenarios.utils import fillLine
 from utils import INFINITE
 from utils.copy import deepcopy
+import re
 
 TMPL_WEAPONS = {}
 TMPL_FIGURES = {}
@@ -27,6 +28,8 @@ FIGURES_STATUS_TYPE = {}
 TERRAIN_TYPE = {}
 BOARDS = {}
 SCENARIOS = {}
+
+REGION_PATTERN = re.compile(r"(\d*)(:?)(\d*),\s*(\d*)(:?)(\d*)")
 
 
 def collect_figure_status(data: dict):
@@ -88,32 +91,18 @@ def parse_board():
             t = TERRAIN_TYPE[ttype]
             for elem in tdata:
                 if 'line' in elem:
-                    fillLine(terrain, elem['line'][0], elem['line'][1], t.level)
+                    l = elem['line']
+                    fillLine(terrain, (l[0], l[1]), (l[2], l[3]), t.level)
                 if 'point' in elem:
                     terrain[elem['point']] = t.level
-                if 'column' in elem:
-                    c = elem['column']
-                    if isinstance(c, Mapping):
-                        if 'start' in c and 'end' not in c:
-                            terrain[c['start']:, :] = t.level
-                        elif 'start' not in c and 'end' in c:
-                            terrain[:c['end'], :] = t.level
-                        elif 'start' in c and 'end' in c:
-                            terrain[c['start']:c['end'], :] = t.level
-                    else:
-                        terrain[c, :] = t.level
-
-                if 'row' in elem:
-                    r = elem['row']
-                    if isinstance(r, Mapping):
-                        if 'start' in r and 'end' not in r:
-                            terrain[:, r['start']:] = t.level
-                        elif 'start' not in r and 'end' in r:
-                            terrain[:, r['end']] = t.level
-                        elif 'start' in r and 'end' in r:
-                            terrain[:, r['start']:r['end']] = t.level
-                    else:
-                        terrain[:, r] = t.level
+                if 'region' in elem:
+                    start, end = elem['region'].split(',')
+                    terrain[parse_slice(start), parse_slice(end)] = t.level
+                if 'row_alternate' in elem:
+                    low, high = elem['row_alternate']
+                    for i in range(board.shape[0]):
+                        j = low if i % 2 == 0 else high
+                        terrain[i, j] = t.level
 
 
 def update(d: dict, u: Mapping):
@@ -123,6 +112,23 @@ def update(d: dict, u: Mapping):
         else:
             d[k] = v
     return d
+
+
+def parse_slice(value: str) -> slice:
+    """
+    Parses a `slice()` from string, like `start:stop:step`.
+    """
+    value = value.strip()
+    if value:
+        parts = value.split(':')
+        if len(parts) == 1:
+            # slice(stop)
+            parts = [None, parts[0]]
+        # else: slice(start, stop[, step])
+    else:
+        # slice()
+        parts = []
+    return slice(*[int(p) if p else None for p in parts])
 
 
 def collect_scenario(data: dict):
@@ -193,7 +199,6 @@ if __name__ == '__main__':
 
     dirs = ['terrains', 'maps', 'weapons', 'status', 'figures', 'scenarios']
 
-    # TODO: first collect, then parse
     for dir in dirs:
         path = os.path.join('config', dir)
         for name in os.listdir(path):
