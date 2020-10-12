@@ -49,6 +49,9 @@ class GameBoard:
         # internal values initialization
         self.addTerrain(self.terrain)
 
+    def __repr__(self):
+        return f'GameBoard({self.shape}, {self.name})'
+
     def addTerrain(self, terrain: np.array):
         """
         Sum a terrain matrix to the current board. The values must be of core.Terrain Types.

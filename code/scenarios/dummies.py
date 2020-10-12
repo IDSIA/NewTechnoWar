@@ -34,8 +34,8 @@ def scenarioDummy1() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (9, 9)),
-        GoalDefendPoint(BLUE, RED, board.shape, (9, 9)),
+        GoalReachPoint(RED, board.shape, [(9, 9)]),
+        GoalDefendPoint(BLUE, RED, board.shape, [(9, 9)]),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
@@ -63,8 +63,8 @@ def scenarioDummy2() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (9, 9)),
-        GoalDefendPoint(BLUE, RED, board.shape, (9, 9)),
+        GoalReachPoint(RED, board.shape, [(9, 9)]),
+        GoalDefendPoint(BLUE, RED, board.shape, [(9, 9)]),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
@@ -92,8 +92,8 @@ def scenarioDummy3() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (9, 9)),
-        GoalDefendPoint(BLUE, RED, board.shape, (9, 9)),
+        GoalReachPoint(RED, board.shape, [(9, 9)]),
+        GoalDefendPoint(BLUE, RED, board.shape, [(9, 9)]),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
@@ -128,8 +128,8 @@ def scenarioDummyResponseCheck() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (9, 12)),
-        GoalDefendPoint(BLUE, RED, board.shape, (9, 12)),
+        GoalReachPoint(RED, board.shape, [(9, 12)]),
+        GoalDefendPoint(BLUE, RED, board.shape, [(9, 12)]),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
@@ -162,8 +162,8 @@ def scenarioInSightTest() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (9, 12)),
-        GoalDefendPoint(BLUE, RED, board.shape, (9, 12)),
+        GoalReachPoint(RED, board.shape, [(9, 12)]),
+        GoalDefendPoint(BLUE, RED, board.shape, [(9, 12)]),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
