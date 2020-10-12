@@ -1,0 +1,44 @@
+board:
+
+  battlegroundDummy10x10:
+    shape: [ 10, 10 ]
+    default: OPEN_GROUND
+
+    terrain:
+      FOREST:
+        - point: [ 4, 5 ]
+        - point: [ 5, 5 ]
+        - point: [ 5, 4 ]
+
+      ROAD:
+        - column: 0
+
+  battlegroundDummy10x20:
+    template: battlegroundDummy10x10
+    shape: [ 10, 20 ]
+
+    terrain:
+      ROAD:
+        - column: 0
+
+      CONCRETE_BUILDING:
+        - row:
+            start: 12
+            end: 20
+
+  battlegroundDummy10x20Forest:
+    template: battlegroundDummy10x10
+    shape: [ 10, 20 ]
+
+    terrain:
+      FOREST:
+        - point: [ 2, 5 ]
+        - point: [ 3, 5 ]
+        - point: [ 6, 5 ]
+        - point: [ 7, 5 ]
+        - point: [ 8, 5 ]
+
+      CONCRETE_BUILDING:
+        - row:
+            start: 14
+            end: 20

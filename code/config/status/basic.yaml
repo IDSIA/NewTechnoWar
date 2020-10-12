@@ -1,0 +1,36 @@
+status:
+
+  # unit cannot be seen or be a target
+  HIDDEN:
+    name: 'Hidden'
+    value: 0
+
+  # unit loaded inside a vehicle
+  LOADED:
+    name: 'Loaded'
+    value: 0
+
+  # unit default status
+  NO_EFFECT:
+    name: 'No effect'
+    value: 0
+
+  # the unit has already used its ability to move this turn
+  IN_MOTION:
+    name: 'In motion'
+    value: 3
+
+  # if the troops are on an upper flor of a house (scenario specified)
+  UPSTAIRS:
+    name: 'Upstairs'
+    value: 3
+
+  # if the troops have already been targeted by a shot this turn
+  UNDER_FIRE:
+    name: 'Under fire'
+    value: -1
+
+  # no friendly troop within 4 hexagons
+  CUT_OFF:
+    name: 'Cut off'
+    value: 3
