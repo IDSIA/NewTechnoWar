@@ -1,8 +1,4 @@
-import os
-from collections.abc import Mapping
-
 import numpy as np
-import yaml
 
 from core.const import BLUE, RED
 from core.figures import Figure, Weapon
@@ -11,16 +7,9 @@ from core.game.board import GameBoard
 from core.game.goals import GoalEliminateOpponent, GoalDefendPoint, GoalMaxTurn, GoalReachPoint
 from core.game.state import GameState
 from core.game.terrain import Terrain
+from core.templates import *
 from scenarios.utils import fillLine
 from utils import INFINITE
-from utils.copy import deepcopy
-
-TMPL_WEAPONS = {}
-TMPL_FIGURES = {}
-TMPL_FIGURES_STATUS_TYPE = {}
-TMPL_TERRAIN_TYPE = {}
-TMPL_BOARDS = {}
-TMPL_SCENARIOS = {}
 
 FIGURES_TYPE = {'other': 0, 'infantry': 1, 'vehicle': 2}
 FIGURES_STATUS_TYPE = {}
@@ -30,29 +19,9 @@ BOARDS = {}
 SCENARIOS = {}
 
 
-def collect_figure_status(data: dict):
-    for fName, fData in data['status'].items():
-        TMPL_FIGURES_STATUS_TYPE[fName] = fData
-
-
 def parse_figure_status():
     for fName, fData in TMPL_FIGURES_STATUS_TYPE.items():
         FIGURES_STATUS_TYPE[fName] = FigureStatus(fData['name'], fData['value'])
-
-
-def collect_figure(data: dict):
-    for fName, fData in data['figure'].items():
-        TMPL_FIGURES[fName] = fData
-
-
-def collect_weapons(data: dict):
-    for wName, wData in data['weapon'].items():
-        TMPL_WEAPONS[wName] = wData
-
-
-def collect_terrain(data: dict):
-    for wName, tData in data['terrain'].items():
-        TMPL_TERRAIN_TYPE[wName] = tData
 
 
 def parse_terrain():
@@ -67,16 +36,8 @@ def parse_terrain():
         )
 
 
-def collect_board(data: dict):
-    for name, bData in data['board'].items():
-        TMPL_BOARDS[name] = bData
-
-
 def parse_board():
     for name, bData in TMPL_BOARDS.items():
-        if 'template' in bData:
-            bData = update(deepcopy(TMPL_BOARDS[bData['template']]), bData)
-
         shape = tuple(bData['shape'])
 
         board = GameBoard(shape, name)
@@ -101,13 +62,13 @@ def parse_board():
                         terrain[i, j] = level
 
 
-def update(d: dict, u: Mapping):
-    for k, v in u.items():
-        if isinstance(v, Mapping):
-            d[k] = update(d.get(k, {}), v)
-        else:
-            d[k] = v
-    return d
+# def update(d: dict, u: Mapping):
+#     for k, v in u.items():
+#         if isinstance(v, Mapping):
+#             d[k] = update(d.get(k, {}), v)
+#         else:
+#             d[k] = v
+#     return d
 
 
 def parse_slice(value: str) -> slice:
@@ -127,15 +88,10 @@ def parse_slice(value: str) -> slice:
     return slice(*[int(p) if p else None for p in parts])
 
 
-def collect_scenario(data: dict):
-    for sName, sData in data['scenario'].items():
-        TMPL_SCENARIOS[sName] = sData
-
-
 def parse_scenario():
     for fName, sData in TMPL_SCENARIOS.items():
-        if 'template' in sData:
-            sData = update(deepcopy(TMPL_SCENARIOS[sData['template']]), sData)
+        # if 'template' in sData:
+        #     sData = update(deepcopy(TMPL_SCENARIOS[sData['template']]), sData)
 
         board: GameBoard = BOARDS[sData['map']]
         state: GameState = GameState(board.shape, fName)
@@ -179,7 +135,7 @@ def parse_scenario():
                 colors = {}
                 for fName, fData in f.items():
                     s = FIGURES_STATUS_TYPE[fData['status']] if 'status' in fData else FIGURES_STATUS_TYPE['NO_EFFECT']
-                    t = update_figure_template(fData)
+                    t = TMPL_FIGURES[fData['type']]
                     figure = Figure(fData['position'], fName, team, t['kind'], s)
 
                     # setup colors
@@ -196,7 +152,7 @@ def parse_scenario():
                         if k == 'loaded':
                             # parse loaded figures
                             for lName, lData in v.items():
-                                lt = update_figure_template(lData)
+                                lt = TMPL_FIGURES[lData['type']]
                                 lFigure = Figure(fData['position'], lName, team, lt['kind'])
                                 figure.transportLoad(lFigure)
                                 for lk, lv in lt.items():
@@ -214,16 +170,16 @@ def parse_scenario():
                     state.addChoice(team, color, *figures)
 
 
-def update_figure_template(fData):
-    t = update(deepcopy(TMPL_FIGURES['template']), TMPL_FIGURES[fData['type']])
-    t['kind'] = FIGURES_TYPE[t.pop('type', None)]
-    t['hp_max'] = t['hp']
-    return t
+# def update_figure_template(fData):
+#     t = update(deepcopy(TMPL_FIGURES['template']), TMPL_FIGURES[fData['type']])
+#     t['kind'] = FIGURES_TYPE[t.pop('type', None)]
+#     t['hp_max'] = t['hp']
+#     return t
 
 
 def setup_weapons(figure, values):
     for wName, wData in values.items():
-        tw = update(deepcopy(TMPL_WEAPONS['template']), TMPL_WEAPONS[wName])
+        tw = TMPL_WEAPONS[wName]
         tw['ammo'] = INFINITE if wData == 'inf' else wData
         tw['ammo_max'] = tw['ammo']
 
@@ -238,33 +194,6 @@ def setup_weapons(figure, values):
 
 
 if __name__ == '__main__':
-
-    dirs = ['terrains', 'maps', 'weapons', 'status', 'figures', 'scenarios']
-
-    for directory in dirs:
-        path = os.path.join('config', directory)
-        for name in os.listdir(path):
-            with open(os.path.join(path, name)) as f:
-                data = yaml.safe_load(f)
-
-                if 'terrain' in data:
-                    collect_terrain(data)
-
-                if 'board' in data:
-                    collect_board(data)
-
-                if 'weapon' in data:
-                    collect_weapons(data)
-
-                if 'status' in data:
-                    collect_figure_status(data)
-
-                if 'figure' in data:
-                    collect_figure(data)
-
-                if 'scenario' in data:
-                    collect_scenario(data)
-
     parse_figure_status()
     parse_terrain()
     parse_board()
