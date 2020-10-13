@@ -67,8 +67,10 @@ class GoalReachPoint(Goal):
 
     __slots__ = ['turns', 'objectives', 'entered', 'values']
 
-    def __init__(self, team: str, shape: tuple, *objectives: tuple, turns: int = 1):
+    def __init__(self, team: str, shape: tuple, objectives: List[tuple], turns: int = 1):
+        """
         # TODO: this version support 1 turn maximum!
+        """
         super().__init__(team)
 
         self.objectives: List[Cube] = []
@@ -133,10 +135,12 @@ class GoalDefendPoint(GoalReachPoint):
     """
     The "Defend a position" goal is a subject to another goal like a time limit or mandatory kill.
     It is always false up until another goal is reached.
+
+    # TODO: this version support 1 turn maximum!
     """
 
-    def __init__(self, team: str, hostiles: str, *objectives: tuple, turns: int = 1):
-        super().__init__(team, turns=turns, *objectives)
+    def __init__(self, team: str, hostiles: str, shape: tuple, objectives: List[tuple], turns: int = 1):
+        super().__init__(team, shape, objectives, turns=turns)
         self.hostiles = hostiles
 
     def check(self, state: GameState) -> bool:
