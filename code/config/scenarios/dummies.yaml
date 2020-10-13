@@ -2,6 +2,7 @@ scenario:
 
   Dummy1:
     map: battlegroundDummy10x10
+    offline:
 
     red:
       figures:
@@ -29,6 +30,7 @@ scenario:
 
   Dummy2:
     map: battlegroundDummy10x20
+    offline:
 
     red:
       figures:
@@ -57,6 +59,7 @@ scenario:
 
   Dummy3:
     map: battlegroundDummy10x20
+    offline:
 
     red:
       figures:
@@ -85,6 +88,7 @@ scenario:
 
   DummyResponseCheck:
     map: battlegroundDummy10x20Forest
+    offline:
 
     red:
       figures:
@@ -113,6 +117,7 @@ scenario:
 
   DummyInSightTest:
     map: battlegroundDummy10x20Forest
+    offline:
 
     red:
       figures:

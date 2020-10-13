@@ -4,7 +4,6 @@ from flask.json import JSONEncoder
 from core.actions import Move, Attack, LoadInto, AttackGround, AttackRespond, PassFigure, PassTeam, PassRespond
 from core.const import RED, BLUE
 from core.figures import Figure
-from core.figures import FigureType
 from core.figures.weapons import Weapon
 from core.game.state import GameState
 from web.server.utils import cube_to_ijxy, cube_to_dict
@@ -38,14 +37,13 @@ class GameJSONEncoder(JSONEncoder):
 
         if isinstance(obj, Figure):
             i, j, x, y = cube_to_ijxy(obj.position)
-            kind = 'infantry' if obj.kind == FigureType.INFANTRY else 'vehicle'
             return {
                 'id': obj.fid,
                 'team': obj.team,
                 'color': obj.color,
                 'name': obj.name,
                 'idx': obj.index,
-                'kind': kind,
+                'kind': obj.kind,
                 'move': obj.move,
                 'load': obj.load,
                 'hp': obj.hp,

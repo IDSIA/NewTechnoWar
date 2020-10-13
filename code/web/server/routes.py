@@ -9,6 +9,7 @@ from flask import current_app as app
 from agents import Human
 from agents import MatchManager, buildMatchManager
 from core.const import BLUE, RED
+from core.templates import TMPL_SCENARIOS
 from web.server.utils import scroll, fieldShape, cube_to_ijxy, pzoneToHex, pos_to_dict
 
 main = Blueprint('main', __name__, template_folder='templates', static_folder='static')
@@ -69,18 +70,7 @@ def index():
     else:
         logging.info(f'New lobby access')
 
-        scenarios = [
-            'Test1v1',
-            'Test2v2',
-            'Test3v1',
-            'TestBench',
-            'TestInfantry',
-            'Junction',
-            'JunctionExo',
-            'BridgeHead',
-            'Roadblock',
-            'CrossingTheCity',
-        ]
+        scenarios = [k for k, v in TMPL_SCENARIOS.items() if 'offline' not in v]
 
         players = [
             'Human',

@@ -1,12 +1,12 @@
 import logging
 from typing import List
 
+from scenarios import buildScenario
 from utils.copy import deepcopy
 
 import numpy as np
 
 import agents as players
-import scenarios
 from agents import Agent
 from agents.interactive.interactive import Human
 from core import GM
@@ -19,7 +19,7 @@ from core.game.state import GameState
 
 def buildMatchManager(gid: str, scenario: str, red: str, blue: str, seed: int = 42):
     """Utility function to create a standard MatchManager from string parameters."""
-    board, state = getattr(scenarios, scenario)()
+    board, state = buildScenario(scenario)
 
     pRed: Agent = getattr(players, red)(RED)
     pBlue: Agent = getattr(players, blue)(BLUE)

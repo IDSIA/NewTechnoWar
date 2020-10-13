@@ -55,7 +55,7 @@ def reachablePath(figure: Figure, board: GameBoard, state: GameState, max_cost: 
     return visited, paths
 
 
-def findPath(start: Cube, goal: Cube, board: GameBoard, state: GameState, kind: int) -> List[Cube]:
+def findPath(start: Cube, goal: Cube, board: GameBoard, state: GameState, kind: str) -> List[Cube]:
     """This uses A*"""
     frontier = PriorityQueue()
     frontier.put((0, start))

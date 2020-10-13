@@ -18,3 +18,4 @@ class Terrain:
 
 
 TERRAIN_TYPE: Dict[str, Terrain] = {}
+TYPE_TERRAIN: Dict[int, Terrain] = {}

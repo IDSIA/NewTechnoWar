@@ -11,8 +11,9 @@ from collections.abc import Mapping
 import os
 import yaml
 
-from core.figures import FIGURES_STATUS_TYPE, FigureStatus
-from core.game.terrain import TERRAIN_TYPE, Terrain
+from core.figures import FIGURES_STATUS_TYPE, FigureStatus, WEAPON_KEY_LIST, DEFENSE_KEY_LIST
+from core.game.terrain import TERRAIN_TYPE, TYPE_TERRAIN, Terrain
+from utils import INFINITE
 from utils.copy import deepcopy
 
 TMPL_WEAPONS = {}
@@ -91,15 +92,40 @@ def parse_figure_status():
 
 
 def parse_terrain():
-    for name, tData in TMPL_TERRAIN_TYPE.items():
-        TERRAIN_TYPE[name] = Terrain(
-            len(TERRAIN_TYPE),
+    for tName, tData in TMPL_TERRAIN_TYPE.items():
+        level = len(TERRAIN_TYPE)
+        terrain = Terrain(
+            level,
             tData['name'],
             tData['protection'],
             tData['move_cost']['infantry'],
             tData['move_cost']['vehicle'],
             tData['block_los']
         )
+
+        TERRAIN_TYPE[tName] = terrain
+        TYPE_TERRAIN[level] = terrain
+
+
+def parse_weapons():
+    weapon_set = []
+    for wData in TMPL_WEAPONS.values():
+        wid = wData['wid']
+        if wid:
+            weapon_set.append(wid)
+
+    for k in sorted(list(set(weapon_set))):
+        WEAPON_KEY_LIST.append(k)
+
+
+def parse_figures():
+    defense_set = []
+    for fData in TMPL_FIGURES.values():
+        for d in fData['defense']:
+            defense_set.append(d)
+
+    for k in sorted(list(set(defense_set))):
+        DEFENSE_KEY_LIST.append(k)
 
 
 COLLECTED: bool = False
@@ -152,8 +178,16 @@ def collect():
         TMPL_FIGURES[k]['kind'] = TMPL_FIGURES[k].pop('type', None)
         TMPL_FIGURES[k]['hp_max'] = TMPL_FIGURES[k]['hp']
 
+    # fix for weapon templates (max_range -> inf)
+    for k in TMPL_WEAPONS.keys():
+        TMPL_WEAPONS[k]['max_range'] = \
+            INFINITE if TMPL_WEAPONS[k]['max_range'] == 'inf' else TMPL_WEAPONS[k]['max_range']
+
     # parse templates to populate basic containers
     parse_terrain()
+    parse_figure_status()
+    parse_weapons()
+    parse_figures()
 
     COLLECTED = True
 

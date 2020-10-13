@@ -5,7 +5,7 @@ import numpy as np
 from core.actions.basics import ActionFigure
 from core.const import RED, BLUE
 from core.actions import Action, Attack, AttackGround, LoadInto
-from core.figures import FigureType, Figure, Weapon
+from core.figures import Figure, Weapon
 from core.game import MAX_SMOKE
 from utils.coordinates import to_cube, Cube, cube_linedraw, cube_to_hex
 
@@ -241,7 +241,7 @@ class GameState:
         """Returns if the position is an obstacle (a VEHICLE) to LOS or not."""
         for team in (RED, BLUE):
             for f in self.getFiguresByPos(team, pos):
-                if f.kind == FigureType.VEHICLE:
+                if f.kind == 'vehicle':
                     return True
         return False
 

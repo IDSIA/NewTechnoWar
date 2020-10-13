@@ -5,3 +5,7 @@ from typing import Dict
 FigureStatus = namedtuple('FigureStatus', ['name', 'value'])
 
 FIGURES_STATUS_TYPE: Dict[str, FigureStatus] = {}
+
+
+def status(name: str):
+    return FIGURES_STATUS_TYPE[name]

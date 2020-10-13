@@ -3,9 +3,8 @@ from typing import Dict, Set, Tuple, List
 import numpy as np
 
 from core.const import RED, BLUE
-from core.figures import FigureType
 from core.game.goals import Goal, GoalReachPoint
-from core.game.terrain import TERRAIN_TYPE
+from core.game.terrain import TYPE_TERRAIN
 from utils.coordinates import to_cube, Cube, cube_neighbor, cube_to_hex, cube_range
 
 
@@ -39,9 +38,9 @@ class GameBoard:
         self.obstacles: Set[Cube] = set()
 
         # movement obstructions are considered in the cost
-        self.moveCost: Dict[int, np.ndarray] = {
-            FigureType.INFANTRY: np.zeros(shape, dtype='float'),
-            FigureType.VEHICLE: np.zeros(shape, dtype='float'),
+        self.moveCost: Dict[str, np.ndarray] = {
+            'infantry': np.zeros(shape, dtype='float'),
+            'vehicle': np.zeros(shape, dtype='float'),
         }
 
         self.protectionLevel: np.ndarray = np.zeros(shape, dtype='uint8')
@@ -65,10 +64,10 @@ class GameBoard:
         for i in range(0, x):
             for j in range(0, y):
                 index = self.terrain[i, j]
-                tt = TERRAIN_TYPE[index]
+                tt = TYPE_TERRAIN[index]
                 self.protectionLevel[i, j] = tt.protectionLevel
-                self.moveCost[FigureType.INFANTRY][i, j] = tt.moveCostInf
-                self.moveCost[FigureType.VEHICLE][i, j] = tt.moveCostVehicle
+                self.moveCost['infantry'][i, j] = tt.moveCostInf
+                self.moveCost['vehicle'][i, j] = tt.moveCostVehicle
 
                 if tt.blockLos:
                     self.obstacles.add(to_cube((i, j)))
@@ -108,7 +107,7 @@ class GameBoard:
         """Returns all the neighbors of the given position."""
         return [n for n in cube_neighbor(position) if n not in self.limits]
 
-    def getMovementCost(self, pos: Cube, kind: int):
+    def getMovementCost(self, pos: Cube, kind: str):
         """Returns the cost of move in the given position."""
         try:
             h = cube_to_hex(pos)
