@@ -12,18 +12,18 @@ board:
         - line: [ 10, 13, 14, 11 ]
         - line: [ 11, 14, 15, 12 ]
         - line: [ 11, 15, 13, 14 ]
-        - point: [ 9, 4 ]
-        - point: [ 9, 5 ]
-        - point: [ 10, 4 ]
-        - point: [ 4, 9 ]
-        - point: [ 3, 9 ]
-        - point: [ 3, 10 ]
+        - region: "9, 4"
+        - region: "9, 5"
+        - region: "10, 4"
+        - region: "4, 9"
+        - region: "3, 9"
+        - region: "3, 10"
 
       TREE:
-        - point: [ 6, 9 ]
-        - point: [ 7, 8 ]
-        - point: [ 11, 5 ]
-        - point: [ 10, 11 ]
+        - region: "6, 9"
+        - region: "7, 8"
+        - region: "11, 5"
+        - region: "10, 11"
 
       FOREST:
         - line: [ 2, 6, 4, 5 ]

@@ -1,0 +1,24 @@
+board:
+
+  GameBoardBridgeHead:
+    template: GameBoard
+
+    terrain:
+      TREE:
+        - region: "34, 32:35"
+        - region: "33, 32:35"
+
+        - region: "34, 35:37"
+        - region: "35, 35:38"
+        - region: "36, 35:37"
+        - region: "37, 36"
+
+        - region: "35, 28"
+        - region: "42, 36"
+        - region: "38, 35:37"
+        - region: "39, 36:37"
+        - region: "40, 36:37"
+        - region: "41, 37:38"
+        - region: "42, 37:40"
+        - region: "43, 38:40"
+        - region: "44, 38"

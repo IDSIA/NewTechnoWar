@@ -1,0 +1,105 @@
+scenario:
+
+  BridgeHead:
+    map: GameBoardBridgeHead
+
+    red:
+      figures:
+        - rTank1:
+            type: Tank
+            position: [ 39, 36 ]
+            color: orange
+            status: HIDDEN
+        - rInf1:
+            type: Infantry
+            position: [ 34, 32 ]
+            color: orange
+            status: HIDDEN
+
+        - rTank2:
+            type: Tank
+            position: [ 37, 35 ]
+            color: lightred
+            status: HIDDEN
+        - rInf2:
+            type: Infantry
+            position: [ 33, 31 ]
+            color: lightred
+            status: HIDDEN
+
+        - rTank3:
+            type: Tank
+            position: [ 35, 33 ]
+            color: darkred
+            status: HIDDEN
+        - rInf3:
+            type: Infantry
+            position: [ 32, 30 ]
+            color: darkred
+            status: HIDDEN
+
+      placement_zone:
+        - region: "28, 28:42"
+        - region: "29, 29:42"
+        - region: "30, 29:42"
+        - region: "31, 30:42"
+        - region: "32, 30:42"
+        - region: "33, 31:42"
+        - region: "34, 31:42"
+        - region: "35, 32:42"
+        - region: "36, 32:42"
+        - region: "37, 34:42"
+        - region: "38, 34:42"
+        - region: "39, 35:42"
+        - region: "40, 35:42"
+        - region: "41, 36:42"
+        - region: "42, 36:41"
+        - region: "43, 37:41"
+        - region: "44, 36:40"
+        - region: "45, 38:40"
+        - region: "46, 37:39"
+        - region: "47, 38"
+
+      objectives:
+        reach_point:
+          - [ 39, 29 ]
+          - [ 40, 29 ]
+          - [ 40, 30 ]
+          - [ 41, 31 ]
+          - [ 41, 32 ]
+        eliminate_opponent:
+
+    blue:
+      figures:
+        - bAPC:
+            type: APC
+            position: [ 40, 28 ]
+            status: HIDDEN
+        - bInf:
+            type: Infantry
+            position: [ 42, 26 ]
+            status: HIDDEN
+
+      placement_zone:
+        - region: "44, 20:33"
+        - region: "43, 21:34"
+        - region: "42, 21:34"
+        - region: "41, 22:35"
+        - region: "40, 22:35"
+        - region: "39, 23:35"
+        - region: "38, 23:33"
+        - region: "37, 24:32"
+        - region: "36, 24:30"
+        - region: "35, 25:30"
+        - region: "34, 25:28"
+        - region: "33, 26"
+
+      objectives:
+        defend_point:
+          - [ 39, 29 ]
+          - [ 40, 29 ]
+          - [ 40, 30 ]
+          - [ 41, 31 ]
+          - [ 41, 32 ]
+        eliminate_opponent:
+        max_turn: 7

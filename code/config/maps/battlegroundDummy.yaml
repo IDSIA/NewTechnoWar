@@ -6,9 +6,9 @@ board:
 
     terrain:
       FOREST:
-        - point: [ 4, 5 ]
-        - point: [ 5, 5 ]
-        - point: [ 5, 4 ]
+        - region: "4, 5"
+        - region: "5, 5"
+        - region: "5, 4"
 
       ROAD:
         - region: "0, :"
@@ -30,11 +30,11 @@ board:
 
     terrain:
       FOREST:
-        - point: [ 2, 5 ]
-        - point: [ 3, 5 ]
-        - point: [ 6, 5 ]
-        - point: [ 7, 5 ]
-        - point: [ 8, 5 ]
+        - region: "2, 5"
+        - region: "3, 5"
+        - region: "6, 5"
+        - region: "7, 5"
+        - region: "8, 5"
 
       CONCRETE_BUILDING:
         - region: ":, 14:20"
