@@ -99,7 +99,7 @@ def pzoneToHex(zone):
     for item in zip(x, y):
         h = Hexagon(
             item,
-            Terrain.OPEN_GROUND,
+            TERRAIN_TYPE['OPEN_GROUND'],
             0,
             False,
             False

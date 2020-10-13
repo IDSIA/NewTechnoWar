@@ -7,5 +7,5 @@ FigureStatus = namedtuple('FigureStatus', ['name', 'value'])
 FIGURES_STATUS_TYPE: Dict[str, FigureStatus] = {}
 
 
-def status(name: str):
+def stat(name: str) -> FigureStatus:
     return FIGURES_STATUS_TYPE[name]

@@ -6,8 +6,7 @@ import numpy as np
 from core.actions import Action, Move, LoadInto, Attack, AttackGround, AttackRespond, Pass, PassTeam, PassFigure, \
     PassRespond, Response
 from core.const import RED, BLUE
-from core.figures import Figure
-from core.figures.status import status
+from core.figures import Figure, stat
 from core.figures.weapons import Weapon
 from core.game import MISS_MATRIX, hitScoreCalculator, CUTOFF_RANGE
 from core.game.board import GameBoard
@@ -115,13 +114,13 @@ class GameManager(object):
         if not weapon.hasAmmo():
             raise ValueError(f'{weapon} does not have enough ammo')
 
-        if figure.stat == status('LOADED'):
+        if figure.stat == stat('LOADED'):
             raise ValueError(f'{weapon} cannot hit {target}: unit is LOADED in a vehicle')
 
-        if target.stat == status('LOADED'):
+        if target.stat == stat('LOADED'):
             raise ValueError(f'{weapon} cannot hit {target}: target is LOADED in a vehicle')
 
-        if target.stat == status('HIDDEN'):
+        if target.stat == stat('HIDDEN'):
             raise ValueError(f'{weapon} cannot hit {target}: target is HIDDEN')
 
         if weapon.antitank:
@@ -187,7 +186,7 @@ class GameManager(object):
         attacks = []
 
         for target in state.figures[tTeam]:
-            if target.killed or target.stat == status('HIDDEN'):
+            if target.killed or target.stat == stat('HIDDEN'):
                 continue
 
             for _, weapon in figure.weapons.items():
@@ -223,7 +222,7 @@ class GameManager(object):
         if target.team == figure.team:
             return responses
 
-        if not any([figure.responded, figure.killed, target.killed, target.stat == status('HIDDEN')]):
+        if not any([figure.responded, figure.killed, target.killed, target.stat == stat('HIDDEN')]):
 
             for _, weapon in figure.weapons.items():
                 if weapon.smoke:
@@ -369,7 +368,7 @@ class GameManager(object):
             f: Figure = state.getFigure(action)  # who performs the action
             f.activated = True
             f.moved = True
-            f.stat = status('IN_MOTION')
+            f.stat = stat('IN_MOTION')
             if isinstance(action, LoadInto):
                 # figure moves inside transporter
                 t = state.getTransporter(action)
@@ -384,7 +383,7 @@ class GameManager(object):
 
             for transported in f.transporting:
                 t = state.getFigureByIndex(team, transported)
-                t.stat = status('LOADED')
+                t.stat = stat('LOADED')
                 state.moveFigure(t, t.position, action.destination)
 
             return {}
@@ -394,7 +393,7 @@ class GameManager(object):
             x: Cube = action.ground
             w: Weapon = state.getWeapon(action)
 
-            f.stat = status('NO_EFFECT')
+            f.stat = stat('NO_EFFECT')
             f.activated = True
             f.attacked = True
             w.shoot()
@@ -426,7 +425,7 @@ class GameManager(object):
             lof: list = action.lof  # line-of-fire on target of figure
 
             # consume ammunition
-            f.stat = status('NO_EFFECT')
+            f.stat = stat('NO_EFFECT')
             w.shoot()
 
             if forceHit:
@@ -463,7 +462,7 @@ class GameManager(object):
             success = len([x for x in score if x <= hitScore])
 
             # target status changes for the _next_ hit
-            t.stat = status('UNDER_FIRE')
+            t.stat = stat('UNDER_FIRE')
             # target can now respond to the fire
             t.attacked_by = f.index
 
@@ -518,13 +517,13 @@ class GameManager(object):
                 state.updateLOS(figure)
 
                 # update status
-                if figure.stat != status('HIDDEN'):
-                    figure.stat = status('NO_EFFECT')
+                if figure.stat != stat('HIDDEN'):
+                    figure.stat = stat('NO_EFFECT')
 
                     if figure.transported_by > -1:
-                        figure.stat = status('LOADED')
+                        figure.stat = stat('LOADED')
 
                     # compute there cutoff status
                     allies = state.getDistance(figure)
                     if min([len(v) for v in allies.values()]) > CUTOFF_RANGE:
-                        figure.stat = status('CUT_OFF')
+                        figure.stat = stat('CUT_OFF')

@@ -13,3 +13,4 @@ weapon:
 
     curved: true
     attack_ground: true
+    smoke: true

@@ -5,13 +5,15 @@ __all__ = [
     "TMPL_TERRAIN_TYPE",
     "TMPL_BOARDS",
     "TMPL_SCENARIOS",
+    'collect'
 ]
 
 from collections.abc import Mapping
 import os
 import yaml
 
-from core.figures import FIGURES_STATUS_TYPE, FigureStatus, WEAPON_KEY_LIST, DEFENSE_KEY_LIST
+from core.figures.lists import WEAPON_KEY_LIST, DEFENSE_KEY_LIST
+from core.figures.stats import FIGURES_STATUS_TYPE, FigureStatus
 from core.game.terrain import TERRAIN_TYPE, TYPE_TERRAIN, Terrain
 from utils import INFINITE
 from utils.copy import deepcopy
