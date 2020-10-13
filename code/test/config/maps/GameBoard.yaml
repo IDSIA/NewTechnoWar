@@ -1,0 +1,136 @@
+board:
+
+  GameBoard:
+    shape: [ 52, 42 ]
+    default: OPEN_GROUND
+
+    terrain:
+      FOREST:
+        # forest top left
+        - region: ":32, :3"
+        - region: ":32, :3"
+        - region: ":30, 3"
+        - region: ":27, 4"
+        - region: ":26, 5"
+        - region: ":22, 6"
+        - region: "23, 6"
+        - region: ":21, 7"
+        - region: ":20, 8"
+        - region: ":18, 9"
+        - region: ":16, 10"
+        - region: ":14, 11"
+        - region: ":10, 12"
+        - region: ":8, 13:18"
+
+        # forest middle left
+        - region: ":8, 18:29"
+        - region: "8, 18:27"
+        - region: ":7, 29"
+        - region: ":6, 30"
+        - region: "1, 31"
+        - region: "3, 31"
+
+        # forest bottom right
+        - region: "51, 19:"
+        - region: "50, 18:"
+        - region: "49, 19:22"
+        - region: "49, 27:30"
+        - region: "49, 35:"
+        - region: "48, 35:"
+        - region: "47, 37:"
+        - region: "46, 37:"
+        - region: "45, 38:"
+        - region: "44, 38:41"
+
+        # forest bottom middle
+        - region: "35, -2:"
+        - region: "34, -3:"
+        - region: "33, -3:"
+        - region: "32, -4:"
+        - region: "31, -4:"
+        - region: "30, -5:"
+        - region: "29, -4:"
+        - region: "28, -5:"
+        - region: "27, -5:"
+        - region: "26, -5:"
+        - region: "25, -3:"
+
+        # forest bottom left
+        - region: "0, -6:"
+        - region: "1, -6:"
+        - region: "2, -6:"
+        - region: "3, -6:"
+        - region: "4, -6:"
+        - region: "5, -6:"
+        - region: "6, -6:"
+        - region: "7, -6:"
+        - region: "8, -6:"
+        - region: "9, -7:"
+        - region: "10, -8:"
+        - region: "11, -8:"
+        - region: "12, -10:"
+        - region: "13, -9:"
+        - region: "14, -10:"
+        - region: "15, -9:-2"
+        - region: "16, -9:-5"
+        - region: "17, -8:-5"
+        - region: "18, -7:-6"
+
+      CONCRETE_BUILDING:
+        # city
+        - region: "-20, 20:26"
+        - region: "-19, 19:27"
+        - region: "-18, 18:34"
+        - region: "-17, 19:35"
+        - region: "-16, 18:34"
+        - region: "-15, 19:36"
+        - region: "-14, 19:35"
+        - region: "-13, 20:36"
+        - region: "-12, 19:36"
+        - region: "-12, 20:36"
+        - region: "-11, 19:36"
+        - region: "-10, 19:36"
+        - region: "-9, 18:37"
+        - region: "-8, 20:37"
+        - region: "-7, 20:37"
+        - region: "-6, 20:37"
+        - region: "-5, 21:37"
+        - region: "-4, 21:35"
+
+      OPEN_GROUND:
+        # this creates holes in the city
+        - region: "-18, 26:31"
+        - region: "-17, 26:31"
+        - region: "-16, 25:30"
+        - region: "-15, 26:30"
+
+      WOODEN_BUILDING:
+        # village
+        - region: "15, 29:31"
+        - region: "16, 29:31"
+        - region: "17, 30:32"
+
+      ROAD:
+        # main road
+        - row_alternate: [ 17, 18 ]
+
+        # secondary roads
+        - region: "30, 18:34"
+
+        - line: [ 30, 33, 46, 41 ]
+        - line: [ 30, 30, 17, 37 ]
+        - line: [ 17, 37, 15, 41 ]
+        - line: [ 20, 35, 18, 31 ]
+        - line: [ 41, 36, 41, 39 ]
+
+        # city roads
+        - line: [ 31, 25, 38, 22 ]
+        - line: [ 36, 21, 38, 22 ]
+        - line: [ 39, 23, 42, 21 ]
+        - line: [ 39, 23, 42, 26 ]
+        - line: [ 42, 26, 45, 25 ]
+        - line: [ 43, 26, 44, 30 ]
+        - line: [ 41, 30, 41, 38 ]
+        - line: [ 41, 32, 47, 30 ]
+
+        - region: "40, 28:30"

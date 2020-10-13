@@ -3,7 +3,7 @@ from collections import Counter
 
 from agents import GreedyAgent, MatchManager
 from core.const import RED, BLUE
-from scenarios import scenarioTest2v2, scenarioJunction
+from scenarios import buildScenario
 
 
 class TestAgentGreedy(unittest.TestCase):
@@ -16,7 +16,7 @@ class TestAgentGreedy(unittest.TestCase):
         winners = []
 
         for i in range(1):
-            board, state = scenarioTest2v2()
+            board, state = buildScenario('Test2v2')
             mm = MatchManager('TestGreedyAgent2v2', self.red, self.blue, board, state, seed=i)
 
             while not mm.end:
@@ -30,7 +30,7 @@ class TestAgentGreedy(unittest.TestCase):
         winners = []
 
         for i in range(1):
-            board, state = scenarioJunction()
+            board, state = buildScenario('Junction')
             mm = MatchManager('TestGreedyAgentJunction', self.red, self.blue, board, state, seed=i)
 
             while not mm.end:

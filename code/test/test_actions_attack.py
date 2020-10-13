@@ -2,24 +2,27 @@ import unittest
 
 from core import GM
 from core.const import RED, BLUE
-from core.figures import Tank, Infantry
+from core.figures import buildFigure
 from core.game.board import GameBoard
 from core.game.state import GameState
+from core.templates import collect
 from utils.coordinates import to_cube
 
 
 class TestAttackAction(unittest.TestCase):
 
     def setUp(self):
+        collect()
+
         shape = (16, 16)
         self.board = GameBoard(shape)
         self.state = GameState(shape)
 
-        self.red_tank = Tank((0, 6), RED)
-        self.red_inf = Infantry((0, 12), RED)
+        self.red_tank = buildFigure('Tank', (0, 6), RED)
+        self.red_inf = buildFigure('Infantry', (0, 12), RED)
 
-        self.blue_tank = Tank((15, 6), BLUE)
-        self.blue_inf = Infantry((15, 12), BLUE)
+        self.blue_tank = buildFigure('Tank', (15, 6), BLUE)
+        self.blue_inf = buildFigure('Infantry', (15, 12), BLUE)
 
         self.state.addFigure(
             self.red_tank,
@@ -67,7 +70,7 @@ class TestAttackAction(unittest.TestCase):
 
     def testShootingGround(self):
         ground = (2, 6)
-        attack = GM.actionAttackGround(self.red_tank, to_cube(ground), self.red_tank.weapons['SM'])
+        attack = GM.actionAttackGround(self.red_tank, to_cube(ground), self.red_tank.weapons['SG'])
 
         GM.step(self.board, self.state, attack)
 

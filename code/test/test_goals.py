@@ -35,7 +35,7 @@ class TestGoals(unittest.TestCase):
     def testReachPoint(self):
         x1 = to_cube((4, 4))
         x2 = to_cube((5, 5))
-        g = GoalReachPoint(RED, self.board.shape, cube_to_hex(x1))
+        g = GoalReachPoint(RED, self.board.shape, [cube_to_hex(x1)])
 
         GM.update(self.state)
         self.assertFalse(g.check(self.state), 'figure is still in starting position')

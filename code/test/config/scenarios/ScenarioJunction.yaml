@@ -1,0 +1,84 @@
+scenario:
+
+  Junction:
+    map: GameBoardJunction
+
+    red:
+      figures:
+        - rTank1:
+            type: Tank
+            position: [ 8, 17 ]
+            color: orange
+            loaded:
+              - rInf11:
+                  type: Infantry
+              - rInf12:
+                  type: Infantry
+
+        - rTank2:
+            type: Tank
+            position: [ 7, 28 ]
+            color: lightred
+            loaded:
+              - rInf21:
+                  type: Infantry
+        - rInf22:
+            type: Infantry
+            position: [ 6, 29 ]
+            color: lightred
+
+        - rTank3:
+            type: Tank
+            position: [ 17, 37 ]
+            color: darkred
+        - rInf31:
+            type: Infantry
+            position: [ 17, 34 ]
+            color: darkred
+        - rInf32:
+            type: Infantry
+            position: [ 25, 39 ]
+            color: darkred
+
+      objectives:
+        reach_point:
+          - [ 30, 30 ]
+        eliminate_opponent:
+
+    blue:
+      figures:
+        - bAPC:
+            type: APC
+            position: [ 33, 25 ]
+            status: HIDDEN
+        - bInf1:
+            type: Infantry
+            position: [ 36, 31 ]
+            status: HIDDEN
+        - bInf2:
+            type: Infantry
+            position: [ 37, 33 ]
+            status: HIDDEN
+
+      placement_zone:
+        - region: "28, 32:38"
+        - region: "29, 24:38"
+        - region: "30, 18:37"
+        - region: "31, 19:38"
+        - region: "32, 19:37"
+        - region: "33, 19:37"
+        - region: "34, 19:37"
+        - region: "35, 19:37"
+        - region: "36, 19:37"
+        - region: "37, 20:37"
+        - region: "38, 19:36"
+        - region: "39, 20:37"
+        - region: "40, 20:36"
+        - region: "41, 20:37"
+        - region: "42, 20:36"
+
+      objectives:
+        defend_point:
+        - [ 30, 30 ]
+        eliminate_opponent:
+        max_turn: 10

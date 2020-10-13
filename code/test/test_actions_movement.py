@@ -4,22 +4,25 @@ import numpy as np
 
 from core import GM
 from core.const import RED
-from core.figures import Tank, Infantry
-from core.figures.status import IN_MOTION
+from core.figures import Infantry, buildFigure
+from core.figures.stats import stat
 from core.game.board import GameBoard
 from core.game.state import GameState
-from core.game.terrain import Terrain
+from core.game.terrain import TERRAIN_TYPE
+from core.templates import collect
 from utils.coordinates import to_cube, Cube, cube_to_hex
 
 
 class TestMovementAction(unittest.TestCase):
 
     def setUp(self):
+        collect()
+
         shape = (16, 16)
         self.board = GameBoard(shape)
         self.state = GameState(shape)
 
-        self.tank = Tank((8, 8), RED)
+        self.tank = buildFigure('Tank', (8, 8), RED)
         self.state.addFigure(self.tank)
 
     def testMoveToDestination(self):
@@ -30,15 +33,15 @@ class TestMovementAction(unittest.TestCase):
 
         self.assertEqual(self.state.getFiguresByPos(move.team, move.destination)[0], self.tank,
                          'figure in the wrong position')
-        self.assertEqual(self.tank.stat, IN_MOTION, 'figure should be in motion')
+        self.assertEqual(self.tank.stat, stat('IN_MOTION'), 'figure should be in motion')
         self.assertEqual(self.tank.position, to_cube(dst), 'figure not at the correct destination')
 
     def testMoveOnRoad(self):
         shape = (1, 16)
         board = GameBoard(shape)
 
-        t = Tank((0, 0), RED)
-        i = Infantry((0, 15), RED)
+        t = buildFigure('Tank', (0, 0), RED)
+        i = buildFigure('Infantry', (0, 15), RED)
 
         stateTank = GameState(shape)
         stateTank.addFigure(t)
@@ -52,8 +55,7 @@ class TestMovementAction(unittest.TestCase):
 
         # adding road
         road = np.zeros(shape, 'uint8')
-        road[0, :] = Terrain.ROAD
-
+        road[0, :] = TERRAIN_TYPE['ROAD'].level
         board.addTerrain(road)
 
         # test for vehicles
@@ -107,9 +109,9 @@ class TestMovementAction(unittest.TestCase):
                          'self.state2 and self.state3 have different end location')
 
     def testMoveWithTransport(self):
-        inf1 = Infantry((7, 7), RED, 'Inf1')
-        inf2 = Infantry((7, 8), RED, 'Inf2')
-        inf3 = Infantry((7, 9), RED, 'Inf3')
+        inf1 = Infantry((7, 7), RED, 'Inf1', stat('NO_EFFECT'))
+        inf2 = Infantry((7, 8), RED, 'Inf2', stat('NO_EFFECT'))
+        inf3 = Infantry((7, 9), RED, 'Inf3', stat('NO_EFFECT'))
 
         # add infantry units
         self.state.addFigure(inf1)
