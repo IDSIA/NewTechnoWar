@@ -11,6 +11,8 @@ from collections.abc import Mapping
 import os
 import yaml
 
+from core.figures import FIGURES_STATUS_TYPE, FigureStatus
+from core.game.terrain import TERRAIN_TYPE, Terrain
 from utils.copy import deepcopy
 
 TMPL_WEAPONS = {}
@@ -83,8 +85,32 @@ def template_upgrade(data: dict):
         data[k] = update(deepcopy(tmpl), data[k])
 
 
+def parse_figure_status():
+    for fName, fData in TMPL_FIGURES_STATUS_TYPE.items():
+        FIGURES_STATUS_TYPE[fName] = FigureStatus(fData['name'], fData['value'])
+
+
+def parse_terrain():
+    for name, tData in TMPL_TERRAIN_TYPE.items():
+        TERRAIN_TYPE[name] = Terrain(
+            len(TERRAIN_TYPE),
+            tData['name'],
+            tData['protection'],
+            tData['move_cost']['infantry'],
+            tData['move_cost']['vehicle'],
+            tData['block_los']
+        )
+
+
+COLLECTED: bool = False
+
+
 def collect():
     """Main template collector function."""
+    global COLLECTED
+
+    if COLLECTED:
+        return
 
     MAIN_DIR = 'config'
     SUB_DIRS = ['terrains', 'maps', 'weapons', 'status', 'figures', 'scenarios']
@@ -125,6 +151,11 @@ def collect():
     for k in TMPL_FIGURES.keys():
         TMPL_FIGURES[k]['kind'] = TMPL_FIGURES[k].pop('type', None)
         TMPL_FIGURES[k]['hp_max'] = TMPL_FIGURES[k]['hp']
+
+    # parse templates to populate basic containers
+    parse_terrain()
+
+    COLLECTED = True
 
 
 collect()

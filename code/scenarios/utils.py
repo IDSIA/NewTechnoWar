@@ -12,6 +12,23 @@ def blank(shape) -> (GameBoard, GameState):
     return GameBoard(shape), GameState(shape)
 
 
+def parse_slice(value: str) -> slice:
+    """
+    Parses a `slice()` from string, like `start:stop:step`.
+    """
+    value = value.strip()
+    if value:
+        parts = value.split(':')
+        if len(parts) == 1:
+            # slice(stop)
+            parts = [None, parts[0]]
+        # else: slice(start, stop[, step])
+    else:
+        # slice()
+        parts = []
+    return slice(*[int(p) if p else None for p in parts])
+
+
 def fillLine(terrain: np.ndarray, start: tuple, end: tuple, kind: int):
     if start[0] == end[0]:
         line = [(start[0], j) for j in range(start[1], end[1] + 1)]
