@@ -7,6 +7,7 @@ __all__ = [
     "Weapon",
     "Cannon", "AssaultRifle", "MachineGun", "AntiTank", "Mortar", "Grenade", "SmokeGrenade", "SniperRifle",
     "WEAPON_KEY_LIST", "DEFENSE_KEY_LIST",
+    "setup_weapons",
 ]
 
 from core.figures.figure import Figure, Tank, APC, Infantry, Exoskeleton, Sniper, Civilian

@@ -1,30 +1,13 @@
 import numpy as np
 
 from core.const import RED, BLUE
-from core.figures import Weapon, FIGURES_STATUS_TYPE, Figure
+from core.figures import Figure, stat, setup_weapons
 from core.game.board import GameBoard
 from core.game.goals import GoalEliminateOpponent, GoalReachPoint, GoalDefendPoint, GoalMaxTurn
 from core.game.state import GameState
 from core.game.terrain import TERRAIN_TYPE
-from core.templates import TMPL_WEAPONS, TMPL_BOARDS, TMPL_SCENARIOS, TMPL_FIGURES
+from core.templates import TMPL_BOARDS, TMPL_SCENARIOS, TMPL_FIGURES
 from scenarios.utils import fillLine, parse_slice
-from utils import INFINITE
-
-
-def setup_weapons(figure: Figure, values: dict) -> None:
-    for wName, wData in values.items():
-        tw = TMPL_WEAPONS[wName]
-        tw['ammo'] = INFINITE if wData == 'inf' else wData
-        tw['ammo_max'] = tw['ammo']
-
-        w = Weapon()
-        for kw, vw in tw.items():
-            if kw == 'atk':
-                setattr(w, 'atk_normal', vw['normal'])
-                setattr(w, 'atk_response', vw['response'])
-            else:
-                setattr(w, kw, vw)
-        figure.addWeapon(w)
 
 
 def parseBoard(name: str) -> GameBoard:
@@ -96,35 +79,34 @@ def buildScenario(name: str) -> (GameBoard, GameState):
             # setup figures
             colors = {}
             for fName, fData in f.items():
-                s = FIGURES_STATUS_TYPE[fData['status']] if 'status' in fData else FIGURES_STATUS_TYPE['NO_EFFECT']
+                s = stat(fData['status']) if 'status' in fData else stat('NO_EFFECT')
                 t = TMPL_FIGURES[fData['type']]
                 figure = Figure(fData['position'], fName, team, t['kind'], s)
 
+                for k, v in t.items():
+                    if k == 'weapons':
+                        setup_weapons(figure, v)
+                    else:
+                        setattr(figure, k, v)
+
                 # setup colors
-                color = t.get('color', None)
+                color = fData.get('color', None)
                 if color:
                     if color not in colors:
                         colors[color] = []
                     colors[color].append(figure)
 
-                for k, v in t.items():
-                    if k == 'weapons':
-                        setup_weapons(figure, v)
-
-                    elif k == 'loaded':
-                        # parse loaded figures
-                        for lName, lData in v.items():
-                            lt = TMPL_FIGURES[lData['type']]
-                            lFigure = Figure(fData['position'], lName, team, lt['kind'])
-                            figure.transportLoad(lFigure)
-                            for lk, lv in lt.items():
-                                if lk == 'weapons':
-                                    setup_weapons(lFigure, lv)
-                                else:
-                                    setattr(lFigure, lk, lv)
-
-                    else:
-                        setattr(figure, k, v)
+                for x in fData.get('loaded', []):
+                    # parse loaded figures
+                    for lName, lData in x.items():
+                        lt = TMPL_FIGURES[lData['type']]
+                        lFigure = Figure(fData['position'], lName, team, lt['kind'])
+                        figure.transportLoad(lFigure)
+                        for lk, lv in lt.items():
+                            if lk == 'weapons':
+                                setup_weapons(lFigure, lv)
+                            else:
+                                setattr(lFigure, lk, lv)
 
                 state.addFigure(figure)
 

@@ -18,11 +18,14 @@ def parse_slice(value: str) -> slice:
     """
     value = value.strip()
     if value:
-        parts = value.split(':')
-        if len(parts) == 1:
-            # slice(stop)
-            parts = [None, parts[0]]
-        # else: slice(start, stop[, step])
+        if ':' in value:
+            parts = value.split(':')
+            if len(parts) == 1:
+                # slice(stop)
+                parts = [None, parts[0]]
+            # else: slice(start, stop[, step])
+        else:
+            parts = [int(value), int(value) + 1]
     else:
         # slice()
         parts = []

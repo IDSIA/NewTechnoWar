@@ -24,7 +24,7 @@ def index():
                 logging.info('Using debug configuration!')
                 redPlayer = 'Human'
                 bluePlayer = 'Human'
-                scen = 'scenarioCrossingTheCity'
+                scen = 'Junction'
                 autoplay = not True
                 seed = 0
                 replay = ''
@@ -36,7 +36,7 @@ def index():
                 bluePlayer = data['bluePlayer']
 
                 autoplay = 'autoplay' in data or redPlayer == 'Human' or bluePlayer == 'Human'
-                scen = 'scenario' + data['scenario']
+                scen = data['scenario']
                 replay = data['replay']
 
             mm = buildMatchManager(
