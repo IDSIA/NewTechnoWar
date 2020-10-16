@@ -123,7 +123,7 @@ class GameState:
             self.choices[team][color] = []
         for figure in newFigures:
             figures = self.choices[team][color]
-            figure.index = len(figures)
+            # figure.index = len(figures)
             figure.color = color
             figures.append(figure)
 

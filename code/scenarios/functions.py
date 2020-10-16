@@ -37,7 +37,83 @@ def parseBoard(name: str) -> GameBoard:
     return board
 
 
+def addPlacement(board: GameBoard, state: GameState, team: str, template: dict) -> None:
+    """Add a placement zone to a state for the given team, given the correct template."""
+    placement_zone = np.zeros(board.shape, dtype='uint8')
+    for elem in template[team]['placement']:
+        if 'region' in elem:
+            start, end = elem['region'].split(',')
+            placement_zone[parse_slice(start), parse_slice(end)] = 1
+    state.addPlacementZone(team, placement_zone)
+
+
+def setupObjectives(board: GameBoard, team: str, objective: str, value) -> None:
+    """Add an objective for a given team to the board using the given values."""
+    other = BLUE if team == RED else RED
+    obj = None
+    if objective == 'eliminate_opponent':
+        obj = GoalEliminateOpponent(team, other)
+    if objective == 'reach_point':
+        value = [tuple(w) for w in value]
+        obj = GoalReachPoint(team, board.shape, value)
+    if objective == 'defend_point':
+        value = [tuple(w) for w in value]
+        obj = GoalDefendPoint(team, other, board.shape, value)
+    if objective == 'max_turn':
+        obj = GoalMaxTurn(team, value)
+    if obj:
+        board.addObjectives(obj)
+
+
+def setupFigure(state: GameState, team: str, colors: dict, f: dict):
+    """
+    Add figures to a state for the given team, if needed add the color scheme, and also add the loaded units if there
+    are any.
+    """
+    for fName, fData in f.items():
+        # setup main figure
+        s = stat(fData['status']) if 'status' in fData else stat('NO_EFFECT')
+        t = TMPL_FIGURES[fData['type']]
+        figure = Figure(fData['position'], fName, team, t['kind'], s)
+
+        # add parameters to figure
+        for k, v in t.items():
+            if k == 'weapons':
+                setup_weapons(figure, v)
+            else:
+                setattr(figure, k, v)
+
+        state.addFigure(figure)
+
+        # setup colors
+        color = fData.get('color', None)
+        if color:
+            if color not in colors:
+                colors[color] = []
+            colors[color].append(figure)
+
+        for x in fData.get('loaded', []):
+            # parse loaded figures
+            for lName, lData in x.items():
+                # setup loaded figure
+                lt = TMPL_FIGURES[lData['type']]
+                lFigure = Figure(fData['position'], lName, team, lt['kind'])
+
+                # add parameters to loaded figure
+                for lk, lv in lt.items():
+                    if lk == 'weapons':
+                        setup_weapons(lFigure, lv)
+                    else:
+                        setattr(lFigure, lk, lv)
+
+                state.addFigure(lFigure)
+                figure.transportLoad(lFigure)
+                if color:
+                    colors[color].append(lFigure)
+
+
 def buildScenario(name: str) -> (GameBoard, GameState):
+    """Build the scenario associated with the given name from the loaded templates."""
     template = TMPL_SCENARIOS[name]
 
     board: GameBoard = parseBoard(template['map'])
@@ -47,70 +123,19 @@ def buildScenario(name: str) -> (GameBoard, GameState):
 
     for team in [RED, BLUE]:
         if 'placement' in template[team]:
-            placement_zone = np.zeros(board.shape, dtype='uint8')
+            addPlacement(board, state, team, template)
 
-            for elem in template[team]['placement']:
-                if 'region' in elem:
-                    start, end = elem['region'].split(',')
-                    placement_zone[parse_slice(start), parse_slice(end)] = 1
+        if 'objectives' in template[team]:
+            for o, v in template[team]['objectives'].items():
+                setupObjectives(board, team, o, v)
 
-            state.addPlacementZone(team, placement_zone)
+        colors = {}
+        if 'figures' in template[team]:
+            for f in template[team]['figures']:
+                # setup figures
+                setupFigure(state, team, colors, f)
 
-        for o, v in template[team]['objectives'].items():
-            # setup objectives
-            other = BLUE if team == RED else RED
-            obj = None
-
-            if o == 'eliminate_opponent':
-                obj = GoalEliminateOpponent(team, other)
-            if o == 'reach_point':
-                v = [tuple(w) for w in v]
-                obj = GoalReachPoint(team, board.shape, v)
-            if o == 'defend_point':
-                v = [tuple(w) for w in v]
-                obj = GoalDefendPoint(team, other, board.shape, v)
-            if o == 'max_turn':
-                obj = GoalMaxTurn(team, v)
-
-            if obj:
-                board.addObjectives(obj)
-
-        for f in template[team]['figures']:
-            # setup figures
-            colors = {}
-            for fName, fData in f.items():
-                s = stat(fData['status']) if 'status' in fData else stat('NO_EFFECT')
-                t = TMPL_FIGURES[fData['type']]
-                figure = Figure(fData['position'], fName, team, t['kind'], s)
-
-                for k, v in t.items():
-                    if k == 'weapons':
-                        setup_weapons(figure, v)
-                    else:
-                        setattr(figure, k, v)
-
-                # setup colors
-                color = fData.get('color', None)
-                if color:
-                    if color not in colors:
-                        colors[color] = []
-                    colors[color].append(figure)
-
-                for x in fData.get('loaded', []):
-                    # parse loaded figures
-                    for lName, lData in x.items():
-                        lt = TMPL_FIGURES[lData['type']]
-                        lFigure = Figure(fData['position'], lName, team, lt['kind'])
-                        figure.transportLoad(lFigure)
-                        for lk, lv in lt.items():
-                            if lk == 'weapons':
-                                setup_weapons(lFigure, lv)
-                            else:
-                                setattr(lFigure, lk, lv)
-
-                state.addFigure(figure)
-
-            for color, figures in colors.items():
-                state.addChoice(team, color, *figures)
+        for color, figures in colors.items():
+            state.addChoice(team, color, *figures)
 
     return board, state
