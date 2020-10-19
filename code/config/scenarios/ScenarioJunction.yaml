@@ -60,7 +60,7 @@ scenario:
             position: [ 37, 33 ]
             status: HIDDEN
 
-      placement_zone:
+      placement:
         - region: "28, 32:38"
         - region: "29, 24:38"
         - region: "30, 18:37"

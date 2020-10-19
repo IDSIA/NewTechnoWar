@@ -21,8 +21,8 @@ def parseBoard(name: str) -> GameBoard:
         level = TERRAIN_TYPE[tName].level
         for elem in tData:
             if 'line' in elem:
-                l = elem['line']
-                fillLine(terrain, (l[0], l[1]), (l[2], l[3]), level)
+                e = elem['line']
+                fillLine(terrain, (e[0], e[1]), (e[2], e[3]), level)
             if 'region' in elem:
                 start, end = elem['region'].split(',')
                 terrain[parse_slice(start), parse_slice(end)] = level
@@ -44,10 +44,11 @@ def addPlacement(board: GameBoard, state: GameState, team: str, template: dict) 
         if 'region' in elem:
             start, end = elem['region'].split(',')
             placement_zone[parse_slice(start), parse_slice(end)] = 1
+
     state.addPlacementZone(team, placement_zone)
 
 
-def setupObjectives(board: GameBoard, team: str, objective: str, value) -> None:
+def addObjectives(board: GameBoard, team: str, objective: str, value) -> None:
     """Add an objective for a given team to the board using the given values."""
     other = BLUE if team == RED else RED
     obj = None
@@ -65,7 +66,7 @@ def setupObjectives(board: GameBoard, team: str, objective: str, value) -> None:
         board.addObjectives(obj)
 
 
-def setupFigure(state: GameState, team: str, colors: dict, f: dict):
+def addFigure(state: GameState, team: str, f: dict) -> None:
     """
     Add figures to a state for the given team, if needed add the color scheme, and also add the loaded units if there
     are any.
@@ -83,14 +84,12 @@ def setupFigure(state: GameState, team: str, colors: dict, f: dict):
             else:
                 setattr(figure, k, v)
 
-        state.addFigure(figure)
-
         # setup colors
         color = fData.get('color', None)
         if color:
-            if color not in colors:
-                colors[color] = []
-            colors[color].append(figure)
+            state.addChoice(team, color, figure)
+        else:
+            state.addFigure(figure)
 
         for x in fData.get('loaded', []):
             # parse loaded figures
@@ -106,10 +105,12 @@ def setupFigure(state: GameState, team: str, colors: dict, f: dict):
                     else:
                         setattr(lFigure, lk, lv)
 
-                state.addFigure(lFigure)
-                figure.transportLoad(lFigure)
                 if color:
-                    colors[color].append(lFigure)
+                    state.addChoice(team, color, lFigure)
+                else:
+                    state.addFigure(lFigure)
+
+                figure.transportLoad(lFigure)
 
 
 def buildScenario(name: str) -> (GameBoard, GameState):
@@ -118,6 +119,7 @@ def buildScenario(name: str) -> (GameBoard, GameState):
 
     board: GameBoard = parseBoard(template['map'])
     state: GameState = GameState(board.shape, name)
+
     if 'turn' in template:
         state.turn = template['turn'] - 2  # turns are 0-based and there is 1 initialization update
 
@@ -127,15 +129,10 @@ def buildScenario(name: str) -> (GameBoard, GameState):
 
         if 'objectives' in template[team]:
             for o, v in template[team]['objectives'].items():
-                setupObjectives(board, team, o, v)
+                addObjectives(board, team, o, v)
 
-        colors = {}
         if 'figures' in template[team]:
             for f in template[team]['figures']:
-                # setup figures
-                setupFigure(state, team, colors, f)
-
-        for color, figures in colors.items():
-            state.addChoice(team, color, *figures)
+                addFigure(state, team, f)
 
     return board, state
