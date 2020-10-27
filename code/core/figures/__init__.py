@@ -107,10 +107,10 @@ class Figure:
             "positionZ_" + self.team + "_" + self.name
         ]
         for d in DEFENSE_KEY_LIST:
-            info.append("defense_" + d + self.team + "_" + self.name)
+            info.append("defense_" + d+"_" + self.team + "_" + self.name)
 
         for w in WEAPON_KEY_LIST:
-            info.append("weapon_" + w + self.team + "_" + self.name)
+            info.append("weapon_" + w+"_" + self.team + "_" + self.name)
         return tuple(info)
 
     def vector(self) -> tuple:
