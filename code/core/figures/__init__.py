@@ -74,43 +74,45 @@ class Figure:
         self.transported_by: int = -1
 
     def vectorInfo(self) -> tuple:
+        meta = f'{self.team}_{self.kind}_{self.index}'
+        
         info = [
-            #"fid_" + self.team + "_" + self.name,
-            "team_" + self.team + "_" + self.name,
-            "name_" + self.team + "_" + self.name,
-            "index_" + self.team + "_" + self.name,
-            "kind_" + self.team + "_" + self.name,
-            "move_" + self.team + "_" + self.name,
-            "load_" + self.team + "_" + self.name,
-            "hp_" + self.team + "_" + self.name,
-            "hp_max_" + self.team + "_" + self.name,
-            "int_atk_" + self.team + "_" + self.name,
-            "int-def_" + self.team + "_" + self.name,
-            "endurance_" + self.team + "_" + self.name,
-            "stat-name_" + self.team + "_" + self.name,
-            "stat-value_" + self.team + "_" + self.name,
-            "bonus_" + self.team + "_" + self.name,
-            "activated_" + self.team + "_" + self.name,
-            "responded_" + self.team + "_" + self.name,
-            "attacked_" + self.team + "_" + self.name,
-            "moved_" + self.team + "_" + self.name,
-            "passed_" + self.team + "_" + self.name,
-            "killed_" + self.team + "_" + self.name,
-            "hit_" + self.team + "_" + self.name,
-            "attacked-by_" + self.team + "_" + self.name,
-            "can-transport_" + self.team + "_" + self.name,
-            "transport-capacity_" + self.team + "_" + self.name,
-            "len-transporting_" + self.team + "_" + self.name,
-            "transported-by_" + self.team + "_" + self.name,
-            "positionX_" + self.team + "_" + self.name,
-            "positionY_" + self.team + "_" + self.name,
-            "positionZ_" + self.team + "_" + self.name
+            #"fid_" + meta,
+            "team_" + meta,
+            "name_" + meta,
+            "index_" + meta,
+            "kind_" + meta,
+            "move_" + meta,
+            "load_" + meta,
+            "hp_" + meta,
+            "hp_max_" + meta,
+            "int_atk_" + meta,
+            "int-def_" + meta,
+            "endurance_" + meta,
+            "stat-name_" + meta,
+            "stat-value_" + meta,
+            "bonus_" + meta,
+            "activated_" + meta,
+            "responded_" + meta,
+            "attacked_" + meta,
+            "moved_" + meta,
+            "passed_" + meta,
+            "killed_" + meta,
+            "hit_" + meta,
+            "attacked-by_" + meta,
+            "can-transport_" + meta,
+            "transport-capacity_" + meta,
+            "len-transporting_" + meta,
+            "transported-by_" + meta,
+            "positionX_" + meta,
+            "positionY_" + meta,
+            "positionZ_" + meta,
         ]
         for d in DEFENSE_KEY_LIST:
-            info.append("defense_" + d+"_" + self.team + "_" + self.name)
+            info.append("defense_" + d+"_" + meta)
 
         for w in WEAPON_KEY_LIST:
-            info.append("weapon_" + w+"_" + self.team + "_" + self.name)
+            info.append("weapon_" + w+"_" + meta)
         return tuple(info)
 
     def vector(self) -> tuple:
