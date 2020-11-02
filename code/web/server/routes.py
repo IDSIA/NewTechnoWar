@@ -87,6 +87,7 @@ def index():
             'RandomAgent',
             'GreedyAgent',
             'AlphaBetaAgent',
+            'AlphaRandomAgent',
         ]
 
         response = make_response(
