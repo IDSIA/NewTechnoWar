@@ -16,17 +16,10 @@ ACTION_PASS = 2
 class AlphaRandomAgent(AlphaBetaAgent):
 
     def __init__(self, team: str):
-        super(AlphaRandomAgent, self).__init__(team,3)
+        super().__init__(team,3)
+        self.name='AlphaRandomAgent'
 
-    def chooseAction(self, board: GameBoard, state: GameState) -> Action:
-        # choose which figures that can still be activate will be activated
-        return super(AlphaRandomAgent, self).chooseAction(board, state)
 
-    def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
-        return super(AlphaRandomAgent, self).chooseResponse(board, state)
-
-    def placeFigures(self, board: GameBoard, state: GameState) -> None:
-        super(AlphaRandomAgent, self).placeFigures(board, state)
 
     def chooseFigureGroups(self, board: GameBoard, state: GameState) -> None:
         colors = list(state.choices[self.team].keys())
