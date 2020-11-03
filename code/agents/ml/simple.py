@@ -32,7 +32,7 @@ class SimpleMLAgent(Agent):
 
                 # apply classification pipeline
                 X = newState.vector()
-                score = self.model.predict(X)
+                score = self.model.predict_proba(X)
 
                 scores.append((score, action))
 
