@@ -73,7 +73,7 @@ class Figure:
         self.transporting: List[int] = []
         self.transported_by: int = -1
 
-    def vectorInfo(self) -> tuple:
+    def nj9i8klvectorInfo(self) -> tuple:
         meta = f'{self.team}_{self.kind}_{self.index}'
         
         info = [
