@@ -14,10 +14,8 @@ class SimpleMLAgent(Agent):
         super().__init__('SimpleML', team)
 
         self.params: dict = params
-        self.model = params['model']  # has .predict(X) -> np.array
-
-    def encoder(self, X) -> tuple:
-        return X
+        self.model = params['model'] #quando creo l'agente gli passo il modello
+        #DOMANDA, problema che io ho un modello per ogni scenario, come si gestisce questa cosa?
 
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
         scores = []
@@ -33,8 +31,10 @@ class SimpleMLAgent(Agent):
                 # apply classification pipeline
                 X = newState.vector()
                 score = self.model.predict_proba(X)
+                #score è un numpy array, dove 0 è per il blu mentre 1 è per il rosso
 
                 scores.append((score, action))
+                #in scores avrò tutte le probabilità legata a quella specifica azione
 
         # find better action
         bestScore, bestAction = 0.0, None
@@ -42,7 +42,10 @@ class SimpleMLAgent(Agent):
         for score, action in scores:
             if score > bestScore:
                 bestScore, bestAction = score, action
+        #sarà qui che devo già selezionare lo score del giocatore, se si tratta del blue o del rosso
 
+
+        #devo usare team? stile if self.team== red allora else altro?
         return bestAction
 
     def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
