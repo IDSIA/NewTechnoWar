@@ -31,17 +31,26 @@ class AlphaBetaAgent(Agent):
 
         self.searchCutOff: bool = False
 
+    def activateAction(self, board, state, action):
+        hashState0 = hash(state)
+        hashAction = hash(action.__str__())
+
+        key = (hashState0, hashAction)
+
+        if key in self.cache:
+            return self.cache[key]
+
+        else:
+            state1, _ = GM.activate(board, state, action)
+            self.cache[key] = state1
+            return state1
+
     def alphaBeta(self, board: GameBoard, state: GameState, depth, alpha, beta, startTime, timeLimit):
         currentTime = time()
         elapsedTime = currentTime - startTime
 
         if elapsedTime >= timeLimit:
             self.searchCutOff = True
-
-        # use cache
-        stateHash = hash(state)
-        if stateHash in self.cache and self.maxDepth != depth:
-            return self.cache[stateHash], None
 
         self.mm.loadState(board, state)
         step, team, _ = self.mm.nextPlayer()
@@ -54,7 +63,6 @@ class AlphaBetaAgent(Agent):
         # if this is a terminal node, abort the search
         if self.searchCutOff or depth == 0 or step == 'end' or team == '':
             score = stateScore(self.team, self.goal_params, board, state)
-            self.cache[stateHash] = score
             return score, None
 
         # build actions
@@ -79,7 +87,8 @@ class AlphaBetaAgent(Agent):
             for nextAction in nextActions:
                 logging.debug(f'{depth:<4}{team:5}{step:6}{nextAction}')
 
-                s1, _ = GM.activate(board, state, nextAction)
+                # s1, _ = GM.activate(board, state, nextAction)
+                s1 = self.activateAction(board, state, nextAction)
                 score, _ = self.alphaBeta(board, s1, depth - 1, alpha, beta, startTime, timeLimit)
 
                 if score > value:
@@ -133,7 +142,6 @@ class AlphaBetaAgent(Agent):
                 break
 
             score, action = self.alphaBeta(board, state, depth, -math.inf, math.inf, currentTime, endTime - currentTime)
-            print(depth, score, action)
 
         logger.disabled = False
 

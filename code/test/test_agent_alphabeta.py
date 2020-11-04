@@ -20,8 +20,9 @@ class TestAgentAlphaBeta(unittest.TestCase):
     def setUp(self) -> None:
         super().setUp()
 
+    @unittest.skip('Used only for debug')
     def testAgainstRandom(self):
-        r = AlphaBetaAgent(RED, maxDepth=2, timeLimit=50000000)
+        r = AlphaBetaAgent(RED, maxDepth=7, timeLimit=5)
         b = RandomAgent(BLUE)
         board, state = scenarioJunction()
 
