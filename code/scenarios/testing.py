@@ -102,7 +102,7 @@ def scenarioTest1v1() -> (GameBoard, GameState):
         Tank((12, 12), BLUE, 'Tank2')
     )
 
-    board.name = state.name = "1Rv1B"
+    board.name = state.name = "Test1v1"
 
     return board, state
 
@@ -119,7 +119,7 @@ def scenarioTest2v2() -> (GameBoard, GameState):
         Tank((12, 12), BLUE, 'Tank4'),
     )
 
-    board.name = state.name = "1Rv1B"
+    board.name = state.name = "Test2v2"
 
     return board, state
 

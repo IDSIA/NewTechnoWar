@@ -104,7 +104,7 @@ def scenarioJunction() -> (GameBoard, GameState):
 
     state.addPlacementZone(BLUE, placement_zone)
 
-    board.name = state.name = 'junction'
+    board.name = state.name = 'Junction'
 
     return board, state
 
@@ -125,7 +125,7 @@ def scenarioJunctionExo() -> (GameBoard, GameState):
         Exoskeleton((37, 33), BLUE, 'bExo2', HIDDEN)
     )
 
-    board.name = state.name = 'junction-exo'
+    board.name = state.name = 'JunctionExo'
 
     return board, state
 
@@ -187,7 +187,7 @@ def scenarioRoadblock() -> (GameBoard, GameState):
 
     state.addPlacementZone(BLUE, placement_zone)
 
-    board.name = state.name = 'junction'
+    board.name = state.name = 'Roadblock'
 
     return board, state
 
@@ -290,7 +290,7 @@ def scenarioBridgeHead() -> (GameBoard, GameState):
     state.addPlacementZone(RED, placement_zone_red)
     state.addPlacementZone(BLUE, placement_zone_blue)
 
-    board.name = state.name = 'bridgehead'
+    board.name = state.name = 'BridgeHead'
 
     return board, state
 
@@ -369,6 +369,6 @@ def scenarioCrossingTheCity() -> (GameBoard, GameState):
 
     state.addPlacementZone(BLUE, placement_zone_blue)
 
-    board.name = state.name = 'crossingthecity'
+    board.name = state.name = 'CrossingTheCity'
 
     return board, state
