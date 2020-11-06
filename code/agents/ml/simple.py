@@ -22,27 +22,22 @@ class SimpleMLAgent(Agent):
 
         self.params: dict = params
         self.model = joblib.load(op.join(dir_path, '..', '..', 'models', file))
-        # TODO: assolutamente gestire meglio il percorso
 
     def bestAction(self, scores: list) -> Action:
         bestScore, bestAction = 0.0, None
         for probs, action in scores:
             if (self.team == BLUE):
-                score = probs[0]
+                score = probs[0, 0]
             else:
-                score = probs[1]
+                score = probs[0, 1]
             if score >= bestScore:
                 bestScore, bestAction = score, action
-                # sarà qui che devo già selezionare lo score del giocatore, se si tratta del blue o del rosso
 
-                # devo usare team? stile if self.team== red allora else altro?
-        # print("oh", score)
-        # print("ehi", bestAction)
         return bestAction
 
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
-        X = []
-        cols = state.vectorInfo()
+        scores = []
+
         for figure in state.getFiguresCanBeActivated(self.team):
             actions = [GM.actionPassFigure(figure)] + \
                       GM.buildAttacks(board, state, figure) + \
@@ -50,33 +45,36 @@ class SimpleMLAgent(Agent):
 
             for action in actions:
                 newState, outcome = GM.activate(board, state, action)
-                X.append(np.array(newState.vector()))
-        df = pd.DataFrame(data=X, columns=cols)
-        score = self.model.predict_proba(df)
-        scores = list(zip(score, actions))
+
+                X = np.array(newState.vector()).reshape(1, -1)
+                cols = newState.vectorInfo()
+                df = pd.DataFrame(data=X, columns=cols)
+                score = self.model.predict_proba(df)
+
+                scores.append((score, action))
         bestaction = self.bestAction(scores)
         if not bestaction:
             raise ValueError('No action given')
-        # print("SCHOOSEACTION", bestaction)
         return bestaction
 
     def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
-        X = []
-        cols = state.vectorInfo()
+
+        scores = []
+
         for figure in state.getFiguresCanBeActivated(self.team):
             actions = [GM.actionPassResponse(self.team)] + \
                       GM.buildResponses(board, state, figure)
-
             for action in actions:
                 newState, outcome = GM.activate(board, state, action)
-                X.append(np.array(newState.vector()))
-        df = pd.DataFrame(data=X, columns=cols)
-        score = self.model.predict_proba(df)
-        scores = list(zip(score, actions))
+
+                X = np.array(newState.vector()).reshape(1, -1)
+                cols = newState.vectorInfo()
+                df = pd.DataFrame(data=X, columns=cols)
+                score = self.model.predict_proba(df)
+                scores.append((score, action))
         bestaction = self.bestAction(scores)
         if not bestaction:
             raise ValueError('No action given')
-        # print("SCHOOSEACTION", bestaction)
         return bestaction
 
     def placeFigures(self, board: GameBoard, state: GameState) -> None:
