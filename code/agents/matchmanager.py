@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Tuple, Dict
 
 from utils.copy import deepcopy
 
@@ -220,13 +220,13 @@ class MatchManager:
         while self.state.turn == t and not self.end:
             self.nextStep()
 
-    def getPlayer(self, team):
+    def getPlayer(self, team) -> Agent:
         """Get the player agent by team color."""
         if team == RED:
             return self.red
         return self.blue
 
-    def nextPlayer(self):
+    def nextPlayer(self) -> Tuple:
         """Returns the next step, the next player, and if it is human or not"""
         step = ''
         nextPlayer = ''
@@ -249,7 +249,7 @@ class MatchManager:
 
         return step, nextPlayer, nextHuman
 
-    def nextPlayerDict(self):
+    def nextPlayerDict(self) -> Dict:
         step, nextPlayer, nextHuman = self.nextPlayer()
         return {
             'step': step,
@@ -257,7 +257,7 @@ class MatchManager:
             'isHuman': nextHuman
         }
 
-    def loadState(self, board: GameBoard, state: GameState):
+    def loadState(self, board: GameBoard, state: GameState) -> None:
         """Use this method to override the current state of a MatchManager object."""
         self.board = board
         self.state = state
