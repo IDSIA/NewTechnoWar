@@ -22,7 +22,6 @@ class SimpleMLAgent(Agent):
 
         self.params: dict = params
         self.model = joblib.load(op.join(dir_path, '..', '..', 'models', file))
-        # TODO: assolutamente gestire meglio il percorso
 
     def bestAction(self, scores: list) -> Action:
         bestScore, bestAction = 0.0, None
@@ -33,11 +32,7 @@ class SimpleMLAgent(Agent):
                 score = probs[0, 1]
             if score >= bestScore:
                 bestScore, bestAction = score, action
-                # sarà qui che devo già selezionare lo score del giocatore, se si tratta del blue o del rosso
 
-                # devo usare team? stile if self.team== red allora else altro?
-        # print("oh", score)
-        # print("ehi", bestAction)
         return bestAction
 
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
@@ -55,14 +50,11 @@ class SimpleMLAgent(Agent):
                 cols = newState.vectorInfo()
                 df = pd.DataFrame(data=X, columns=cols)
                 score = self.model.predict_proba(df)
-                #costruisci tutto il dataframe delle azioni così poi passi solo l dataframe al predict_proba
 
                 scores.append((score, action))
-                # in scores avrò tutte le probabilità legata a quella specifica azione
         bestaction = self.bestAction(scores)
         if not bestaction:
             raise ValueError('No action given')
-        # print("SCHOOSEACTION", bestaction)
         return bestaction
 
     def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
@@ -80,9 +72,7 @@ class SimpleMLAgent(Agent):
                 df = pd.DataFrame(data=X, columns=cols)
                 score = self.model.predict_proba(df)
                 scores.append((score, action))
-                # in scores avrò tutte le probabilità legata a quella specifica azione
         bestaction = self.bestAction(scores)
-        # print("SCHOOSEresponse", bestaction)
         if not bestaction:
             raise ValueError('No action given')
         return bestaction

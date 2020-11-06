@@ -32,7 +32,8 @@ def pipelineClassifier(df, name):
         pipe = Pipeline(steps=[('preprocessor', preprocessor),
                                ('classifier', classifier)])
         pipe.fit(X, y)
-        joblib.dump(pipe, name + '_' + classifier.__class__.__name__ + '.joblib')
+        file_name = f'models/{name}_{classifier.__class__.__name__}.joblib'
+        joblib.dump(pipe, file_name)
 
 
 if __name__ == '__main__':
