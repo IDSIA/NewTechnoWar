@@ -28,9 +28,9 @@ class SimpleMLAgent(Agent):
         bestScore, bestAction = 0.0, None
         for probs, action in scores:
             if (self.team == BLUE):
-                score = probs[0, 0]
+                score = probs[0]
             else:
-                score = probs[0, 1]
+                score = probs[1]
             if score >= bestScore:
                 bestScore, bestAction = score, action
                 # sarà qui che devo già selezionare lo score del giocatore, se si tratta del blue o del rosso
@@ -41,8 +41,8 @@ class SimpleMLAgent(Agent):
         return bestAction
 
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
-        scores = []
-
+        X = []
+        cols = state.vectorInfo()
         for figure in state.getFiguresCanBeActivated(self.team):
             actions = [GM.actionPassFigure(figure)] + \
                       GM.buildAttacks(board, state, figure) + \
@@ -50,15 +50,10 @@ class SimpleMLAgent(Agent):
 
             for action in actions:
                 newState, outcome = GM.activate(board, state, action)
-
-                X = np.array(newState.vector()).reshape(1, -1)
-                cols = newState.vectorInfo()
-                df = pd.DataFrame(data=X, columns=cols)
-                score = self.model.predict_proba(df)
-                #costruisci tutto il dataframe delle azioni così poi passi solo l dataframe al predict_proba
-
-                scores.append((score, action))
-                # in scores avrò tutte le probabilità legata a quella specifica azione
+                X.append(np.array(newState.vector()))
+        df = pd.DataFrame(data=X, columns=cols)
+        score = self.model.predict_proba(df)
+        scores = list(zip(score, actions))
         bestaction = self.bestAction(scores)
         if not bestaction:
             raise ValueError('No action given')
@@ -66,25 +61,22 @@ class SimpleMLAgent(Agent):
         return bestaction
 
     def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
-
-        scores = []
-
+        X = []
+        cols = state.vectorInfo()
         for figure in state.getFiguresCanBeActivated(self.team):
             actions = [GM.actionPassResponse(self.team)] + \
                       GM.buildResponses(board, state, figure)
+
             for action in actions:
                 newState, outcome = GM.activate(board, state, action)
-
-                X = np.array(newState.vector()).reshape(1, -1)
-                cols = newState.vectorInfo()
-                df = pd.DataFrame(data=X, columns=cols)
-                score = self.model.predict_proba(df)
-                scores.append((score, action))
-                # in scores avrò tutte le probabilità legata a quella specifica azione
+                X.append(np.array(newState.vector()))
+        df = pd.DataFrame(data=X, columns=cols)
+        score = self.model.predict_proba(df)
+        scores = list(zip(score, actions))
         bestaction = self.bestAction(scores)
-        # print("SCHOOSEresponse", bestaction)
         if not bestaction:
             raise ValueError('No action given')
+        # print("SCHOOSEACTION", bestaction)
         return bestaction
 
     def placeFigures(self, board: GameBoard, state: GameState) -> None:
