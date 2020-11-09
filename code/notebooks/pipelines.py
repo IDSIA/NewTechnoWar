@@ -20,14 +20,14 @@ def pipelineClassifier(df, name):
                                                   axis=1, errors="ignore").columns
     preprocessor = ColumnTransformer(transformers=[('cat', categorical_transformer, c)])
     classifiers = [
-        KNeighborsClassifier(3),
+        #KNeighborsClassifier(3),
         # SVC(kernel="rbf", C=0.025, probability=True),
         # NuSVC(probability=True),
-        DecisionTreeClassifier(),
+        #DecisionTreeClassifier(),
         RandomForestClassifier(),
-        AdaBoostClassifier(),
-        GradientBoostingClassifier(),
-        GaussianNB(),
+        #AdaBoostClassifier(),
+        #GradientBoostingClassifier(),
+        #GaussianNB(),
     ]
     for classifier in classifiers:
         pipe = Pipeline(steps=[('preprocessor', preprocessor),
