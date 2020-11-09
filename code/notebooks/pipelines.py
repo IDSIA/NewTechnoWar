@@ -38,12 +38,6 @@ def pipelineClassifier(df, name):
 
 
 if __name__ == '__main__':
-    '''dataframes = {"BridgeHead": "../../../data.scenarioBridgeHead.pkl.gz",
-                  "CrossingTheCity": "../../../data.scenarioCrossingTheCity.pkl.gz",
-                  "Junction": "../../../data.scenarioJunction.pkl.gz",
-                  "JunctionExo": "../../../data.scenarioJunctionExo.pkl.gz",
-                  "Roadblock": "../../../data.scenarioRoadblock.pkl.gz",
-                  "Test1v1": "../../../data.scenarioTest1v1.pkl.gz", "Test2v2": "../../../data.scenarioTest2v2.pkl.gz"}'''
     dataframes = {"Junction": "../../../data.2020-11-09.scenarioJunction.pkl.gz",
                   "JunctionExo": "../../../data.2020-11-09.scenarioJunctionExo.pkl.gz",
                   "Test1v1": "../../../data.2020-11-09.scenarioTest1v1.pkl.gz",
