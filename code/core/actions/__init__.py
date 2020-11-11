@@ -2,7 +2,7 @@ __all__ = [
     "Action",
     "Attack", "AttackGround",
     "Move", "LoadInto",
-    "Pass", "PassTeam", "PassFigure",   
+    "Pass", "PassTeam", "PassFigure",
     "Response", "AttackRespond", "PassRespond",
 ]
 
