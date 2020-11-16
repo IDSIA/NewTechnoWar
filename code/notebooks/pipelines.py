@@ -43,10 +43,11 @@ if __name__ == '__main__':
                   "Test1v1": "../../../data.2020-11-09.scenarioTest1v1.pkl.gz",
                   "Test2v2": "../../../data.2020-11-09.scenarioTest2v2.pkl.gz"}
     # pilots = ["BridgeHead", "CrossingTheCity", "Junction", "JunctionExo", "Roadblock", "Test1v1", "Test2v2"]
-    pilots = ["Junction", "JunctionExo", "Test1v1", "Test2v2"]
+    pilots = ["Junction", "JunctionExo"]
 
     for p in pilots:
         df = pd.read_pickle(dataframes[p])
+        df = df.loc[((df.meta_p_red == "GreedyAgent") & (df.meta_p_blue == "GreedyAgent"))]
         '''df = df.loc[(((df.meta_p_red == "GreedyAgent") & (df.meta_p_blue == "GreedyAgent")) | (
                     (df.meta_p_red == "GreedyAgent") & (df.meta_p_blue == "RandomAgent")) | (
                                  (df.meta_p_red == "RandomAgent") & (df.meta_p_blue == "GreedyAgent")))]'''
