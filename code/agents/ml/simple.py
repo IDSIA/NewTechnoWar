@@ -26,12 +26,10 @@ class SimpleMLAgent(Agent):
         self.model = joblib.load(op.join(dir_path, '..', '..', 'models', file))
 
     def bestAction(self, scores: list) -> Action:
-        entropies=[]
         bestScore, bestAction = 0.0, None
         print(sorted(scores, reverse=True))
 
         for probs, action in scores:
-            entropies.append(entropy(probs[0],base=len(scores)))
             if (self.team == BLUE):
                 score = probs[0, 0]
             else:
