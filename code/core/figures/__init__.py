@@ -146,33 +146,6 @@ class Figure:
             len(self.transporting),
             self.transported_by
         ]
-        '''print("FID",self.fid,
-            "TEAM",self.team,
-            "NAME",self.name,
-            "INDEX",self.index,
-            "KIND",self.kind,
-            "MOVE",self.move,
-            "LOAD",self.load,
-            "HP",self.hp,
-            "HP-M",self.hp_max,
-            "INT-ATK",self.int_atk,
-            "INT-DEF",self.int_def,
-            "ENDURANCE",self.endurance,
-            "STATN",self.stat.name,
-            "STATV",self.stat.value,
-            "BONUS",self.bonus,
-            "ACTIV",self.activated,
-            "RESPIN",self.responded,
-            "ATTACK",self.attacked,
-            "MOVED",self.moved,
-            "PASSED",self.passed,
-            "KILLED",self.killed,
-            "HIT",self.hit,
-            "ATTACKEDBY",self.attacked_by,
-            "CANTRAN",self.can_transport,
-            "TANSOCAP",self.transport_capacity,
-            "LENTRA",len(self.transporting),
-            "TRANBY",self.transported_by)'''
 
         data += list(self.position)
 
