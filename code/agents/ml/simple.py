@@ -41,9 +41,12 @@ class SimpleMLAgent(Agent):
         return arr[:, i]  # prima o seconda colonna in base all'agente se rosso o blu
 
     def entropy1(self, scores: list):
-        probs = self.takeProbs(scores)
-        norm = [float(i) / sum(probs) for i in probs]
-        return -(norm * np.log(norm) / np.log(len(scores))).sum()
+        if len(scores) is not 1:
+            probs = self.takeProbs(scores)
+            norm = [float(i) / sum(probs) for i in probs]
+            return -(norm * np.log(norm) / np.log(len(scores))).sum()
+        else:
+            return 0
         # ritorna il valore di entropia di tutte le probabilità
 
     def createDf_info(self):
