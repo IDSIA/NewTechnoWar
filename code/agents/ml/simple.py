@@ -21,13 +21,19 @@ class SimpleMLAgent(Agent):
 
         super().__init__('SimpleML', team)
 
-        file = params['scenario'] + '_' + params['model'] + '.joblib'
+        # file = params['scenario'] + '_' + params['model'] + '.joblib'
+        file = params['scenario'] + '_' + params['model'] + '_' + params['color'] + '.joblib'
         self.vectors = []
         self.randomChoice = False
         self.set = 0
         self.count = 0
         self.params: dict = params
-        self.model = joblib.load(op.join(dir_path, '..', '..', 'models', file))
+        # self.model = joblib.load(op.join(dir_path, '..', '..', 'models', file))
+        self.model = joblib.load(op.join(dir_path, '..', '..', 'modelsRegressor', file))
+
+    def dfColor(self, df, color):
+        df_new = df[[c for c in df.columns if color in c]]
+        return df_new
 
     def takeProbs(self, scores: list):
         probabilieties = []
@@ -40,7 +46,7 @@ class SimpleMLAgent(Agent):
         arr = np.array(probabilieties)
         return arr[:, i]  # prima o seconda colonna in base all'agente se rosso o blu
 
-    def entropy1(self, scores: list):
+    def entropyClassiefier(self, scores: list):
         probs = self.takeProbs(scores)
         norm = [float(i) / sum(probs) for i in probs]
         return -(norm * np.log(norm) / np.log(len(scores))).sum()
@@ -53,7 +59,7 @@ class SimpleMLAgent(Agent):
 
     def vectorDf(self, bestscore, bestaction, scores):
 
-        data = [self.team, bestscore, bestaction, self.entropy1(scores), len(scores), self.randomChoice,
+        data = [self.team, bestscore, bestaction, self.entropyClassiefier(scores), len(scores), self.randomChoice,
                 self.set, self.count]
         self.count += 1
         return data
@@ -94,6 +100,15 @@ class SimpleMLAgent(Agent):
                 bestAction = choice[1]
         return bestScore, bestAction
 
+    def bestScore(self,scores: list):
+        bestScore, bestAction = 0.0, None
+
+        for probs, action in scores:
+            if probs >= bestScore:
+                bestScore, bestAction = probs, action
+
+        return bestScore, bestAction
+
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
         scores = []
 
@@ -107,15 +122,19 @@ class SimpleMLAgent(Agent):
                 X = np.array(newState.vector()).reshape(1, -1)
                 cols = newState.vectorInfo()
                 df = pd.DataFrame(data=X, columns=cols)
-                score = self.model.predict_proba(df)
+                df = self.dfColor(df, self.team)
+
+                # score = self.model.predict_proba(df)
+                score = self.model.predict(df)
 
                 scores.append((score, action))
-        if self.randomChoice:
+        '''if self.randomChoice:
             bestscore, bestaction = self.bestActionRandom(scores)
         else:
-            bestscore, bestaction = self.bestAction(scores)
-        v = self.vectorDf(bestscore, bestaction, scores)
-        self.vectors.append(v)
+            bestscore, bestaction = self.bestAction(scores)'''
+        bestscore, bestaction = self.bestScore(scores)
+        # v = self.vectorDf(bestscore, bestaction, scores)
+        # self.vectors.append(v)
         if not bestaction:
             raise ValueError('No action given')
 
@@ -137,15 +156,19 @@ class SimpleMLAgent(Agent):
                 X = np.array(newState.vector()).reshape(1, -1)
                 cols = newState.vectorInfo()
                 df = pd.DataFrame(data=X, columns=cols)
-                score = self.model.predict_proba(df)
+                df = self.dfColor(df, self.team)
+
+                # score = self.model.predict_proba(df)
+                score = self.model.predict(df)
                 scores.append((score, action))
-        if self.randomChoice:
+        '''if self.randomChoice:
             bestscore, bestaction = self.bestActionRandom(scores)
         else:
             bestscore, bestaction = self.bestAction(scores)
         if bestaction is not None:
             v = self.vectorDf(bestscore, bestaction, scores)
-            self.vectors.append(v)
+            self.vectors.append(v)'''
+        bestscore, bestaction = self.bestScore(scores)
         if not bestaction:
             raise ValueError('No action given')
         return bestaction
