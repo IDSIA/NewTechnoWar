@@ -2,7 +2,7 @@ __all__ = [
     'MatchManager', 'buildMatchManager',
     'Agent', 'Human',
     'GreedyAgent', 'AlphaBetaAgent', 'RandomAgent',
-    'AlphaRandomAgent',
+    'AlphaRandomAgent'
 ]
 
 from agents.interface import Agent
