@@ -124,7 +124,7 @@ class SimpleMLAgent(Agent):
 
         # v = list(self.vectorDf(bestscore, bestaction, scores))
         # self.vectors.append(v)
-
+        print("BEST ACTION",bestaction)
         return bestaction
 
     def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
@@ -151,6 +151,7 @@ class SimpleMLAgent(Agent):
             self.vectors.append(v)
         if not bestaction:
             raise ValueError('No action given')
+        print("BEST RESPONSE",bestaction)
         return bestaction
 
     def placeFigures(self, board: GameBoard, state: GameState) -> None:

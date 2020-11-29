@@ -32,11 +32,12 @@ class RegressorAgent(Agent):
         probs = [i[0][0] for i in scores]
         res = [ele for ele in probs if ele > 0]
         if any(res):
-            print('ehi')
+            # print("ehi")
+
             norm = [float(i) / sum(res) for i in res]
             return -(norm * np.log(norm) / np.log(len(res))).sum()
         else:
-            print('ciucciu')
+            # print("ohi")
             return 0
         # ritorna il valore di entropia di tutte le probabilità
 
@@ -103,10 +104,16 @@ class RegressorAgent(Agent):
                 score = self.model.predict(df)
 
                 scores.append((score, action))
+                # print("SCORES ACTION", scores)
+        if any(scores):
+            print("NO PROBLEM ACTION", len(scores), self.team)
+        else:
+            print("PORFARBACCO ACTION")
         if self.randomChoice:
             bestscore, bestaction = self.bestScoreRandom(scores)
         else:
             bestscore, bestaction = self.bestScore(scores)
+
         v = self.vectorDf(bestscore, bestaction, scores)
         self.vectors.append(v)
         if not bestaction:
@@ -114,7 +121,7 @@ class RegressorAgent(Agent):
 
         v = list(self.vectorDf(bestscore, bestaction, scores))
         self.vectors.append(v)
-
+        print("BEST ACTION", bestaction)
         return bestaction
 
     def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
@@ -133,6 +140,12 @@ class RegressorAgent(Agent):
                 df = self.dfColor(df, self.team)
                 score = self.model.predict(df)
                 scores.append((score, action))
+                # print("SCORES RESPONSE", scores)
+        if any(scores):
+            print("NO PROBLEM RESPONSE", len(scores),self.team)
+        else:
+            print("PORFARBACCO RESPONSE")
+
         if self.randomChoice:
             bestscore, bestaction = self.bestScoreRandom(scores)
         else:
@@ -142,6 +155,8 @@ class RegressorAgent(Agent):
             self.vectors.append(v)
         if not bestaction:
             raise ValueError('No action given')
+        print("BEST RESPONSE", bestaction)
+
         return bestaction
 
     def placeFigures(self, board: GameBoard, state: GameState) -> None:
