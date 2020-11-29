@@ -42,9 +42,12 @@ class SimpleMLAgent(Agent):
 
     def entropy1(self, scores: list):
         probs = self.takeProbs(scores)
-        norm = [float(i) / sum(probs) for i in probs]
-        return -(norm * np.log(norm) / np.log(len(scores))).sum()
-        # ritorna il valore di entropia di tutte le probabilità
+        if any(probs):
+            norm = [float(i) / sum(probs) for i in probs]
+            return -(norm * np.log(norm) / np.log(len(scores))).sum()
+            # ritorna il valore di entropia di tutte le probabilità
+        else:
+            return 0
 
     def createDf_info(self):
         info = ["Agente", "Probabilità", "Mossa", "Entropia", "Mosse disponibili", "RandomChoice", "SceltaRandom",
