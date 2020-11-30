@@ -10,6 +10,7 @@ from agents.matchmanager import MatchManager
 from itertools import product
 
 from agents import GreedyAgent, AlphaBetaAgent, RandomAgent
+from agents.ml.regressor import RegressorAgent
 from scenarios import scenarioJunction, scenarioJunctionExo, scenarioTest1v1, scenarioTest2v2
 from core.const import RED, BLUE
 from agents.ml.simple import SimpleMLAgent
@@ -22,8 +23,8 @@ logging.config.dictConfig(config)
 
 if __name__ == '__main__':
     board, state = scenarioJunction()
-    playerRed = SimpleMLAgent(RED, {'scenario': board.name, 'model': 'RandomForestClassifier'})
-    playerBlue = SimpleMLAgent(BLUE, {'scenario': board.name, 'model': 'RandomForestClassifier'})
+    playerRed = RegressorAgent(RED, {'scenario': board.name, 'model': 'RandomForestRegressor','color':'red'})
+    playerBlue = RegressorAgent(BLUE, {'scenario': board.name, 'model': 'RandomForestRegressor','color':'blue'})
     mm = MatchManager(' ', playerRed, playerBlue, board, state, seed=42)
     while not mm.end:
         mm.nextStep()

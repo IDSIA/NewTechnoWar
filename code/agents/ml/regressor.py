@@ -28,16 +28,13 @@ class RegressorAgent(Agent):
         self.params: dict = params
         self.model = joblib.load(op.join(dir_path, '..', '..', 'modelsRegressor', file))
 
-    def entropy(slef, scores: list):
+    def entropy(self, scores: list):
         probs = [i[0][0] for i in scores]
         res = [ele for ele in probs if ele > 0]
-        if any(res):
-            # print("ehi")
-
+        if len(res) > 1:
             norm = [float(i) / sum(res) for i in res]
             return -(norm * np.log(norm) / np.log(len(res))).sum()
         else:
-            # print("ohi")
             return 0
         # ritorna il valore di entropia di tutte le probabilità
 
@@ -62,7 +59,7 @@ class RegressorAgent(Agent):
         return df
 
     def bestScore(self, scores: list):
-        #print("sono nel bestscore",self.team)
+        # print("sono nel bestscore",self.team)
         # bestScore, bestAction = 0.0, None
         if any(scores):
             bestScore = scores[0][0][0]
@@ -73,7 +70,7 @@ class RegressorAgent(Agent):
         for probs, action in scores:
             if probs >= bestScore:
                 bestScore, bestAction = probs, action
-        #print("NEL BEST SCORE",bestAction,self.team)
+        # print("NEL BEST SCORE",bestAction,self.team)
         return bestScore, bestAction
 
     def bestScoreRandom(self, scores: list) -> Action:
