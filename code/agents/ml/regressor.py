@@ -62,12 +62,18 @@ class RegressorAgent(Agent):
         return df
 
     def bestScore(self, scores: list):
-        bestScore, bestAction = 0.0, None
+        #print("sono nel bestscore",self.team)
+        # bestScore, bestAction = 0.0, None
+        if any(scores):
+            bestScore = scores[0][0][0]
+            bestAction = scores[0][1]
+        else:
+            bestScore, bestAction = 0.0, None
 
         for probs, action in scores:
             if probs >= bestScore:
                 bestScore, bestAction = probs, action
-
+        #print("NEL BEST SCORE",bestAction,self.team)
         return bestScore, bestAction
 
     def bestScoreRandom(self, scores: list) -> Action:
@@ -105,10 +111,10 @@ class RegressorAgent(Agent):
 
                 scores.append((score, action))
                 # print("SCORES ACTION", scores)
-        if any(scores):
+        '''if any(scores):
             print("NO PROBLEM ACTION", len(scores), self.team)
         else:
-            print("PORFARBACCO ACTION")
+            print("PORFARBACCO ACTION")'''
         if self.randomChoice:
             bestscore, bestaction = self.bestScoreRandom(scores)
         else:
@@ -125,7 +131,7 @@ class RegressorAgent(Agent):
         return bestaction
 
     def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
-
+        print("ENTRO IN RESPONSE")
         scores = []
 
         for figure in state.getFiguresCanBeActivated(self.team):
@@ -141,10 +147,10 @@ class RegressorAgent(Agent):
                 score = self.model.predict(df)
                 scores.append((score, action))
                 # print("SCORES RESPONSE", scores)
-        if any(scores):
-            print("NO PROBLEM RESPONSE", len(scores),self.team)
+        '''if any(scores):
+            print("NO PROBLEM RESPONSE", len(scores), self.team)
         else:
-            print("PORFARBACCO RESPONSE")
+            print("PORFARBACCO RESPONSE")'''
 
         if self.randomChoice:
             bestscore, bestaction = self.bestScoreRandom(scores)
