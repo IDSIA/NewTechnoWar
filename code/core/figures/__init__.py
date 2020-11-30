@@ -46,6 +46,11 @@ class Figure:
         }
         self.weapons: Dict[str, Weapon] = {}
 
+        self.int_atk: int = 0
+        self.int_def: int = 0
+        self.endurance: int = 0
+
+        self.stat: FigureStatus = stat
         self.bonus = 0
 
         if len(position) == 3:
@@ -72,7 +77,7 @@ class Figure:
         meta = f'{self.team}_{self.kind}_{self.index}'
 
         info = [
-            #"fid_" + meta,
+            # "fid_" + meta,
             "team_" + meta,
             "name_" + meta,
             "index_" + meta,
@@ -99,25 +104,24 @@ class Figure:
             "transport-capacity_" + meta,
             "len-transporting_" + meta,
             "transported-by_" + meta,
-            "bonus_"+meta,
-            "color_"+meta,
+            #"bonus_" + meta,
+            #"color_" + meta,
             "positionX_" + meta,
             "positionY_" + meta,
             "positionZ_" + meta,
         ]
         for d in DEFENSE_KEY_LIST:
-            info.append("defense_" + d+"_" + meta)
+            info.append("defense_" + d + "_" + meta)
 
         for w in WEAPON_KEY_LIST:
-            info.append("weapon_" + w+"_" + meta)
+            info.append("weapon_" + w + "_" + meta)
         return tuple(info)
 
     def vector(self) -> tuple:
         """Data on the figure in vectorized version, used for internal hashing."""
         data = [
 
-
-            #self.fid,
+            # self.fid,
             self.team,
             self.name,
             self.index,
@@ -144,8 +148,8 @@ class Figure:
             self.transport_capacity,
             len(self.transporting),
             self.transported_by,
-            self.bonus,
-            self.color
+            #self.bonus,
+            #self.color
         ]
 
         data += list(self.position)
