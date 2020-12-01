@@ -15,6 +15,7 @@ from scenarios import scenarioJunction, scenarioJunctionExo, scenarioTest1v1, sc
 from core.const import RED, BLUE
 from agents.ml.simple import SimpleMLAgent
 import json
+
 dir_path = op.dirname(op.realpath(__file__))
 
 with open(op.join(dir_path, 'logger.config.yaml'), 'r') as stream:
@@ -23,8 +24,8 @@ logging.config.dictConfig(config)
 
 if __name__ == '__main__':
     board, state = scenarioJunction()
-    playerRed = RegressorAgent(RED, {'scenario': board.name, 'model': 'RandomForestRegressor','color':'red'})
-    playerBlue = RegressorAgent(BLUE, {'scenario': board.name, 'model': 'RandomForestRegressor','color':'blue'})
-    mm = MatchManager(' ', playerRed, playerBlue, board, state, seed=42)
+    playerRed = RegressorAgent(RED, {'scenario': board.name, 'model': 'RandomForestRegressor', 'color': 'red'})
+    playerBlue = RegressorAgent(BLUE, {'scenario': board.name, 'model': 'RandomForestRegressor', 'color': 'blue'})
+    mm = MatchManager(' ', playerRed, playerBlue, board, state, seed=45)
     while not mm.end:
         mm.nextStep()

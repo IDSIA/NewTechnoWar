@@ -34,6 +34,7 @@ def pipelineRegressor(df, name, color):
     categorical_transformer = Pipeline(steps=[('onehot', OneHotEncoder(handle_unknown='ignore'))])
     c = df.select_dtypes(include=['object']).drop(['winner', 'meta_scenario', 'meta_p_red', 'meta_p_blue', 'meta_seed'],
                                                   axis=1, errors="ignore").columns
+    print(X.columns)
     preprocessor = ColumnTransformer(transformers=[('cat', categorical_transformer, c)])
     regressors = [
         RandomForestRegressor(n_estimators=1000, random_state=42),
@@ -41,7 +42,7 @@ def pipelineRegressor(df, name, color):
 
     for regressor in regressors:
         pipe = Pipeline(steps=[('preprocessor', preprocessor),
-                               ('classifier', regressor)])
+                               ('regressor', regressor)])
         pipe.fit(X, y)
         file_name = f'{name}_{regressor.__class__.__name__}_{color}.joblib'
         joblib.dump(pipe, file_name)
@@ -71,16 +72,18 @@ def dfRegressor(dataframes, pilots):
         df_red = dfColor(df, "red")
         df_blue = dfColor(df, "blue")
         pipelineRegressor(df_red, p, "red")
+        print("red")
         pipelineRegressor(df_blue, p, "blue")
+        print("blue")
 
 
 if __name__ == '__main__':
-    dataframes = {"Junction": "../../../data.2020-11-09.scenarioJunction.pkl.gz",
+    dataframes = {"Junction": "../../../data.scenarioJunction.pkl.gz",
                   "JunctionExo": "../../../data.2020-11-09.scenarioJunctionExo.pkl.gz",
                   "Test1v1": "../../../data.2020-11-09.scenarioTest1v1.pkl.gz",
                   "Test2v2": "../../../data.2020-11-09.scenarioTest2v2.pkl.gz"}
     # pilots = ["BridgeHead", "CrossingTheCity", "Junction", "JunctionExo", "Roadblock", "Test1v1", "Test2v2"]
-    pilots = ["Junction", "JunctionExo"]
+    pilots = ["Junction"]
 
     #dfClassifier(dataframes, pilots)
     dfRegressor(dataframes, pilots)
