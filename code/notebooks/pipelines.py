@@ -83,7 +83,7 @@ if __name__ == '__main__':
                   "Test1v1": "../../../data.2020-11-09.scenarioTest1v1.pkl.gz",
                   "Test2v2": "../../../data.2020-11-09.scenarioTest2v2.pkl.gz"}
     # pilots = ["BridgeHead", "CrossingTheCity", "Junction", "JunctionExo", "Roadblock", "Test1v1", "Test2v2"]
-    pilots = ["JunctionExo"]
+    pilots = ["Junction", "JunctionExo"]
 
-    #dfClassifier(dataframes, pilots)
+    # dfClassifier(dataframes, pilots)
     dfRegressor(dataframes, pilots)

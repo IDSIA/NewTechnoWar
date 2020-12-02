@@ -10,7 +10,6 @@ import random
 import logging
 import joblib
 
-
 dir_path = op.dirname(op.realpath(__file__))
 
 
@@ -39,13 +38,15 @@ class RegressorAgent(Agent):
         # ritorna il valore di entropia di tutte le probabilità
 
     def createDf_info(self):
-        info = ["Agente", "Score", "Mossa", "Entropia", "Mosse disponibili", "RandomChoice", "SceltaRandom",
-                "Count"]
+        info = ["Agente", "Score", "Mossa", "Entropia", "Mosse disponibili", "Scores", "TipoMossa" "RandomChoice",
+                "SceltaRandom", "Count"]
         return info
 
     def vectorDf(self, bestscore, bestaction, scores):
+        a = [i[0][0] for i in scores]
+        b = [type(i[1]).__name__ for i in scores]
 
-        data = [self.team, bestscore, bestaction, self.entropy(scores), len(scores), self.randomChoice,
+        data = [self.team, bestscore, bestaction, self.entropy(scores), len(scores), a, b, self.randomChoice,
                 self.set, self.count]
         self.count += 1
         return data
@@ -136,7 +137,6 @@ class RegressorAgent(Agent):
                 df = self.dfColor(df, self.team)
                 score = self.model.predict(df)
                 scores.append((score, action))
-
 
         if self.randomChoice:
             bestscore, bestaction = self.bestScoreRandom(scores)
