@@ -38,7 +38,7 @@ class RegressorAgent(Agent):
         # ritorna il valore di entropia di tutte le probabilità
 
     def createDf_info(self):
-        info = ["Agente", "Score", "Mossa", "Entropia", "Mosse disponibili", "Scores", "TipoMossa" "RandomChoice",
+        info = ["Agente", "Score", "Mossa", "Entropia", "Mosse disponibili", "Scores", "TipoMossa" ,"RandomChoice",
                 "SceltaRandom", "Count"]
         return info
 
