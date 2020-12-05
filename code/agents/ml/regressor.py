@@ -46,7 +46,7 @@ class RegressorAgent(Agent):
         a = [i[0][0] for i in scores]
         b = [type(i[1]).__name__ for i in scores]
 
-        data = [self.team, bestscore, bestaction, self.entropy(scores), len(scores), a, b, self.randomChoice,
+        data = [self.team, bestscore[0], bestaction, self.entropy(scores), len(scores), a, b, self.randomChoice,
                 self.set, self.count]
         self.count += 1
         return data
