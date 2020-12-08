@@ -7,11 +7,10 @@ import pandas as pd
 
 from sklearn.ensemble import RandomForestRegressor
 import joblib
-
 import sys
 
 
-def pipelineClassifier(df, name, out):
+def pipelineClassifier(df, scenario, out):
     X = df.drop(['winner', 'meta_scenario', 'meta_p_red', 'meta_p_blue', 'meta_seed'], axis=1, errors="ignore")
     y = df['winner']
     categorical_transformer = Pipeline(steps=[('onehot', OneHotEncoder(handle_unknown='ignore'))])
@@ -26,11 +25,11 @@ def pipelineClassifier(df, name, out):
         pipe = Pipeline(steps=[('preprocessor', preprocessor),
                                ('classifier', classifier)])
         pipe.fit(X, y)
-        file_name = f'{name}_{classifier.__class__.__name__}.joblib'
-        joblib.dump(pipe, out+file_name)
+        file_name = f'{scenario}_{classifier.__class__.__name__}.joblib'
+        joblib.dump(pipe, out + file_name)
 
 
-def pipelineRegressor(df, name, color,out):
+def pipelineRegressor(df, scenario, color, out):
     X = df.drop(['winner', 'meta_scenario', 'meta_p_red', 'meta_p_blue', 'meta_seed'], axis=1, errors="ignore")
     y = df['winner']
     categorical_transformer = Pipeline(steps=[('onehot', OneHotEncoder(handle_unknown='ignore'))])
@@ -45,19 +44,17 @@ def pipelineRegressor(df, name, color,out):
         pipe = Pipeline(steps=[('preprocessor', preprocessor),
                                ('regressor', regressor)])
         pipe.fit(X, y)
-        file_name = f'{name}_{regressor.__class__.__name__}_{color}.joblib'
-        joblib.dump(pipe, out+file_name)
+        file_name = f'{scenario}_{regressor.__class__.__name__}_{color}.joblib'
+        joblib.dump(pipe, out + file_name)
 
 
-def dfClassifier(dataframes, pilots):
-    for p in pilots:
-        df = pd.read_pickle(dataframes[p])
+def dfClassifier(df,scenario, out):
         df = df.loc[((df.meta_p_red == "GreedyAgent") & (df.meta_p_blue == "GreedyAgent"))]
         '''df = df.loc[(((df.meta_p_red == "GreedyAgent") & (df.meta_p_blue == "GreedyAgent")) | (
                     (df.meta_p_red == "GreedyAgent") & (df.meta_p_blue == "RandomAgent")) | (
                                  (df.meta_p_red == "RandomAgent") & (df.meta_p_blue == "GreedyAgent")))]'''
 
-        pipelineClassifier(df, p)
+        pipelineClassifier(df,scenario, out)
 
 
 def dfColor(df, color):
@@ -67,16 +64,14 @@ def dfColor(df, color):
     return df_new
 
 
-def dfRegressor(dataframes, pilots,out):
-    for p in pilots:
-        df = pd.read_pickle(dataframes[p])
-        df = df.loc[(((df.meta_p_red == "GreedyAgent") & (df.meta_p_blue == "GreedyAgent")) | (
-                (df.meta_p_red == "GreedyAgent") & (df.meta_p_blue == "RandomAgent")) | (
-                             (df.meta_p_red == "RandomAgent") & (df.meta_p_blue == "GreedyAgent")))]
-        df_red = dfColor(df, "red")
-        df_blue = dfColor(df, "blue")
-        pipelineRegressor(df_red, p, "red",out)
-        pipelineRegressor(df_blue, p, "blue",out)
+def dfRegressor(df,scenario, out):
+    df = df.loc[(((df.meta_p_red == "GreedyAgent") & (df.meta_p_blue == "GreedyAgent")) | (
+            (df.meta_p_red == "GreedyAgent") & (df.meta_p_blue == "RandomAgent")) | (
+                         (df.meta_p_red == "RandomAgent") & (df.meta_p_blue == "GreedyAgent")))]
+    df_red = dfColor(df, "red")
+    df_blue = dfColor(df, "blue")
+    pipelineRegressor(df_red,scenario, "red", out)
+    pipelineRegressor(df_blue,scenario, "blue", out)
 
 
 if __name__ == '__main__':
@@ -84,15 +79,10 @@ if __name__ == '__main__':
         print('no arguments passed')
         sys.exit()
 
-    fn = sys.argv[1]
-    out = sys.argv[2]
+    scenario=sys.argv[1]
+    fn = sys.argv[2]
+    out = sys.argv[3]
+    df = pd.read_pickle(fn)
 
-    dataframes = {"Junction": fn + "data.scenarioJunction.pkl.gz",
-                  "JunctionExo": fn + "data.scenarioJunctionExo.pkl.gz",
-                  "Test1v1": fn + "data.2020-11-09.scenarioTest1v1.pkl.gz",
-                  "Test2v2": fn + "data.2020-11-09.scenarioTest2v2.pkl.gz"}
-    # pilots = ["BridgeHead", "CrossingTheCity", "Junction", "JunctionExo", "Roadblock", "Test1v1", "Test2v2"]
-    pilots = ["Junction"]
-
-    # dfClassifier(dataframes, pilots)
-    dfRegressor(dataframes, pilots,out)
+    dfRegressor(df,scenario, out)
+    #dfClassifier(df,scenario, out)
