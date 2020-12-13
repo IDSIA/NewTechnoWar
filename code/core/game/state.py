@@ -76,17 +76,78 @@ class GameState:
         for team in [RED, BLUE]:
             for f in self.figures[team]:
                 data += list(f.vector())
+        data.append(self.name)
+        data.append(self.turn)
+        if (self.lastAction):
+            if self.lastAction.__class__.__name__ is not 'PassTeam':
+                data.append(self.lastAction.__class__.__name__)
+                data.append(self.lastAction.figure_id)
+                data.append(self.lastAction.figure_name)
+                data.append(self.lastAction.team)
+            else:
+                data.append(self.lastAction.__class__.__name__)
+                data.append("No ID")
+                data.append("No Name")
+                data.append(self.lastAction.team)
+        else:
+            data.append("No Action")
+            data.append("No Action")
+            data.append("No Action")
+            data.append("No Action")
 
+        data.append(self.initialized)
+        # data.append(self.smoke)
+        '''for w in [RED, BLUE]:
+            data.append(self.figures[w] if w in self.figures else 0)
+            data.append(self.posToFigure[w] if w in self.posToFigure else 0)
+            data.append(self.figuresLOS[w] if w in self.figuresLOS else 0)
+            data.append(self.figuresDistance[w] if w in self.figuresDistance else 0)
+            data.append(self.has_choice[w] if w in self.has_choice else 0)
+            if (self.has_choice[w]):
+                data.append(self.choices[w] if w in self.choices else 0)
+            else:
+                data.append("No choice")
+            data.append(self.has_placement[w] if w in self.has_placement else 0)
+            if (self.has_placement[w]):
+                data.append(self.placement_zone[w] if w in self.placement_zone else 0)
+            else:
+                data.append("No placement")'''
 
         return tuple(data)
 
     def vectorInfo(self) -> tuple:
         """Convert the state in a vector, used for internal hashing."""
         info = []
+        infoState = ["Scenario", "Turn"]
 
         for team in [RED, BLUE]:
             for f in self.figures[team]:
                 info += f.vectorInfo()
+        info.append("Scenario")
+        info.append("Turn")
+        info.append("ActionType")
+        info.append("ActionFigureID")
+        info.append("ActionFigureName")
+        info.append("ActionTeam")
+
+        info.append("Inizialized")
+        # info.append("Smoke")
+        '''info.append("FiguresRed")
+        info.append("FiguresPosRed")
+        info.append("FiguresDistanceLOSRed")
+        info.append("FiguresDistanceRed")
+        info.append("FiguresHasChoiceRed")
+        info.append("FiguresChoicesRed")
+        info.append("FiguresHasPlacementRed")
+        info.append("FiguresPlacementRed")
+        info.append("FiguresBlue")
+        info.append("FiguresPosBlue")
+        info.append("FiguresDistanceLOSBlue")
+        info.append("FiguresDistanceBlue")
+        info.append("FiguresHasChoiceBlue")
+        info.append("FiguresChoicesBlue")
+        info.append("FiguresHasPlacementBlue")
+        info.append("FiguresPlacementBlue")'''
 
         return tuple(info)
 
