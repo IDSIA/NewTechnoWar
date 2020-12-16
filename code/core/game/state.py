@@ -76,7 +76,7 @@ class GameState:
         for team in [RED, BLUE]:
             for f in self.figures[team]:
                 data += list(f.vector())
-        data.append(self.name)
+        '''data.append(self.name)
         data.append(self.turn)
         if (self.lastAction):
             if self.lastAction.__class__.__name__ is not 'PassTeam':
@@ -97,21 +97,21 @@ class GameState:
 
         data.append(self.initialized)
         # data.append(self.smoke)
-        '''for w in [RED, BLUE]:
-            data.append(self.figures[w] if w in self.figures else 0)
-            data.append(self.posToFigure[w] if w in self.posToFigure else 0)
-            data.append(self.figuresLOS[w] if w in self.figuresLOS else 0)
-            data.append(self.figuresDistance[w] if w in self.figuresDistance else 0)
-            data.append(self.has_choice[w] if w in self.has_choice else 0)
-            if (self.has_choice[w]):
-                data.append(self.choices[w] if w in self.choices else 0)
-            else:
-                data.append("No choice")
-            data.append(self.has_placement[w] if w in self.has_placement else 0)
-            if (self.has_placement[w]):
-                data.append(self.placement_zone[w] if w in self.placement_zone else 0)
-            else:
-                data.append("No placement")'''
+            for w in [RED, BLUE]:
+                data.append(self.figures[w] if w in self.figures else 0)
+                data.append(self.posToFigure[w] if w in self.posToFigure else 0)
+                data.append(self.figuresLOS[w] if w in self.figuresLOS else 0)
+                data.append(self.figuresDistance[w] if w in self.figuresDistance else 0)
+                data.append(self.has_choice[w] if w in self.has_choice else 0)
+                if (self.has_choice[w]):
+                    data.append(self.choices[w] if w in self.choices else 0)
+                else:
+                    data.append("No choice")
+                data.append(self.has_placement[w] if w in self.has_placement else 0)
+                if (self.has_placement[w]):
+                    data.append(self.placement_zone[w] if w in self.placement_zone else 0)
+                else:
+                    data.append("No placement")'''
 
         return tuple(data)
 
