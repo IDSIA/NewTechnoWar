@@ -29,7 +29,8 @@ def buildMatchManager(gid: str, scenario: str, red: str, blue: str, seed: int = 
 
 class MatchManager:
     __slots__ = [
-        'gid', 'seed', 'actions_history', 'outcome', 'end', 'board', 'state', 'origin', 'gm', 'scenario', 'red', 'blue',
+        'gid', 'seed', 'states_history', 'actions_history', 'outcome', 'end', 'board', 'state', 'origin', 'gm',
+        'scenario', 'red', 'blue',
         'first', 'second', 'step', 'update', 'winner', 'humans'
     ]
 
@@ -49,6 +50,8 @@ class MatchManager:
         self.seed: int = seed
 
         self.actions_history: List[Action] = []
+        self.states_history: List[GameState] = []
+
         self.outcome: List[dict] = []
 
         self.winner: str = ''
@@ -81,7 +84,8 @@ class MatchManager:
 
         self._goInit()
 
-    def _store(self, action: Action = None, outcome: dict = None):
+    def _store(self, state: GameState, action: Action = None, outcome: dict = None):
+        self.states_history.append(state)
         self.actions_history.append(action)
         self.outcome.append(outcome if outcome else {})
 
@@ -116,16 +120,17 @@ class MatchManager:
         """Round step."""
         logging.debug(f'step: round {self.first.team:5}')
         self.update = False
+        copystate = deepcopy(self.state)  # salvare lo state self.state(una copia deep copy)
 
         try:
             action = self.first.chooseAction(self.board, self.state)
             outcome = GM.step(self.board, self.state, action)
 
-            self._store(action, outcome)
+            self._store(copystate, action, outcome)
 
         except ValueError as e:
             logging.info(f'{self.first.team:5}: {e}')
-            self._store()
+            self._store(copystate)
 
         finally:
             self._goCheck()
@@ -133,6 +138,7 @@ class MatchManager:
     def _goResponse(self):
         """Response step."""
         logging.debug(f'step: response {self.second.team:5}')
+        copystate = deepcopy(self.state)
 
         try:
             response = self.second.chooseResponse(self.board, self.state)
@@ -140,11 +146,11 @@ class MatchManager:
 
             logging.debug(f'{self.second.team} respond')
 
-            self._store(response, outcome)
+            self._store(copystate, response, outcome)
 
         except ValueError as e:
             logging.info(f'{self.second.team:5}: {e}')
-            self._store()
+            self._store(copystate)
 
         finally:
             self._goCheck()
