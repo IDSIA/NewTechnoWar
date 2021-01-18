@@ -24,8 +24,8 @@ logging.config.dictConfig(config)
 
 if __name__ == '__main__':
     board, state = scenarioJunction()
-    playerRed = RegressorAgent(RED, {'scenario': board.name, 'model': 'RandomForestRegressor', 'color': 'red'})
+    playerRed = RandomAgent(RED)#, {'scenario': board.name, 'model': 'RandomForestRegressor', 'color': 'red'})
     playerBlue = RegressorAgent(BLUE, {'scenario': board.name, 'model': 'RandomForestRegressor', 'color': 'blue'})
-    mm = MatchManager(' ', playerRed, playerBlue, board, state, seed=45)
+    mm = MatchManager(' ', playerRed, playerBlue, board, state, seed=42)
     while not mm.end:
         mm.nextStep()

@@ -104,8 +104,6 @@ class Figure:
             "transport-capacity_" + meta,
             "len-transporting_" + meta,
             "transported-by_" + meta,
-            #"bonus_" + meta,
-            #"color_" + meta,
             "positionX_" + meta,
             "positionY_" + meta,
             "positionZ_" + meta,
@@ -148,8 +146,7 @@ class Figure:
             self.transport_capacity,
             len(self.transporting),
             self.transported_by,
-            #self.bonus,
-            #self.color
+
         ]
 
         data += list(self.position)
