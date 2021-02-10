@@ -1,5 +1,5 @@
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder,StandardScaler
 from sklearn.compose import ColumnTransformer
 
 from sklearn.ensemble import RandomForestClassifier
@@ -24,6 +24,7 @@ def pipelineClassifier(df, name, out):
 
     for classifier in classifiers:
         pipe = Pipeline(steps=[('preprocessor', preprocessor),
+                               ('scale', StandardScaler()),
                                ('classifier', classifier)])
         pipe.fit(X, y)
         file_name = f'{name}_{classifier.__class__.__name__}.joblib'
@@ -43,6 +44,7 @@ def pipelineRegressor(df, name, color,out):
 
     for regressor in regressors:
         pipe = Pipeline(steps=[('preprocessor', preprocessor),
+                               ('scale', StandardScaler()),
                                ('regressor', regressor)])
         pipe.fit(X, y)
         file_name = f'{name}_{regressor.__class__.__name__}_{color}.joblib'
