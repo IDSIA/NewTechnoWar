@@ -47,8 +47,8 @@ def scenarioJunction() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (30, 30)),
-        GoalDefendPoint(BLUE, RED, board.shape, (30, 30)),
+        GoalReachPoint(RED, board.shape, [(30, 30)]),
+        GoalDefendPoint(BLUE, RED, board.shape, [(30, 30)]),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 10)
@@ -144,8 +144,8 @@ def scenarioRoadblock() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (43, 29)),
-        GoalDefendPoint(BLUE, RED, board.shape, (43, 29)),
+        GoalReachPoint(RED, board.shape, [(43, 29)]),
+        GoalDefendPoint(BLUE, RED, board.shape, [(43, 29)]),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
@@ -226,8 +226,8 @@ def scenarioBridgeHead() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (39, 29), (40, 29), (40, 30), (41, 31), (41, 32)),
-        GoalDefendPoint(BLUE, RED, board.shape, (39, 29), (40, 29), (40, 30), (41, 31), (41, 32)),
+        GoalReachPoint(RED, board.shape, [(39, 29), (40, 29), (40, 30), (41, 31), (41, 32)]),
+        GoalDefendPoint(BLUE, RED, board.shape, [(39, 29), (40, 29), (40, 30), (41, 31), (41, 32)]),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 7)
@@ -316,8 +316,8 @@ def scenarioCrossingTheCity() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (39, 23)),
-        GoalDefendPoint(BLUE, RED, board.shape, (39, 23)),
+        GoalReachPoint(RED, board.shape, [(39, 23)]),
+        GoalDefendPoint(BLUE, RED, board.shape, [(39, 23)]),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 7)

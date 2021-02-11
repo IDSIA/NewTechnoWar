@@ -58,8 +58,8 @@ def _battleground16x16() -> GameBoard:
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (8, 8)),
-        GoalDefendPoint(BLUE, RED, board.shape, (8, 8)),
+        GoalReachPoint(RED, board.shape, [(8, 8)]),
+        GoalDefendPoint(BLUE, RED, board.shape, [(8, 8)]),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
@@ -193,8 +193,8 @@ def scenarioTest1v1Race() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (3, 16)),
-        GoalReachPoint(BLUE, board.shape, (13, 16)),
+        GoalReachPoint(RED, board.shape, [(3, 16)]),
+        GoalReachPoint(BLUE, board.shape, [(13, 16)]),
         GoalMaxTurn(BLUE, 12)
     )
 
@@ -223,8 +223,8 @@ def scenarioTest1v1ArmedRace() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (8, 8)),
-        GoalDefendPoint(BLUE, RED, board.shape, (8, 8)),
+        GoalReachPoint(RED, board.shape, [(8, 8)]),
+        GoalDefendPoint(BLUE, RED, board.shape, [(8, 8)]),
         # GoalReachPoint(BLUE, board.shape, (8, 8)),
         # GoalDefendPoint(RED, BLUE, board.shape, (8, 8)),
         GoalMaxTurn(BLUE, 12)

@@ -120,17 +120,18 @@ class MatchManager:
         """Round step."""
         logging.debug(f'step: round {self.first.team:5}')
         self.update = False
-        copystate = deepcopy(self.state)  # salvare lo state self.state(una copia deep copy)
+        state0 = deepcopy(self.state)
 
         try:
             action = self.first.chooseAction(self.board, self.state)
             outcome = GM.step(self.board, self.state, action)
 
-            self._store(copystate, action, outcome)
+            self._store(state0, action, outcome)
+            logging.info(f'{self.first.team:5} {"action":9}: {action} {outcome["comment"]}')
 
         except ValueError as e:
-            logging.info(f'{self.first.team:5}: {e}')
-            self._store(copystate)
+            logging.info(f'{self.first.team:5} {"exception":9}: {e}')
+            self._store(state0)
 
         finally:
             self._goCheck()
@@ -138,19 +139,18 @@ class MatchManager:
     def _goResponse(self):
         """Response step."""
         logging.debug(f'step: response {self.second.team:5}')
-        copystate = deepcopy(self.state)
+        state0 = deepcopy(self.state)
 
         try:
             response = self.second.chooseResponse(self.board, self.state)
             outcome = GM.step(self.board, self.state, response)
 
-            logging.debug(f'{self.second.team} respond')
-
-            self._store(copystate, response, outcome)
+            self._store(state0, response, outcome)
+            logging.info(f'{self.second.team:5} {"response":9}: {response} {outcome["comment"]}')
 
         except ValueError as e:
-            logging.info(f'{self.second.team:5}: {e}')
-            self._store(copystate)
+            logging.info(f'{self.second.team:5} {"exception":9}: {e}')
+            self._store(state0)
 
         finally:
             self._goCheck()
