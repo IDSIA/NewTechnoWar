@@ -109,12 +109,12 @@ class GreedyAgent(Agent):
 
         # search for action with best score
         score, action = self.opt(scores)
-        logging.info(f'{self.team:5}: {action} ({score})')
+        logging.debug(f'{self.team:5}: {action} ({score})')
         return action
 
     def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
 
-        scores = [self.scorePass(board, state)]
+        scores = [] + self.scorePass(board, state)
 
         # compute all scores for possible responses
         for figure in state.getFiguresCanBeActivated(self.team):
@@ -122,7 +122,7 @@ class GreedyAgent(Agent):
 
         # search for action with best score
         score, action = self.opt(scores)
-        logging.info(f'{self.team:5}: {action} ({score})')
+        logging.debug(f'{self.team:5}: {action} ({score})')
 
         return action
 

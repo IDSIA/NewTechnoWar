@@ -331,7 +331,7 @@ class GameManager(object):
         target.hit = True
 
         if target.hp <= 0:
-            logging.info(f'{action}: ({success} {score}/{hitScore}): KILL! ({target.hp}/{target.hp_max})')
+            logging.debug(f'{action}: ({success} {score}/{hitScore}): KILL! ({target.hp}/{target.hp_max})')
             target.killed = True
 
             # kill all transported units
@@ -339,10 +339,10 @@ class GameManager(object):
                 f = state.getFigureByIndex(target.team, idx)
                 f.killed = True
                 f.hp = 0
-                logging.info(f'{action}: {f} killed while transporting')
+                logging.debug(f'{action}: {f} killed while transporting')
 
         else:
-            logging.info(f'{action}: ({success} {score}/{hitScore}): HIT!  ({target.hp}/{target.hp_max})')
+            logging.debug(f'{action}: ({success} {score}/{hitScore}): HIT!  ({target.hp}/{target.hp_max})')
             # disable a random weapon
             weapons = [x for x in target.weapons if not weapon.disabled]
             to_disable = np.random.choice(weapons, weapon.damage * success, replace=False)
@@ -353,17 +353,20 @@ class GameManager(object):
         """Update the given state with the given action in a irreversible way."""
 
         team: str = action.team  # team performing action
+        comment: str = ''
 
-        logging.debug(action)
+        logging.debug(f'{team} step with {action}')
         state.lastAction = action
 
         if isinstance(action, Pass):
-            logging.info(f'{action}')
             if isinstance(action, PassFigure):
                 f: Figure = state.getFigure(action)  # who performs the action
                 f.activated = True
                 f.passed = True
-            return {}
+
+            logging.debug(f'{action}: {comment}')
+
+            return {'comment': comment}
 
         if isinstance(action, Move):
             f: Figure = state.getFigure(action)  # who performs the action
@@ -374,20 +377,23 @@ class GameManager(object):
                 # figure moves inside transporter
                 t = state.getTransporter(action)
                 t.transportLoad(f)
+                comment = f'loaded into {t}'
             elif f.transported_by > -1:
                 # figure leaves transporter
                 t = state.getFigureByIndex(team, f.transported_by)
                 t.transportUnload(f)
+                comment = f'unloaded from {t}'
 
             state.moveFigure(f, f.position, action.destination)
-            logging.info(f'{action}')
 
             for transported in f.transporting:
                 t = state.getFigureByIndex(team, transported)
                 t.stat = LOADED
                 state.moveFigure(t, t.position, action.destination)
 
-            return {}
+            logging.debug(f'{action}: {comment}')
+
+            return {'comment': comment}
 
         if isinstance(action, AttackGround):
             f: Figure = state.getFigure(action)  # who performs the action
@@ -414,8 +420,11 @@ class GameManager(object):
 
                 state.addSmoke([c[1] for c in cloud[1:3]] + [x])
 
-                logging.info(f'{action}: smoke at {x}')
-            return {}
+                comment = f'smoke at {x}'
+
+            logging.debug(f'{action}: {comment}')
+
+            return {'comment': comment}
 
         if isinstance(action, Attack):  # Respond *is* an attack action
             f: Figure = state.getFigure(action)  # who performs the action
@@ -467,10 +476,12 @@ class GameManager(object):
             # target can now respond to the fire
             t.attacked_by = f.index
 
-            logging.debug(f'{action}: (({success}) {score}/{hitScore})')
-
             if success > 0:
                 self.applyDamage(state, action, hitScore, score, success, t, w)
+
+                comment = f'success=({success} {score}/{hitScore}) target=({t.hp}/{t.hp_max})'
+                if t.hp <= 0:
+                    comment += ' KILLED!'
 
             elif w.curved:
                 # missing with curved weapons
@@ -479,15 +490,18 @@ class GameManager(object):
                 missed = state.getFiguresByPos(t.team, hitLocation)
                 missed = [m for m in missed if not m.killed]
 
-                logging.info(f'{action}: shell hit {hitLocation}: {len(missed)} hit')
+                comment = f'({success} {score}/{hitScore}): shell missed and hit {hitLocation}: {len(missed)} hit'
 
                 for m in missed:
                     self.applyDamage(state, action, hitScore, score, 1, m, w)
 
             else:
-                logging.info(f'{action}: ({success} {score}/{hitScore}): MISS!')
+                logging.debug(f'({success} {score}/{hitScore}): MISS!')
+
+            logging.debug(f'{action}: {comment}')
 
             return {
+                'comment': comment,
                 'score': score,
                 'hitScore': hitScore,
                 'ATK': ATK,
