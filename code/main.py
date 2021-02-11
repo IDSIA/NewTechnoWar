@@ -5,6 +5,17 @@ import yaml
 
 from agents.matchmanager import buildMatchManager
 
+from agents.matchmanager import MatchManager
+
+from itertools import product
+
+from agents import GreedyAgent, AlphaBetaAgent, RandomAgent
+from agents.ml.regressor import RegressorAgent
+from scenarios import scenarioJunction, scenarioJunctionExo, scenarioTest1v1, scenarioTest2v2
+from core.const import RED, BLUE
+from agents.ml.simple import SimpleMLAgent
+import json
+
 dir_path = op.dirname(op.realpath(__file__))
 
 with open(op.join(dir_path, 'logger.config.yaml'), 'r') as stream:
@@ -12,7 +23,9 @@ with open(op.join(dir_path, 'logger.config.yaml'), 'r') as stream:
 logging.config.dictConfig(config)
 
 if __name__ == '__main__':
-    mm = buildMatchManager('', 'scenarioCrossingTheCity', 'GreedyAgent', 'GreedyAgent', seed=42)
-
+    board, state = scenarioJunction()
+    playerRed = RandomAgent(RED)#, {'scenario': board.name, 'model': 'RandomForestRegressor', 'color': 'red'})
+    playerBlue = RegressorAgent(BLUE, {'scenario': board.name, 'model': 'RandomForestRegressor', 'color': 'blue'})
+    mm = MatchManager(' ', playerRed, playerBlue, board, state, seed=42)
     while not mm.end:
         mm.nextStep()

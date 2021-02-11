@@ -73,10 +73,53 @@ class Figure:
         self.transporting: List[int] = []
         self.transported_by: int = -1
 
+    def vectorInfo(self) -> tuple:
+        meta = f'{self.team}_{self.kind}_{self.index}'
+
+        info = [
+            # "fid_" + meta,
+            "team_" + meta,
+            "name_" + meta,
+            "index_" + meta,
+            "kind_" + meta,
+            "move_" + meta,
+            "load_" + meta,
+            "hp_" + meta,
+            "hp_max_" + meta,
+            "int_atk_" + meta,
+            "int-def_" + meta,
+            "endurance_" + meta,
+            "stat-name_" + meta,
+            "stat-value_" + meta,
+            "bonus_" + meta,
+            "activated_" + meta,
+            "responded_" + meta,
+            "attacked_" + meta,
+            "moved_" + meta,
+            "passed_" + meta,
+            "killed_" + meta,
+            "hit_" + meta,
+            "attacked-by_" + meta,
+            "can-transport_" + meta,
+            "transport-capacity_" + meta,
+            "len-transporting_" + meta,
+            "transported-by_" + meta,
+            "positionX_" + meta,
+            "positionY_" + meta,
+            "positionZ_" + meta,
+        ]
+        for d in DEFENSE_KEY_LIST:
+            info.append("defense_" + d + "_" + meta)
+
+        for w in WEAPON_KEY_LIST:
+            info.append("weapon_" + w + "_" + meta)
+        return tuple(info)
+
     def vector(self) -> tuple:
         """Data on the figure in vectorized version, used for internal hashing."""
         data = [
-            self.fid,
+
+            # self.fid,
             self.team,
             self.name,
             self.index,
@@ -102,16 +145,19 @@ class Figure:
             self.can_transport,
             self.transport_capacity,
             len(self.transporting),
-            self.transported_by
+            self.transported_by,
+
         ]
 
         data += list(self.position)
 
         for d in DEFENSE_KEY_LIST:
             data.append(self.defense[d] if d in self.defense else 0)
+            # print("D",self.defense[d])
 
         for w in WEAPON_KEY_LIST:
             data.append(self.weapons[w].ammo if w in self.weapons else 0)
+            # print("W",self.weapons[w].ammo)
 
         return tuple(data)
 

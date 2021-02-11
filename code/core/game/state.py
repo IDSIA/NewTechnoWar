@@ -4,7 +4,7 @@ import numpy as np
 
 from core.actions.basics import ActionFigure
 from core.const import RED, BLUE
-from core.actions import Action, Attack, AttackGround, LoadInto
+from core.actions import Action, Attack, AttackGround, LoadInto, Move, Response
 from core.figures import FigureType, Figure, Weapon
 from core.game import MAX_SMOKE
 from utils.coordinates import to_cube, Cube, cube_linedraw, cube_to_hex
@@ -69,6 +69,47 @@ class GameState:
 
         self.initialized: bool = False
 
+    def creaAzione(self, a):
+        classAction = a.__class__
+        response = False
+        action_figureid, action_figurename, action_team, action_type, action_destination_x, action_destination_y, action_destination_z, action_path, action_guard_id, action_guard_name, action_lof, action_los, action_target_id, action_target_name, action_target_team, action_weapon_id, action_weapon_name = [
+                                                                                                                                                                                                                                                                                                                      -1] * 17
+        if a:
+            action_type = classAction.__name__
+            action_team = a.team
+        if (issubclass(classAction, Move)):
+            action_figureid = a.figure_id
+            action_figurename = a.figure_name  # ridondante fai colonne Bool
+            action_destination_x = a.destination.x  # dividi x,y,z
+            action_destination_y = a.destination.y  # dividi x,y,z
+            action_destination_z = a.destination.z  # dividi x,y,z
+            action_path = len(a.path)  # lunghezza spostamento
+        if (issubclass(classAction, Attack)):
+            action_figureid = a.figure_id
+            action_figurename = a.figure_name  # ridondante fai colonne Bool
+            action_guard_id = a.guard_id  # colonne bool
+            action_guard_name = a.guard_name
+            action_lof = len(a.lof)  # direct line of fire on target (from the attacker)
+            action_los = len(a.los)  # direct line of sight on target (from who can see it)
+            action_target_id = a.target_id  # colonne bool
+            action_target_name = a.target_name
+            action_target_team = a.target_team
+            action_weapon_id = a.weapon_id
+            action_weapon_name = a.weapon_name
+        if (issubclass(classAction, Response)):
+            response = True
+        data = [action_figureid, action_figurename, action_team, action_type, action_destination_x,
+                action_destination_y, action_destination_z, action_path, action_guard_id, action_guard_name, action_lof,
+                action_los, action_target_id, action_target_name, action_target_team, action_weapon_id,
+                action_weapon_name, response]
+        return data
+
+    def actionInfo(self):
+        return ['action_figureid', 'action_figurename', 'action_team', 'action_type', 'action_destination_x',
+                'action_destination_y', 'action_destination_z', 'action_path', 'action_guard_id', 'action_guard_name',
+                'action_lof', 'action_los', 'action_target_id', 'action_target_name', 'action_target_team',
+                'action_weapon_id', 'action_weapon_name', 'response']
+
     def vector(self) -> tuple:
         """Convert the state in a vector, used for internal hashing."""
         data = []
@@ -76,8 +117,44 @@ class GameState:
         for team in [RED, BLUE]:
             for f in self.figures[team]:
                 data += list(f.vector())
+        for team in [RED, BLUE]:
+            for i in range(len(self.figures.get(team))):
+                for m in range(len(self.figuresDistance.get(team).keys())):
+                    data.append(len(self.figuresDistance.get(team)[m][i]) - 1)
+        for team in [RED, BLUE]:
+            for i in range(len(self.figures.get(team))):
+                for m in range(len(self.figuresLOS.get(team).keys())):
+                    data.append(len(self.figuresLOS.get(team)[m][i]) - 1)
 
+        data.append(self.name)
+        data.append(self.turn)
+        prova = self.creaAzione(self.lastAction)
+        for i in prova:
+            data.append(i)
         return tuple(data)
+
+    def vectorInfo(self) -> tuple:
+        """Convert the state in a vector, used for internal hashing."""
+        info = []
+
+        for team in [RED, BLUE]:
+            for f in self.figures[team]:
+                info += f.vectorInfo()
+        for team in [RED, BLUE]:
+            for i in self.figures.get(team):
+                for m in self.figuresDistance.get(team).keys():
+                    info.append(f'distance_{i}_from_{m}')
+        for team in [RED, BLUE]:
+            for i in self.figures.get(team):
+                for m in self.figuresLOS.get(team).keys():
+                    info.append(f'distance_LOS_{i}_from_{m}')
+
+        info.append("Scenario")
+        info.append("Turn")
+        for e in self.actionInfo():
+            info.append(e)
+
+        return tuple(info)
 
     def __eq__(self, other):
         if not other:
