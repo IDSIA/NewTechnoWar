@@ -6,6 +6,8 @@ import joblib
 import numpy as np
 import pandas as pd
 
+from datetime import datetime
+
 from agents import Agent, GreedyAgent
 from agents.ml.utils import entropy
 from core import GM
@@ -31,16 +33,18 @@ class RegressorAgent(Agent):
         self.model = joblib.load(op.join(dir_path, '..', '..', 'modelsRegressor', file))
 
     def createDf_info(self):
-        info = ["Agente", "Score", "Mossa", "Entropia", "Mosse disponibili", "Scores", "TipoMossa", "RandomChoice",
-                "SceltaRandom", "Count"]
+        info = [
+            "Time", "Agente", "Score", "Mossa", "Entropia", "Mosse disponibili", "Scores", "TipoMossa", "RandomChoice","SceltaRandom", "Count"
+        ]
         return info
 
     def vectorDf(self, bestscore, bestaction, scores):
         a = [i[0][0] for i in scores]
         b = [type(i[1]).__name__ for i in scores]
 
-        data = [self.team, bestscore[0], bestaction, entropy(scores), len(scores), a, b, self.randomChoice,
-                self.set, self.count]
+        data = [
+            datetime.now(), self.team, bestscore[0], bestaction, entropy(scores), len(scores), a, b, self.randomChoice, self.set, self.count
+        ]
         self.count += 1
         return data
 
@@ -110,8 +114,6 @@ class RegressorAgent(Agent):
         if not bestaction:
             raise ValueError('No action given')
 
-        v = list(self.vectorDf(bestscore, bestaction, scores))
-        self.vectors.append(v)
         logging.debug(f'BEST ACTION {self.team:5}: {bestaction} ({bestscore})')
         return bestaction
 
