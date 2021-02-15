@@ -1,73 +1,65 @@
-from core import GM
-from core.actions import Action
-from core.game.board import GameBoard
-from core.game.state import GameState
-from agents import Agent, GreedyAgent
-import numpy as np
-from core.const import RED, BLUE
-import pandas as pd
 import os.path as op
 import random
 
 import joblib
-from scipy.stats import entropy
+import numpy as np
+import pandas as pd
+
+from agents import Agent, GreedyAgent
+from core import GM
+from core.actions import Action
+from core.const import BLUE
+from core.game.board import GameBoard
+from core.game.state import GameState
 
 dir_path = op.dirname(op.realpath(__file__))
 
 
 class SimpleMLAgent(Agent):
 
-    def __init__(self, team: str, params: dict):
-
-        super().__init__('SimpleML', team)
+    def __init__(self, team: str, params: dict, randomChoice=False, seed=0):
+        super().__init__('SimpleML', team, seed)
 
         file = params['scenario'] + '_' + params['model'] + '.joblib'
-        self.vectors = []
-        self.randomChoice = False
+        self.randomChoice = randomChoice
+
         self.set = 0
-        self.count = 0
+
         self.params: dict = params
         self.model = joblib.load(op.join(dir_path, '..', '..', 'models', file))
 
     def takeProbs(self, scores: list):
-        probabilieties = []
-        if self.team == BLUE:
-            i = 0
-        else:
-            i = 1
-        for probs, action in scores:
-            probabilieties.append(probs[0])
-        arr = np.array(probabilieties)
-        return arr[:, i]  # prima o seconda colonna in base all'agente se rosso o blu
+        probabilities = []
+        i = 0 if self.team == BLUE else 1
 
-    def entropy1(self, scores: list):
+        for probs, action in scores:
+            probabilities.append(probs[0])
+
+        arr = np.array(probabilities)
+        return arr[:, i]  # first column red, second column blue agent
+
+    def entropy(self, scores: list):
+        # TODO: change with entropy in utils
         probs = self.takeProbs(scores)
         if any(probs):
             norm = [float(i) / sum(probs) for i in probs]
             return -(norm * np.log(norm) / np.log(len(scores))).sum()
-            # ritorna il valore di entropia di tutte le probabilità
         else:
             return 0
 
-    def createDf_info(self):
-        info = ["Agente", "Probabilità", "Mossa", "Entropia", "Mosse disponibili", "RandomChoice", "SceltaRandom",
-                "Count"]
-        return info
+    def dataFrameInfo(self):
+        return super().dataFrameInfo() + [
+            'score', 'action', 'entropy', 'n_scores', 'scores', 'random_choice', 'set'
+        ]
 
-    def vectorDf(self, bestscore, bestaction, scores):
+    def store(self, bestScore, bestAction, scores):
+        # TODO: register type of actions
+        data = [bestScore, bestAction, self.entropy(scores), len(scores), scores, self.randomChoice, self.set]
 
-        data = [self.team, bestscore, bestaction, self.entropy1(scores), len(scores), self.randomChoice,
-                self.set, self.count]
-        self.count += 1
-        return data
+        self.register(data)
 
-    def createDf(self, numero):
-        cols = self.createDf_info()
-
-        df = pd.DataFrame(data=self.vectors, columns=cols)
-        repeated = [numero] * len(df)
-        df["Numero Partita"] = repeated
-        return df
+    def createDf(self):
+        return pd.DataFrame(data=self.history, columns=self.dataFrameInfo())
 
     def bestAction(self, scores: list):
         bestScore, bestAction = 0.0, None
@@ -81,12 +73,12 @@ class SimpleMLAgent(Agent):
 
         return bestScore, bestAction
 
-    def bestActionRandom(self, scores: list) -> Action:
+    def bestActionRandom(self, scores: list) -> (float, Action):
         self.set = 10
         bestScore, bestAction = 0.0, None
-        if len(scores) != 0:
+        if len(scores) > 0:
             sorted_multi_list = sorted(scores, key=lambda x: x[0][0][0])
-            # questo sorted mi occupa moooolto tempo, si può fare altro modo?
+            # TODO questo sorted mi occupa moooolto tempo, si può fare altro modo?
             if self.team == BLUE:
                 choice = random.choice(sorted_multi_list[-self.set:])
                 bestScore = choice[0][0][0]
@@ -107,52 +99,52 @@ class SimpleMLAgent(Agent):
             for action in actions:
                 newState, outcome = GM.activate(board, state, action)
 
-                X = np.array(newState.vector()).reshape(1, -1)
-                cols = newState.vectorInfo()
+                X = np.array(newState.vectorState()).reshape(1, -1)
+                cols = newState.vectorStateInfo()
                 df = pd.DataFrame(data=X, columns=cols)
                 score = self.model.predict_proba(df)
 
                 scores.append((score, action))
         if self.randomChoice:
-            bestscore, bestaction = self.bestActionRandom(scores)
+            bestScore, bestAction = self.bestActionRandom(scores)
         else:
-            bestscore, bestaction = self.bestAction(scores)
-        v = self.vectorDf(bestscore, bestaction, scores)
-        self.vectors.append(v)
-        if not bestaction:
+            bestScore, bestAction = self.bestAction(scores)
+
+        self.store(bestScore, bestAction, scores)
+
+        if not bestAction:
             raise ValueError('No action given')
 
-        v = list(self.vectorDf(bestscore, bestaction, scores))
-        self.vectors.append(v)
-
-        return bestaction
+        return bestAction
 
     def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
-
         scores = []
 
         for figure in state.getFiguresCanBeActivated(self.team):
             actions = [GM.actionPassResponse(self.team)] + \
                       GM.buildResponses(board, state, figure)
+
             for action in actions:
                 newState, outcome = GM.activate(board, state, action)
 
-                X = np.array(newState.vector()).reshape(1, -1)
-                cols = newState.vectorInfo()
+                X = np.array(newState.vectorState()).reshape(1, -1)
+                cols = newState.vectorStateInfo()
                 df = pd.DataFrame(data=X, columns=cols)
                 score = self.model.predict_proba(df)
                 scores.append((score, action))
+
         if self.randomChoice:
-            bestscore, bestaction = self.bestActionRandom(scores)
+            bestScore, bestAction = self.bestActionRandom(scores)
         else:
-            bestscore, bestaction = self.bestAction(scores)
-        if bestaction is not None:
-            v = self.vectorDf(bestscore, bestaction, scores)
-            self.vectors.append(v)
-        if not bestaction:
+            bestScore, bestAction = self.bestAction(scores)
+
+        if bestAction is not None:
+            self.store(bestScore, bestAction, scores)
+
+        if not bestAction:
             raise ValueError('No action given')
 
-        return bestaction
+        return bestAction
 
     def placeFigures(self, board: GameBoard, state: GameState) -> None:
         # TODO: find a better idea?

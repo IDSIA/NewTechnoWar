@@ -6,55 +6,42 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from datetime import datetime
-
 from agents import Agent, GreedyAgent
-from agents.ml.utils import entropy
+from agents.utils import entropy
 from core import GM
 from core.actions import Action
 from core.game.board import GameBoard
-from core.game.state import GameState
+from core.game.state import GameState, vectorState, vectorStateInfo
 
 dir_path = op.dirname(op.realpath(__file__))
 
 
 class RegressorAgent(Agent):
 
-    def __init__(self, team: str, params: dict):
+    def __init__(self, team: str, params: dict, randomChoice=False, seed=0):
+        super().__init__('Regressor', team, seed)
 
-        super().__init__('Regressor', team)
+        file = params['scenario'] + '_' + params['model'] + '_' + team + '.joblib'
+        self.randomChoice = randomChoice
 
-        file = params['scenario'] + '_' + params['model'] + '_' + params['color'] + '.joblib'
-        self.vectors = []
-        self.randomChoice = False
-        self.set = 0
-        self.count = 0
         self.params: dict = params
-        self.model = joblib.load(op.join(dir_path, '..', '..', 'modelsRegressor', file))
+        self.model = joblib.load(op.join(dir_path, '..', '..', 'models', file))
 
-    def createDf_info(self):
-        info = [
-            "Time", "Agente", "Score", "Mossa", "Entropia", "Mosse disponibili", "Scores", "TipoMossa", "RandomChoice","SceltaRandom", "Count"
+    def dataFrameInfo(self):
+        return super().dataFrameInfo() + [
+            'score', 'action', 'entropy', 'n_scores', 'scores', 'actions', 'random_choice'
         ]
-        return info
 
-    def vectorDf(self, bestscore, bestaction, scores):
-        a = [i[0][0] for i in scores]
-        b = [type(i[1]).__name__ for i in scores]
+    def store(self, bestScore, bestAction, scores):
+        # TODO: check this
+        probs = [i[0][0] for i in scores]
+        actions = [type(i[1]).__name__ for i in scores]
 
-        data = [
-            datetime.now(), self.team, bestscore[0], bestaction, entropy(scores), len(scores), a, b, self.randomChoice, self.set, self.count
-        ]
-        self.count += 1
-        return data
+        res = [ele for ele in probs if ele > 0]
 
-    def createDf(self, numero):
-        cols = self.createDf_info()
+        data = [bestScore[0], bestAction, entropy(res), len(scores), probs, actions, self.randomChoice]
 
-        df = pd.DataFrame(data=self.vectors, columns=cols)
-        repeated = [numero] * len(df)
-        df["Numero Partita"] = repeated
-        return df
+        self.register(data)
 
     def bestScore(self, scores: list):
         # bestScore, bestAction = 0.0, None
@@ -78,6 +65,7 @@ class RegressorAgent(Agent):
             choice = random.choice(sorted_multi_list[:set1])
             bestScore = choice[0][0]
             bestAction = choice[1]
+
         return bestScore, bestAction
 
     def dfColor(self, df, color):
@@ -94,28 +82,25 @@ class RegressorAgent(Agent):
             for action in actions:
                 newState, outcome = GM.activate(board, state, action)
 
-                X = np.array(newState.vector()).reshape(1, -1)
-                cols = newState.vectorInfo()
-                df = pd.DataFrame(data=X, columns=cols)
+                X = np.array(vectorState(newState)).reshape(1, -1)
+                df = pd.DataFrame(data=X, columns=vectorStateInfo())
                 df = self.dfColor(df, self.team)
 
-                # score = self.model.predict_proba(df)
                 score = self.model.predict(df)
-
                 scores.append((score, action))
 
         if self.randomChoice:
-            bestscore, bestaction = self.bestScoreRandom(scores)
+            bestScore, bestAction = self.bestScoreRandom(scores)
         else:
-            bestscore, bestaction = self.bestScore(scores)
+            bestScore, bestAction = self.bestScore(scores)
 
-        v = self.vectorDf(bestscore, bestaction, scores)
-        self.vectors.append(v)
-        if not bestaction:
+        self.store(bestScore, bestAction, scores)
+
+        if not bestAction:
             raise ValueError('No action given')
 
-        logging.debug(f'BEST ACTION {self.team:5}: {bestaction} ({bestscore})')
-        return bestaction
+        logging.debug(f'BEST ACTION {self.team:5}: {bestAction} ({bestScore})')
+        return bestAction
 
     def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
         scores = []
@@ -126,25 +111,28 @@ class RegressorAgent(Agent):
             for action in actions:
                 newState, outcome = GM.activate(board, state, action)
 
-                X = np.array(newState.vector()).reshape(1, -1)
-                cols = newState.vectorInfo()
+                X = np.array(newState.vectorState()).reshape(1, -1)
+                cols = newState.vectorStateInfo()
                 df = pd.DataFrame(data=X, columns=cols)
                 df = self.dfColor(df, self.team)
+
                 score = self.model.predict(df)
                 scores.append((score, action))
 
         if self.randomChoice:
-            bestscore, bestaction = self.bestScoreRandom(scores)
+            bestScore, bestAction = self.bestScoreRandom(scores)
         else:
-            bestscore, bestaction = self.bestScore(scores)
-        if bestaction is not None:
-            v = self.vectorDf(bestscore, bestaction, scores)
-            self.vectors.append(v)
-        if not bestaction:
-            raise ValueError('No action given')
-        logging.debug(f'BEST RESPONSE {self.team:5}: {bestaction} ({bestscore})')
+            bestScore, bestAction = self.bestScore(scores)
 
-        return bestaction
+        if bestAction is not None:
+            self.store(bestScore, bestAction, scores)
+
+        if not bestAction:
+            raise ValueError('No action given')
+
+        logging.debug(f'BEST RESPONSE {self.team:5}: {bestAction} ({bestScore})')
+
+        return bestAction
 
     def placeFigures(self, board: GameBoard, state: GameState) -> None:
         # TODO: find a better idea?

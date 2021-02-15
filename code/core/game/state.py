@@ -2,12 +2,14 @@ from typing import Dict, List
 
 import numpy as np
 
+from core.actions import Action, Attack, AttackGround, LoadInto, Move, Response
 from core.actions.basics import ActionFigure
 from core.const import RED, BLUE
-from core.actions import Action, Attack, AttackGround, LoadInto, Move, Response
-from core.figures import FigureType, Figure, Weapon
+from core.figures import FigureType, Figure, Weapon, vectorFigureInfo
 from core.game import MAX_SMOKE
 from utils.coordinates import to_cube, Cube, cube_linedraw, cube_to_hex
+
+MAX_UNITS_PER_TEAM = 9  # for each team: 3 vehicle, 6 infantry
 
 
 class GameState:
@@ -16,12 +18,13 @@ class GameState:
     """
 
     __slots__ = [
-        'name', 'turn', 'figures', 'posToFigure', 'smoke', 'figuresLOS', 'figuresDistance', 'lastAction',
+        'name', 'seed', 'turn', 'figures', 'posToFigure', 'smoke', 'figuresLOS', 'figuresDistance', 'lastAction',
         'has_choice', 'choices', 'has_placement', 'placement_zone', 'initialized'
     ]
 
-    def __init__(self, shape: tuple, name: str = ''):
+    def __init__(self, shape: tuple, name: str = '', seed=0):
         self.name: str = name
+        self.seed: int = seed
         self.turn: int = -1
 
         # lists of all figures divided by team
@@ -69,107 +72,20 @@ class GameState:
 
         self.initialized: bool = False
 
-    def creaAzione(self, a):
-        classAction = a.__class__
-        response = False
-        action_figureid, action_figurename, action_team, action_type, action_destination_x, action_destination_y, action_destination_z, action_path, action_guard_id, action_guard_name, action_lof, action_los, action_target_id, action_target_name, action_target_team, action_weapon_id, action_weapon_name = [
-                                                                                                                                                                                                                                                                                                                      -1] * 17
-        if a:
-            action_type = classAction.__name__
-            action_team = a.team
-        if (issubclass(classAction, Move)):
-            action_figureid = a.figure_id
-            action_figurename = a.figure_name  # ridondante fai colonne Bool
-            action_destination_x = a.destination.x  # dividi x,y,z
-            action_destination_y = a.destination.y  # dividi x,y,z
-            action_destination_z = a.destination.z  # dividi x,y,z
-            action_path = len(a.path)  # lunghezza spostamento
-        if (issubclass(classAction, Attack)):
-            action_figureid = a.figure_id
-            action_figurename = a.figure_name  # ridondante fai colonne Bool
-            action_guard_id = a.guard_id  # colonne bool
-            action_guard_name = a.guard_name
-            action_lof = len(a.lof)  # direct line of fire on target (from the attacker)
-            action_los = len(a.los)  # direct line of sight on target (from who can see it)
-            action_target_id = a.target_id  # colonne bool
-            action_target_name = a.target_name
-            action_target_team = a.target_team
-            action_weapon_id = a.weapon_id
-            action_weapon_name = a.weapon_name
-        if (issubclass(classAction, Response)):
-            response = True
-        data = [action_figureid, action_figurename, action_team, action_type, action_destination_x,
-                action_destination_y, action_destination_z, action_path, action_guard_id, action_guard_name, action_lof,
-                action_los, action_target_id, action_target_name, action_target_team, action_weapon_id,
-                action_weapon_name, response]
-        return data
-
-    def actionInfo(self):
-        return ['action_figureid', 'action_figurename', 'action_team', 'action_type', 'action_destination_x',
-                'action_destination_y', 'action_destination_z', 'action_path', 'action_guard_id', 'action_guard_name',
-                'action_lof', 'action_los', 'action_target_id', 'action_target_name', 'action_target_team',
-                'action_weapon_id', 'action_weapon_name', 'response']
-
-    def vector(self) -> tuple:
-        """Convert the state in a vector, used for internal hashing."""
-        data = []
-
-        for team in [RED, BLUE]:
-            for f in self.figures[team]:
-                data += list(f.vector())
-        for team in [RED, BLUE]:
-            for i in range(len(self.figures.get(team))):
-                for m in range(len(self.figuresDistance.get(team).keys())):
-                    data.append(len(self.figuresDistance.get(team)[m][i]) - 1)
-        for team in [RED, BLUE]:
-            for i in range(len(self.figures.get(team))):
-                for m in range(len(self.figuresLOS.get(team).keys())):
-                    data.append(len(self.figuresLOS.get(team)[m][i]) - 1)
-
-        data.append(self.name)
-        data.append(self.turn)
-        prova = self.creaAzione(self.lastAction)
-        for i in prova:
-            data.append(i)
-        return tuple(data)
-
-    def vectorInfo(self) -> tuple:
-        """Convert the state in a vector, used for internal hashing."""
-        info = []
-
-        for team in [RED, BLUE]:
-            for f in self.figures[team]:
-                info += f.vectorInfo()
-        for team in [RED, BLUE]:
-            for i in self.figures.get(team):
-                for m in self.figuresDistance.get(team).keys():
-                    info.append(f'distance_{i}_from_{m}')
-        for team in [RED, BLUE]:
-            for i in self.figures.get(team):
-                for m in self.figuresLOS.get(team).keys():
-                    info.append(f'distance_LOS_{i}_from_{m}')
-
-        info.append("Scenario")
-        info.append("Turn")
-        for e in self.actionInfo():
-            info.append(e)
-
-        return tuple(info)
-
     def __eq__(self, other):
         if not other:
             return False
         if not isinstance(other, GameState):
             return False
-        v = self.vector()
-        v_other = other.vector()
+        v = vectorState(self)
+        v_other = vectorState(other)
         for i in range(len(v)):
             if v[i] != v_other[i]:
                 return False
         return True
 
     def __hash__(self):
-        return hash(self.vector())
+        return hash(vectorState(self))
 
     def __repr__(self) -> str:
         return f'GameState({self.name}): {self.turn}:\n{self.figures}\n{self.posToFigure}'
@@ -337,3 +253,155 @@ class GameState:
     def reduceSmoke(self) -> None:
         """Reduce by 1 the counter for of smoke clouds."""
         self.smoke = np.clip(self.smoke - 1, 0, MAX_SMOKE)
+
+
+def vectorAction(action: Action) -> tuple:
+    if not action:
+        return tuple([None] * 14)
+
+    action_type = action.__class__.__name__
+    action_team = action.team
+
+    response = False
+    action_figure_index = None
+    action_destination_x = None
+    action_destination_y = None
+    action_destination_z = None
+    action_path = None
+    action_guard_index = None
+    action_lof = None
+    action_los = None
+    action_target_index = None
+    action_target_team = None
+    action_weapon_id = None
+
+    if isinstance(action, Move):
+        action_figure_index = action.figure_id  # TODO: bool columns?
+        action_destination_x = action.destination.x
+        action_destination_y = action.destination.y
+        action_destination_z = action.destination.z
+        action_path = len(action.path)
+
+    if isinstance(action, Attack):
+        action_figure_index = action.figure_id
+        action_guard_index = action.guard_id  # TODO: bool columns?
+        action_lof = len(action.lof)  # direct line of fire on target (from the attacker)
+        action_los = len(action.los)  # direct line of sight on target (from who can see it)
+        action_target_index = action.target_id  # TODO: bool columns?
+        action_target_team = action.target_team
+        action_weapon_id = action.weapon_id
+
+    if isinstance(action, Response):
+        response = True
+
+    return (
+        action_figure_index,
+        action_team,
+        action_type,
+        action_destination_x,
+        action_destination_y,
+        action_destination_z,
+        action_path,
+        action_guard_index,
+        action_lof,
+        action_los,
+        action_target_index,
+        action_target_team,
+        action_weapon_id,
+        response
+    )
+
+
+def vectorActionInfo() -> tuple:
+    return (
+        'action_figure_index',
+        'action_team',
+        'action_type',
+        'action_destination_x',
+        'action_destination_y',
+        'action_destination_z',
+        'action_path',
+        'action_guard_id',
+        'action_lof',
+        'action_los',
+        'action_target_id',
+        'action_target_team',
+        'action_weapon_id',
+        'response'
+    )
+
+
+def vectorState(state: GameState) -> tuple:
+    """Convert the state in a vector, used for internal hashing."""
+    data = [
+        state.seed,
+        state.name,
+        state.turn,
+    ]
+
+    x: int = len(vectorFigureInfo(''))
+
+    for team in [RED, BLUE]:
+        for i in range(MAX_UNITS_PER_TEAM):
+            if i < len(state.figures[team]):
+                f: Figure = state.figures[team][i]
+                data += list(f.vector())
+            else:
+                data += [None] * x
+
+    for teams in [(RED, BLUE), (BLUE, RED)]:
+        team, other = teams
+        for i in range(MAX_UNITS_PER_TEAM):
+            for m in range(MAX_UNITS_PER_TEAM):
+                if i != m:
+                    if i < len(state.figures[team]) and m < len(state.figures[other]):
+                        dist: list = state.figuresDistance.get(team)[m][i]
+                        data.append(len(dist) - 1)
+                    else:
+                        data.append(None)
+
+    for teams in [(RED, BLUE), (BLUE, RED)]:
+        team, other = teams
+        for i in range(MAX_UNITS_PER_TEAM):
+            for m in range(MAX_UNITS_PER_TEAM):
+                if i != m:
+                    if i < len(state.figures[team]) and m < len(state.figures[other]):
+                        dist: list = state.figuresLOS.get(team)[m][i]
+                        data.append(len(dist) - 1)  # TODO
+                    else:
+                        data.append(None)
+
+    data += vectorAction(state.lastAction)
+
+    return tuple(data)
+
+
+def vectorStateInfo() -> tuple:
+    """Convert the state in a vector, used for internal hashing."""
+    info = [
+        "seed", "scenario", "turn"
+    ]
+
+    for team in [RED, BLUE]:
+        for i in range(MAX_UNITS_PER_TEAM):
+            meta = f'{team}_figure_{i}'
+            info += vectorFigureInfo(meta)
+
+    # distance between figures of same team
+    for team in [RED, BLUE]:
+        for i in range(MAX_UNITS_PER_TEAM):
+            for m in range(MAX_UNITS_PER_TEAM):
+                if i != m:
+                    info.append(f'{team}_distance_{i}_{m}')
+
+    # LOS between figures of different team
+    for team in [RED, BLUE]:
+        for i in range(MAX_UNITS_PER_TEAM):
+            for m in range(MAX_UNITS_PER_TEAM):
+                if i != m:
+                    info.append(f'{team}_LOS_{i}_{m}')
+
+    # data component
+    info += vectorActionInfo()
+
+    return tuple(info)

@@ -1,14 +1,12 @@
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder,StandardScaler
-from sklearn.compose import ColumnTransformer
-
-from sklearn.ensemble import RandomForestClassifier
-import pandas as pd
-
-from sklearn.ensemble import RandomForestRegressor
-import joblib
-
 import sys
+
+import joblib
+import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 
 def pipelineClassifier(df, name, out):
@@ -28,10 +26,10 @@ def pipelineClassifier(df, name, out):
                                ('classifier', classifier)])
         pipe.fit(X, y)
         file_name = f'{name}_{classifier.__class__.__name__}.joblib'
-        joblib.dump(pipe, out+file_name)
+        joblib.dump(pipe, out + file_name)
 
 
-def pipelineRegressor(df, name, color,out):
+def pipelineRegressor(df, name, color, out):
     X = df.drop(['winner', 'meta_scenario', 'meta_p_red', 'meta_p_blue', 'meta_seed'], axis=1, errors="ignore")
     y = df['winner']
     categorical_transformer = Pipeline(steps=[('onehot', OneHotEncoder(handle_unknown='ignore'))])
@@ -48,7 +46,7 @@ def pipelineRegressor(df, name, color,out):
                                ('regressor', regressor)])
         pipe.fit(X, y)
         file_name = f'{name}_{regressor.__class__.__name__}_{color}.joblib'
-        joblib.dump(pipe, out+file_name)
+        joblib.dump(pipe, out + file_name)
 
 
 def dfClassifier(dataframes, pilots):
@@ -69,7 +67,7 @@ def dfColor(df, color):
     return df_new
 
 
-def dfRegressor(dataframes, pilots,out):
+def dfRegressor(dataframes, pilots, out):
     for p in pilots:
         df = pd.read_pickle(dataframes[p])
         df = df.loc[(((df.meta_p_red == "GreedyAgent") & (df.meta_p_blue == "GreedyAgent")) | (
@@ -77,8 +75,8 @@ def dfRegressor(dataframes, pilots,out):
                              (df.meta_p_red == "RandomAgent") & (df.meta_p_blue == "GreedyAgent")))]
         df_red = dfColor(df, "red")
         df_blue = dfColor(df, "blue")
-        pipelineRegressor(df_red, p, "red",out)
-        pipelineRegressor(df_blue, p, "blue",out)
+        pipelineRegressor(df_red, p, "red", out)
+        pipelineRegressor(df_blue, p, "blue", out)
 
 
 if __name__ == '__main__':
@@ -97,4 +95,4 @@ if __name__ == '__main__':
     pilots = ["Junction"]
 
     # dfClassifier(dataframes, pilots)
-    dfRegressor(dataframes, pilots,out)
+    dfRegressor(dataframes, pilots, out)
