@@ -4,7 +4,7 @@ This module defines the available figures and their rules.
 import uuid
 from typing import Dict, List
 
-from core.figures.status import FigureStatus, NO_EFFECT, LOADED
+from core.figures.status import FigureStatus, NO_EFFECT, LOADED, STATS_LIST
 from core.figures.types import FigureType
 from core.figures.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, \
     SniperRifle, Weapon, WEAPON_KEY_LIST
@@ -26,8 +26,6 @@ def vectorFigureInfo(meta) -> tuple:
         meta + "_load",
         meta + "_hp",
         meta + "_hp_max",
-        meta + "_stat_name",
-        meta + "_stat_value",
         meta + "_bonus",
         meta + "_activated",
         meta + "_responded",
@@ -44,7 +42,11 @@ def vectorFigureInfo(meta) -> tuple:
         meta + "_positionX",
         meta + "_positionY",
         meta + "_positionZ",
+        meta + "_stat_value",
     ]
+
+    for s in STATS_LIST:
+        info.append(meta + "_stat_" + s.name.replace(' ', ''))
 
     for w in WEAPON_KEY_LIST:
         info.append(meta + "_weapon_" + w)
@@ -125,8 +127,6 @@ class Figure:
             self.load,
             self.hp,
             self.hp_max,
-            self.stat.name,
-            self.stat.value,
             self.bonus,
             self.activated,
             self.responded,
@@ -143,7 +143,11 @@ class Figure:
             self.position.x,
             self.position.y,
             self.position.z,
+            self.stat.value,
         ]
+
+        for s in STATS_LIST:
+            data.append(self.stat == s)
 
         for w in WEAPON_KEY_LIST:
             data.append(self.weapons[w].ammo if w in self.weapons else 0)
