@@ -5,9 +5,9 @@ import pandas as pd
 import yaml
 
 from agents.matchmanager import MatchManager
-from agents.ml.classifier import ClassifierAgent
+from agents.ml.regression import RegressionAgent
 from core.const import RED, BLUE
-from core.game.state import vectorStateInfo, vectorState, vectorActionInfo, vectorAction
+from core.game.state import vectorAction, vectorActionInfo, vectorStateInfo, vectorState
 from scenarios import scenarioJunction
 
 dir_path = op.dirname(op.realpath(__file__))
@@ -21,11 +21,11 @@ if __name__ == '__main__':
 
     board, state = scenarioJunction()
 
-    red = ClassifierAgent(RED, 'models/Junction_RandomForestClassifier_red_20210215.joblib', seed=seed)
-    blue = ClassifierAgent(BLUE, 'models/Junction_RandomForestClassifier_blue_20210215.joblib', seed=seed)
+    # red = ClassifierAgent(RED, 'models/Junction_RandomForestClassifier_red_20210215.joblib', seed=seed)
+    # blue = ClassifierAgent(BLUE, 'models/Junction_RandomForestClassifier_blue_20210215.joblib', seed=seed)
 
-    # red = RegressionAgent(RED, 'models/Junction_RandomForestRegressor_red_20210215.joblib', seed=seed)
-    # blue = RegressionAgent(BLUE, 'models/Junction_RandomForestRegressor_blue_20210215.joblib', seed=seed)
+    red = RegressionAgent(RED, 'models/Junction_RandomForestRegressor_red_20210215.joblib', seed=seed)
+    blue = RegressionAgent(BLUE, 'models/Junction_RandomForestRegressor_blue_20210215.joblib', seed=seed)
 
     # red = GreedyAgent(RED, seed=seed)
     # blue = GreedyAgent(BLUE, seed=seed)

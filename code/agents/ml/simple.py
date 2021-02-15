@@ -32,11 +32,13 @@ class MLAgent(Agent):
         ]
 
     def store(self, bestScore: float, bestAction: Action, actionsScores: list):
-        # TODO: check this
         scores = [i[0] for i in actionsScores]
         actions = [type(i[1]).__name__ for i in actionsScores]
 
-        data = [bestScore, bestAction, entropy(scores), len(scores), scores, actions, self.randomChoice, self.set]
+        data = [
+            bestScore, type(bestAction).__name__, entropy(scores), len(scores), scores, actions, self.randomChoice,
+            self.set
+        ]
 
         self.register(data)
 
@@ -60,8 +62,8 @@ class MLAgent(Agent):
         bestScore, bestAction = 0.0, None
         if len(scores) > 0:
             sorted_multi_list = sorted(scores, key=lambda x: x[0])
-            choice = np.random.choice(sorted_multi_list[:self.set])
-            bestScore, bestAction = choice
+            choice = np.random.randint(0, max(self.set, len(scores)))
+            bestScore, bestAction = sorted_multi_list[:self.set][choice]
         return bestScore, bestAction
 
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
