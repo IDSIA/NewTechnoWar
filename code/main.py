@@ -4,8 +4,8 @@ import os.path as op
 import pandas as pd
 import yaml
 
-from agents import GreedyAgent
 from agents.matchmanager import MatchManager
+from agents.ml.classifier import ClassifierAgent
 from core.const import RED, BLUE
 from core.game.state import vectorStateInfo, vectorState, vectorActionInfo, vectorAction
 from scenarios import scenarioJunction
@@ -20,10 +20,16 @@ if __name__ == '__main__':
     seed = 51
 
     board, state = scenarioJunction()
-    # red = RegressorAgent(RED, {'scenario': board.name, 'model': 'RandomForestRegressor'}, seed=seed)
-    # blue = RegressorAgent(BLUE, {'scenario': board.name, 'model': 'RandomForestRegressor'}, seed=seed)
-    red = GreedyAgent(RED, seed=seed)
-    blue = GreedyAgent(BLUE, seed=seed)
+
+    red = ClassifierAgent(RED, 'models/Junction_RandomForestClassifier_red_20210215.joblib', seed=seed)
+    blue = ClassifierAgent(BLUE, 'models/Junction_RandomForestClassifier_blue_20210215.joblib', seed=seed)
+
+    # red = RegressionAgent(RED, 'models/Junction_RandomForestRegressor_red_20210215.joblib', seed=seed)
+    # blue = RegressionAgent(BLUE, 'models/Junction_RandomForestRegressor_blue_20210215.joblib', seed=seed)
+
+    # red = GreedyAgent(RED, seed=seed)
+    # blue = GreedyAgent(BLUE, seed=seed)
+
     mm = MatchManager(' ', red, blue, board, state, seed=seed)
     while not mm.end:
         mm.nextStep()

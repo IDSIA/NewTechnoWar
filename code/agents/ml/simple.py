@@ -1,110 +1,84 @@
-import os.path as op
-import random
+import logging
+import os
+from typing import List, Tuple
 
 import joblib
 import numpy as np
 import pandas as pd
 
 from agents import Agent, GreedyAgent
+from agents.utils import entropy
 from core import GM
 from core.actions import Action
-from core.const import BLUE
 from core.game.board import GameBoard
 from core.game.state import GameState
 
-dir_path = op.dirname(op.realpath(__file__))
 
+class MLAgent(Agent):
 
-class SimpleMLAgent(Agent):
+    def __init__(self, name: str, team: str, filename: str, randomChoice=False, seed=0):
+        super().__init__(name, team, seed)
 
-    def __init__(self, team: str, params: dict, randomChoice=False, seed=0):
-        super().__init__('SimpleML', team, seed)
+        self.filename = filename
+        self.model = joblib.load(os.path.join(os.getcwd(), filename))
 
-        file = params['scenario'] + '_' + params['model'] + '.joblib'
         self.randomChoice = randomChoice
 
         self.set = 0
 
-        self.params: dict = params
-        self.model = joblib.load(op.join(dir_path, '..', '..', 'models', file))
-
-    def takeProbs(self, scores: list):
-        probabilities = []
-        i = 0 if self.team == BLUE else 1
-
-        for probs, action in scores:
-            probabilities.append(probs[0])
-
-        arr = np.array(probabilities)
-        return arr[:, i]  # first column red, second column blue agent
-
-    def entropy(self, scores: list):
-        # TODO: change with entropy in utils
-        probs = self.takeProbs(scores)
-        if any(probs):
-            norm = [float(i) / sum(probs) for i in probs]
-            return -(norm * np.log(norm) / np.log(len(scores))).sum()
-        else:
-            return 0
-
     def dataFrameInfo(self):
         return super().dataFrameInfo() + [
-            'score', 'action', 'entropy', 'n_scores', 'scores', 'random_choice', 'set'
+            'score', 'action', 'entropy', 'n_scores', 'scores', 'actions', 'random_choice', 'n_choices'
         ]
 
-    def store(self, bestScore, bestAction, scores):
-        # TODO: register type of actions
-        data = [bestScore, bestAction, self.entropy(scores), len(scores), scores, self.randomChoice, self.set]
+    def store(self, bestScore: float, bestAction: Action, actionsScores: list):
+        # TODO: check this
+        scores = [i[0] for i in actionsScores]
+        actions = [type(i[1]).__name__ for i in actionsScores]
+
+        data = [bestScore, bestAction, entropy(scores), len(scores), scores, actions, self.randomChoice, self.set]
 
         self.register(data)
 
     def createDf(self):
         return pd.DataFrame(data=self.history, columns=self.dataFrameInfo())
 
-    def bestAction(self, scores: list):
-        bestScore, bestAction = 0.0, None
-        for probs, action in scores:
-            if self.team == BLUE:
-                score = probs[0, 0]
-            else:
-                score = probs[0, 1]
+    def scores(self, state: GameState, stateActions: List[Action]) -> List[Tuple[float, Action]]:
+        raise NotImplemented()
+
+    @staticmethod
+    def bestAction(scores: List[Tuple[float, Action]]):
+        bestScore, bestAction = -1e9, None
+        for score, action in scores:
             if score >= bestScore:
                 bestScore, bestAction = score, action
 
         return bestScore, bestAction
 
-    def bestActionRandom(self, scores: list) -> (float, Action):
+    def bestActionRandom(self, scores: List[Tuple[float, Action]]) -> (float, Action):
         self.set = 10
         bestScore, bestAction = 0.0, None
         if len(scores) > 0:
-            sorted_multi_list = sorted(scores, key=lambda x: x[0][0][0])
-            # TODO questo sorted mi occupa moooolto tempo, si può fare altro modo?
-            if self.team == BLUE:
-                choice = random.choice(sorted_multi_list[-self.set:])
-                bestScore = choice[0][0][0]
-                bestAction = choice[1]
-            else:
-                choice = random.choice(sorted_multi_list[:self.set])
-                bestScore = choice[0][0][1]
-                bestAction = choice[1]
+            sorted_multi_list = sorted(scores, key=lambda x: x[0])
+            choice = np.random.choice(sorted_multi_list[:self.set])
+            bestScore, bestAction = choice
         return bestScore, bestAction
 
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
-        scores = []
+        all_actions = []
 
         for figure in state.getFiguresCanBeActivated(self.team):
             actions = [GM.actionPassFigure(figure)] + \
                       GM.buildAttacks(board, state, figure) + \
                       GM.buildMovements(board, state, figure)
-            for action in actions:
-                newState, outcome = GM.activate(board, state, action)
 
-                X = np.array(newState.vectorState()).reshape(1, -1)
-                cols = newState.vectorStateInfo()
-                df = pd.DataFrame(data=X, columns=cols)
-                score = self.model.predict_proba(df)
+            all_actions += actions
 
-                scores.append((score, action))
+        if not all_actions:
+            raise ValueError('No action given')
+
+        scores = self.scores(state, all_actions)
+
         if self.randomChoice:
             bestScore, bestAction = self.bestActionRandom(scores)
         else:
@@ -118,31 +92,30 @@ class SimpleMLAgent(Agent):
         return bestAction
 
     def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
-        scores = []
+        all_actions = []
 
         for figure in state.getFiguresCanBeActivated(self.team):
             actions = [GM.actionPassResponse(self.team)] + \
                       GM.buildResponses(board, state, figure)
 
-            for action in actions:
-                newState, outcome = GM.activate(board, state, action)
+            all_actions += actions
 
-                X = np.array(newState.vectorState()).reshape(1, -1)
-                cols = newState.vectorStateInfo()
-                df = pd.DataFrame(data=X, columns=cols)
-                score = self.model.predict_proba(df)
-                scores.append((score, action))
+        if not all_actions:
+            raise ValueError('No response given')
+
+        scores = self.scores(state, all_actions)
 
         if self.randomChoice:
             bestScore, bestAction = self.bestActionRandom(scores)
         else:
             bestScore, bestAction = self.bestAction(scores)
 
-        if bestAction is not None:
-            self.store(bestScore, bestAction, scores)
-
         if not bestAction:
-            raise ValueError('No action given')
+            raise ValueError('No response given')
+
+        self.store(bestScore, bestAction, scores)
+
+        logging.debug(f'BEST RESPONSE {self.team:5}: {bestAction} ({bestScore})')
 
         return bestAction
 

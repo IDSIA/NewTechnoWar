@@ -331,7 +331,7 @@ def vectorActionInfo() -> tuple:
     )
 
 
-def vectorState(state: GameState) -> tuple:
+def vectorState(state: GameState, action: Action = None) -> tuple:
     """Convert the state in a vector, used for internal hashing."""
     data = [
         state.seed,
@@ -371,7 +371,10 @@ def vectorState(state: GameState) -> tuple:
                     else:
                         data.append(None)
 
-    data += vectorAction(state.lastAction)
+    if not action:
+        data += vectorAction(state.lastAction)
+    else:
+        data += vectorAction(action)
 
     return tuple(data)
 
