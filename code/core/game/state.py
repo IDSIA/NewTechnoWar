@@ -261,13 +261,13 @@ def vectorAction(action: Action) -> tuple:
 
     response = False
     action_figure_index = [False] * MAX_UNITS_PER_TEAM
-    action_destination_x = None
-    action_destination_y = None
-    action_destination_z = None
-    action_path = None
+    action_destination_x = 0
+    action_destination_y = 0
+    action_destination_z = 0
+    action_path = 0
     action_guard_index = [False] * MAX_UNITS_PER_TEAM
-    action_lof = None
-    action_los = None
+    action_lof = 0
+    action_los = 0
     action_target_index = [False] * MAX_UNITS_PER_TEAM
     action_weapon_id = [False] * len(WEAPON_KEY_LIST)
 

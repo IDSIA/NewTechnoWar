@@ -17,7 +17,7 @@ class ClassifierAgent(MLAgent):
         X = [vectorState(state, action) for action in actions]
 
         df = pd.DataFrame(data=X, columns=vectorStateInfo()).dropna(axis=1)
-        df = df[[c for c in df.columns if self.team in c]]  # TODO: move this to the pipeline
+        df = df.drop(['meta_seed', 'meta_scenario', 'action_team'], axis=1)
 
         idx = 1 if self.team == BLUE else 0
         scores = self.model.predict_proba(df)
