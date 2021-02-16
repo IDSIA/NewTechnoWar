@@ -376,7 +376,7 @@ def vectorState(state: GameState, action: Action = None) -> tuple:
 def vectorStateInfo() -> tuple:
     """Convert the state in a vector, used for internal hashing."""
     info = [
-        "seed", "scenario", "turn"
+        "meta_seed", "meta_scenario", "turn"
     ]
 
     for team in [RED, BLUE]:
