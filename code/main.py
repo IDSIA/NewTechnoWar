@@ -4,7 +4,7 @@ import os.path as op
 import pandas as pd
 import yaml
 
-from agents import RandomAgent, GreedyAgent
+from agents import GreedyAgent
 from agents.matchmanager import MatchManager
 from core.const import RED, BLUE
 from core.game.state import vectorAction, vectorActionInfo, vectorStateInfo, vectorState
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     # blue = GreedyAgent(BLUE, seed=seed)
 
     # scenarioJunction RandomAgent GreedyAgent 151775519
-    red = RandomAgent(RED)
+    red = GreedyAgent(RED)
     blue = GreedyAgent(BLUE)
 
     mm = MatchManager(' ', red, blue, board, state, seed=seed)
