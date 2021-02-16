@@ -7,6 +7,7 @@ import numpy as np
 
 from agents import Agent
 from agents.commons import stateScore
+from agents.utils import entropy
 from core import GM
 from core.actions import Action
 from core.figures import Figure
@@ -19,11 +20,24 @@ from utils.copy import deepcopy
 
 class GreedyAgent(Agent):
 
-    def __init__(self, team: str):
-        super().__init__('GreedyAgent', team)
+    def __init__(self, team: str, seed=0):
+        super().__init__('GreedyAgent', team, seed=seed)
 
         self.goal_params: GoalParams = GoalParams()
         self.maximize: bool = True
+
+    def dataFrameInfo(self):
+        return super().dataFrameInfo() + [
+            'score', 'action', 'entropy', 'n_scores', 'scores', 'actions'
+        ]
+
+    def store(self, bestScore: float, bestAction: Action, scoreActions: list):
+        scores = [x[0] for x in scoreActions]
+        actions = [type(x[1]).__name__ for x in scoreActions]
+
+        data = [bestScore, type(bestAction).__name__, entropy(scores), len(scoreActions), scores, actions]
+
+        self.register(data)
 
     def evaluateState(self, board: GameBoard, state: GameState, action: Action, baseScore: float = 0) -> float:
         s1, outcome = GM.activate(board, state, action)
@@ -109,6 +123,9 @@ class GreedyAgent(Agent):
 
         # search for action with best score
         score, action = self.opt(scores)
+
+        self.store(score, action, scores)
+
         logging.debug(f'{self.team:5}: {action} ({score})')
         return action
 
@@ -122,8 +139,10 @@ class GreedyAgent(Agent):
 
         # search for action with best score
         score, action = self.opt(scores)
-        logging.debug(f'{self.team:5}: {action} ({score})')
 
+        self.store(score, action, scores)
+
+        logging.debug(f'{self.team:5}: {action} ({score})')
         return action
 
     def placeFigures(self, board: GameBoard, state: GameState) -> None:

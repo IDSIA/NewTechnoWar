@@ -17,3 +17,5 @@ UPSTAIRS = FigureStatus('Upstairs', 3)
 UNDER_FIRE = FigureStatus('Under fire', -1)
 # no friendly troop within 4 hexagons
 CUT_OFF = FigureStatus('Cut off', 3)
+
+STATS_LIST = [HIDDEN, LOADED, NO_EFFECT, IN_MOTION, UPSTAIRS, UNDER_FIRE, CUT_OFF]

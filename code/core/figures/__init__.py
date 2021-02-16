@@ -4,7 +4,7 @@ This module defines the available figures and their rules.
 import uuid
 from typing import Dict, List
 
-from core.figures.status import FigureStatus, NO_EFFECT, LOADED
+from core.figures.status import FigureStatus, NO_EFFECT, LOADED, STATS_LIST
 from core.figures.types import FigureType
 from core.figures.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, \
     SniperRifle, Weapon, WEAPON_KEY_LIST
@@ -13,6 +13,48 @@ from utils import INFINITE
 from utils.coordinates import Cube, to_cube
 
 DEFENSE_KEY_LIST = ['basic', 'smoke', 'antitank']
+
+
+def vectorFigureInfo(meta) -> tuple:
+    info = [
+        meta + "_index",
+        meta + "_kind",
+        meta + "_end",
+        meta + "_int_atk",
+        meta + "_int_def",
+        meta + "_move",
+        meta + "_load",
+        meta + "_hp",
+        meta + "_hp_max",
+        meta + "_bonus",
+        meta + "_activated",
+        meta + "_responded",
+        meta + "_attacked",
+        meta + "_moved",
+        meta + "_passed",
+        meta + "_killed",
+        meta + "_hit",
+        meta + "_attacked_by",
+        meta + "_can_transport",
+        meta + "_transport_capacity",
+        meta + "_len_transporting",
+        meta + "_transported_by",
+        meta + "_positionX",
+        meta + "_positionY",
+        meta + "_positionZ",
+        meta + "_stat_value",
+    ]
+
+    for s in STATS_LIST:
+        info.append(meta + "_stat_" + s.name.replace(' ', ''))
+
+    for w in WEAPON_KEY_LIST:
+        info.append(meta + "_weapon_" + w)
+
+    for d in DEFENSE_KEY_LIST:
+        info.append(meta + "_defense_" + d)
+
+    return tuple(info)
 
 
 class Figure:
@@ -73,66 +115,18 @@ class Figure:
         self.transporting: List[int] = []
         self.transported_by: int = -1
 
-    def vectorInfo(self) -> tuple:
-        meta = f'{self.team}_{self.kind}_{self.index}'
-
-        info = [
-            # "fid_" + meta,
-            "team_" + meta,
-            "name_" + meta,
-            "index_" + meta,
-            "kind_" + meta,
-            "move_" + meta,
-            "load_" + meta,
-            "hp_" + meta,
-            "hp_max_" + meta,
-            "int_atk_" + meta,
-            "int-def_" + meta,
-            "endurance_" + meta,
-            "stat-name_" + meta,
-            "stat-value_" + meta,
-            "bonus_" + meta,
-            "activated_" + meta,
-            "responded_" + meta,
-            "attacked_" + meta,
-            "moved_" + meta,
-            "passed_" + meta,
-            "killed_" + meta,
-            "hit_" + meta,
-            "attacked-by_" + meta,
-            "can-transport_" + meta,
-            "transport-capacity_" + meta,
-            "len-transporting_" + meta,
-            "transported-by_" + meta,
-            "positionX_" + meta,
-            "positionY_" + meta,
-            "positionZ_" + meta,
-        ]
-        for d in DEFENSE_KEY_LIST:
-            info.append("defense_" + d + "_" + meta)
-
-        for w in WEAPON_KEY_LIST:
-            info.append("weapon_" + w + "_" + meta)
-        return tuple(info)
-
     def vector(self) -> tuple:
         """Data on the figure in vectorized version, used for internal hashing."""
         data = [
-
-            # self.fid,
-            self.team,
-            self.name,
             self.index,
             self.kind,
+            self.endurance,
+            self.int_atk,
+            self.int_def,
             self.move,
             self.load,
             self.hp,
             self.hp_max,
-            self.int_atk,
-            self.int_def,
-            self.endurance,
-            self.stat.name,
-            self.stat.value,
             self.bonus,
             self.activated,
             self.responded,
@@ -146,18 +140,20 @@ class Figure:
             self.transport_capacity,
             len(self.transporting),
             self.transported_by,
-
+            self.position.x,
+            self.position.y,
+            self.position.z,
+            self.stat.value,
         ]
 
-        data += list(self.position)
-
-        for d in DEFENSE_KEY_LIST:
-            data.append(self.defense[d] if d in self.defense else 0)
-            # print("D",self.defense[d])
+        for s in STATS_LIST:
+            data.append(self.stat == s)
 
         for w in WEAPON_KEY_LIST:
             data.append(self.weapons[w].ammo if w in self.weapons else 0)
-            # print("W",self.weapons[w].ammo)
+
+        for d in DEFENSE_KEY_LIST:
+            data.append(self.defense[d] if d in self.defense else 0)
 
         return tuple(data)
 
