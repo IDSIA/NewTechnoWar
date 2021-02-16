@@ -30,7 +30,7 @@ def reachablePath(figure: Figure, board: GameBoard, state: GameState, max_cost: 
         visited.add(current)
 
         for next in board.getNeighbors(current):
-            new_cost = cost_so_far[current] + board.getMovementCost(next, figure.kind) + state.getMovementCost(next)
+            new_cost = cost_so_far[current] + board.getMovementCost(next, figure.kind) + state.getMovementCost(next, figure.kind)
 
             if new_cost > max_cost:
                 continue
@@ -74,7 +74,7 @@ def findPath(start: Cube, goal: Cube, board: GameBoard, state: GameState, kind: 
             break
 
         for next in board.getNeighbors(current):
-            new_cost = cost_so_far[current] + board.getMovementCost(next, kind) + state.getMovementCost(next)
+            new_cost = cost_so_far[current] + board.getMovementCost(next, kind)
             if next not in cost_so_far or new_cost < cost_so_far[next]:
                 cost_so_far[next] = new_cost
                 priority = new_cost + heuristic(goal, next)

@@ -161,8 +161,6 @@ class GameState:
     def getFiguresByPos(self, team: str, pos: tuple) -> List[Figure]:
         """Returns all the figures that occupy the given position."""
 
-        # TODO: only one unit per hexagon!
-
         if len(pos) == 2:
             pos = to_cube(pos)
         if pos not in self.posToFigure[team]:
@@ -181,11 +179,8 @@ class GameState:
         """Returns a list of figures that have not responded."""
         return [f for f in self.figures[team] if not f.responded and not f.killed]
 
-    def getMovementCost(self, pos: Cube) -> float:
-        figures = self.getFiguresByPos(RED, pos) + self.getFiguresByPos(BLUE, pos)
-        for figure in figures:
-            if not figure.killed:
-                return 1000.0
+    def getMovementCost(self, pos: Cube, kind: int) -> float:
+        # TODO: this method is for future expansions
         return 0.0
 
     def moveFigure(self, figure: Figure, curr: Cube = None, dst: Cube = None) -> None:

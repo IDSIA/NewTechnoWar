@@ -82,8 +82,17 @@ class GameManager(object):
 
         for path in movements:
             if len(path) == 1:
+                # avoid stay on the same position
                 continue
-            destinationFigures = state.getFiguresByPos(figure.team, path[-1])
+
+            other = RED if figure.team == BLUE else BLUE
+            enemyFigures = state.getFiguresByPos(other, path[-1])
+
+            if enemyFigures:
+                # cannot end on the same hex with an enemy figure
+                continue
+
+            destinationFigures = [f for f in state.getFiguresByPos(figure.team, path[-1]) if not f.killed]
             availableTransporters = [f for f in destinationFigures if f.canTransport(figure)]
 
             if len(destinationFigures) > 0 and not availableTransporters:
