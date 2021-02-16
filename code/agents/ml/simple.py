@@ -42,9 +42,6 @@ class MLAgent(Agent):
 
         self.register(data)
 
-    def createDf(self):
-        return pd.DataFrame(data=self.history, columns=self.dataFrameInfo())
-
     def scores(self, state: GameState, stateActions: List[Action]) -> List[Tuple[float, Action]]:
         raise NotImplemented()
 
