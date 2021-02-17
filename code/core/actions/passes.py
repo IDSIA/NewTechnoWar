@@ -12,7 +12,6 @@ class Pass:
         return 'Pass'
 
 
-
 class PassTeam(Pass, Action):
     """Action that does absolutely nothing."""
 

@@ -10,7 +10,7 @@ import scenarios
 from agents import Agent
 from agents.interactive.interactive import Human
 from core import GM
-from core.actions import Attack, Move, Action, Response
+from core.actions import Attack, Move, Action, Response, PassRespond, PassTeam
 from core.const import RED, BLUE
 from core.game.board import GameBoard
 from core.game.goals import goalAchieved
@@ -124,17 +124,16 @@ class MatchManager:
 
         try:
             action = self.first.chooseAction(self.board, self.state)
-            outcome = GM.step(self.board, self.state, action)
-
-            self._store(state0, action, outcome)
-            logging.info(f'{self.first.team:5} {"action":9}: {action} {outcome["comment"]}')
-
         except ValueError as e:
-            logging.info(f'{self.first.team:5} {"exception":9}: {e}')
-            self._store(state0)
+            logging.debug(f'{self.first.team:5} {"exception":9}: {e}')
+            action = PassTeam(self.first.team)
 
-        finally:
-            self._goCheck()
+        outcome = GM.step(self.board, self.state, action)
+
+        self._store(state0, action, outcome)
+        logging.info(f'{self.first.team:5} {"action":9}: {action} {outcome["comment"]}')
+
+        self._goCheck()
 
     def _goResponse(self):
         """Response step."""
@@ -143,17 +142,16 @@ class MatchManager:
 
         try:
             response = self.second.chooseResponse(self.board, self.state)
-            outcome = GM.step(self.board, self.state, response)
-
-            self._store(state0, response, outcome)
-            logging.info(f'{self.second.team:5} {"response":9}: {response} {outcome["comment"]}')
-
         except ValueError as e:
-            logging.info(f'{self.second.team:5} {"exception":9}: {e}')
-            self._store(state0)
+            logging.debug(f'{self.second.team:5} {"exception":9}: {e}')
+            response = PassRespond(self.second.team)
 
-        finally:
-            self._goCheck()
+        outcome = GM.step(self.board, self.state, response)
+
+        self._store(state0, response, outcome)
+        logging.info(f'{self.second.team:5} {"response":9}: {response} {outcome["comment"]}')
+
+        self._goCheck()
 
     def _goCheck(self):
         """Check next step to do."""
