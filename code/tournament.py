@@ -27,9 +27,10 @@ ELO_K = 40
 
 class Player:
 
-    def __init__(self, id: int = 0, kind: str = '', filename: str = '', points: int = ELO_POINTS):
+    def __init__(self, id: int = 0, kind: str = '', var='', filename: str = '', points: int = ELO_POINTS):
         self.id = id
         self.kind = kind
+        self.var = var
         self.filename = filename
         self.points = points
         self.wins = 0
@@ -76,8 +77,8 @@ def playJunction(seed: int, red: Player, blue: Player) -> MatchManager:
     playerBlue = blue.agent(BLUE, seed)
 
     print(f'match between:\n'
-          f'\t{"RED":5}: {red.id:5} ({red.kind})-> {playerRed.__class__.__name__}\n'
-          f'\t{"BLUE":5}: {blue.id:5} ({blue.kind})-> {playerBlue.__class__.__name__}')
+          f'\t{"RED":5}: {red.id:5} ({red.kind} {red.var})-> {playerRed.__class__.__name__}\n'
+          f'\t{"BLUE":5}: {blue.id:5} ({blue.kind} {red.var})-> {playerBlue.__class__.__name__}')
 
     mm = MatchManager(' ', playerRed, playerBlue, board, state, seed=seed)
     while not mm.end:
@@ -137,16 +138,16 @@ def compress(epoch: int, dir_data) -> pd.DataFrame:
 def splitDataFrame(df: pd.DataFrame) -> tuple:
     df = df.dropna(axis=1, how='all')
 
-    df_red = df[df['action_team'] == 'red'].copy().drop('action_team', axis=1)
-    df_blue = df[df['action_team'] == 'blue'].copy().drop('action_team', axis=1)
+    df_red = df[df['action_team'] == 'red'].copy().drop('action_team', axis=1, errors='ignore')
+    df_blue = df[df['action_team'] == 'blue'].copy().drop('action_team', axis=1, errors='ignore')
 
     df_red['label'] = df_red['winner'].apply(lambda x: 1 if x == 'red' else -1)
     df_blue['label'] = df_blue['winner'].apply(lambda x: 1 if x == 'blue' else -1)
 
-    X_red = df_red.drop(['winner', 'label'], axis=1)
+    X_red = df_red.drop(['winner', 'label'], axis=1, errors='ignore')
     y_red = df_red['label']
 
-    X_blue = df_blue.drop(['winner', 'label'], axis=1)
+    X_blue = df_blue.drop(['winner', 'label'], axis=1, errors='ignore')
     y_blue = df_blue['label']
 
     X = pd.concat([X_red, X_blue])
@@ -160,7 +161,7 @@ def splitDataFrame(df: pd.DataFrame) -> tuple:
 def initBuildDataFrame(raw: pd.DataFrame) -> tuple:
     df = raw.drop([
         'meta_scenario', 'meta_seed', 'meta_i_red', 'meta_i_blue'
-    ], axis=1, errors="ignore")
+    ], axis=1, errors='ignore')
 
     return splitDataFrame(df)
 
@@ -168,7 +169,7 @@ def initBuildDataFrame(raw: pd.DataFrame) -> tuple:
 def buildDataFrame(raw: pd.DataFrame, ids: list) -> tuple:
     df = raw[raw['meta_i_red'].isin(ids) & raw['meta_i_blue'].isin(ids)].drop([
         'meta_seed', 'meta_scenario', 'meta_i_red', 'meta_i_blue'
-    ], axis=1, errors="ignore")
+    ], axis=1, errors='ignore')
 
     return splitDataFrame(df)
 
@@ -197,8 +198,8 @@ def main():
     seed = 20210217
     size = 20
     count = size
-    games_per_epoch = 100
-    epochs = 5
+    games_per_epoch = 2
+    epochs = 2
     top_models = 2
 
     random.seed = seed
@@ -276,9 +277,9 @@ def main():
             # add a default mix of players
             population = []
             for i in range(3):
-                for s, filename in models:
-                    print('added: ', s, filename)
-                    population.append(Player(count, s, filename))
+                for s, t, filename in models:
+                    print('added: ', s, t, filename)
+                    population.append(Player(count, s, t, filename))
                     count += 1
             for i in range(2):
                 population.append(Player(count, 'gre'))
