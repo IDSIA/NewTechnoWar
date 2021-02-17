@@ -14,8 +14,8 @@ ACTION_PASS = 2
 
 class RandomAgent(Agent):
 
-    def __init__(self, team: str):
-        super().__init__('RandomAgent', team)
+    def __init__(self, team: str, seed=0):
+        super().__init__('RandomAgent', team, seed=seed)
 
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
         # choose which figures that can still be activate will be activated
