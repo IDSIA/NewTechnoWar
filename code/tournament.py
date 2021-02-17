@@ -77,8 +77,8 @@ def playJunction(seed: int, red: Player, blue: Player) -> MatchManager:
     playerBlue = blue.agent(BLUE, seed)
 
     print(f'match between:\n'
-          f'\t{"RED":5}: {red.id:5} ({red.kind} {red.var})-> {playerRed.__class__.__name__}\n'
-          f'\t{"BLUE":5}: {blue.id:5} ({blue.kind} {red.var})-> {playerBlue.__class__.__name__}')
+          f'\t{playerRed.team:5}: {red.id:5} ({red.kind} {red.var}) -> {playerRed.__class__.__name__}\n'
+          f'\t{playerBlue.team:5}: {blue.id:5} ({blue.kind} {red.var}) -> {playerBlue.__class__.__name__}')
 
     mm = MatchManager(' ', playerRed, playerBlue, board, state, seed=seed)
     while not mm.end:
@@ -110,6 +110,8 @@ def play(args) -> tuple:
     df['winner'] = mm.winner
     df['meta_i_red'] = red.id
     df['meta_i_blue'] = blue.id
+
+    print("shapy: ", df.shape)
 
     # save to disk
     filename = f'game.{epoch}.{seed}.{red.id}.{blue.id}.pkl.gz'
@@ -167,7 +169,7 @@ def initBuildDataFrame(raw: pd.DataFrame) -> tuple:
 
 
 def buildDataFrame(raw: pd.DataFrame, ids: list) -> tuple:
-    df = raw[raw['meta_i_red'].isin(ids) & raw['meta_i_blue'].isin(ids)].drop([
+    df = raw[raw['meta_i_red'].isin(ids) | raw['meta_i_blue'].isin(ids)].drop([
         'meta_seed', 'meta_scenario', 'meta_i_red', 'meta_i_blue'
     ], axis=1, errors='ignore')
 
@@ -184,10 +186,10 @@ def buildModel(args) -> tuple:
 
     print('built', s, ':', filename)
 
-    return s, filename
+    return s, t, filename
 
 
-def main():
+def main() -> None:
     # setup folders
     TODAY = datetime.now().strftime("%Y%m%d-%H%M%S")
     DIR_WORK = os.path.join('tournament', TODAY)
@@ -214,9 +216,9 @@ def main():
             print("=" * 100)
             print()
 
-            os.makedirs(os.path.join(DIR_DATA, str(epoch)))
-            os.makedirs(os.path.join(DIR_MODELS, str(epoch)))
-            os.makedirs(os.path.join(DIR_OUT, str(epoch)))
+            os.makedirs(os.path.join(DIR_DATA, str(epoch)), exist_ok=True)
+            os.makedirs(os.path.join(DIR_MODELS, str(epoch)), exist_ok=True)
+            os.makedirs(os.path.join(DIR_OUT, str(epoch)), exist_ok=True)
 
             # play with all other players
             print('Playing games...')
@@ -257,7 +259,7 @@ def main():
                 print('TOP 10:')
                 for i in range(10):
                     pop = population[i]
-                    print(f'({i:2}) {pop.kind:5} {pop.id:5}: {pop.points:5} (W: {pop.wins:3} L: {pop.losses:3})')
+                    print(f'({i:2}) {pop.kind:5} {pop.id:5}: {pop.points:6.2} (W: {pop.wins:3} L: {pop.losses:3})')
                 print('\ntop ', top_models, 'will contribute with their data\n')
 
                 X, y, X_red, y_red, X_blue, y_blue = buildDataFrame(df, top_ids)

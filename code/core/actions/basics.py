@@ -2,6 +2,7 @@ from core.figures import Figure
 
 # TODO: add method to EXECUTE the action directly on an Action object
 
+
 class Action:
     """Basic action class"""
 
