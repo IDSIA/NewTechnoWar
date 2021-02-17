@@ -6,7 +6,7 @@ from agents.ml.simple import MLAgent
 from core.actions import Action
 from core.const import BLUE
 from core.game.board import GameBoard
-from core.game.state import GameState, vectorState, vectorStateInfo
+from core.game.state import GameState, vectorState, vectorStateInfo, vectorAction, vectorActionInfo
 
 
 class ClassifierAgent(MLAgent):
@@ -15,9 +15,9 @@ class ClassifierAgent(MLAgent):
         super().__init__('ClassifierAgent', team, filename, randomChoice, seed)
 
     def scores(self, state: GameState, board: GameBoard, actions: List[Action]) -> List[Tuple[float, Action]]:
-        X = [vectorState(state, action) for action in actions]
+        X = [vectorState(state) + vectorAction(action) for action in actions]
 
-        df = pd.DataFrame(data=X, columns=vectorStateInfo()).dropna(axis=1)
+        df = pd.DataFrame(data=X, columns=vectorStateInfo() + vectorActionInfo()).dropna(axis=1)
         df = df.drop(['meta_seed', 'meta_scenario', 'action_team'], axis=1)
 
         idx = 1 if self.team == BLUE else 0
