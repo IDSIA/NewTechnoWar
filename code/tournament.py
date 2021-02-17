@@ -111,8 +111,6 @@ def play(args) -> tuple:
     df['meta_i_red'] = red.id
     df['meta_i_blue'] = blue.id
 
-    print("shapy: ", df.shape)
-
     # save to disk
     filename = f'game.{epoch}.{seed}.{red.id}.{blue.id}.pkl.gz'
     df.to_pickle(os.path.join(dir_data, str(epoch), filename), compression='gzip')
@@ -200,8 +198,8 @@ def main() -> None:
     seed = 20210217
     size = 20
     count = size
-    games_per_epoch = 2
-    epochs = 2
+    games_per_epoch = 10
+    epochs = 5
     top_models = 2
 
     random.seed = seed
@@ -259,7 +257,7 @@ def main() -> None:
                 print('TOP 10:')
                 for i in range(10):
                     pop = population[i]
-                    print(f'({i:2}) {pop.kind:5} {pop.id:5}: {pop.points:6.2} (W: {pop.wins:3} L: {pop.losses:3})')
+                    print(f'({i+1:2}) {pop.kind:5} {pop.id:5}: {pop.points:6.2f} (W: {pop.wins:3} L: {pop.losses:3})')
                 print('\ntop ', top_models, 'will contribute with their data\n')
 
                 X, y, X_red, y_red, X_blue, y_blue = buildDataFrame(df, top_ids)
