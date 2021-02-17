@@ -38,16 +38,18 @@ class Player:
     def expected(self, other):
         return 1. / (1. + math.pow(10., (other.points - self.points) / ELO_POINTS))
 
-    def update(self, against, points):
-        self.points = self.points + ELO_K * (points - self.expected(against))
+    def update(self, points, exp):
+        self.points = self.points + ELO_K * (points - exp)
 
     def win(self, against):
         self.wins += 1
-        self.update(against, 1)
+        against.losses += 1
 
-    def lost(self, against):
-        self.losses += 1
-        self.update(against, 0)
+        eA = self.expected(against)
+        eB = against.expected(self)
+
+        self.update(1, eA)
+        against.update(0, eB)
 
     def agent(self, team, seed) -> Agent:
         if self.kind == 'gre':
@@ -84,7 +86,7 @@ def playJunction(seed: int, red: Player, blue: Player) -> MatchManager:
     return mm
 
 
-def play(args) -> None:
+def play(args) -> tuple:
     red: Player = args[0]
     blue: Player = args[1]
     seed: int = args[2]
@@ -92,13 +94,6 @@ def play(args) -> None:
     dir_data: str = args[4]
 
     mm = playJunction(seed, red, blue)
-
-    if mm.winner == RED:
-        red.win(blue)
-        blue.lost(red)
-    else:
-        blue.win(red)
-        red.lost(blue)
 
     # get data frames
     states_cols = vectorStateInfo()
@@ -118,6 +113,8 @@ def play(args) -> None:
     # save to disk
     filename = f'game.{epoch}.{seed}.{red.id}.{blue.id}.pkl.gz'
     df.to_pickle(os.path.join(dir_data, str(epoch), filename), compression='gzip')
+
+    return red.id, blue.id, mm.winner
 
 
 def compress(epoch: int, dir_data) -> pd.DataFrame:
@@ -230,7 +227,18 @@ def main():
                     args.append(
                         (population[i], population[i + 1], random.randint(100000000, 999999999), epoch, DIR_DATA)
                     )
-                p.map(play, args)
+                results = p.map(play, args)
+                players = {p.id: p for p in population}
+
+                print('update results:')
+                for rid, bid, winner in results:
+                    print('\t*', rid, 'vs', bid, ':', winner)
+                    red = players[rid]
+                    blue = players[bid]
+                    if winner == RED:
+                        red.win(blue)
+                    else:
+                        blue.win(red)
 
             # collect generated data
             df = compress(epoch, DIR_DATA)
