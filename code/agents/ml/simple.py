@@ -4,7 +4,6 @@ from typing import List, Tuple
 
 import joblib
 import numpy as np
-import pandas as pd
 
 from agents import Agent, GreedyAgent
 from agents.utils import entropy
@@ -42,7 +41,7 @@ class MLAgent(Agent):
 
         self.register(state, data)
 
-    def scores(self, state: GameState, stateActions: List[Action]) -> List[Tuple[float, Action]]:
+    def scores(self, state: GameState, board: GameBoard, stateActions: List[Action]) -> List[Tuple[float, Action]]:
         raise NotImplemented()
 
     @staticmethod
@@ -76,7 +75,7 @@ class MLAgent(Agent):
         if not all_actions:
             raise ValueError('No action given')
 
-        scores = self.scores(state, all_actions)
+        scores = self.scores(state, board, all_actions)
 
         if self.randomChoice:
             bestScore, bestAction = self.bestActionRandom(scores)
@@ -102,7 +101,7 @@ class MLAgent(Agent):
         if not all_actions:
             raise ValueError('No response given')
 
-        scores = self.scores(state, all_actions)
+        scores = self.scores(state, board, all_actions)
 
         if self.randomChoice:
             bestScore, bestAction = self.bestActionRandom(scores)
