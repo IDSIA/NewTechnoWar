@@ -31,13 +31,13 @@ class GreedyAgent(Agent):
             'score', 'action', 'entropy', 'n_scores', 'scores', 'actions'
         ]
 
-    def store(self, bestScore: float, bestAction: Action, scoreActions: list):
+    def store(self, state: GameState, bestScore: float, bestAction: Action, scoreActions: list):
         scores = [x[0] for x in scoreActions]
         actions = [type(x[1]).__name__ for x in scoreActions]
 
         data = [bestScore, type(bestAction).__name__, entropy(scores), len(scoreActions), scores, actions]
 
-        self.register(data)
+        self.register(state, data)
 
     def evaluateState(self, board: GameBoard, state: GameState, action: Action, baseScore: float = 0) -> float:
         s1, outcome = GM.activate(board, state, action)
@@ -124,7 +124,7 @@ class GreedyAgent(Agent):
         # search for action with best score
         score, action = self.opt(scores)
 
-        self.store(score, action, scores)
+        self.store(state, score, action, scores)
 
         logging.debug(f'{self.team:5}: {action} ({score})')
         return action
@@ -140,7 +140,7 @@ class GreedyAgent(Agent):
         # search for action with best score
         score, action = self.opt(scores)
 
-        self.store(score, action, scores)
+        self.store(state, score, action, scores)
 
         logging.debug(f'{self.team:5}: {action} ({score})')
         return action

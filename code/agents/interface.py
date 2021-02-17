@@ -17,15 +17,16 @@ class Agent:
 
         self.history: list = []
 
-    def register(self, data: list):
+    def register(self, state: GameState, data: list):
         self.count += 1
-        self.history.append([datetime.now(), self.team, self.seed, self.count] + data)
+        self.history.append([datetime.now(), self.team, self.seed, state.turn, self.count] + data)
 
     def dataFrameInfo(self):
         return [
             "time",
             "team",
             "seed",
+            "turn",
             "count",
         ]
 

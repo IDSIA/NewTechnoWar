@@ -31,7 +31,7 @@ class MLAgent(Agent):
             'score', 'action', 'entropy', 'n_scores', 'scores', 'actions', 'random_choice', 'n_choices'
         ]
 
-    def store(self, bestScore: float, bestAction: Action, actionsScores: list):
+    def store(self, state: GameState, bestScore: float, bestAction: Action, actionsScores: list):
         scores = [i[0] for i in actionsScores]
         actions = [type(i[1]).__name__ for i in actionsScores]
 
@@ -40,7 +40,7 @@ class MLAgent(Agent):
             self.set
         ]
 
-        self.register(data)
+        self.register(state, data)
 
     def scores(self, state: GameState, stateActions: List[Action]) -> List[Tuple[float, Action]]:
         raise NotImplemented()
@@ -83,7 +83,7 @@ class MLAgent(Agent):
         else:
             bestScore, bestAction = self.bestAction(scores)
 
-        self.store(bestScore, bestAction, scores)
+        self.store(state, bestScore, bestAction, scores)
 
         if not bestAction:
             raise ValueError('No action given')
@@ -112,7 +112,7 @@ class MLAgent(Agent):
         if not bestAction:
             raise ValueError('No response given')
 
-        self.store(bestScore, bestAction, scores)
+        self.store(state, bestScore, bestAction, scores)
 
         logging.debug(f'BEST RESPONSE {self.team:5}: {bestAction} ({bestScore})')
 
