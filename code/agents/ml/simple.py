@@ -12,6 +12,8 @@ from core.actions import Action
 from core.game.board import GameBoard
 from core.game.state import GameState
 
+logger = logging.getLogger(__name__)
+
 
 class MLAgent(Agent):
 
@@ -73,6 +75,7 @@ class MLAgent(Agent):
             all_actions += actions
 
         if not all_actions:
+            logger.warning('No actions available: no action given')
             raise ValueError('No action given')
 
         scores = self.scores(state, board, all_actions)
@@ -85,6 +88,7 @@ class MLAgent(Agent):
         self.store(state, bestScore, bestAction, scores)
 
         if not bestAction:
+            logger.warning('No best action found: no action given')
             raise ValueError('No action given')
 
         return bestAction
@@ -99,6 +103,7 @@ class MLAgent(Agent):
             all_actions += actions
 
         if not all_actions:
+            logger.warning('No actions available: no response given')
             raise ValueError('No response given')
 
         scores = self.scores(state, board, all_actions)
@@ -109,11 +114,12 @@ class MLAgent(Agent):
             bestScore, bestAction = self.bestAction(scores)
 
         if not bestAction:
+            logger.warning('No best action found: no response given')
             raise ValueError('No response given')
 
         self.store(state, bestScore, bestAction, scores)
 
-        logging.debug(f'BEST RESPONSE {self.team:5}: {bestAction} ({bestScore})')
+        logger.debug(f'BEST RESPONSE {self.team:5}: {bestAction} ({bestScore})')
 
         return bestAction
 

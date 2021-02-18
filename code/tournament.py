@@ -1,3 +1,4 @@
+import logging.config
 import math
 import os
 import random
@@ -12,17 +13,13 @@ from agents import MatchManager, GreedyAgent, ClassifierAgent, RegressionAgent, 
 from core.const import RED, BLUE
 from core.game.state import vectorStateInfo, vectorState, vectorActionInfo, vectorAction
 from scenarios import scenarioJunction
+from utils.setup_logging import setup_logging
 
 CORES = cpu_count()
 ELO_POINTS = 400
 ELO_K = 40
 
-
-# TODO: setup logs
-# DIR_PATH = os.path.dirname(os.path.realpath(__file__))
-# with open(os.path.join(DIR_PATH, 'logger.config.yaml'), 'r') as stream:
-#     config = yaml.load(stream, Loader=yaml.FullLoader)
-# logging.config.dictConfig(config)
+logger = logging.getLogger("tourney")
 
 
 class Player:
@@ -76,9 +73,9 @@ def playJunction(seed: int, red: Player, blue: Player) -> MatchManager:
     playerRed = red.agent(RED, seed)
     playerBlue = blue.agent(BLUE, seed)
 
-    print(f'match between:\n'
-          f'\t{playerRed.team:5}: {red.id:5} ({red.kind} {red.var}) -> {playerRed.__class__.__name__}\n'
-          f'\t{playerBlue.team:5}: {blue.id:5} ({blue.kind} {red.var}) -> {playerBlue.__class__.__name__}')
+    logger.debug(f'match between:\n' +
+                 f'\t{playerRed.team:5}: {red.id:5} ({red.kind} {red.var}) -> {playerRed.__class__.__name__}\n' +
+                 f'\t{playerBlue.team:5}: {blue.id:5} ({blue.kind} {red.var}) -> {playerBlue.__class__.__name__}')
 
     mm = MatchManager(' ', playerRed, playerBlue, board, state, seed=seed)
     while not mm.end:
@@ -153,7 +150,8 @@ def splitDataFrame(df: pd.DataFrame) -> tuple:
     X = pd.concat([X_red, X_blue])
     y = pd.concat([y_red, y_blue])
 
-    print('shapes', X.shape, y.shape, X_red.shape, y_red.shape, X_blue.shape, y_blue.shape)
+    logger.debug(f'shapes: X={X.shape} y={y.shape} X_red={X_red.shape} y_red={y_red.shape} ' +
+                 f'X_blue={X_blue.shape} y_blue{y_blue.shape}')
 
     return X, y, X_red, y_red, X_blue, y_blue
 
@@ -182,7 +180,7 @@ def buildModel(args) -> tuple:
     filename = os.path.join(dir_models, f'{epoch}_{s}_{t}.joblib')
     joblib.dump(m, filename)
 
-    print('built', s, ':', filename)
+    logger.info(f'built ({s} {t}): {filename}')
 
     return s, t, filename
 
@@ -208,18 +206,14 @@ def main() -> None:
 
     with Pool(CORES, maxtasksperchild=1) as p:
         for epoch in range(epochs):
-            print()
-            print("=" * 100)
-            print("EPOCH: ", epoch)
-            print("=" * 100)
-            print()
+            logger.info(f"EPOCH: {epoch}")
 
             os.makedirs(os.path.join(DIR_DATA, str(epoch)), exist_ok=True)
             os.makedirs(os.path.join(DIR_MODELS, str(epoch)), exist_ok=True)
             os.makedirs(os.path.join(DIR_OUT, str(epoch)), exist_ok=True)
 
             # play with all other players
-            print('Playing games...')
+            logger.info('Playing games...')
             for _ in range(games_per_epoch):
                 # randomly select a pair of players
                 random.shuffle(population)
@@ -231,9 +225,9 @@ def main() -> None:
                 results = p.map(play, args)
                 players = {p.id: p for p in population}
 
-                print('update results:')
+                logger.info('update results:')
                 for rid, bid, winner in results:
-                    print('\t*', rid, 'vs', bid, ':', winner)
+                    logger.info(f'\t* {rid:5} vs {bid:5}: {winner} wins!')
                     red = players[rid]
                     blue = players[bid]
                     if winner == RED:
@@ -244,21 +238,22 @@ def main() -> None:
             # collect generated data
             df = compress(epoch, DIR_DATA)
 
-            print('\nbuilding models...')
+            logger.info('building models...')
             if epoch == 0:
-                print('first build of models')
+                logger.info('first build of models')
                 X, y, X_red, y_red, X_blue, y_blue = initBuildDataFrame(df)
 
             else:
-                print('choosing best models...')
+                logger.info('choosing best models...')
                 population = sorted(population, key=lambda x: -x.points)
                 top_ids = [p.id for p in population[:top_models]]
 
-                print('TOP 10:')
+                logger.info('TOP 10:')
                 for i in range(10):
                     pop = population[i]
-                    print(f'({i+1:2}) {pop.kind:5} {pop.id:5}: {pop.points:6.2f} (W: {pop.wins:3} L: {pop.losses:3})')
-                print('\ntop ', top_models, 'will contribute with their data\n')
+                    logger.info(
+                        f'({i + 1:2}) {pop.kind:5} {pop.id:5}: {pop.points:6.2f} (W: {pop.wins:3} L: {pop.losses:3})')
+                logger.info('top ', top_models, 'will contribute with their data')
 
                 X, y, X_red, y_red, X_blue, y_blue = buildDataFrame(df, top_ids)
 
@@ -278,7 +273,7 @@ def main() -> None:
             population = []
             for i in range(3):
                 for s, t, filename in models:
-                    print('added: ', s, t, filename)
+                    logger.info(f'added: ({s} {t}): filename')
                     population.append(Player(count, s, t, filename))
                     count += 1
             for i in range(2):
@@ -287,4 +282,5 @@ def main() -> None:
 
 
 if __name__ == '__main__':
+    setup_logging()
     main()

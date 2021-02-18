@@ -16,6 +16,8 @@ from core.game.state import GameState
 from utils.coordinates import cube_add, Cube, cube_distance, to_cube
 from utils.copy import deepcopy
 
+logger = logging.getLogger(__name__)
+
 
 class GameManager(object):
     """Utility class that helps in manage the states of the game and build actions."""
@@ -340,7 +342,7 @@ class GameManager(object):
         target.hit = True
 
         if target.hp <= 0:
-            logging.debug(f'{action}: ({success} {score}/{hitScore}): KILL! ({target.hp}/{target.hp_max})')
+            logger.debug(f'{action}: ({success} {score}/{hitScore}): KILL! ({target.hp}/{target.hp_max})')
             target.killed = True
 
             # kill all transported units
@@ -348,10 +350,10 @@ class GameManager(object):
                 f = state.getFigureByIndex(target.team, idx)
                 f.killed = True
                 f.hp = 0
-                logging.debug(f'{action}: {f} killed while transporting')
+                logger.debug(f'{action}: {f} killed while transporting')
 
         else:
-            logging.debug(f'{action}: ({success} {score}/{hitScore}): HIT!  ({target.hp}/{target.hp_max})')
+            logger.debug(f'{action}: ({success} {score}/{hitScore}): HIT!  ({target.hp}/{target.hp_max})')
             # disable a random weapon
             weapons = [x for x in target.weapons if not weapon.disabled]
             to_disable = np.random.choice(weapons, weapon.damage * success, replace=False)
@@ -364,7 +366,7 @@ class GameManager(object):
         team: str = action.team  # team performing action
         comment: str = ''
 
-        logging.debug(f'{team} step with {action}')
+        logger.debug(f'{team} step with {action}')
         state.lastAction = action
 
         if isinstance(action, Pass):
@@ -373,7 +375,7 @@ class GameManager(object):
                 f.activated = True
                 f.passed = True
 
-            logging.debug(f'{action}: {comment}')
+            logger.debug(f'{action}: {comment}')
 
             return {'comment': comment}
 
@@ -400,7 +402,7 @@ class GameManager(object):
                 t.stat = LOADED
                 state.moveFigure(t, t.position, action.destination)
 
-            logging.debug(f'{action}: {comment}')
+            logger.debug(f'{action}: {comment}')
 
             return {'comment': comment}
 
@@ -431,7 +433,7 @@ class GameManager(object):
 
                 comment = f'smoke at {x}'
 
-            logging.debug(f'{action}: {comment}')
+            logger.debug(f'{action}: {comment}')
 
             return {'comment': comment}
 
@@ -505,9 +507,9 @@ class GameManager(object):
                     self.applyDamage(state, action, hitScore, score, 1, m, w)
 
             else:
-                logging.debug(f'({success} {score}/{hitScore}): MISS!')
+                logger.debug(f'({success} {score}/{hitScore}): MISS!')
 
-            logging.debug(f'{action}: {comment}')
+            logger.debug(f'{action}: {comment}')
 
             return {
                 'comment': comment,

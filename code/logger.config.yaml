@@ -1,6 +1,6 @@
 version: 1
 formatters:
-  basic:
+  standard:
     datefmt: '%Y-%m-%d %H:%M:%S'
     format: '%(asctime)s %(levelname)s %(message)s'
 
@@ -8,25 +8,39 @@ handlers:
   console:
     class: logging.StreamHandler
     level: DEBUG
-    formatter: basic
+    formatter: standard
     stream: ext://sys.stdout
 
-  file:
-    class: logging.FileHandler
+  agents_file_handler:
+    class: logging.handlers.RotatingFileHandler
     level: DEBUG
-    formatter: basic
-    filename: newtechnowar.log
+    formatter: standard
+    filename: logs/agents.log
+    maxBytes: 1048576
+    backupCount: 10
+    encoding: utf8
 
-loggers:
-  basicExample:
-    level: INFO
-    handlers:
-      - console
-      - file
-    propagate: no
+  tourney_file_handler:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: standard
+    filename: logs/tourney.log
+    maxBytes: 1048576
+    backupCount: 10
+    encoding: utf8
 
 root:
-  level: INFO
-  handlers:
-    - console
-    - file
+  level: NOTSET
+  handlers: [ console ]
+  propagate: yes
+
+loggers:
+  agents:
+    level: INFO
+    handlers: [ agents_file_handler ]
+    propagate: no
+
+  tourney:
+    level: INFO
+    handlers: [ console, tourney_file_handler ]
+    propagate: no
