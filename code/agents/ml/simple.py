@@ -36,10 +36,13 @@ class MLAgent(Agent):
         scores = [i[0] for i in actionsScores]
         actions = [type(i[1]).__name__ for i in actionsScores]
 
-        data = [
-            bestScore, type(bestAction).__name__, entropy(scores), len(scores), scores, actions, self.randomChoice,
-            self.set
-        ]
+        h = entropy(scores)
+
+        if h > 1. or h < 0.:
+            logger.warning(f'Entropy out of range: {h}')
+            logger.warning(f'{scores}')
+
+        data = [bestScore, type(bestAction).__name__, h, len(scores), scores, actions, self.randomChoice, self.set]
 
         self.register(state, data)
 

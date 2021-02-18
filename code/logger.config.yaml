@@ -7,25 +7,30 @@ formatters:
 handlers:
   console:
     class: logging.StreamHandler
-    level: DEBUG
     formatter: standard
     stream: ext://sys.stdout
 
   agents_file_handler:
     class: logging.handlers.RotatingFileHandler
-    level: DEBUG
     formatter: standard
-    filename: logs/agents.log
+    filename: logs/agents.info.log
+    maxBytes: 1048576
+    backupCount: 10
+    encoding: utf8
+
+  agents_file_warning_handler:
+    class: logging.handlers.RotatingFileHandler
+    formatter: standard
+    filename: logs/agents.warn.log
     maxBytes: 1048576
     backupCount: 10
     encoding: utf8
 
   tourney_file_handler:
     class: logging.handlers.RotatingFileHandler
-    level: DEBUG
     formatter: standard
-    filename: logs/tourney.log
-    maxBytes: 1048576
+    filename: logs/tourney.all.log
+    maxBytes: 10485760
     backupCount: 10
     encoding: utf8
 
@@ -39,6 +44,11 @@ loggers:
     level: INFO
     handlers: [ agents_file_handler ]
     propagate: no
+  
+  agents.ml:
+    level: WARNING
+    handlers: [agents_file_warning_handler]
+    propagate: yes
 
   tourney:
     level: INFO

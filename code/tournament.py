@@ -194,20 +194,22 @@ def main() -> None:
     DIR_OUT = os.path.join(DIR_WORK, "out")
 
     seed = 20210217
-    size = 20
-    count = size
+    size = 20  # TODO: add a distribution parameter
     games_per_epoch = 10
     epochs = 5
     top_models = 2
 
     random.seed = seed
+    count = size
 
+    # initial population TODO: put this in a generator function
     population = [Player(c, 'gre') for c in range(count)]
 
     with Pool(CORES, maxtasksperchild=1) as p:
         for epoch in range(epochs):
             logger.info(f"EPOCH: {epoch}")
 
+            # create folders for this epoc
             os.makedirs(os.path.join(DIR_DATA, str(epoch)), exist_ok=True)
             os.makedirs(os.path.join(DIR_MODELS, str(epoch)), exist_ok=True)
             os.makedirs(os.path.join(DIR_OUT, str(epoch)), exist_ok=True)
@@ -248,6 +250,8 @@ def main() -> None:
                 population = sorted(population, key=lambda x: -x.points)
                 top_ids = [p.id for p in population[:top_models]]
 
+                # TODO: keep track of the color of the models,
+                #       maybe different ladders for different types of models?
                 logger.info('TOP 10:')
                 for i in range(10):
                     pop = population[i]
@@ -257,7 +261,8 @@ def main() -> None:
 
                 X, y, X_red, y_red, X_blue, y_blue = buildDataFrame(df, top_ids)
 
-            # build models based on built dataframes
+            # build models based on dataframes built above
+            # TODO: keep track of dataframes of previous generations?
             args = [
                 (epoch, RandomForestRegressor(), X_red, y_red, 'reg', 'red', DIR_MODELS),
                 (epoch, RandomForestRegressor(), X_blue, y_blue, 'reg', 'blue', DIR_MODELS),
@@ -267,9 +272,11 @@ def main() -> None:
                 (epoch, RandomForestClassifier(), X, y, 'cls', 'all', DIR_MODELS),
             ]
 
+            # parallel building
             models = p.map(buildModel, args)
 
             # add a default mix of players
+            # TODO: mix should be defined in a function and follow the population distribution
             population = []
             for i in range(3):
                 for s, t, filename in models:
