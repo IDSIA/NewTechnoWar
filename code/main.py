@@ -7,7 +7,8 @@ import yaml
 from agents import GreedyAgent
 from agents.matchmanager import MatchManager
 from core.const import RED, BLUE
-from core.vectors import vectorActionInfo, vectorAction, vectorStateInfo, vectorState
+from core.game import vectorStateInfo, vectorState
+from core.vectors import vectorActionInfo, vectorAction
 from scenarios import scenarioJunction
 
 dir_path = op.dirname(op.realpath(__file__))

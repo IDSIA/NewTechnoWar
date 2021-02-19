@@ -10,7 +10,7 @@ from core.game.board import GameBoard
 from core.game.scores import MISS_MATRIX, hitScoreCalculator
 from core.game.state import GameState
 from core.game.static import CUTOFF_RANGE
-from core.utils.coordinates import cube_add, Cube, cube_distance, to_cube
+from core.utils.coordinates import Cube
 from core.utils.pathfinding import reachablePath, findPath
 from utils.copy import deepcopy
 
@@ -35,8 +35,8 @@ class GameManager(object):
         """Creates a PassResponse action where a team will give no response in this step."""
         return PassRespond(team)
 
-    def actionMove(self, board: GameBoard, state: GameState, figure: Figure, path: list = None,
-                   destination: tuple = None) -> Move:
+    def actionMove(self, board: GameBoard, state: GameState, figure: Figure, path: List[Cube] = None,
+                   destination: Cube = None) -> Move:
         """
         Creates a Move action for a figure with a specified destination or a path. If path is not given, it will be
         computed using the destination argument as a target. It can raise a ValueError exception if destination is
@@ -47,8 +47,6 @@ class GameManager(object):
             raise ValueError('no path and no destination given: where should go the figure?')
 
         if not path:
-            if len(destination) == 2:
-                destination = to_cube(destination)
             path = findPath(figure.position, destination, board, state, figure.kind)
             if len(path) - 1 > (figure.move - figure.load):
                 raise ValueError(f'destination unreachable for {figure} to {path[-1]}')
@@ -246,16 +244,13 @@ class GameManager(object):
         return responses
 
     @staticmethod
-    def actionAttackGround(figure: Figure, ground: tuple or Cube, weapon: Weapon):
+    def actionAttackGround(figure: Figure, ground: Cube, weapon: Weapon):
         """Creates an AttackGround action for a figure given the ground location and the weapon to use."""
 
         if not weapon.attack_ground:
             raise ValueError(f'weapon {weapon} cannot attack ground')
 
-        if len(ground) == 2:
-            ground = to_cube(ground)
-
-        if cube_distance(figure.position, ground) > weapon.max_range:
+        if figure.position.distance(ground) > weapon.max_range:
             raise ValueError(f'weapon {weapon} cannot reach {ground} from {figure.position}')
 
         return AttackGround(figure, ground, weapon)
@@ -416,15 +411,15 @@ class GameManager(object):
 
             if w.smoke:
                 cloud = [
-                    cube_add(x, Cube(0, -1, 1)),
-                    cube_add(x, Cube(1, -1, 0)),
-                    cube_add(x, Cube(1, 0, -1)),
-                    cube_add(x, Cube(0, 1, -1)),
-                    cube_add(x, Cube(-1, 1, 0)),
-                    cube_add(x, Cube(-1, 0, 1)),
+                    x + Cube(0, -1, 1),
+                    x + Cube(1, -1, 0),
+                    x + Cube(1, 0, -1),
+                    x + Cube(0, 1, -1),
+                    x + Cube(-1, 1, 0),
+                    x + Cube(-1, 0, 1),
                 ]
 
-                cloud = [(cube_distance(c, f.position), c) for c in cloud]
+                cloud = [(c.distance(f.position), c) for c in cloud]
                 cloud = sorted(cloud, key=lambda y: -y[0])
 
                 state.addSmoke([c[1] for c in cloud[1:3]] + [x])

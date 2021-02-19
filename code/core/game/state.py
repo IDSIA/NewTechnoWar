@@ -6,7 +6,7 @@ from core.actions import Action, ActionFigure, Attack, AttackGround, LoadInto
 from core.const import RED, BLUE
 from core.figures import FigureType, Figure, Weapon, vectorFigureInfo
 from core.game.static import MAX_SMOKE, MAX_UNITS_PER_TEAM
-from core.utils.coordinates import to_cube, Cube, cube_linedraw, cube_to_hex
+from core.utils.coordinates import Cube, Hex
 
 
 class GameState:
@@ -155,11 +155,9 @@ class GameState:
         """Returns all figures of a team."""
         return self.figures[team]
 
-    def getFiguresByPos(self, team: str, pos: tuple) -> List[Figure]:
+    def getFiguresByPos(self, team: str, pos: Cube) -> List[Figure]:
         """Returns all the figures that occupy the given position."""
 
-        if len(pos) == 2:
-            pos = to_cube(pos)
         if pos not in self.posToFigure[team]:
             return []
         return [self.getFigureByIndex(team, i) for i in self.posToFigure[team][pos]]
@@ -213,12 +211,12 @@ class GameState:
             if attacker.index not in self.figuresLOS[attackers]:
                 self.figuresLOS[attackers][attacker.index] = {}
 
-            self.figuresLOS[attackers][attacker.index][target.index] = cube_linedraw(target.position, attacker.position)
-            self.figuresLOS[defenders][target.index][attacker.index] = cube_linedraw(attacker.position, target.position)
+            self.figuresLOS[attackers][attacker.index][target.index] = target.position.line(attacker.position)
+            self.figuresLOS[defenders][target.index][attacker.index] = attacker.position.line(target.position)
 
         self.figuresDistance[defenders][target.index] = {
             # defender's line of sight
-            defender.index: cube_linedraw(defender.position, target.position)
+            defender.index: defender.position.line(target.position)
             for defender in self.figures[defenders]
         }
 
@@ -230,17 +228,17 @@ class GameState:
                     return True
         return False
 
-    def addSmoke(self, smoke: list) -> None:
+    def addSmoke(self, smoke: List[Cube]) -> None:
         """Add a cloud of smoke to the status. This cloud is defined by a list of Cubes."""
-        for h in smoke:
-            self.smoke[cube_to_hex(h)] = MAX_SMOKE
+        for c in smoke:
+            self.smoke[c.tuple()] = MAX_SMOKE
 
-    def hasSmoke(self, lof: list) -> bool:
+    def hasSmoke(self, lof: List[Cube]) -> bool:
         """
         Smoke rule: if you fire against a panzer, and during the line of sight, you meet a smoke hexagon (not only on
         the hexagon where the panzer is), this smoke protection is used, and not the basic protection value.
         """
-        return any([self.smoke[cube_to_hex(h)] > 0 for h in lof])
+        return any([self.smoke[c.tuple()] > 0 for c in lof])
 
     def reduceSmoke(self) -> None:
         """Reduce by 1 the counter for of smoke clouds."""

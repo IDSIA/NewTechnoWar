@@ -1,7 +1,16 @@
+from typing import List
+
 from core.actions import ACTION_KEY_LIST, Action, Move, Attack, Response
-from core.figures import WEAPON_KEY_LIST
+from core.const import RED, BLUE
+from core.figures import WEAPON_KEY_LIST, FigureType
 from core.game import GameBoard, GameState
 from core.game.static import MAX_UNITS_PER_TEAM
+from core.utils.coordinates import Cube
+
+
+def checkLine(board: GameBoard, state: GameState, line: List[Cube]) -> bool:
+    """Returns True if the line is valid (has no obstacles), otherwise False."""
+    return not any([state.isObstacle(h) or board.isObstacle(h) for h in line[1:-1]])
 
 
 def vectorActionInfo() -> tuple:
@@ -92,15 +101,62 @@ def vectorAction(action: Action) -> tuple:
 
     return tuple(data)
 
-
+'''
 def vectorBoardInfo() -> tuple:
     # TODO: add header for features that are board-dependent
     raise NotImplemented()
 
 
-def vectorBoard(board: GameBoard, state: GameState) -> tuple:
+def vectorBoard(board: GameBoard, state: GameState, action: Action = None, params: GoalParams = None) -> tuple:
     # TODO: add features that are an interaction of board and state:
     #       - distance from goals
-    #       - LOS/LOF blocked
     #       - distance to cover (forest, building)
-    raise NotImplemented()
+
+    data = []
+
+    # LOS/LOF check
+    for teams in [(RED, BLUE), (BLUE, RED)]:
+        team, other = teams
+        for i in range(MAX_UNITS_PER_TEAM):
+            for j in range(MAX_UNITS_PER_TEAM):
+                if i != j:
+                    if i < len(state.figures[team]) and j < len(state.figures[team]):
+                        line: list = state.figuresDistance.get(team)[j][i]
+                        data.append(checkLine(board, state, line))
+                    else:
+                        data.append(None)
+
+    # goals parameter (static for the whole game) TODO: and if we made them dynamic?!
+    if params:
+        data += [
+            params.unit_team_lost,
+            params.unit_team_alive,
+            params.unit_enemy_killed,
+            params.unit_enemy_alive,
+            params.reach_team_near,
+            params.defend_team_near,
+            params.defend_enemy_near,
+            params.wait_for_turn
+        ]
+    else:
+        data += [None] * 8
+
+    # info on the goals
+    for team in [RED, BLUE]:
+        objectives = board.objectives[team]
+        # TODO
+        for goal in GOAL_KEY_LIST:
+            pass
+
+    # extra info from action
+    if action and isinstance(action, Move):
+        data.append(board.getProtectionLevel(action.destination))
+        data.append(board.getMovementCost(action.destination, FigureType.INFANTRY))
+        data.append(board.getMovementCost(action.destination, FigureType.VEHICLE))
+    else:
+        data.append(None)
+        data.append(None)
+        data.append(None)
+
+    return tuple(data)
+'''

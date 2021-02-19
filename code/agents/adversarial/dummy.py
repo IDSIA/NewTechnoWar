@@ -3,7 +3,7 @@ import numpy as np
 from agents import Agent
 from core.actions import Action, PassTeam, PassFigure
 from core.game import GM, GameBoard, GameState
-from core.utils.coordinates import to_cube
+from core.utils.coordinates import Hex
 
 ACTION_MOVE = 0
 ACTION_ATTACK = 1
@@ -86,7 +86,7 @@ class RandomAgent(Agent):
         for i in range(len(figures)):
             # move each unit to its position
             figure = figures[i]
-            dst = to_cube((x[indices[i]], y[indices[i]]))
+            dst = Hex(x[indices[i]], y[indices[i]]).cube()
             state.moveFigure(figure, figure.position, dst)
 
     def chooseFigureGroups(self, board: GameBoard, state: GameState) -> None:

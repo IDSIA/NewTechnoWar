@@ -3,7 +3,7 @@ from math import sqrt
 import numpy as np
 
 from core.game import GameBoard, Terrain, TERRAIN_TYPE
-from core.utils.coordinates import to_cube, cube_to_hex
+from core.utils.coordinates import Cube, Hex
 
 SIZE = 10
 w = SIZE * 2
@@ -28,27 +28,27 @@ def pos_to_dict(i, j):
     return {'i': i, 'j': j, 'x': x, 'y': y}
 
 
-def cube_to_ijxy(position):
-    i, j = cube_to_hex(position)
+def cube_to_ijxy(position: Cube):
+    i, j = position.tuple()
     x, y = pos_to_xy((i, j))
     return i, j, x, y
 
 
-def cube_to_dict(position):
-    i, j = cube_to_hex(position)
+def cube_to_dict(position: Cube):
+    i, j = position.tuple()
     x, y = pos_to_xy((i, j))
     return {'i': i, 'j': j, 'x': x, 'y': y}
 
 
 class Hexagon:
-    def __init__(self, position: tuple, terrain: Terrain, geography: int, objective: bool, blockLos: bool):
+    def __init__(self, position: Hex, terrain: Terrain, geography: int, objective: bool, blockLos: bool):
         self.terrain = terrain
         self.geography = geography
         self.objective = objective
         self.blockLos = blockLos
-        self.cube = to_cube(position)
+        self.cube = position.cube()
 
-        self.i, self.j = position
+        self.i, self.j = position.tuple()
         self.x, self.y = pos_to_xy(position)
 
     def css(self):
@@ -74,7 +74,7 @@ def scroll(board: GameBoard):
 
     for i in range(0, x):
         for j in range(0, y):
-            p = (i, j)
+            p = Hex(i, j)
 
             index = board.terrain[p]
             tt = TERRAIN_TYPE[index]
@@ -83,7 +83,7 @@ def scroll(board: GameBoard):
                 p,
                 tt,
                 board.geography[p],
-                to_cube(p) in objectiveMarks,
+                p.cube() in objectiveMarks,
                 tt.blockLos
             )
 
@@ -98,7 +98,7 @@ def pzoneToHex(zone):
 
     for item in zip(x, y):
         h = Hexagon(
-            item,
+            Hex(t=item),
             Terrain.OPEN_GROUND,
             0,
             False,

@@ -4,7 +4,7 @@ from agents import Agent
 from core.actions import Action, Response
 from core.const import RED, BLUE
 from core.game import GM, GameBoard, GameState
-from core.utils.coordinates import to_cube
+from core.utils.coordinates import Hex
 
 
 class Human(Agent):
@@ -61,7 +61,7 @@ class Human(Agent):
             idx = int(data['idx'])
             x = int(data['x'])
             y = int(data['y'])
-            pos = to_cube((x, y))
+            pos = Hex(x, y).cube()
 
             self.place[idx] = pos
             return
@@ -80,7 +80,7 @@ class Human(Agent):
         idx = int(data['idx'])
         x = int(data['x'])
         y = int(data['y'])
-        pos = to_cube((x, y))
+        pos = Hex(x, y).cube()
 
         figure = state.getFigureByIndex(self.team, idx)
 

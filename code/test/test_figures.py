@@ -3,6 +3,7 @@ import unittest
 from core.const import RED, BLUE
 from core.figures import Infantry
 from core.game import GM, GameBoard, GameState
+from core.utils.coordinates import Hex
 
 
 class TestFigures(unittest.TestCase):
@@ -65,9 +66,12 @@ class TestFigures(unittest.TestCase):
         self.assertFalse(self.inf_2.activated)
         self.assertFalse(self.inf_2.responded)
 
-        m1 = GM.actionMove(self.board, self.state, self.inf_1, destination=(5, 12))
+        dst1 = Hex(5, 12).cube()
+        dst2 = Hex(8, 12).cube()
+
+        m1 = GM.actionMove(self.board, self.state, self.inf_1, destination=dst1)
         r1 = GM.actionRespond(self.board, self.state, self.inf_1, self.target_2, self.inf_1.weapons['AR'])
-        m2 = GM.actionMove(self.board, self.state, self.inf_2, destination=(8, 12))
+        m2 = GM.actionMove(self.board, self.state, self.inf_2, destination=dst2)
         r2 = GM.actionRespond(self.board, self.state, self.inf_2, self.target_3, self.inf_1.weapons['AR'])
 
         # check that attack activate unit

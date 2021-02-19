@@ -11,7 +11,7 @@ from core.figures.status import FigureStatus, NO_EFFECT, LOADED, STATS_LIST
 from core.figures.types import FigureType
 from core.figures.weapons import Weapon, MachineGun, Cannon, SmokeGrenade, AssaultRifle, AntiTank, Mortar, Grenade, \
     SniperRifle, WEAPON_KEY_LIST
-from core.utils.coordinates import Cube, to_cube
+from core.utils.coordinates import Cube, Hex
 
 
 def vectorFigureInfo(meta: str) -> tuple:
@@ -66,7 +66,7 @@ class Figure:
         'attacked', 'moved', 'passed', 'color'
     ]
 
-    def __init__(self, position: tuple or Cube, name: str, team: str, kind: int, stat: FigureStatus):
+    def __init__(self, position: tuple or Hex or Cube, name: str, team: str, kind: int, stat: FigureStatus):
         self.fid = str(uuid.uuid4())
         self.team: str = team
         self.color: str = ''
@@ -94,10 +94,14 @@ class Figure:
         self.stat: FigureStatus = stat
         self.bonus = 0
 
-        if len(position) == 3:
+        if isinstance(position, Cube):
             self.position: Cube = position
+        elif isinstance(position, Hex):
+            self.position: Cube = position.cube()
+        elif len(position) == 2:
+            self.position: Cube = Hex(t=position).cube()
         else:
-            self.position: Cube = to_cube(position)
+            self.position: Cube = Cube(t=position)
 
         self.activated: bool = False
         self.responded: bool = False

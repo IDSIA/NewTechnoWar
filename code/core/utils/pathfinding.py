@@ -4,9 +4,7 @@ from typing import List, Dict, Set
 from core.figures import Figure
 from core.game.manager import GameBoard
 from core.game.state import GameState
-from core.utils.coordinates import cube_distance, Cube
-
-heuristic = cube_distance
+from core.utils.coordinates import Cube
 
 
 def reachablePath(figure: Figure, board: GameBoard, state: GameState, max_cost: int) -> (Set[Cube], List[Cube]):
@@ -78,7 +76,7 @@ def findPath(start: Cube, goal: Cube, board: GameBoard, state: GameState, kind: 
             new_cost = cost_so_far[current] + board.getMovementCost(next, kind)
             if next not in cost_so_far or new_cost < cost_so_far[next]:
                 cost_so_far[next] = new_cost
-                priority = new_cost + heuristic(goal, next)
+                priority = new_cost + goal.distance(next)
                 frontier.put((priority, next))
                 came_from[next] = current
 

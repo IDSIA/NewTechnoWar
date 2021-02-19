@@ -9,8 +9,10 @@ from core.const import RED, BLUE
 from core.figures import FigureType
 from core.game.manager import GameBoard, GameState
 from core.game.terrain import Terrain
-from core.utils.coordinates import cube_to_hex, to_cube
+from core.utils.coordinates import Hex
 
+
+# TODO: this class is old and broken!
 
 def draw_void(board: GameBoard):
     cols, rows = board.shape
@@ -33,8 +35,8 @@ def draw_state(board: GameBoard, state: GameState, size: float = 2. / 3., coord_
 
     for r in range(rows):
         for q in range(cols):
-            p = (q, r)
-            c = to_cube(p)
+            p = Hex(q, r)
+            c = p.cube()
 
             # background color
             color = 'white'
@@ -99,10 +101,10 @@ def draw_units(ax, x, y, state: GameState, team: str, p: tuple):
 
 
 def draw_hex_line(ax, line, size=2. / 3., color='green'):
-    for hex in line:
-        if len(hex) > 2:
-            hex = cube_to_hex(hex)
-        x, y = convert(*(hex), size)
+    for h in line:
+        if len(h) > 2:
+            h = h.hex()
+        x, y = convert(*(h), size)
         draw_hex(ax, x, y, color, alpha=0.6)
 
     return ax
@@ -112,9 +114,9 @@ def draw_line(ax, line, size=2. / 3.):
     for i in range(0, len(line) - 1):
         h1, h2 = line[i: i + 2]
         if len(h1) > 2:
-            h1 = cube_to_hex(h1)
+            h1 = h1.hex()
         if len(h2) > 2:
-            h2 = cube_to_hex(h2)
+            h2 = h2.hex()
         x1, y1 = convert(*(h1), size)
         x2, y2 = convert(*(h2), size)
 

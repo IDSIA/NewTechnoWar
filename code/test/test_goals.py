@@ -4,7 +4,7 @@ from core.actions import Move
 from core.const import RED, BLUE
 from core.figures import Tank, Infantry
 from core.game import GM, GameBoard, GameState, GoalMaxTurn, GoalReachPoint, GoalEliminateOpponent
-from core.utils.coordinates import to_cube, cube_to_hex
+from core.utils.coordinates import Hex
 
 
 class TestGoals(unittest.TestCase):
@@ -30,9 +30,9 @@ class TestGoals(unittest.TestCase):
         self.assertTrue(g.check(self.state), 'after attack, blue unit is still alive!')
 
     def testReachPoint(self):
-        x1 = to_cube((4, 4))
-        x2 = to_cube((5, 5))
-        g = GoalReachPoint(RED, self.board.shape, [cube_to_hex(x1)])
+        x1 = Hex(4, 4).cube()
+        x2 = Hex(5, 5).cube()
+        g = GoalReachPoint(RED, self.board.shape, [x1.hex()])
 
         GM.update(self.state)
         self.assertFalse(g.check(self.state), 'figure is still in starting position')

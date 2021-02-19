@@ -11,7 +11,7 @@ from agents.utils import entropy
 from core.actions import Action
 from core.figures import Figure
 from core.game import GM, GameBoard, GameState, GoalParams
-from core.utils.coordinates import to_cube
+from core.utils.coordinates import Hex
 from utils.copy import deepcopy
 
 logger = logging.getLogger(__name__)
@@ -161,7 +161,7 @@ class GreedyAgent(Agent):
             for j in range(len(group)):
                 # move each unit to its position
                 figure = figures[j]
-                dst = to_cube((x[group[j]], y[group[j]]))
+                dst = Hex(x[group[j]], y[group[j]]).cube()
                 s.moveFigure(figure, figure.position, dst)
 
             score = stateScore(self.team, self.goal_params, board, s)
@@ -172,7 +172,7 @@ class GreedyAgent(Agent):
 
         for j in range(len(group)):
             figure = figures[j]
-            dst = to_cube((x[group[j]], y[group[j]]))
+            dst = Hex(x[group[j]], y[group[j]]).cube()
             state.moveFigure(figure, dst=dst)
 
         logger.info(f'{self.team:5}: placed his troops in {group} ({score})')

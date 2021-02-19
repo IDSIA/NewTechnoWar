@@ -1,9 +1,9 @@
 import unittest
 
-from core.game import GM, GameBoard, GameState
 from core.const import RED, BLUE
 from core.figures import Tank, Infantry
-from core.utils.coordinates import to_cube
+from core.game import GM, GameBoard, GameState
+from core.utils.coordinates import Hex
 
 
 class TestAttackAction(unittest.TestCase):
@@ -64,8 +64,8 @@ class TestAttackAction(unittest.TestCase):
         self.assertEqual(w0.ammo - 1, w1.ammo, 'shots fired in the wrong state')
 
     def testShootingGround(self):
-        ground = (2, 6)
-        attack = GM.actionAttackGround(self.red_tank, to_cube(ground), self.red_tank.weapons['SM'])
+        ground = Hex(2, 6).cube()
+        attack = GM.actionAttackGround(self.red_tank, ground, self.red_tank.weapons['SM'])
 
         GM.step(self.board, self.state, attack)
 
