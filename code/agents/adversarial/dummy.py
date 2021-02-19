@@ -2,7 +2,7 @@ import numpy as np
 
 from agents import Agent
 from core.actions import Action, PassTeam, PassFigure
-from core.game import GM, GameBoard, GameState
+from core.game import GameBoard, GameState
 from core.utils.coordinates import Hex
 
 ACTION_MOVE = 0
@@ -23,8 +23,8 @@ class RandomAgent(Agent):
 
         f = np.random.choice(figures)
 
-        moves = GM.buildMovements(board, state, f)
-        attacks = GM.buildAttacks(board, state, f)
+        moves = self.gm.buildMovements(board, state, f)
+        attacks = self.gm.buildAttacks(board, state, f)
 
         if not moves and not attacks:
             raise ValueError(f"no more moves for {f} {self.team}")
@@ -67,7 +67,7 @@ class RandomAgent(Agent):
         f = np.random.choice(figures)
 
         # build possible response for the chosen unit
-        responses = GM.buildResponses(board, state, f)
+        responses = self.gm.buildResponses(board, state, f)
 
         if responses:
             response = np.random.choice(responses)

@@ -4,7 +4,9 @@ from agents import MatchManager
 from agents.adversarial.alphabeta import Puppet
 from core.const import RED, BLUE
 from core.figures import Infantry
-from core.game import GM, GameBoard, GameState
+from core.game import GameBoard, GameState, GameManager
+
+GM: GameManager = GameManager()
 
 
 class TestExecutionFlow(unittest.TestCase):

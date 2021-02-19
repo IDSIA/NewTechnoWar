@@ -11,7 +11,8 @@ from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 
 from agents import MatchManager, GreedyAgent, ClassifierAgent, RegressionAgent, RandomAgent, Agent
 from core.const import RED, BLUE
-from core.game import vectorStateInfo, vectorState, vectorActionInfo, vectorAction
+from core.game import vectorStateInfo, vectorState
+from core.vectors import vectorActionInfo, vectorAction, vectorBoardInfo, vectorBoard
 from scenarios import scenarioJunction
 from utils.setup_logging import setup_logging
 
@@ -102,7 +103,11 @@ def play(args) -> tuple:
     actions_data = [vectorAction(x) for x in mm.actions_history]
     df_action = pd.DataFrame(columns=actions_cols, data=actions_data)
 
-    df = pd.concat([df_state, df_action], axis=1)
+    board_cols = vectorBoardInfo()
+    board_data = [vectorBoard(mm.board, s, a) for s, a in zip(mm.states_history, mm.actions_history)]
+    df_board = pd.DataFrame(columns=board_cols, data=board_data)
+
+    df = pd.concat([df_state, df_action, df_board], axis=1)
 
     df['winner'] = mm.winner
     df['meta_i_red'] = red.id

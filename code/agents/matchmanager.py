@@ -9,7 +9,7 @@ from agents import Agent
 from agents.interactive.interactive import Human
 from core.actions import Attack, Move, Action, Response, PassRespond, PassTeam
 from core.const import RED, BLUE
-from core.game import GM, GameBoard, GameState, goalAchieved
+from core.game import GameBoard, GameState, goalAchieved, GameManager
 from utils.copy import deepcopy
 
 logger = logging.getLogger(__name__)
@@ -59,6 +59,8 @@ class MatchManager:
         self.board: GameBoard = board
         self.state: GameState = state
         self.origin: GameState = deepcopy(state)
+
+        self.gm: GameManager = GameManager()
 
         self.red: Agent = red
         self.blue: Agent = blue
@@ -126,7 +128,7 @@ class MatchManager:
             logger.debug(f'{self.seed:10} {self.first.team:5} {"exception":9}: {e}')
             action = PassTeam(self.first.team)
 
-        outcome = GM.step(self.board, self.state, action)
+        outcome = self.gm.step(self.board, self.state, action)
 
         self._store(state0, action, outcome)
         logger.info(f'{self.seed:10} {self.first.team:5} {"action":9}: {action} {outcome["comment"]}')
@@ -144,7 +146,7 @@ class MatchManager:
             logger.debug(f'{self.seed:10} {self.second.team:5} {"exception":9}: {e}')
             response = PassRespond(self.second.team)
 
-        outcome = GM.step(self.board, self.state, response)
+        outcome = self.gm.step(self.board, self.state, response)
 
         self._store(state0, response, outcome)
         logger.info(f'{self.seed:10} {self.second.team:5} {"response":9}: {response} {outcome["comment"]}')
@@ -197,7 +199,7 @@ class MatchManager:
         self.first = self.red
         self.second = self.blue
 
-        GM.update(self.state)
+        self.gm.update(self.state)
         logger.info(f'{self.seed:10} Turn {self.state.turn}')
 
         self._goCheck()

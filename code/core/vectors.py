@@ -1,16 +1,8 @@
-from typing import List
-
 from core.actions import ACTION_KEY_LIST, Action, Move, Attack, Response
 from core.const import RED, BLUE
 from core.figures import WEAPON_KEY_LIST, FigureType
-from core.game import GameBoard, GameState
+from core.game import GameBoard, GameState, GOAL_KEY_LIST, GoalParams, GameManager, goalAchieved
 from core.game.static import MAX_UNITS_PER_TEAM
-from core.utils.coordinates import Cube
-
-
-def checkLine(board: GameBoard, state: GameState, line: List[Cube]) -> bool:
-    """Returns True if the line is valid (has no obstacles), otherwise False."""
-    return not any([state.isObstacle(h) or board.isObstacle(h) for h in line[1:-1]])
 
 
 def vectorActionInfo() -> tuple:
@@ -101,10 +93,42 @@ def vectorAction(action: Action) -> tuple:
 
     return tuple(data)
 
-'''
+
 def vectorBoardInfo() -> tuple:
     # TODO: add header for features that are board-dependent
-    raise NotImplemented()
+    info = []
+
+    # LOS/LOF check
+    for team in [RED, BLUE]:
+        for i in range(MAX_UNITS_PER_TEAM):
+            for j in range(MAX_UNITS_PER_TEAM):
+                if i != j:
+                    info.append(f'{team}_LOS_{i}_{j}_valid')
+
+    info += [
+        'goal_params_unit_team_lost',
+        'goal_params_unit_team_alive',
+        'goal_params_unit_enemy_killed',
+        'goal_params_unit_enemy_alive',
+        'goal_params_reach_team_near',
+        'goal_params_defend_team_near',
+        'goal_params_defend_enemy_near',
+        'goal_params_wait_for_turn',
+    ]
+
+    for team in [RED, BLUE]:
+        for goal in GOAL_KEY_LIST:
+            info.append(f'{team}_goal_{goal}_score')
+            info.append(f'{team}_goal_{goal}_check')
+
+    info += [
+        'goal_achieved',
+        'action_move_destination_protection_level',
+        'action_move_destination_move_cost_infantry',
+        'action_move_destination_move_cost_vehicle'
+    ]
+
+    return tuple(info)
 
 
 def vectorBoard(board: GameBoard, state: GameState, action: Action = None, params: GoalParams = None) -> tuple:
@@ -122,7 +146,7 @@ def vectorBoard(board: GameBoard, state: GameState, action: Action = None, param
                 if i != j:
                     if i < len(state.figures[team]) and j < len(state.figures[team]):
                         line: list = state.figuresDistance.get(team)[j][i]
-                        data.append(checkLine(board, state, line))
+                        data.append(GameManager.checkLine(board, state, line))
                     else:
                         data.append(None)
 
@@ -139,14 +163,23 @@ def vectorBoard(board: GameBoard, state: GameState, action: Action = None, param
             params.wait_for_turn
         ]
     else:
+        params = GoalParams()
         data += [None] * 8
 
     # info on the goals
     for team in [RED, BLUE]:
         objectives = board.objectives[team]
-        # TODO
+
         for goal in GOAL_KEY_LIST:
-            pass
+            if goal in objectives:
+                obj = objectives[goal]
+                data.append(obj.score(state, params))
+                data.append(obj.check(state))
+            else:
+                data.append(None)
+                data.append(None)
+
+    data.append(goalAchieved(board, state))
 
     # extra info from action
     if action and isinstance(action, Move):
@@ -159,4 +192,3 @@ def vectorBoard(board: GameBoard, state: GameState, action: Action = None, param
         data.append(None)
 
     return tuple(data)
-'''

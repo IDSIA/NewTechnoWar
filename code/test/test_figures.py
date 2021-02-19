@@ -2,8 +2,10 @@ import unittest
 
 from core.const import RED, BLUE
 from core.figures import Infantry
-from core.game import GM, GameBoard, GameState
+from core.game import GameBoard, GameState, GameManager
 from core.utils.coordinates import Hex
+
+GM: GameManager = GameManager()
 
 
 class TestFigures(unittest.TestCase):

@@ -7,7 +7,7 @@ from agents.adversarial.puppets import Puppet
 from agents.commons import stateScore
 from core.actions import Action
 from core.const import RED, BLUE
-from core.game import GM, GameBoard, GameState, GoalParams
+from core.game import GameBoard, GameState, GoalParams
 from utils.copy import deepcopy
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ class AlphaBetaAgent(Agent):
             return self.cache[key]
 
         else:
-            state1, _ = GM.activate(board, state, action)
+            state1, _ = self.gm.activate(board, state, action)
             self.cache[key] = state1
             return state1
 
@@ -66,16 +66,16 @@ class AlphaBetaAgent(Agent):
         nextActions = []
 
         if step == 'response':
-            nextActions += [GM.actionPassResponse(team)]
+            nextActions += [self.gm.actionPassResponse(team)]
             for figure in state.getFiguresCanRespond(team):
-                nextActions += GM.buildResponses(board, state, figure)
+                nextActions += self.gm.buildResponses(board, state, figure)
         else:
             for figure in state.getFiguresCanBeActivated(team):
-                nextActions += [GM.actionPassFigure(figure)]
+                nextActions += [self.gm.actionPassFigure(figure)]
 
                 # standard actions
-                nextActions += GM.buildAttacks(board, state, figure)
-                nextActions += GM.buildMovements(board, state, figure)
+                nextActions += self.gm.buildAttacks(board, state, figure)
+                nextActions += self.gm.buildMovements(board, state, figure)
 
         # this team maximize...
         if team == self.team:
@@ -106,7 +106,7 @@ class AlphaBetaAgent(Agent):
             for nextAction in nextActions:
                 logging.debug(f'{depth:<4}{team:5}{step:6}{nextAction}')
 
-                s1, _ = GM.activate(board, state, nextAction)
+                s1, _ = self.gm.activate(board, state, nextAction)
                 score, _ = self.alphaBeta(board, s1, depth - 1, alpha, beta, startTime, timeLimit)
 
                 if score < value:

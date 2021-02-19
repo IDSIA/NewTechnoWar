@@ -3,7 +3,7 @@ import numpy as np
 from agents import Agent
 from core.actions import Action, Response
 from core.const import RED, BLUE
-from core.game import GM, GameBoard, GameState
+from core.game import GameBoard, GameState
 from core.utils.coordinates import Hex
 
 
@@ -70,11 +70,11 @@ class Human(Agent):
             if 'idx' in data and data['team'] == self.team:
                 idx = int(data['idx'])
                 figure = state.getFigureByIndex(self.team, idx)
-                self.next_action = GM.actionPassFigure(figure)
+                self.next_action = self.gm.actionPassFigure(figure)
             elif data['step'] == 'respond':
-                self.next_action = GM.actionPassResponse(self.team)
+                self.next_action = self.gm.actionPassResponse(self.team)
             else:
-                self.next_action = GM.actionPassTeam(self.team)
+                self.next_action = self.gm.actionPassTeam(self.team)
             return
 
         idx = int(data['idx'])
@@ -94,10 +94,10 @@ class Human(Agent):
             fs = state.getFiguresByPos(self.team, pos)
             for transport in fs:
                 if transport.canTransport(figure):
-                    self.next_action = GM.actionLoadInto(board, state, figure, transport)
+                    self.next_action = self.gm.actionLoadInto(board, state, figure, transport)
                     return
 
-            self.next_action = GM.actionMove(board, state, figure, destination=pos)
+            self.next_action = self.gm.actionMove(board, state, figure, destination=pos)
             return
 
         if action == 'attack':
@@ -113,7 +113,7 @@ class Human(Agent):
                 otherTeam = BLUE if self.team == RED else RED
                 target = state.getFiguresByPos(otherTeam, pos)[0]  # TODO: get unit based on index or weapon target type
 
-            self.next_action = GM.actionAttack(board, state, figure, target, weapon)
-            self.next_response = GM.actionRespond(board, state, figure, target, weapon)
+            self.next_action = self.gm.actionAttack(board, state, figure, target, weapon)
+            self.next_response = self.gm.actionRespond(board, state, figure, target, weapon)
 
         # TODO: implement smoke

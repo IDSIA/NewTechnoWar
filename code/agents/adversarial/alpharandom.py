@@ -2,7 +2,7 @@ import numpy as np
 
 from agents import Agent, AlphaBetaAgent
 from core.actions import Action, PassTeam, PassFigure
-from core.game import GM, GameBoard, GameState
+from core.game import GameBoard, GameState
 
 ACTION_MOVE = 0
 ACTION_ATTACK = 1

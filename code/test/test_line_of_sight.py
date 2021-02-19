@@ -4,8 +4,10 @@ import numpy as np
 
 from core.const import RED, BLUE
 from core.figures import Tank, Infantry
-from core.game import GM, GameBoard, GameState, Terrain
+from core.game import GameBoard, GameState, Terrain, GameManager
 from core.utils.coordinates import Hex
+
+GM: GameManager = GameManager()
 
 
 class TestLOS(unittest.TestCase):

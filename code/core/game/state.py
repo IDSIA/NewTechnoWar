@@ -6,7 +6,7 @@ from core.actions import Action, ActionFigure, Attack, AttackGround, LoadInto
 from core.const import RED, BLUE
 from core.figures import FigureType, Figure, Weapon, vectorFigureInfo
 from core.game.static import MAX_SMOKE, MAX_UNITS_PER_TEAM
-from core.utils.coordinates import Cube, Hex
+from core.utils.coordinates import Cube
 
 
 class GameState:

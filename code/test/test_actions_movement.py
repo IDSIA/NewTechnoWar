@@ -4,8 +4,10 @@ import numpy as np
 
 from core.const import RED
 from core.figures import Tank, Infantry, IN_MOTION
-from core.game import GM, GameBoard, GameState, Terrain
+from core.game import GameBoard, GameState, Terrain, GameManager
 from core.utils.coordinates import Cube, Hex
+
+GM: GameManager = GameManager()
 
 
 class TestMovementAction(unittest.TestCase):
