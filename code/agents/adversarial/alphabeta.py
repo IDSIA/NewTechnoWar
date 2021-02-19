@@ -13,7 +13,7 @@ from core.game.goals import GoalParams
 from core.game.state import GameState
 from utils.copy import deepcopy
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class AlphaBetaAgent(Agent):

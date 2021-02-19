@@ -17,6 +17,11 @@ class RandomAgent(Agent):
     def __init__(self, team: str, seed=0):
         super().__init__('RandomAgent', team, seed=seed)
 
+    def dataFrameInfo(self):
+        return super().dataFrameInfo() + [
+            'score', 'action', 'entropy', 'n_scores', 'scores', 'actions'
+        ]
+
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
         # choose which figures that can still be activate will be activated
         figures = state.getFiguresCanBeActivated(self.team)
