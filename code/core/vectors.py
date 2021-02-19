@@ -184,8 +184,8 @@ def vectorBoard(board: GameBoard, state: GameState, action: Action = None, param
         data.append(board.getMovementCost(action.destination, FigureType.INFANTRY))
         data.append(board.getMovementCost(action.destination, FigureType.VEHICLE))
     else:
-        data.append(None)
-        data.append(None)
-        data.append(None)
+        data.append(-1)
+        data.append(-1)
+        data.append(-1)
 
     return tuple(data)
