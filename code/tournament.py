@@ -262,7 +262,7 @@ def main() -> None:
                     pop = population[i]
                     logger.info(
                         f'({i + 1:2}) {pop.kind:5} {pop.id:5}: {pop.points:6.2f} (W: {pop.wins:3} L: {pop.losses:3})')
-                logger.info('top ', top_models, 'will contribute with their data')
+                logger.info(f'top {top_models} will contribute with their data')
 
                 X, y, X_red, y_red, X_blue, y_blue = buildDataFrame(df, top_ids)
 
