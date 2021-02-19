@@ -3,7 +3,7 @@ __all__ = [
     'Agent', 'Human',
     'GreedyAgent', 'AlphaBetaAgent', 'RandomAgent',
     'AlphaRandomAgent',
-    'ClassifierAgent', 'RegressionAgent'
+    'ClassifierAgent', 'RegressionAgent', 'RegressionMultiAgent'
 ]
 
 from agents.interface import Agent
@@ -15,3 +15,4 @@ from agents.adversarial.alphabeta import AlphaBetaAgent
 from agents.adversarial.alpharandom import AlphaRandomAgent
 from agents.ml.classifier import ClassifierAgent
 from agents.ml.regression import RegressionAgent
+from agents.ml.regressionMulti import RegressionMultiAgent
