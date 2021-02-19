@@ -2,14 +2,11 @@ from typing import Dict, List
 
 import numpy as np
 
-from core.actions import Action, Attack, AttackGround, LoadInto, Move, Response, ACTION_KEY_LIST
-from core.actions.basics import ActionFigure
+from core.actions import Action, ActionFigure, Attack, AttackGround, LoadInto
 from core.const import RED, BLUE
-from core.figures import FigureType, Figure, Weapon, vectorFigureInfo, WEAPON_KEY_LIST
-from core.game import MAX_SMOKE
-from utils.coordinates import to_cube, Cube, cube_linedraw, cube_to_hex
-
-MAX_UNITS_PER_TEAM = 9  # for each team: 3 vehicle, 6 infantry
+from core.figures import FigureType, Figure, Weapon, vectorFigureInfo
+from core.game.static import MAX_SMOKE, MAX_UNITS_PER_TEAM
+from core.utils.coordinates import to_cube, Cube, cube_linedraw, cube_to_hex
 
 
 class GameState:
@@ -250,91 +247,29 @@ class GameState:
         self.smoke = np.clip(self.smoke - 1, 0, MAX_SMOKE)
 
 
-def vectorAction(action: Action) -> tuple:
-    if not action:
-        return tuple([None] * len(vectorActionInfo()))
+def vectorStateInfo() -> tuple:
+    """Convert the state in a vector, used for internal hashing."""
+    info = [
+        "meta_seed", "meta_scenario", "turn"
+    ]
 
-    action_type = [False] * len(ACTION_KEY_LIST)
-    action_type[ACTION_KEY_LIST.index(action.__class__.__name__)] = True
+    for team in [RED, BLUE]:
+        for i in range(MAX_UNITS_PER_TEAM):
+            meta = f'{team}_figure_{i}'
+            info += vectorFigureInfo(meta)
 
-    action_team = action.team
+    # distance between figures of same team
+    for team in [RED, BLUE]:
+        for i in range(MAX_UNITS_PER_TEAM):
+            for j in range(MAX_UNITS_PER_TEAM):
+                if i != j:
+                    info.append(f'{team}_distance_{i}_{j}')
 
-    response = False
-    action_figure_index = [False] * MAX_UNITS_PER_TEAM
-    action_destination_x = 0
-    action_destination_y = 0
-    action_destination_z = 0
-    action_path = 0
-    action_guard_index = [False] * MAX_UNITS_PER_TEAM
-    action_lof = 0
-    action_los = 0
-    action_target_index = [False] * MAX_UNITS_PER_TEAM
-    action_weapon_id = [False] * len(WEAPON_KEY_LIST)
-
-    if isinstance(action, Move):
-        action_figure_index[action.figure_id] = True
-        action_destination_x = action.destination.x
-        action_destination_y = action.destination.y
-        action_destination_z = action.destination.z
-        action_path = len(action.path)
-
-    if isinstance(action, Attack):
-        action_figure_index[action.figure_id] = True
-        action_guard_index[action.guard_id] = True
-        action_lof = len(action.lof)  # direct line of fire on target (from the attacker)
-        action_los = len(action.los)  # direct line of sight on target (from who can see it)
-        action_target_index[action.target_id] = True
-        action_weapon_id[WEAPON_KEY_LIST.index(action.weapon_id)] = True
-
-    if isinstance(action, Response):
-        response = True
-
-    data = list()
-    data += action_figure_index
-    data.append(action_team)
-    data += action_type
-    data.append(action_destination_x)
-    data.append(action_destination_y)
-    data.append(action_destination_z)
-    data.append(action_path)
-    data += action_guard_index
-    data.append(action_lof)
-    data.append(action_los)
-    data += action_target_index
-    data += action_weapon_id
-    data.append(response)
-
-    return tuple(data)
-
-
-def vectorActionInfo() -> tuple:
-    info = []
-    for i in range(MAX_UNITS_PER_TEAM):
-        info.append(f'action_figure_{i}')
-
-    info.append('action_team')
-
-    for a in ACTION_KEY_LIST:
-        info.append(f'action_type_{a}')
-
-    info.append('action_destination_x')
-    info.append('action_destination_y')
-    info.append('action_destination_z')
-    info.append('action_path')
-
-    for i in range(MAX_UNITS_PER_TEAM):
-        info.append(f'action_guard_{i}')
-
-    info.append('action_lof')
-    info.append('action_los')
-
-    for i in range(MAX_UNITS_PER_TEAM):
-        info.append(f'action_target_{i}')
-
-    for w in WEAPON_KEY_LIST:
-        info.append(f'action_weapon_{w}')
-
-    info.append('response')
+    # LOS between figures of different team
+    for team in [RED, BLUE]:
+        for i in range(MAX_UNITS_PER_TEAM):
+            for j in range(MAX_UNITS_PER_TEAM):
+                info.append(f'{team}_LOS_{i}_{j}')
 
     return tuple(info)
 
@@ -379,30 +314,3 @@ def vectorState(state: GameState) -> tuple:
                     data.append(None)
 
     return tuple(data)
-
-
-def vectorStateInfo() -> tuple:
-    """Convert the state in a vector, used for internal hashing."""
-    info = [
-        "meta_seed", "meta_scenario", "turn"
-    ]
-
-    for team in [RED, BLUE]:
-        for i in range(MAX_UNITS_PER_TEAM):
-            meta = f'{team}_figure_{i}'
-            info += vectorFigureInfo(meta)
-
-    # distance between figures of same team
-    for team in [RED, BLUE]:
-        for i in range(MAX_UNITS_PER_TEAM):
-            for j in range(MAX_UNITS_PER_TEAM):
-                if i != j:
-                    info.append(f'{team}_distance_{i}_{j}')
-
-    # LOS between figures of different team
-    for team in [RED, BLUE]:
-        for i in range(MAX_UNITS_PER_TEAM):
-            for j in range(MAX_UNITS_PER_TEAM):
-                info.append(f'{team}_LOS_{i}_{j}')
-
-    return tuple(info)

@@ -8,13 +8,10 @@ import numpy as np
 from agents import Agent
 from agents.commons import stateScore
 from agents.utils import entropy
-from core import GM
 from core.actions import Action
 from core.figures import Figure
-from core.game.board import GameBoard
-from core.game.goals import GoalParams
-from core.game.state import GameState
-from utils.coordinates import to_cube
+from core.game import GM, GameBoard, GameState, GoalParams
+from core.utils.coordinates import to_cube
 from utils.copy import deepcopy
 
 logger = logging.getLogger(__name__)

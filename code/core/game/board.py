@@ -6,7 +6,7 @@ from core.const import RED, BLUE
 from core.figures import FigureType
 from core.game.goals import Goal, GoalReachPoint
 from core.game.terrain import TERRAIN_TYPE
-from utils.coordinates import to_cube, Cube, cube_neighbor, cube_to_hex, cube_range
+from core.utils.coordinates import to_cube, Cube, cube_neighbor, cube_to_hex, cube_range
 
 
 class GameBoard:

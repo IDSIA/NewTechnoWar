@@ -1,6 +1,4 @@
-from core.game.board import GameBoard
-from core.game.goals import GoalParams
-from core.game.state import GameState
+from core.game import GameBoard, GameState, GoalParams
 
 
 def stateScore(team: str, params: GoalParams, board: GameBoard, state: GameState) -> float:

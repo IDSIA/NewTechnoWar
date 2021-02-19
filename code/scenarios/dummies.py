@@ -2,11 +2,8 @@
 import numpy as np
 
 from core.const import RED, BLUE
-from core.figures import Infantry, Tank
-from core.figures.status import HIDDEN
-from core.game.board import GameBoard
-from core.game.goals import GoalReachPoint, GoalEliminateOpponent, GoalMaxTurn, GoalDefendPoint
-from core.game.state import GameState
+from core.figures import Infantry, Tank, HIDDEN
+from core.game import GameBoard, GameState, GoalReachPoint, GoalEliminateOpponent, GoalMaxTurn, GoalDefendPoint
 from core.game.terrain import Terrain
 
 

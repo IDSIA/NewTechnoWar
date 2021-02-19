@@ -7,12 +7,9 @@ import agents as players
 import scenarios
 from agents import Agent
 from agents.interactive.interactive import Human
-from core import GM
 from core.actions import Attack, Move, Action, Response, PassRespond, PassTeam
 from core.const import RED, BLUE
-from core.game.board import GameBoard
-from core.game.goals import goalAchieved
-from core.game.state import GameState
+from core.game import GM, GameBoard, GameState, goalAchieved
 from utils.copy import deepcopy
 
 logger = logging.getLogger(__name__)

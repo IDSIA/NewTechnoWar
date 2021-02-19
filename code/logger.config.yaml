@@ -26,6 +26,14 @@ handlers:
     backupCount: 10
     encoding: utf8
 
+  web_file_handler:
+    class: logging.handlers.RotatingFileHandler
+    formatter: standard
+    filename: logs/web.log
+    maxBytes: 10485760
+    backupCount: 10
+    encoding: utf8
+
   tourney_file_handler:
     class: logging.handlers.RotatingFileHandler
     formatter: standard
@@ -44,10 +52,15 @@ loggers:
     level: INFO
     handlers: [ agents_file_handler ]
     propagate: no
-  
+
   agents.ml:
     level: WARNING
-    handlers: [agents_file_warning_handler]
+    handlers: [ agents_file_warning_handler ]
+    propagate: yes
+
+  web:
+    level: INFO
+    handlers: [ web_file_handler ]
     propagate: yes
 
   tourney:

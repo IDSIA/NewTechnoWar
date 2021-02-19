@@ -1,11 +1,9 @@
 import unittest
 
-from core import GM
+from core.game import GM, GameBoard, GameState
 from core.const import RED, BLUE
 from core.figures import Tank, Infantry
-from core.game.board import GameBoard
-from core.game.state import GameState
-from utils.coordinates import to_cube
+from core.utils.coordinates import to_cube
 
 
 class TestAttackAction(unittest.TestCase):

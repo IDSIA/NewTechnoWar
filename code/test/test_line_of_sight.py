@@ -2,12 +2,9 @@ import unittest
 
 import numpy as np
 
-from core import GM
 from core.const import RED, BLUE
 from core.figures import Tank, Infantry
-from core.game.board import GameBoard
-from core.game.state import GameState
-from core.game.terrain import Terrain
+from core.game import GM, GameBoard, GameState, Terrain
 
 
 class TestLOS(unittest.TestCase):

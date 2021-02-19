@@ -4,8 +4,7 @@ import pandas as pd
 
 from agents.ml.simple import MLAgent
 from core.actions import Action
-from core.game.board import GameBoard
-from core.game.state import GameState, vectorState, vectorStateInfo, vectorAction, vectorActionInfo
+from core.game import GameBoard, GameState, vectorState, vectorStateInfo, vectorAction, vectorActionInfo
 
 
 class RegressionAgent(MLAgent):
@@ -18,7 +17,7 @@ class RegressionAgent(MLAgent):
 
         df = pd.DataFrame(data=X, columns=vectorStateInfo() + vectorActionInfo()).dropna(axis=1)
         df = df.drop(['meta_seed', 'meta_scenario', 'action_team'], axis=1)
-        
+
         scores = self.model.predict(df)
 
         return list(zip(scores, actions))

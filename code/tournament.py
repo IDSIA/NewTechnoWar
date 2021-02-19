@@ -11,7 +11,7 @@ from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 
 from agents import MatchManager, GreedyAgent, ClassifierAgent, RegressionAgent, RandomAgent, Agent
 from core.const import RED, BLUE
-from core.game.state import vectorStateInfo, vectorState, vectorActionInfo, vectorAction
+from core.game import vectorStateInfo, vectorState, vectorActionInfo, vectorAction
 from scenarios import scenarioJunction
 from utils.setup_logging import setup_logging
 

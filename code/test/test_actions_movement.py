@@ -2,14 +2,10 @@ import unittest
 
 import numpy as np
 
-from core import GM
 from core.const import RED
-from core.figures import Tank, Infantry
-from core.figures.status import IN_MOTION
-from core.game.board import GameBoard
-from core.game.state import GameState
-from core.game.terrain import Terrain
-from utils.coordinates import to_cube, Cube, cube_to_hex
+from core.figures import Tank, Infantry, IN_MOTION
+from core.game import GM, GameBoard, GameState, Terrain
+from core.utils.coordinates import to_cube, Cube, cube_to_hex
 
 
 class TestMovementAction(unittest.TestCase):

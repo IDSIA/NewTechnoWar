@@ -1,9 +1,9 @@
 from math import sqrt
+
 import numpy as np
 
-from core.game.terrain import Terrain, TERRAIN_TYPE
-from core.game.board import GameBoard
-from utils.coordinates import to_cube, cube_to_hex
+from core.game import GameBoard, Terrain, TERRAIN_TYPE
+from core.utils.coordinates import to_cube, cube_to_hex
 
 SIZE = 10
 w = SIZE * 2

@@ -5,8 +5,7 @@ import pandas as pd
 from agents.ml.simple import MLAgent
 from core.actions import Action
 from core.const import BLUE
-from core.game.board import GameBoard
-from core.game.state import GameState, vectorState, vectorStateInfo, vectorAction, vectorActionInfo
+from core.game import GameBoard, GameState, vectorState, vectorAction, vectorStateInfo, vectorActionInfo
 
 
 class ClassifierAgent(MLAgent):

@@ -3,10 +3,8 @@ from flask.json import JSONEncoder
 
 from core.actions import Move, Attack, LoadInto, AttackGround, AttackRespond, PassFigure, PassTeam, PassRespond
 from core.const import RED, BLUE
-from core.figures import Figure
-from core.figures import FigureType
-from core.figures.weapons import Weapon
-from core.game.state import GameState
+from core.figures import Figure, FigureType, Weapon
+from core.game import GameState
 from web.server.utils import cube_to_ijxy, cube_to_dict
 
 

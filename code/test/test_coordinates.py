@@ -1,6 +1,6 @@
 import unittest
 
-from utils.coordinates import Hex, hex_to_cube, cube_to_hex, to_hex, to_cube, cube_linedraw, cube_round
+from core.utils.coordinates import Hex, hex_to_cube, cube_to_hex, to_hex, to_cube, cube_linedraw, cube_round
 
 
 class TestLOS(unittest.TestCase):

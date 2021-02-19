@@ -9,7 +9,7 @@ from core.const import RED, BLUE
 from core.figures import FigureType
 from core.game.manager import GameBoard, GameState
 from core.game.terrain import Terrain
-from utils.coordinates import cube_to_hex, to_cube
+from core.utils.coordinates import cube_to_hex, to_cube
 
 
 def draw_void(board: GameBoard):

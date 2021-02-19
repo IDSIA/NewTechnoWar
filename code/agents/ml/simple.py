@@ -7,10 +7,8 @@ import numpy as np
 
 from agents import Agent, GreedyAgent
 from agents.utils import entropy
-from core import GM
 from core.actions import Action
-from core.game.board import GameBoard
-from core.game.state import GameState
+from core.game import GM, GameBoard, GameState
 
 logger = logging.getLogger(__name__)
 

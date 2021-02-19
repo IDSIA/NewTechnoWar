@@ -5,12 +5,9 @@ from time import time
 from agents import Agent, MatchManager, GreedyAgent
 from agents.adversarial.puppets import Puppet
 from agents.commons import stateScore
-from core import GM
 from core.actions import Action
 from core.const import RED, BLUE
-from core.game.board import GameBoard
-from core.game.goals import GoalParams
-from core.game.state import GameState
+from core.game import GM, GameBoard, GameState, GoalParams
 from utils.copy import deepcopy
 
 logger = logging.getLogger(__name__)

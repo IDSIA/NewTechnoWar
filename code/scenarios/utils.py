@@ -1,9 +1,7 @@
 import numpy as np
 
-from core.game.board import GameBoard
-from core.game.state import GameState
-from core.game.terrain import Terrain
-from utils.coordinates import hex_linedraw, to_hex
+from core.game import GameBoard, GameState, Terrain
+from core.utils.coordinates import hex_linedraw, to_hex
 
 MAP_SHAPE = (52, 42)  # entire map: 52x42
 

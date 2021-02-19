@@ -3,17 +3,15 @@ from typing import List
 
 import numpy as np
 
-from core.actions import Action, Move, LoadInto, Attack, AttackGround, AttackRespond, Pass, PassTeam, PassFigure, \
-    PassRespond, Response
+from core.actions import *
 from core.const import RED, BLUE
-from core.figures import Figure, FigureType
-from core.figures.status import IN_MOTION, UNDER_FIRE, NO_EFFECT, HIDDEN, CUT_OFF, LOADED
-from core.figures.weapons import Weapon
-from core.game import MISS_MATRIX, hitScoreCalculator, CUTOFF_RANGE
+from core.figures import Figure, FigureType, IN_MOTION, UNDER_FIRE, NO_EFFECT, HIDDEN, CUT_OFF, LOADED, Weapon
 from core.game.board import GameBoard
-from core.game.pathfinding import reachablePath, findPath
+from core.game.scores import MISS_MATRIX, hitScoreCalculator
 from core.game.state import GameState
-from utils.coordinates import cube_add, Cube, cube_distance, to_cube
+from core.game.static import CUTOFF_RANGE
+from core.utils.coordinates import cube_add, Cube, cube_distance, to_cube
+from core.utils.pathfinding import reachablePath, findPath
 from utils.copy import deepcopy
 
 logger = logging.getLogger(__name__)

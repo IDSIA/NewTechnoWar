@@ -3,8 +3,7 @@ from datetime import datetime
 import pandas as pd
 
 from core.actions import Action
-from core.game.board import GameBoard
-from core.game.state import GameState
+from core.game import GameBoard, GameState
 
 
 class Agent:

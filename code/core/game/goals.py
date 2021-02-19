@@ -1,8 +1,10 @@
 from typing import List
+
 import numpy as np
-from core.game import BLUE, RED
+
+from core.const import BLUE, RED
 from core.game.state import GameState
-from utils.coordinates import to_cube, Cube, cube_distance, cube_to_hex
+from core.utils.coordinates import to_cube, Cube, cube_distance, cube_to_hex
 
 
 class GoalParams:

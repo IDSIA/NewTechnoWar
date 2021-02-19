@@ -4,7 +4,7 @@ from typing import List, Dict, Set
 from core.figures import Figure
 from core.game.manager import GameBoard
 from core.game.state import GameState
-from utils.coordinates import Cube, cube_distance
+from core.utils.coordinates import cube_distance, Cube
 
 heuristic = cube_distance
 
@@ -30,7 +30,8 @@ def reachablePath(figure: Figure, board: GameBoard, state: GameState, max_cost: 
         visited.add(current)
 
         for next in board.getNeighbors(current):
-            new_cost = cost_so_far[current] + board.getMovementCost(next, figure.kind) + state.getMovementCost(next, figure.kind)
+            new_cost = cost_so_far[current] + board.getMovementCost(next, figure.kind) + state.getMovementCost(next,
+                                                                                                               figure.kind)
 
             if new_cost > max_cost:
                 continue

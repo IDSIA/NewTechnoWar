@@ -2,7 +2,7 @@ from typing import List
 
 from core.actions.basics import ActionFigure
 from core.figures import Figure
-from utils.coordinates import Cube, cube_to_hex
+from core.utils.coordinates import Cube, cube_to_hex
 
 
 class Move(ActionFigure):

@@ -1,10 +1,8 @@
 import unittest
 
-from core import GM
 from core.const import RED, BLUE
 from core.figures import Infantry
-from core.game.board import GameBoard
-from core.game.state import GameState
+from core.game import GM, GameBoard, GameState
 
 
 class TestFigures(unittest.TestCase):

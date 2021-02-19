@@ -4,16 +4,56 @@ This module defines the available figures and their rules.
 import uuid
 from typing import Dict, List
 
-from core.actions.vectors import vectorFigure
+from core.const import INFINITE
+from core.figures.defenses import DEFENSE_KEY_LIST
+from core.figures.static import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, ENDURANCE_EXO
 from core.figures.status import FigureStatus, NO_EFFECT, LOADED, STATS_LIST
 from core.figures.types import FigureType
-from core.figures.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, \
-    SniperRifle, Weapon, WEAPON_KEY_LIST
-from core.game import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, ENDURANCE_EXO
-from utils import INFINITE
-from utils.coordinates import Cube, to_cube
+from core.figures.weapons import Weapon, MachineGun, Cannon, SmokeGrenade, AssaultRifle, AntiTank, Mortar, Grenade, \
+    SniperRifle, WEAPON_KEY_LIST
+from core.utils.coordinates import Cube, to_cube
 
-DEFENSE_KEY_LIST = ['basic', 'smoke', 'antitank']
+
+def vectorFigureInfo(meta: str) -> tuple:
+    info = [
+        meta + "_index",
+        meta + "_kind",
+        meta + "_end",
+        meta + "_int_atk",
+        meta + "_int_def",
+        meta + "_move",
+        meta + "_load",
+        meta + "_hp",
+        meta + "_hp_max",
+        meta + "_bonus",
+        meta + "_activated",
+        meta + "_responded",
+        meta + "_attacked",
+        meta + "_moved",
+        meta + "_passed",
+        meta + "_killed",
+        meta + "_hit",
+        meta + "_attacked_by",
+        meta + "_can_transport",
+        meta + "_transport_capacity",
+        meta + "_len_transporting",
+        meta + "_transported_by",
+        meta + "_positionX",
+        meta + "_positionY",
+        meta + "_positionZ",
+        meta + "_stat_value",
+    ]
+
+    for s in STATS_LIST:
+        info.append(meta + "_stat_" + s.name.replace(' ', ''))
+
+    for w in WEAPON_KEY_LIST:
+        info.append(meta + "_weapon_" + w)
+
+    for d in DEFENSE_KEY_LIST:
+        info.append(meta + "_defense_" + d)
+
+    return tuple(info)
 
 
 class Figure:
@@ -74,20 +114,62 @@ class Figure:
         self.transporting: List[int] = []
         self.transported_by: int = -1
 
+    def vector(self) -> tuple:
+        """Data on the figure in vectorized version, used for internal hashing."""
+        data = [
+            self.index,
+            self.kind,
+            self.endurance,
+            self.int_atk,
+            self.int_def,
+            self.move,
+            self.load,
+            self.hp,
+            self.hp_max,
+            self.bonus,
+            self.activated,
+            self.responded,
+            self.attacked,
+            self.moved,
+            self.passed,
+            self.killed,
+            self.hit,
+            self.attacked_by,
+            self.can_transport,
+            self.transport_capacity,
+            len(self.transporting),
+            self.transported_by,
+            self.position.x,
+            self.position.y,
+            self.position.z,
+            self.stat.value,
+        ]
+
+        for s in STATS_LIST:
+            data.append(self.stat == s)
+
+        for w in WEAPON_KEY_LIST:
+            data.append(self.weapons[w].ammo if w in self.weapons else 0)
+
+        for d in DEFENSE_KEY_LIST:
+            data.append(self.defense[d] if d in self.defense else 0)
+
+        return tuple(data)
+
     def __eq__(self, other):
         if not isinstance(other, Figure):
             return False
         if not other:
             return False
-        v = vectorFigure(self)
-        v_other = vectorFigure(other)
+        v = self.vector()
+        v_other = other.vector()
         for i in range(len(v)):
             if v[i] != v_other[i]:
                 return False
         return True
 
     def __hash__(self):
-        return hash(vectorFigure(self))
+        return hash(self.vector())
 
     def update(self, turn: int) -> None:
         self.endurance = ENDURANCE[turn]

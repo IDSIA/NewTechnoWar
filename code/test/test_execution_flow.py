@@ -2,11 +2,9 @@ import unittest
 
 from agents import MatchManager
 from agents.adversarial.alphabeta import Puppet
-from core import GM
 from core.const import RED, BLUE
 from core.figures import Infantry
-from core.game.board import GameBoard
-from core.game.state import GameState
+from core.game import GM, GameBoard, GameState
 
 
 class TestExecutionFlow(unittest.TestCase):
