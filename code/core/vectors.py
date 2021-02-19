@@ -1,7 +1,7 @@
 from core.actions import ACTION_KEY_LIST, Action, Move, Attack, Response
 from core.const import RED, BLUE
 from core.figures import WEAPON_KEY_LIST, FigureType
-from core.game import GameBoard, GameState, GOAL_KEY_LIST, GoalParams, GameManager, goalAchieved
+from core.game import GameBoard, GameState, GOAL_KEY_LIST, GoalParams, GameManager
 from core.game.static import MAX_UNITS_PER_TEAM
 
 
@@ -122,7 +122,6 @@ def vectorBoardInfo() -> tuple:
             info.append(f'{team}_goal_{goal}_check')
 
     info += [
-        'goal_achieved',
         'action_move_destination_protection_level',
         'action_move_destination_move_cost_infantry',
         'action_move_destination_move_cost_vehicle'
@@ -178,8 +177,6 @@ def vectorBoard(board: GameBoard, state: GameState, action: Action = None, param
             else:
                 data.append(None)
                 data.append(None)
-
-    data.append(goalAchieved(board, state))
 
     # extra info from action
     if action and isinstance(action, Move):

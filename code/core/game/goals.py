@@ -50,7 +50,7 @@ class GoalEliminateOpponent(Goal):
         alive = [f for f in state.figures[self.hostiles] if not f.killed]
         return len(alive) == 0
 
-    def score(self, state: GameState, p: GoalParams):
+    def score(self, state: GameState, p: GoalParams) -> float:
         score = 0
 
         # malus: lost a unit
