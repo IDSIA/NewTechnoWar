@@ -12,6 +12,8 @@ from core.actions import Action
 from core.game.board import GameBoard
 from core.game.state import GameState
 
+logger = logging.getLogger(__name__)
+
 
 class MLAgent(Agent):
 
@@ -34,10 +36,13 @@ class MLAgent(Agent):
         scores = [i[0] for i in actionsScores]
         actions = [type(i[1]).__name__ for i in actionsScores]
 
-        data = [
-            bestScore, type(bestAction).__name__, entropy(scores), len(scores), scores, actions, self.randomChoice,
-            self.set
-        ]
+        h = entropy(scores)
+
+        if h > 1. or h < 0.:
+            logger.warning(f'Entropy out of range: {h}')
+            logger.warning(f'{scores}')
+
+        data = [bestScore, type(bestAction).__name__, h, len(scores), scores, actions, self.randomChoice, self.set]
 
         self.register(state, data)
 
@@ -73,6 +78,7 @@ class MLAgent(Agent):
             all_actions += actions
 
         if not all_actions:
+            logger.warning('No actions available: no action given')
             raise ValueError('No action given')
 
         scores = self.scores(state, board, all_actions)
@@ -85,6 +91,7 @@ class MLAgent(Agent):
         self.store(state, bestScore, bestAction, scores)
 
         if not bestAction:
+            logger.warning('No best action found: no action given')
             raise ValueError('No action given')
 
         return bestAction
@@ -99,6 +106,7 @@ class MLAgent(Agent):
             all_actions += actions
 
         if not all_actions:
+            logger.warning('No actions available: no response given')
             raise ValueError('No response given')
 
         scores = self.scores(state, board, all_actions)
@@ -109,11 +117,12 @@ class MLAgent(Agent):
             bestScore, bestAction = self.bestAction(scores)
 
         if not bestAction:
+            logger.warning('No best action found: no response given')
             raise ValueError('No response given')
 
         self.store(state, bestScore, bestAction, scores)
 
-        logging.debug(f'BEST RESPONSE {self.team:5}: {bestAction} ({bestScore})')
+        logger.debug(f'BEST RESPONSE {self.team:5}: {bestAction} ({bestScore})')
 
         return bestAction
 

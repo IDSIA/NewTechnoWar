@@ -1,8 +1,6 @@
 import logging
 from typing import List, Tuple, Dict
 
-from utils.copy import deepcopy
-
 import numpy as np
 
 import agents as players
@@ -15,6 +13,9 @@ from core.const import RED, BLUE
 from core.game.board import GameBoard
 from core.game.goals import goalAchieved
 from core.game.state import GameState
+from utils.copy import deepcopy
+
+logger = logging.getLogger(__name__)
 
 
 def buildMatchManager(gid: str, scenario: str, red: str, blue: str, seed: int = 42):
@@ -91,9 +92,9 @@ class MatchManager:
 
     def _goInit(self):
         """Initialization step."""
-        logging.debug('step: init')
-        logging.info(f'SCENARIO: {self.board.name}')
-        logging.info(f'SEED:     {self.seed}')
+        logger.debug('step: init')
+        logger.info(f'{self.seed:10} SCENARIO: {self.board.name}')
+        logger.info(f'{self.seed:10} SEED:     {self.seed}')
 
         np.random.seed(self.seed)
 
@@ -118,38 +119,38 @@ class MatchManager:
 
     def _goRound(self):
         """Round step."""
-        logging.debug(f'step: round {self.first.team:5}')
+        logger.debug(f'{self.seed:10} step: round {self.first.team:5}')
         self.update = False
         state0 = deepcopy(self.state)
 
         try:
             action = self.first.chooseAction(self.board, self.state)
         except ValueError as e:
-            logging.debug(f'{self.first.team:5} {"exception":9}: {e}')
+            logger.debug(f'{self.seed:10} {self.first.team:5} {"exception":9}: {e}')
             action = PassTeam(self.first.team)
 
         outcome = GM.step(self.board, self.state, action)
 
         self._store(state0, action, outcome)
-        logging.info(f'{self.first.team:5} {"action":9}: {action} {outcome["comment"]}')
+        logger.info(f'{self.seed:10} {self.first.team:5} {"action":9}: {action} {outcome["comment"]}')
 
         self._goCheck()
 
     def _goResponse(self):
         """Response step."""
-        logging.debug(f'step: response {self.second.team:5}')
+        logger.debug(f'{self.seed:10} step: response {self.second.team:5}')
         state0 = deepcopy(self.state)
 
         try:
             response = self.second.chooseResponse(self.board, self.state)
         except ValueError as e:
-            logging.debug(f'{self.second.team:5} {"exception":9}: {e}')
+            logger.debug(f'{self.seed:10} {self.second.team:5} {"exception":9}: {e}')
             response = PassRespond(self.second.team)
 
         outcome = GM.step(self.board, self.state, response)
 
         self._store(state0, response, outcome)
-        logging.info(f'{self.second.team:5} {"response":9}: {response} {outcome["comment"]}')
+        logger.info(f'{self.seed:10} {self.second.team:5} {"response":9}: {response} {outcome["comment"]}')
 
         self._goCheck()
 
@@ -161,7 +162,7 @@ class MatchManager:
             # if we achieved a goal, end
             self.winner = winner
             self.step = self._goEnd
-            logging.info(f'End game! Winner is {winner}')
+            logger.info(f'{self.seed:10} End game! Winner is {winner}')
 
             return
 
@@ -192,33 +193,33 @@ class MatchManager:
 
     def _goUpdate(self):
         """Update step."""
-        logging.info('=' * 100)
-        logging.debug('step: update')
+        logger.info(f'{self.seed:10} ' + ('=' * 100))
+        logger.debug(f'{self.seed:10} step: update')
         self.update = True
 
         self.first = self.red
         self.second = self.blue
 
         GM.update(self.state)
-        logging.info(f'Turn {self.state.turn}')
+        logger.info(f'{self.seed:10} Turn {self.state.turn}')
 
         self._goCheck()
 
     def _goEnd(self):
         """End step."""
-        logging.debug("step: end")
+        logger.debug(f'{self.seed:10} step: end')
         self.end = True
         self.update = False
         self.step = self._goEnd
 
     def nextStep(self):
         """Go to the next step"""
-        logging.debug('next: step')
+        logger.debug('{self.seed:10} next: step')
         self.step()
 
     def nextTurn(self):
         """Continue to execute nextStep() until the turn changes."""
-        logging.debug('next: turn')
+        logger.debug(f'{self.seed:10} next: turn')
 
         t = self.state.turn
         while self.state.turn == t and not self.end:

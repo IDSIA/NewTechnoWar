@@ -17,6 +17,8 @@ from core.game.state import GameState
 from utils.coordinates import to_cube
 from utils.copy import deepcopy
 
+logger = logging.getLogger(__name__)
+
 
 class GreedyAgent(Agent):
 
@@ -63,7 +65,7 @@ class GreedyAgent(Agent):
             score = self.evaluateState(board, state, action)
             scores.append((score, action))
 
-            logging.debug(f'{self.team:5}: Current move score is {score}')
+            logger.debug(f'{self.team:5}: Current move score is {score}')
 
         return scores
 
@@ -75,7 +77,7 @@ class GreedyAgent(Agent):
             score = self.evaluateState(board, state, action, baseScore)
             scores.append((score, action))
 
-            logging.debug(f'{self.team:5}: Current attack score is {score}')
+            logger.debug(f'{self.team:5}: Current attack score is {score}')
 
         return scores
 
@@ -89,7 +91,7 @@ class GreedyAgent(Agent):
             score = self.evaluateState(board, state, action, baseScore)
             scores.append((score, action))
 
-            logging.debug(f'{self.team:5}: Current response score is {score}')
+            logger.debug(f'{self.team:5}: Current response score is {score}')
 
         return scores
 
@@ -126,7 +128,7 @@ class GreedyAgent(Agent):
 
         self.store(state, score, action, scores)
 
-        logging.debug(f'{self.team:5}: {action} ({score})')
+        logger.debug(f'{self.team:5}: {action} ({score})')
         return action
 
     def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
@@ -142,7 +144,7 @@ class GreedyAgent(Agent):
 
         self.store(state, score, action, scores)
 
-        logging.debug(f'{self.team:5}: {action} ({score})')
+        logger.debug(f'{self.team:5}: {action} ({score})')
         return action
 
     def placeFigures(self, board: GameBoard, state: GameState) -> None:
@@ -176,7 +178,7 @@ class GreedyAgent(Agent):
             dst = to_cube((x[group[j]], y[group[j]]))
             state.moveFigure(figure, dst=dst)
 
-        logging.info(f'{self.team:5}: placed his troops in {group} ({score})')
+        logger.info(f'{self.team:5}: placed his troops in {group} ({score})')
 
     def chooseFigureGroups(self, board: GameBoard, state: GameState) -> None:
         colors = list(state.choices[self.team].keys())
@@ -192,4 +194,4 @@ class GreedyAgent(Agent):
         score, color = self.opt(scores)
         state.choose(self.team, color)
 
-        logging.info(f'{self.team:5}: choose positions color {color}')
+        logger.info(f'{self.team:5}: choose positions color {color}')
