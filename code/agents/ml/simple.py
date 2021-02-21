@@ -22,6 +22,7 @@ class MLAgent(Agent):
 
         self.filename = filename
         self.model = joblib.load(os.path.join(os.getcwd(), filename))
+        #TODO qui vorrei caricare il modello in base al tipo di azione
 
         self.randomChoice = randomChoice
 

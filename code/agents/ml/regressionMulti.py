@@ -21,6 +21,7 @@ class RegressionMultiAgent(MLAgent):
         df = pd.DataFrame(data=X, columns=vectorStateInfo() + vectorActionInfo()).dropna(axis=1)
         df = df.drop(['meta_seed', 'meta_scenario', 'action_team'], axis=1)
 
+        #qui vorrei fare un controllo su quale modello utilizzare
         scores = self.model.predict(df)
 
         return list(zip(scores, actions))
