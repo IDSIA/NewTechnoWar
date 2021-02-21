@@ -48,6 +48,7 @@ class MLAgent(Agent):
 
     def scores(self, state: GameState, board: GameBoard, stateActions: List[Action]) -> List[Tuple[float, Action]]:
         raise NotImplemented()
+    #forces you to implement it, as it will throw an exception when you try to run it until you do so.
 
     @staticmethod
     def bestAction(scores: List[Tuple[float, Action]]):
