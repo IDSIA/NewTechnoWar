@@ -2,7 +2,7 @@ from typing import Dict, List
 
 import numpy as np
 
-from core.actions import Action, ActionFigure, Attack, AttackGround, LoadInto
+from core.actions import Action, ActionFigure, Attack, AttackGround, MoveLoadInto
 from core.const import RED, BLUE
 from core.figures import FigureType, Figure, Weapon, vectorFigureInfo
 from core.game.static import MAX_SMOKE, MAX_UNITS_PER_TEAM
@@ -147,7 +147,7 @@ class GameState:
         """Given an Attack Action, returns the weapon used."""
         return self.getFigure(action).weapons[action.weapon_id]
 
-    def getTransporter(self, action: LoadInto) -> Figure:
+    def getTransporter(self, action: MoveLoadInto) -> Figure:
         """Given a LoadInto action, return the destination transporter."""
         return self.getFigureByIndex(action.team, action.transporter_id)
 

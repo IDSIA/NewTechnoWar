@@ -1,7 +1,7 @@
 import numpy as np
 from flask.json import JSONEncoder
 
-from core.actions import Move, Attack, LoadInto, AttackGround, AttackRespond, PassFigure, PassTeam, PassRespond
+from core.actions import Move, Attack, MoveLoadInto, AttackGround, AttackRespond, PassFigure, PassTeam, PassRespond
 from core.const import RED, BLUE
 from core.figures import Figure, FigureType, Weapon
 from core.game import GameState
@@ -104,7 +104,7 @@ class GameJSONEncoder(JSONEncoder):
                 'text': str(obj),
             }
 
-        if isinstance(obj, LoadInto):
+        if isinstance(obj, MoveLoadInto):
             return {
                 'action': 'Move',
                 'team': obj.team,

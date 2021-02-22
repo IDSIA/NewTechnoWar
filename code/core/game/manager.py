@@ -54,7 +54,7 @@ class GameManager(object):
 
     @staticmethod
     def actionLoadInto(board: GameBoard, state: GameState, figure: Figure, transporter: Figure,
-                       path: List[Cube] = None) -> LoadInto:
+                       path: List[Cube] = None) -> MoveLoadInto:
         """
         Creates a LoadInto action for a figure with a specified transporter as destination. If path is not given, then
         it will be computed. It can raise a ValueError exception if the destination is unreachable.
@@ -67,7 +67,7 @@ class GameManager(object):
             path = findPath(figure.position, transporter.position, board, state, figure.kind)
             if len(path) - 1 > (figure.move - figure.load):
                 raise ValueError(f'destination unreachable for {figure} to {path[-1]}')
-        return LoadInto(figure, path, transporter)
+        return MoveLoadInto(figure, path, transporter)
 
     def buildMovements(self, board: GameBoard, state: GameState, figure: Figure) -> List[Move]:
         """Build all the movement actions for a figure. All the other units are considered as obstacles."""
@@ -377,7 +377,7 @@ class GameManager(object):
             f.activated = True
             f.moved = True
             f.stat = IN_MOTION
-            if isinstance(action, LoadInto):
+            if isinstance(action, MoveLoadInto):
                 # figure moves inside transporter
                 t = state.getTransporter(action)
                 t.transportLoad(f)
