@@ -20,7 +20,7 @@ class ClassifierAgent(MLAgent):
         df = pd.DataFrame(data=X, columns=vectorStateInfo() + vectorActionInfo() + vectorBoardInfo()).dropna(axis=1)
         df = df.drop(['meta_seed', 'meta_scenario', 'action_team'], axis=1)
 
-        idx = 1 if self.team == BLUE else 0
+        offset = 1 if self.team == BLUE else 0
         scores = self.model.predict_proba(df)
 
-        return [(scores[i][idx], actions[i]) for i in range(len(actions))]
+        return [(abs(offset - scores[i][0]), actions[i]) for i in range(len(actions))]

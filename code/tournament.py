@@ -2,6 +2,7 @@ import logging.config
 import math
 import os
 import random
+import uuid
 from datetime import datetime
 from multiprocessing import Pool, cpu_count
 
@@ -16,6 +17,7 @@ from core.vectors import vectorActionInfo, vectorAction, vectorBoardInfo, vector
 from scenarios import scenarioJunction
 from utils.setup_logging import setup_logging
 
+ALL = 'all'
 CORES = cpu_count()
 ELO_POINTS = 400
 ELO_K = 40
@@ -25,14 +27,17 @@ logger = logging.getLogger("tourney")
 
 class Player:
 
-    def __init__(self, id: int = 0, kind: str = '', var='', filename: str = '', points: int = ELO_POINTS):
-        self.id = id
+    def __init__(self, kind: str = '', var='', filename: str = '', points: int = ELO_POINTS):
+        self.id = str(uuid.uuid4())
         self.kind = kind
         self.var = var
         self.filename = filename
         self.points = points
         self.wins = 0
         self.losses = 0
+        
+    def games(self) -> int:
+        return self.wins + self.losses
 
     def expected(self, other):
         return 1. / (1. + math.pow(10., (other.points - self.points) / ELO_POINTS))
@@ -63,28 +68,95 @@ class Player:
 
 class Population:
 
-    def __init__(self, size: int = 20, team: str = None):
+    def __init__(self, size: int = 20, team: str = None, top_n: int = 5, kind: str = '', filename: str = ''):
+        self.id = str(uuid.uuid4())
+
         self.team = team
         self.size = size
         self.count = size
+        self.top_n = top_n
 
-        self.population = [Player(c, 'gre') for c in range(size)]
+        self.kind = kind
+        self.filename = filename
+
+        self.population = [Player(kind, team, filename) for _ in range(size)]
+
         self.i = 0
+
+        self.df = None
+
+    def __repr__(self):
+        return f'[{self.team} ({self.top_n}/{self.size}): {self.kind} {self.team}]'
+
+    def __str__(self):
+        return self.__repr__()
 
     def reset(self) -> None:
         random.shuffle(self.population)
         self.i = 0
 
     def next(self) -> Player or None:
-        if self.i > len(self.population):
-            return None
         p = self.population[self.i]
-        self.i += 1
+        self.i = (self.i + 1) % self.size
         return p
 
-    def evolve(self):
-        # TODO: choose the better population for next gen
-        pass
+    def ladder(self, raw: pd.DataFrame) -> None:
+        self.population = sorted(self.population, key=lambda x: -x.points if x.games() > 0 else 1000.0 )
+
+        logger.info(f'{self}: Ladder TOP 10')
+        for i in range(self.size):
+            pop = self.population[i]
+            logger.info(
+                f'{self}: ({i + 1:2}) {pop.kind:5} {pop.id:5}: {pop.points:6.2f} (W: {pop.wins:3} L: {pop.losses:3})'
+            )
+        logger.info(f'{self}: top {self.top_n} ')
+
+        top_ids = [p.id for p in self.population[:self.top_n]]
+
+        # create new dataframes
+        df = raw[raw['meta_player'].isin(top_ids)] \
+            .drop(['meta_seed', 'meta_scenario', 'meta_player', 'action_team'], axis=1, errors='ignore') \
+            .dropna(axis=1, how='all')
+
+        if df.shape == (0, 0):
+            return
+
+        df['label'] = df['winner'].apply(lambda x: 1 if x == self.team else -1)
+
+        if self.df:
+            self.df = pd.concat([self.df, df])
+        else:
+            self.df = df
+
+    def trainArgs(self, epoch, DIR_MODELS) -> tuple:
+        if self.df is None:
+            return self.id, epoch, None, None, self.team, self.kind, self.team, DIR_MODELS
+
+        X = self.df.drop(['winner', 'label'], axis=1, errors='ignore')
+        y = self.df['label']
+
+        logger.debug(f'{self}: shapes X={X.shape} y={y.shape}')
+
+        return self.id, epoch, X, y, self.team, self.kind, self.team, DIR_MODELS
+
+    def setup(self, filename: str = ''):
+        if self.kind == 'gre':
+            return
+
+        logger.debug(f'{self}: setup with {filename}')
+        self.population = [Player(self.kind, self.team, filename) for _ in range(self.size)]
+
+    def evolve(self, filename: str = ''):
+        if self.kind == 'gre':
+            return
+        if filename is None:
+            return
+
+        self.population = sorted(self.population, key=lambda x: -x.points)
+
+        self.population = self.population[:self.top_n] + [
+            Player(self.kind, self.team, filename) for _ in range(self.size - self.top_n)
+        ]
 
 
 def playJunction(seed: int, red: Player, blue: Player) -> MatchManager:
@@ -135,10 +207,8 @@ def play(args) -> tuple:
 
     df = pd.concat([df_state, df_action, df_board], axis=1)
 
-    # TODO: add a unique identifier to each player, so it is possible to filter the data from a unique dataframe
     df['winner'] = mm.winner
-    df['meta_i_red'] = red.id
-    df['meta_i_blue'] = blue.id
+    df['meta_player'] = df['action_team'].apply(lambda x: red.id if x == RED else blue.id)
 
     # save to disk
     filename = f'game.{epoch}.{seed}.{red.id}.{blue.id}.pkl.gz'
@@ -164,8 +234,8 @@ def compress(epoch: int, dir_data) -> pd.DataFrame:
     return dfs
 
 
-def splitDataFrame(df: pd.DataFrame) -> tuple:
-    df = df.dropna(axis=1, how='all')
+def initBuildDataFrame(raw: pd.DataFrame) -> tuple:
+    df = raw.drop(['meta_scenario', 'meta_seed', 'meta_player'], axis=1, errors='ignore').dropna(axis=1, how='all')
 
     df_red = df[df['action_team'] == 'red'].copy().drop('action_team', axis=1, errors='ignore')
     df_blue = df[df['action_team'] == 'blue'].copy().drop('action_team', axis=1, errors='ignore')
@@ -179,42 +249,32 @@ def splitDataFrame(df: pd.DataFrame) -> tuple:
     X_blue = df_blue.drop(['winner', 'label'], axis=1, errors='ignore')
     y_blue = df_blue['label']
 
-    X = pd.concat([X_red, X_blue])
-    y = pd.concat([y_red, y_blue])
+    logger.debug(f'shapes: X_red={X_red.shape} y_red={y_red.shape} X_blue={X_blue.shape} y_blue{y_blue.shape}')
 
-    logger.debug(f'shapes: X={X.shape} y={y.shape} X_red={X_red.shape} y_red={y_red.shape} ' +
-                 f'X_blue={X_blue.shape} y_blue{y_blue.shape}')
-
-    return X, y, X_red, y_red, X_blue, y_blue
-
-
-def initBuildDataFrame(raw: pd.DataFrame) -> tuple:
-    df = raw.drop([
-        'meta_scenario', 'meta_seed', 'meta_i_red', 'meta_i_blue'
-    ], axis=1, errors='ignore')
-
-    return splitDataFrame(df)
-
-
-def buildDataFrame(raw: pd.DataFrame, ids: list) -> tuple:
-    df = raw[raw['meta_i_red'].isin(ids) | raw['meta_i_blue'].isin(ids)].drop([
-        'meta_seed', 'meta_scenario', 'meta_i_red', 'meta_i_blue'
-    ], axis=1, errors='ignore')
-
-    return splitDataFrame(df)
+    return X_red, y_red, X_blue, y_blue
 
 
 def buildModel(args) -> tuple:
-    epoch, m, X, y, s, t, dir_models = args
+    pid, epoch, X, y, team, kind, var, dir_models = args
+
+    if X is None or y is None:
+        return pid, None
+
+    if kind == 'cls':
+        m = RandomForestClassifier()
+    elif kind == 'reg':
+        m = RandomForestRegressor()
+    else:
+        return pid, ''
 
     m.fit(X, y)
 
-    filename = os.path.join(dir_models, f'{epoch}_{s}_{t}.joblib')
+    filename = os.path.join(dir_models, f'{epoch}_{pid}_{team}_{kind}_{var}.joblib')
     joblib.dump(m, filename)
 
-    logger.info(f'built ({s} {t}): {filename}')
+    logger.info(f'built for {pid} ({team} {kind} {var}): {filename}')
 
-    return s, t, filename
+    return pid, filename
 
 
 def main() -> None:
@@ -227,22 +287,40 @@ def main() -> None:
 
     seed = 20210217
     size = 20  # TODO: add a distribution parameter
-    games_per_epoch = 10
+    top_models = 5
+    turns_per_epoch = 10
+    games_per_turn = 10
     epochs = 5
-    top_models = 2
 
     random.seed = seed
-    count = size
 
     # TODO: we need a different population for CLSs, REGs, and GREs based on color red, blue, or both (total: 9 pops!)
-    reds = Population(size, RED)
-    blues = Population(size, BLUE)
-    both = Population(size)
+    pops = {
+        RED: [
+            Population(size=size, top_n=top_models, kind='cls', team=RED),
+            Population(size=size, top_n=top_models, kind='reg', team=RED),
+            Population(size=size, top_n=top_models, kind='gre', team=RED),
+        ],
+        BLUE: [
+            Population(size=size, top_n=top_models, kind='cls', team=BLUE),
+            Population(size=size, top_n=top_models, kind='reg', team=BLUE),
+            Population(size=size, top_n=top_models, kind='gre', team=BLUE),
+        ],
+        ALL: [
+            # TODO: this need to be thought better
+            #     Population(size=size, top_n=top_models, kind='cls', team=ALL),
+            #     Population(size=size, top_n=top_models, kind='reg', team=ALL),
+            Population(size=size, top_n=top_models, kind='gre', team=ALL)
+        ]
+    }
 
     # initial population TODO: put this in a generator function
-    population = [Player(c, 'gre') for c in range(count)]
+    populations = {}
+    for pop in pops.values():
+        for p in pop:
+            populations[p.id] = p
 
-    with Pool(CORES, maxtasksperchild=1) as p:
+    with Pool(CORES, maxtasksperchild=1) as pool:
         for epoch in range(epochs):
             logger.info(f"EPOCH: {epoch}")
 
@@ -251,29 +329,41 @@ def main() -> None:
             os.makedirs(os.path.join(DIR_MODELS, str(epoch)), exist_ok=True)
             os.makedirs(os.path.join(DIR_OUT, str(epoch)), exist_ok=True)
 
+            # collect all player ids
+            players = {}
+            for pop in pops.values():
+                for p in pop:
+                    for e in p.population:
+                        players[e.id] = e
+
             # play with all other players
             logger.info('Playing games...')
-            for _ in range(games_per_epoch):
-                # randomly select a pair of players
-
-                # TODO: random reset everything
-                reds.reset()
-                blues.reset()
-                both.reset()
+            for i in range(turns_per_epoch):
+                # reset population internal distributions
+                for pop in pops.values():
+                    for p in pop:
+                        p.reset()
 
                 args = []
-                for i in range(0, len(population), 2):
-                    # TODO: for each game, choose a red from all the reds, and a blue from all the blues
+                for j in range(games_per_turn):
+                    if epoch == 0:
+                        red_pop = random.choice(pops[ALL])
+                        blue_pop = random.choice(pops[ALL])
+                    else:
+                        # for each game, choose a red from all the reds...
+                        red_pop = random.choice(pops[RED] + pops[ALL])
+                        # ...and a blue from all the blues
+                        blue_pop = random.choice(pops[BLUE] + pops[ALL])
+
                     args.append(
-                        (population[i], population[i + 1], random.randint(100000000, 999999999), epoch, DIR_DATA)
+                        (red_pop.next(), blue_pop.next(), random.randint(100000000, 999999999), epoch, DIR_DATA)
                     )
-                results = p.map(play, args)
-                players = {p.id: p for p in population}
+
+                results = pool.map(play, args)
 
                 logger.info('update results:')
                 for rid, bid, winner in results:
-                    # TODO this should be done by the population to keep a personal ladder
-                    logger.info(f'\t* {rid:5} vs {bid:5}: {winner} wins!')
+                    logger.info(f'\t* RED={rid} vs BLUE={bid}: {winner} wins!')
                     red = players[rid]
                     blue = players[bid]
                     if winner == RED:
@@ -281,55 +371,37 @@ def main() -> None:
                     else:
                         blue.win(red)
 
-            # collect generated data TODO: each population collects its own data and build its own ladder
+            # collect generated data
             df = compress(epoch, DIR_DATA)
 
             logger.info('building models...')
+            args = []
+
             if epoch == 0:
                 logger.info('first build of models')
-                X, y, X_red, y_red, X_blue, y_blue = initBuildDataFrame(df)
+                X_red, y_red, X_blue, y_blue = initBuildDataFrame(df)
+
+                for k, pop in populations.items():
+                    if pop.team == RED:
+                        args.append((k, epoch, X_red, y_red, RED, pop.kind, RED, DIR_MODELS))
+                    else:
+                        args.append((k, epoch, X_blue, y_blue, BLUE, pop.kind, BLUE, DIR_MODELS))
 
             else:
                 logger.info('choosing best models...')
-                population = sorted(population, key=lambda x: -x.points)
-                top_ids = [p.id for p in population[:top_models]]
+                for pop in pops.values():
+                    for p in pop:
+                        p.ladder(df.copy())
+                        args.append(p.trainArgs(epoch, DIR_MODELS))
 
-                # TODO: keep track of the color of the models,
-                #       maybe different ladders for different types of models?
-                logger.info('TOP 10:')
-                for i in range(10):
-                    pop = population[i]
-                    logger.info(
-                        f'({i + 1:2}) {pop.kind:5} {pop.id:5}: {pop.points:6.2f} (W: {pop.wins:3} L: {pop.losses:3})')
-                logger.info(f'top {top_models} will contribute with their data')
+            # parallel build models based on dataframes built above
+            models = pool.map(buildModel, args)
 
-                X, y, X_red, y_red, X_blue, y_blue = buildDataFrame(df, top_ids)
-
-            # build models based on dataframes built above
-            # TODO: keep track of dataframes of previous generations!
-            args = [
-                (epoch, RandomForestRegressor(), X_red, y_red, 'reg', 'red', DIR_MODELS),
-                (epoch, RandomForestRegressor(), X_blue, y_blue, 'reg', 'blue', DIR_MODELS),
-                (epoch, RandomForestRegressor(), X, y, 'reg', 'all', DIR_MODELS),
-                (epoch, RandomForestClassifier(), X_red, y_red, 'cls', 'red', DIR_MODELS),
-                (epoch, RandomForestClassifier(), X_blue, y_blue, 'cls', 'blue', DIR_MODELS),
-                (epoch, RandomForestClassifier(), X, y, 'cls', 'all', DIR_MODELS),
-            ]
-
-            # parallel building TODO: again, each population build its own new players
-            models = p.map(buildModel, args)
-
-            # add a default mix of players
-            # TODO: mix should be defined in a function and follow the population distribution
-            population = []
-            for i in range(3):
-                for s, t, filename in models:
-                    logger.info(f'added: ({s} {t}): filename')
-                    population.append(Player(count, s, t, filename))
-                    count += 1
-            for i in range(2):
-                population.append(Player(count, 'gre'))
-                count += 1
+            for pid, model in models:
+                if epoch == 0:
+                    populations[pid].setup(model)
+                else:
+                    populations[pid].evolve(model)
 
 
 if __name__ == '__main__':
