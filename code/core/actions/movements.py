@@ -27,7 +27,7 @@ class Move(ActionFigure):
         return f'{super().__str__()}: Moved to {self.destination.hex()}'
 
 
-class LoadInto(Move):
+class MoveLoadInto(Move):
     """Action to load a Figure in a transporter at the destination."""
 
     __slots__ = ['transporter_id', 'transporter_name']
