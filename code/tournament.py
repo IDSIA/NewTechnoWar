@@ -35,6 +35,9 @@ class Player:
         self.points = points
         self.wins = 0
         self.losses = 0
+        
+    def games(self) -> int:
+        return self.wins + self.losses
 
     def expected(self, other):
         return 1. / (1. + math.pow(10., (other.points - self.points) / ELO_POINTS))
@@ -98,7 +101,7 @@ class Population:
         return p
 
     def ladder(self, raw: pd.DataFrame) -> None:
-        self.population = sorted(self.population, key=lambda x: -x.points)
+        self.population = sorted(self.population, key=lambda x: -x.points if x.games() > 0 else 1000.0 )
 
         logger.info(f'{self}: Ladder TOP 10')
         for i in range(self.size):
@@ -145,6 +148,8 @@ class Population:
 
     def evolve(self, filename: str = ''):
         if self.kind == 'gre':
+            return
+        if filename is None:
             return
 
         self.population = sorted(self.population, key=lambda x: -x.points)
