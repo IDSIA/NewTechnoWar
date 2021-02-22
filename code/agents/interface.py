@@ -3,8 +3,7 @@ from datetime import datetime
 import pandas as pd
 
 from core.actions import Action
-from core.game.board import GameBoard
-from core.game.state import GameState
+from core.game import GameBoard, GameState, GameManager
 
 
 class Agent:
@@ -16,6 +15,8 @@ class Agent:
         self.count: int = 0
 
         self.history: list = []
+
+        self.gm: GameManager = GameManager()
 
     def register(self, state: GameState, data: list):
         self.count += 1

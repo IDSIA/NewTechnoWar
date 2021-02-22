@@ -1,9 +1,7 @@
 import numpy as np
 
-from core.game.board import GameBoard
-from core.game.state import GameState
-from core.game.terrain import Terrain
-from utils.coordinates import hex_linedraw, to_hex
+from core.game import GameBoard, GameState, Terrain
+from core.utils.coordinates import Hex
 
 MAP_SHAPE = (52, 42)  # entire map: 52x42
 
@@ -14,13 +12,13 @@ def blank(shape) -> (GameBoard, GameState):
 
 def fillLine(terrain: np.ndarray, start: tuple, end: tuple, kind: int):
     if start[0] == end[0]:
-        line = [(start[0], j) for j in range(start[1], end[1] + 1)]
+        line = [Hex(start[0], j).cube() for j in range(start[1], end[1] + 1)]
     elif start[1] == end[1]:
-        line = [(i, start[1]) for i in range(start[0], end[0] + 1)]
+        line = [Hex(i, start[1]).cube() for i in range(start[0], end[0] + 1)]
     else:
-        line = hex_linedraw(to_hex(start), to_hex(end))
+        line = Hex(t=start).line(Hex(t=end))
     for hex in line:
-        terrain[hex] = kind
+        terrain[hex.tuple()] = kind
 
 
 def basicForest(terrain: np.array):

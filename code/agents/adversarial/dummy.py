@@ -1,11 +1,9 @@
 import numpy as np
 
 from agents import Agent
-from core import GM
 from core.actions import Action, PassTeam, PassFigure
-from core.game.board import GameBoard
-from core.game.state import GameState
-from utils.coordinates import to_cube
+from core.game import GameBoard, GameState
+from core.utils.coordinates import Hex
 
 ACTION_MOVE = 0
 ACTION_ATTACK = 1
@@ -26,8 +24,8 @@ class RandomAgent(Agent):
 
         f = np.random.choice(figures)
 
-        moves = GM.buildMovements(board, state, f)
-        attacks = GM.buildAttacks(board, state, f)
+        moves = self.gm.buildMovements(board, state, f)
+        attacks = self.gm.buildAttacks(board, state, f)
 
         if not moves and not attacks:
             raise ValueError(f"no more moves for {f} {self.team}")
@@ -70,7 +68,7 @@ class RandomAgent(Agent):
         f = np.random.choice(figures)
 
         # build possible response for the chosen unit
-        responses = GM.buildResponses(board, state, f)
+        responses = self.gm.buildResponses(board, state, f)
 
         if responses:
             response = np.random.choice(responses)
@@ -89,7 +87,7 @@ class RandomAgent(Agent):
         for i in range(len(figures)):
             # move each unit to its position
             figure = figures[i]
-            dst = to_cube((x[indices[i]], y[indices[i]]))
+            dst = Hex(x[indices[i]], y[indices[i]]).cube()
             state.moveFigure(figure, figure.position, dst)
 
     def chooseFigureGroups(self, board: GameBoard, state: GameState) -> None:

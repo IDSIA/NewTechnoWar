@@ -2,12 +2,12 @@ import unittest
 
 import numpy as np
 
-from core import GM
 from core.const import RED, BLUE
 from core.figures import Tank, Infantry
-from core.game.board import GameBoard
-from core.game.state import GameState
-from core.game.terrain import Terrain
+from core.game import GameBoard, GameState, Terrain, GameManager
+from core.utils.coordinates import Hex
+
+GM: GameManager = GameManager()
 
 
 class TestLOS(unittest.TestCase):
@@ -100,7 +100,8 @@ class TestLOS(unittest.TestCase):
         self.assertFalse(GM.checkLine(self.board, self.state, self.los_inf), 'urban: infantry has LOS on target')
 
     def testArmoredUnitBlock(self):
-        m1 = GM.actionMove(self.board, self.state, self.red_tank, destination=(3, 5))
+        dst = Hex(3, 5).cube()
+        m1 = GM.actionMove(self.board, self.state, self.red_tank, destination=dst)
 
         # we move the tank in a blocking position
         GM.step(self.board, self.state, m1)

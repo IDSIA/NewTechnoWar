@@ -7,10 +7,8 @@ import numpy as np
 
 from agents import Agent, GreedyAgent
 from agents.utils import entropy
-from core import GM
 from core.actions import Action
-from core.game.board import GameBoard
-from core.game.state import GameState
+from core.game import GameBoard, GameState
 
 logger = logging.getLogger(__name__)
 
@@ -73,9 +71,9 @@ class MLAgent(Agent):
         all_actions = []
 
         for figure in state.getFiguresCanBeActivated(self.team):
-            actions = [GM.actionPassFigure(figure)] + \
-                      GM.buildAttacks(board, state, figure) + \
-                      GM.buildMovements(board, state, figure)
+            actions = [self.gm.actionPassFigure(figure)] + \
+                      self.gm.buildAttacks(board, state, figure) + \
+                      self.gm.buildMovements(board, state, figure)
 
             all_actions += actions
 
@@ -102,8 +100,8 @@ class MLAgent(Agent):
         all_actions = []
 
         for figure in state.getFiguresCanBeActivated(self.team):
-            actions = [GM.actionPassResponse(self.team)] + \
-                      GM.buildResponses(board, state, figure)
+            actions = [self.gm.actionPassResponse(self.team)] + \
+                      self.gm.buildResponses(board, state, figure)
 
             all_actions += actions
 

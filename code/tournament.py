@@ -11,7 +11,8 @@ from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 
 from agents import MatchManager, GreedyAgent, ClassifierAgent, RegressionAgent, RandomAgent, Agent
 from core.const import RED, BLUE
-from core.game.state import vectorStateInfo, vectorState, vectorActionInfo, vectorAction
+from core.game import vectorStateInfo, vectorState
+from core.vectors import vectorActionInfo, vectorAction, vectorBoardInfo, vectorBoard
 from scenarios import scenarioJunction
 from utils.setup_logging import setup_logging
 
@@ -60,6 +61,32 @@ class Player:
         return RandomAgent(team)
 
 
+class Population:
+
+    def __init__(self, size: int = 20, team: str = None):
+        self.team = team
+        self.size = size
+        self.count = size
+
+        self.population = [Player(c, 'gre') for c in range(size)]
+        self.i = 0
+
+    def reset(self) -> None:
+        random.shuffle(self.population)
+        self.i = 0
+
+    def next(self) -> Player or None:
+        if self.i > len(self.population):
+            return None
+        p = self.population[self.i]
+        self.i += 1
+        return p
+
+    def evolve(self):
+        # TODO: choose the better population for next gen
+        pass
+
+
 def playJunction(seed: int, red: Player, blue: Player) -> MatchManager:
     """
     Start a game with the given configuration on the 'Junction' scenario.
@@ -102,8 +129,13 @@ def play(args) -> tuple:
     actions_data = [vectorAction(x) for x in mm.actions_history]
     df_action = pd.DataFrame(columns=actions_cols, data=actions_data)
 
-    df = pd.concat([df_state, df_action], axis=1)
+    board_cols = vectorBoardInfo()
+    board_data = [vectorBoard(mm.board, s, a) for s, a in zip(mm.states_history, mm.actions_history)]
+    df_board = pd.DataFrame(columns=board_cols, data=board_data)
 
+    df = pd.concat([df_state, df_action, df_board], axis=1)
+
+    # TODO: add a unique identifier to each player, so it is possible to filter the data from a unique dataframe
     df['winner'] = mm.winner
     df['meta_i_red'] = red.id
     df['meta_i_blue'] = blue.id
@@ -202,6 +234,11 @@ def main() -> None:
     random.seed = seed
     count = size
 
+    # TODO: we need a different population for CLSs, REGs, and GREs based on color red, blue, or both (total: 9 pops!)
+    reds = Population(size, RED)
+    blues = Population(size, BLUE)
+    both = Population(size)
+
     # initial population TODO: put this in a generator function
     population = [Player(c, 'gre') for c in range(count)]
 
@@ -218,9 +255,15 @@ def main() -> None:
             logger.info('Playing games...')
             for _ in range(games_per_epoch):
                 # randomly select a pair of players
-                random.shuffle(population)
+
+                # TODO: random reset everything
+                reds.reset()
+                blues.reset()
+                both.reset()
+
                 args = []
                 for i in range(0, len(population), 2):
+                    # TODO: for each game, choose a red from all the reds, and a blue from all the blues
                     args.append(
                         (population[i], population[i + 1], random.randint(100000000, 999999999), epoch, DIR_DATA)
                     )
@@ -229,6 +272,7 @@ def main() -> None:
 
                 logger.info('update results:')
                 for rid, bid, winner in results:
+                    # TODO this should be done by the population to keep a personal ladder
                     logger.info(f'\t* {rid:5} vs {bid:5}: {winner} wins!')
                     red = players[rid]
                     blue = players[bid]
@@ -237,7 +281,7 @@ def main() -> None:
                     else:
                         blue.win(red)
 
-            # collect generated data
+            # collect generated data TODO: each population collects its own data and build its own ladder
             df = compress(epoch, DIR_DATA)
 
             logger.info('building models...')
@@ -257,12 +301,12 @@ def main() -> None:
                     pop = population[i]
                     logger.info(
                         f'({i + 1:2}) {pop.kind:5} {pop.id:5}: {pop.points:6.2f} (W: {pop.wins:3} L: {pop.losses:3})')
-                logger.info('top ', top_models, 'will contribute with their data')
+                logger.info(f'top {top_models} will contribute with their data')
 
                 X, y, X_red, y_red, X_blue, y_blue = buildDataFrame(df, top_ids)
 
             # build models based on dataframes built above
-            # TODO: keep track of dataframes of previous generations?
+            # TODO: keep track of dataframes of previous generations!
             args = [
                 (epoch, RandomForestRegressor(), X_red, y_red, 'reg', 'red', DIR_MODELS),
                 (epoch, RandomForestRegressor(), X_blue, y_blue, 'reg', 'blue', DIR_MODELS),
@@ -272,7 +316,7 @@ def main() -> None:
                 (epoch, RandomForestClassifier(), X, y, 'cls', 'all', DIR_MODELS),
             ]
 
-            # parallel building
+            # parallel building TODO: again, each population build its own new players
             models = p.map(buildModel, args)
 
             # add a default mix of players

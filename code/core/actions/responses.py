@@ -1,5 +1,5 @@
 from core.actions.attacks import Attack
-from core.actions.passes import PassFigure, Pass, PassTeam
+from core.actions.passes import PassTeam
 from core.figures import Figure, Weapon
 
 

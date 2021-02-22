@@ -7,7 +7,8 @@ import yaml
 from agents import GreedyAgent
 from agents.matchmanager import MatchManager
 from core.const import RED, BLUE
-from core.game.state import vectorAction, vectorActionInfo, vectorStateInfo, vectorState
+from core.game import vectorStateInfo, vectorState
+from core.vectors import vectorActionInfo, vectorAction, vectorBoardInfo, vectorBoard
 from scenarios import scenarioJunction
 
 dir_path = op.dirname(op.realpath(__file__))
@@ -47,6 +48,13 @@ if __name__ == '__main__':
     states_data = [vectorState(x) for x in mm.states_history]
 
     df_states = pd.DataFrame(columns=states_cols, data=states_data)
+
+    board_cols = vectorBoardInfo()
+    board_data = [vectorBoard(board, s, a) for s, a in zip(mm.states_history, mm.actions_history)]
+
+    df_board = pd.DataFrame(columns=board_cols, data=board_data)
+
+    print(df_states.shape, df_actions.shape, df_board.shape)
 
     df_red = mm.red.createDataFrame()
     df_blue = mm.blue.createDataFrame()

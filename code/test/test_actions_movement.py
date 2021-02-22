@@ -2,14 +2,12 @@ import unittest
 
 import numpy as np
 
-from core import GM
 from core.const import RED
-from core.figures import Tank, Infantry
-from core.figures.status import IN_MOTION
-from core.game.board import GameBoard
-from core.game.state import GameState
-from core.game.terrain import Terrain
-from utils.coordinates import to_cube, Cube, cube_to_hex
+from core.figures import Tank, Infantry, IN_MOTION
+from core.game import GameBoard, GameState, Terrain, GameManager
+from core.utils.coordinates import Cube, Hex
+
+GM: GameManager = GameManager()
 
 
 class TestMovementAction(unittest.TestCase):
@@ -23,7 +21,7 @@ class TestMovementAction(unittest.TestCase):
         self.state.addFigure(self.tank)
 
     def testMoveToDestination(self):
-        dst = (4, 4)
+        dst = Hex(4, 4).cube()
         move = GM.actionMove(self.board, self.state, self.tank, destination=dst)
 
         GM.step(self.board, self.state, move)
@@ -31,7 +29,7 @@ class TestMovementAction(unittest.TestCase):
         self.assertEqual(self.state.getFiguresByPos(move.team, move.destination)[0], self.tank,
                          'figure in the wrong position')
         self.assertEqual(self.tank.stat, IN_MOTION, 'figure should be in motion')
-        self.assertEqual(self.tank.position, to_cube(dst), 'figure not at the correct destination')
+        self.assertEqual(self.tank.position, dst, 'figure not at the correct destination')
 
     def testMoveOnRoad(self):
         shape = (1, 16)
@@ -83,7 +81,7 @@ class TestMovementAction(unittest.TestCase):
         self.assertEqual(nInfRoad, 4, 'invalid distance for infantry')
 
     def testActivateMoveToDestination(self):
-        dst = (4, 4)
+        dst = Hex(4, 4).cube()
         move = GM.actionMove(self.board, self.state, self.tank, destination=dst)
 
         self.state1, _ = GM.activate(self.board, self.state, move)
@@ -142,7 +140,8 @@ class TestMovementAction(unittest.TestCase):
         self.assertEqual(inf3.transported_by, -1, 'Inf3 is in transporter')
 
         # move tank
-        move = GM.actionMove(self.board, self.state, self.tank, destination=(8, 2))
+        dst = Hex(8, 2).cube()
+        move = GM.actionMove(self.board, self.state, self.tank, destination=dst)
         GM.step(self.board, self.state, move)
 
         # figures moves along with tank
@@ -153,7 +152,8 @@ class TestMovementAction(unittest.TestCase):
         self.assertGreater(inf1.transported_by, -1)
 
         # unload 1 figure
-        move = GM.actionMove(self.board, self.state, inf1, destination=(8, 4))
+        dst = Hex(8, 4).cube()
+        move = GM.actionMove(self.board, self.state, inf1, destination=dst)
         GM.step(self.board, self.state, move)
 
         self.assertEqual(len(self.tank.transporting), 1, 'transporter has less units than expected')
@@ -161,30 +161,33 @@ class TestMovementAction(unittest.TestCase):
 
     def testMoveInsideShape(self):
         # top left
-        self.state.moveFigure(self.tank, dst=to_cube((0, 0)))
+        dst = Hex(0, 0).cube()
+        self.state.moveFigure(self.tank, dst=dst)
 
         moves = GM.buildMovements(self.board, self.state, self.tank)
 
         for move in moves:
             d: Cube = move.destination
-            x, y = cube_to_hex(d)
+            x, y = d.tuple()
             self.assertGreaterEqual(x, 0, f'moves outside of map limits: ({x},{y})')
             self.assertGreaterEqual(y, 0, f'moves outside of map limits: ({x},{y})')
 
         # bottom right
-        self.state.moveFigure(self.tank, dst=to_cube((15, 15)))
+        dst = Hex(15, 15).cube()
+        self.state.moveFigure(self.tank, dst=dst)
 
         moves = GM.buildMovements(self.board, self.state, self.tank)
 
         for move in moves:
             d: Cube = move.destination
-            x, y = cube_to_hex(d)
+            x, y = d.tuple()
             self.assertLess(x, 16, f'moves outside of map limits: ({x},{y})')
             self.assertLess(y, 16, f'moves outside of map limits: ({x},{y})')
 
     def testMoveOutsideShape(self):
         # outside of map
-        self.state.moveFigure(self.tank, dst=to_cube((-1, -1)))
+        dst = Hex(-1, -1).cube()
+        self.state.moveFigure(self.tank, dst=dst)
 
         moves = GM.buildMovements(self.board, self.state, self.tank)
 

@@ -11,27 +11,27 @@ handlers:
     stream: ext://sys.stdout
 
   agents_file_handler:
-    class: logging.handlers.RotatingFileHandler
+    class: logging.FileHandler
     formatter: standard
     filename: logs/agents.info.log
-    maxBytes: 1048576
-    backupCount: 10
     encoding: utf8
 
   agents_file_warning_handler:
-    class: logging.handlers.RotatingFileHandler
+    class: logging.FileHandler
     formatter: standard
     filename: logs/agents.warn.log
-    maxBytes: 1048576
-    backupCount: 10
+    encoding: utf8
+
+  web_file_handler:
+    class: logging.FileHandler
+    formatter: standard
+    filename: logs/web.log
     encoding: utf8
 
   tourney_file_handler:
-    class: logging.handlers.RotatingFileHandler
+    class: logging.FileHandler
     formatter: standard
     filename: logs/tourney.all.log
-    maxBytes: 10485760
-    backupCount: 10
     encoding: utf8
 
 root:
@@ -44,10 +44,15 @@ loggers:
     level: INFO
     handlers: [ agents_file_handler ]
     propagate: no
-  
+
   agents.ml:
     level: WARNING
-    handlers: [agents_file_warning_handler]
+    handlers: [ agents_file_warning_handler ]
+    propagate: yes
+
+  web:
+    level: INFO
+    handlers: [ web_file_handler ]
     propagate: yes
 
   tourney:

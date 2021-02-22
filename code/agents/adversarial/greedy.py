@@ -8,13 +8,10 @@ import numpy as np
 from agents import Agent
 from agents.commons import stateScore
 from agents.utils import entropy
-from core import GM
 from core.actions import Action
 from core.figures import Figure
-from core.game.board import GameBoard
-from core.game.goals import GoalParams
-from core.game.state import GameState
-from utils.coordinates import to_cube
+from core.game import GameBoard, GameState, GoalParams
+from core.utils.coordinates import Hex
 from utils.copy import deepcopy
 
 logger = logging.getLogger(__name__)
@@ -42,7 +39,7 @@ class GreedyAgent(Agent):
         self.register(state, data)
 
     def evaluateState(self, board: GameBoard, state: GameState, action: Action, baseScore: float = 0) -> float:
-        s1, outcome = GM.activate(board, state, action)
+        s1, outcome = self.gm.activate(board, state, action)
         score = stateScore(self.team, self.goal_params, board, s1)
 
         if 'hitScore' in outcome:
@@ -53,15 +50,15 @@ class GreedyAgent(Agent):
 
     def scorePass(self, board: GameBoard, state: GameState, figure: Figure = None) -> List[Tuple[float, Action]]:
         if figure:
-            action = GM.actionPassFigure(figure)
+            action = self.gm.actionPassFigure(figure)
         else:
-            action = GM.actionPassTeam(self.team)
+            action = self.gm.actionPassTeam(self.team)
         score = self.evaluateState(board, state, action)
         return [(score, action)]
 
     def scoreMove(self, board: GameBoard, state: GameState, figure: Figure) -> List[Tuple[float, Action]]:
         scores = []
-        for action in GM.buildMovements(board, state, figure):
+        for action in self.gm.buildMovements(board, state, figure):
             score = self.evaluateState(board, state, action)
             scores.append((score, action))
 
@@ -73,7 +70,7 @@ class GreedyAgent(Agent):
         baseScore = stateScore(self.team, self.goal_params, board, state)
         scores = []
 
-        for action in GM.buildAttacks(board, state, figure):
+        for action in self.gm.buildAttacks(board, state, figure):
             score = self.evaluateState(board, state, action, baseScore)
             scores.append((score, action))
 
@@ -85,7 +82,7 @@ class GreedyAgent(Agent):
         baseScore = stateScore(self.team, self.goal_params, board, state)
         scores = []
 
-        responses = [GM.actionPassResponse(self.team)] + GM.buildResponses(board, state, figure)
+        responses = [self.gm.actionPassResponse(self.team)] + self.gm.buildResponses(board, state, figure)
 
         for action in responses:
             score = self.evaluateState(board, state, action, baseScore)
@@ -164,7 +161,7 @@ class GreedyAgent(Agent):
             for j in range(len(group)):
                 # move each unit to its position
                 figure = figures[j]
-                dst = to_cube((x[group[j]], y[group[j]]))
+                dst = Hex(x[group[j]], y[group[j]]).cube()
                 s.moveFigure(figure, figure.position, dst)
 
             score = stateScore(self.team, self.goal_params, board, s)
@@ -175,7 +172,7 @@ class GreedyAgent(Agent):
 
         for j in range(len(group)):
             figure = figures[j]
-            dst = to_cube((x[group[j]], y[group[j]]))
+            dst = Hex(x[group[j]], y[group[j]]).cube()
             state.moveFigure(figure, dst=dst)
 
         logger.info(f'{self.team:5}: placed his troops in {group} ({score})')
