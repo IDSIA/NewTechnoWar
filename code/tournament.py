@@ -101,7 +101,7 @@ class Population:
         self.population = sorted(self.population, key=lambda x: -x.points)
 
         logger.info(f'{self}: Ladder TOP 10')
-        for i in range(10):
+        for i in range(self.size):
             pop = self.population[i]
             logger.info(
                 f'{self}: ({i + 1:2}) {pop.kind:5} {pop.id:5}: {pop.points:6.2f} (W: {pop.wins:3} L: {pop.losses:3})'
@@ -115,9 +115,10 @@ class Population:
             .drop(['meta_seed', 'meta_scenario', 'meta_player', 'action_team'], axis=1, errors='ignore') \
             .dropna(axis=1, how='all')
 
-        df['winner'].apply(lambda x: 1 if x == self.team else -1)
+        if df.shape == (0, 0):
+            return
 
-        df = df.copy()
+        df['label'] = df['winner'].apply(lambda x: 1 if x == self.team else -1)
 
         if self.df:
             self.df = pd.concat([self.df, df])
@@ -125,6 +126,9 @@ class Population:
             self.df = df
 
     def trainArgs(self, epoch, DIR_MODELS) -> tuple:
+        if self.df is None:
+            return self.id, epoch, None, None, self.team, self.kind, self.team, DIR_MODELS
+
         X = self.df.drop(['winner', 'label'], axis=1, errors='ignore')
         y = self.df['label']
 
@@ -248,6 +252,9 @@ def initBuildDataFrame(raw: pd.DataFrame) -> tuple:
 def buildModel(args) -> tuple:
     pid, epoch, X, y, team, kind, var, dir_models = args
 
+    if X is None or y is None:
+        return pid, None
+
     if kind == 'cls':
         m = RandomForestClassifier()
     elif kind == 'reg':
@@ -276,8 +283,8 @@ def main() -> None:
     seed = 20210217
     size = 20  # TODO: add a distribution parameter
     top_models = 5
-    turns_per_epoch = 1#10
-    games_per_turn = 1#10
+    turns_per_epoch = 10
+    games_per_turn = 10
     epochs = 5
 
     random.seed = seed
@@ -379,7 +386,7 @@ def main() -> None:
                 logger.info('choosing best models...')
                 for pop in pops.values():
                     for p in pop:
-                        p.ladder(df)
+                        p.ladder(df.copy())
                         args.append(p.trainArgs(epoch, DIR_MODELS))
 
             # parallel build models based on dataframes built above
