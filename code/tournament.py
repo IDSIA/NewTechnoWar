@@ -28,7 +28,7 @@ logger = logging.getLogger("tourney")
 class Player:
 
     def __init__(self, kind: str = '', var='', filename: str = '', points: int = ELO_POINTS):
-        self.id = uuid.uuid4()
+        self.id = str(uuid.uuid4())
         self.kind = kind
         self.var = var
         self.filename = filename
@@ -66,7 +66,7 @@ class Player:
 class Population:
 
     def __init__(self, size: int = 20, team: str = None, top_n: int = 5, kind: str = '', filename: str = ''):
-        self.id = uuid.uuid4()
+        self.id = str(uuid.uuid4())
 
         self.team = team
         self.size = size
@@ -276,8 +276,8 @@ def main() -> None:
     seed = 20210217
     size = 20  # TODO: add a distribution parameter
     top_models = 5
-    turns_per_epoch = 10
-    games_per_turn = 10
+    turns_per_epoch = 1#10
+    games_per_turn = 1#10
     epochs = 5
 
     random.seed = seed
@@ -382,14 +382,14 @@ def main() -> None:
                         p.ladder(df)
                         args.append(p.trainArgs(epoch, DIR_MODELS))
 
-                # parallel build models based on dataframes built above
-                models = pool.map(buildModel, args)
+            # parallel build models based on dataframes built above
+            models = pool.map(buildModel, args)
 
-                for pid, model in models:
-                    if epoch == 0:
-                        populations[pid].setup(model)
-                    else:
-                        populations[pid].evolve(model)
+            for pid, model in models:
+                if epoch == 0:
+                    populations[pid].setup(model)
+                else:
+                    populations[pid].evolve(model)
 
 
 if __name__ == '__main__':
