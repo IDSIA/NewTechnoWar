@@ -43,7 +43,7 @@ loggers:
   agents:
     level: INFO
     handlers: [ agents_file_handler ]
-    propagate: no
+    propagate: yes
 
   agents.ml:
     level: WARNING

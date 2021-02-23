@@ -20,9 +20,9 @@ class MLAgent(Agent):
 
         self.filename = filename
         self.model = joblib.load(os.path.join(os.getcwd(), filename))
-        #TODO qui vorrei caricare il modello in base al tipo di azione
+        # TODO qui vorrei caricare il modello in base al tipo di azione
 
-        self.randomChoice = randomChoice
+        self.randomChoice = None
 
         self.set = 0
 
@@ -47,7 +47,8 @@ class MLAgent(Agent):
 
     def scores(self, state: GameState, board: GameBoard, stateActions: List[Action]) -> List[Tuple[float, Action]]:
         raise NotImplemented()
-    #forces you to implement it, as it will throw an exception when you try to run it until you do so.
+
+    # forces you to implement it, as it will throw an exception when you try to run it until you do so.
 
     @staticmethod
     def bestAction(scores: List[Tuple[float, Action]]):
