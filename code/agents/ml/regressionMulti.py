@@ -32,9 +32,8 @@ class RegressionMultiAgent(MLAgent):
         df_m_obj = df_m['action_obj']
         df_m.drop('action_obj', 1, inplace=True)
 
-        df_a = df.loc[((df['action_type_Attack']) | (df['action_type_AttackGround']) | (
-            df['action_type_AttackRespond']))].copy()
-        df_a_obj = df_m['action_obj']
+        df_a = df.loc[((df['action_type_Attack']) | (df['action_type_AttackGround']) | (df['action_type_AttackRespond']))].copy()
+        df_a_obj = df_a['action_obj']
         df_a.drop('action_obj', 1, inplace=True)
 
         df_p = df.loc[((df['action_type_Pass']) | (df['action_type_PassFigure']) | (
