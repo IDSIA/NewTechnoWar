@@ -15,12 +15,14 @@ class ClassifierAgent(MLAgent):
         super().__init__('ClassifierAgent', team, filename, randomChoice, seed)
 
     def scores(self, state: GameState, board: GameBoard, actions: List[Action]) -> List[Tuple[float, Action]]:
-        X = [vectorState(state) + vectorAction(action) + vectorBoard(board, state, action) for action in actions]
 
-        df = pd.DataFrame(data=X, columns=vectorStateInfo() + vectorActionInfo() + vectorBoardInfo()).dropna(axis=1)
-        df = df.drop(['meta_seed', 'meta_scenario', 'action_team'], axis=1)
+            X = [vectorState(state) + vectorAction(action) + vectorBoard(board, state, action) for action in actions]
 
-        offset = 1 if self.team == BLUE else 0
-        scores = self.model.predict_proba(df)
+            df = pd.DataFrame(data=X, columns=vectorStateInfo() + vectorActionInfo() + vectorBoardInfo()).dropna(axis=1)
+            df = df.drop(['meta_seed', 'meta_scenario', 'action_team'], axis=1)
 
-        return [(abs(offset - scores[i][0]), actions[i]) for i in range(len(actions))]
+            offset = 1 if self.team == BLUE else 0
+            scores = self.model.predict_proba(df)
+
+
+            return [(abs(offset - scores[i][0]), actions[i]) for i in range(len(actions))]
