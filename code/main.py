@@ -15,17 +15,17 @@ logger = logging.getLogger(__name__)
 if __name__ == '__main__':
     setup_logging()
 
-    '''seed = 50
+    seed = 50
     red_models = [
-        ('models\\Junction_RandomForestRegressor_red_attack_20210221.joblib'),
-        ('models\\Junction_RandomForestRegressor_red_move_20210221.joblib'),
-        ('models\\Junction_RandomForestRegressor_red_pass_20210221.joblib'),
+        ('models\\Junction_RandomForestRegressor_red_attack_20210227.joblib'),
+        ('models\\Junction_RandomForestRegressor_red_move_20210227.joblib'),
+        ('models\\Junction_RandomForestRegressor_red_pass_20210227.joblib'),
 
     ]
     blue_models = [
-        ('models\\Junction_RandomForestRegressor_blue_attack_20210221.joblib'),
-        ('models\\Junction_RandomForestRegressor_blue_move_20210221.joblib'),
-        ('models\\Junction_RandomForestRegressor_blue_pass_20210221.joblib'),
+        ('models\\Junction_RandomForestRegressor_blue_attack_20210227.joblib'),
+        ('models\\Junction_RandomForestRegressor_blue_move_20210227.joblib'),
+        ('models\\Junction_RandomForestRegressor_blue_pass_20210227.joblib'),
 
     ]
 
@@ -75,6 +75,6 @@ if __name__ == '__main__':
     mm = MatchManager(' ', red, blue, board, state, seed=seed)
     while not mm.end:
         mm.nextStep()
-    print('winner: ', mm.winner)
+    print('winner: ', mm.winner)'''
 
 
