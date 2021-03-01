@@ -23,7 +23,7 @@ class RegressionMultiAgent(MLAgent):
         self.model_p = joblib.load(os.path.join(os.getcwd(), filename_p))
 
     def scores(self, state: GameState, board: GameBoard, actions: List[Action]) -> List[Tuple[float, Action]]:
-        actions = [a for a in actions if a.__class__.__name__ is not "PassFigure"]
+        #actions = [a for a in actions if a.__class__.__name__ is not "PassFigure"]
         X = [vectorState(state) + vectorAction(action) + vectorBoard(board, state, action) for action in actions]
 
         df = pd.DataFrame(data=X, columns=vectorStateInfo() + vectorActionInfo() + vectorBoardInfo()).dropna(axis=1)
