@@ -18,4 +18,8 @@ def entropy(values: list) -> float:
 
     h = -sum(v * log(v) for v in values if v > 0)
 
-    return h / log(n)
+    entr = h / log(n)
+
+    entropy = 1 if entr > 1 else 0 if entr < 0 else entr
+
+    return entropy
