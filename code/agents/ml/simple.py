@@ -36,8 +36,7 @@ class MLAgent(Agent):
         actions = [type(i[1]).__name__ for i in actionsScores]
 
         h = entropy(scores)
-        print(scores)
-        print("LOG",np.log(h))
+
 
         if h > 1. or h < 0.:
             logger.warning(f'Entropy out of range: {h}')

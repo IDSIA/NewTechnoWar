@@ -58,9 +58,7 @@ class RegressionMultiAgent(MLAgent):
         if not df_a.empty:
             y_a = self.model_a.predict(df_a)
             score_a = list(zip(y_a, df_a_obj))
-        print("Attacco",score_a)
-        print("Move",score_m)
-        print("Pass",score_p)
+
 
 
         return score_a + score_m + score_p
