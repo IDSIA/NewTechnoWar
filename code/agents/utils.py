@@ -1,4 +1,5 @@
 from math import log
+import numpy as np
 
 
 def entropy(values: list) -> float:
@@ -20,6 +21,10 @@ def entropy(values: list) -> float:
 
     entr = h / log(n)
 
-    entropy = 1 if entr > 1 else 0 if entr < 0 else entr
+    # entropy = 1 if entr > 1 else 0 if entr < 0 else entr
 
-    return entropy
+    return entr
+
+
+def standardD(values: list) -> float:
+    return np.std(values)

@@ -6,7 +6,7 @@ import joblib
 import numpy as np
 
 from agents import Agent, GreedyAgent
-from agents.utils import entropy
+from agents.utils import entropy, standardD
 from core.actions import Action
 from core.game import GameBoard, GameState
 
@@ -28,7 +28,8 @@ class MLAgent(Agent):
 
     def dataFrameInfo(self):
         return super().dataFrameInfo() + [
-            'score', 'action', 'entropy', 'n_scores', 'scores', 'actions', 'random_choice', 'n_choices'
+            'score', 'action', 'entropy', 'standard_deviation', 'n_scores', 'scores', 'actions', 'random_choice',
+            'n_choices'
         ]
 
     def store(self, state: GameState, bestScore: float, bestAction: Action, actionsScores: list):
@@ -36,13 +37,15 @@ class MLAgent(Agent):
         actions = [type(i[1]).__name__ for i in actionsScores]
 
         h = entropy(scores)
+        std = standardD(scores)
 
+        eps = np.finfo(np.float32).eps
 
-        if h > 1. or h < 0.:
+        if h > 1. + eps or h < 0. - eps:
             logger.warning(f'Entropy out of range: {h}')
             logger.warning(f'{scores}')
 
-        data = [bestScore, type(bestAction).__name__, h, len(scores), scores, actions, self.randomChoice, self.set]
+        data = [bestScore, type(bestAction).__name__, h, std, len(scores), scores, actions, self.randomChoice, self.set]
 
         self.register(state, data)
 
