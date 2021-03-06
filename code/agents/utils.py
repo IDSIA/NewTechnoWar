@@ -21,9 +21,11 @@ def entropy(values: list) -> float:
 
     entr = h / log(n)
 
+    entropy = 0 if entr < 0 else entr
+
     # entropy = 1 if entr > 1 else 0 if entr < 0 else entr
 
-    return entr
+    return entropy
 
 
 def standardD(values: list) -> float:
