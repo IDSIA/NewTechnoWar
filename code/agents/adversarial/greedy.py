@@ -29,14 +29,14 @@ class GreedyAgent(Agent):
     def dataFrameInfo(self):
         return super().dataFrameInfo() + [
             'score', 'action', 'entropy', 'standard_deviation', 'n_scores', 'scores', 'actions'
-        ] + vectorStateInfo() + vectorActionInfo() + vectorBoardInfo()
+        ]
 
     def store(self, state: GameState, bestScore: float, bestAction: Action, scoreActions: list, board: GameBoard):
         scores = [x[0] for x in scoreActions]
         actions = [type(x[1]).__name__ for x in scoreActions]
 
         data = [bestScore, type(bestAction).__name__, entropy(scores), standardD(scores), len(scoreActions), scores,
-                actions] + vectorState(state) + vectorAction(bestAction) + vectorBoard(board, state)
+                actions] 
 
         self.register(state, data)
 
