@@ -10,9 +10,10 @@ from agents.commons import stateScore
 from agents.utils import entropy, standardD
 from core.actions import Action
 from core.figures import Figure
-from core.game import GameBoard, GameState, GoalParams
+from core.game import GameBoard, GameState, GoalParams, vectorState, vectorStateInfo
 from core.utils.coordinates import Hex
 from utils.copy import deepcopy
+from core.vectors import vectorAction, vectorActionInfo, vectorBoard, vectorBoardInfo
 
 logger = logging.getLogger(__name__)
 
@@ -28,14 +29,14 @@ class GreedyAgent(Agent):
     def dataFrameInfo(self):
         return super().dataFrameInfo() + [
             'score', 'action', 'entropy', 'standard_deviation', 'n_scores', 'scores', 'actions'
-        ]
+        ] + vectorStateInfo() + vectorActionInfo() + vectorBoardInfo()
 
-    def store(self, state: GameState, bestScore: float, bestAction: Action, scoreActions: list):
+    def store(self, state: GameState, bestScore: float, bestAction: Action, scoreActions: list, board: GameBoard):
         scores = [x[0] for x in scoreActions]
         actions = [type(x[1]).__name__ for x in scoreActions]
 
         data = [bestScore, type(bestAction).__name__, entropy(scores), standardD(scores), len(scoreActions), scores,
-                actions]
+                actions] + vectorState(state) + vectorAction(bestAction) + vectorBoard(board, state)
 
         self.register(state, data)
 
@@ -124,7 +125,7 @@ class GreedyAgent(Agent):
         # search for action with best score
         score, action = self.opt(scores)
 
-        self.store(state, score, action, scores)
+        self.store(state, score, action, scores, board)
 
         logger.debug(f'{self.team:5}: {action} ({score})')
         return action
@@ -140,7 +141,7 @@ class GreedyAgent(Agent):
         # search for action with best score
         score, action = self.opt(scores)
 
-        self.store(state, score, action, scores)
+        self.store(state, score, action, scores, board)
 
         logger.debug(f'{self.team:5}: {action} ({score})')
         return action
