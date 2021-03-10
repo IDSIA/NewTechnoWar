@@ -41,7 +41,7 @@ class MLAgent(Agent):
 
         eps = np.finfo(np.float32).eps
 
-        if h > 1. + eps or h < 0. - eps:
+        if h > 1. + 0.7 or h < 0. - eps:
             logger.warning(f'Entropy out of range: {h}')
             logger.warning(f'{scores}')
 
