@@ -1,10 +1,13 @@
+
+
 import numpy as np
 
 from agents import Agent
-from core.actions import Action, PassTeam, PassFigure
 from agents.utils import entropy, standardD
-from core.game import GameBoard, GameState
+from core.actions import Action
+from core.game import GameBoard, GameState, GoalParams, vectorState, vectorStateInfo
 from core.utils.coordinates import Hex
+
 
 ACTION_MOVE = 0
 ACTION_ATTACK = 1
@@ -15,6 +18,8 @@ class RandomAgent(Agent):
 
     def __init__(self, team: str, seed=0):
         super().__init__('RandomAgent', team, seed=seed)
+        self.goal_params: GoalParams = GoalParams()
+        self.maximize: bool = True
 
     def dataFrameInfo(self):
         return super().dataFrameInfo() + [
