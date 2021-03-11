@@ -18,6 +18,8 @@ class RandomAgent(Agent):
 
     def __init__(self, team: str, seed=0):
         super().__init__('RandomAgent', team, seed=seed)
+
+        '''  
         self.goal_params: GoalParams = GoalParams()
         self.maximize: bool = True
 
@@ -33,7 +35,7 @@ class RandomAgent(Agent):
         data = [bestScore, type(bestAction).__name__, entropy(scores), standardD(scores), len(scoreActions), scores,
                 actions]
 
-        self.register(state, data)
+        self.register(state, data)'''
 
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
         # choose which figures that can still be activate will be activated

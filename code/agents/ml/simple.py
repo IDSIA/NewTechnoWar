@@ -28,7 +28,7 @@ class MLAgent(Agent):
 
     def dataFrameInfo(self):
         return super().dataFrameInfo() + [
-            'score', 'action', 'entropy', 'standard_deviation', 'n_scores', 'scores', 'actions','random_choice','n_choices']
+            'score', 'action', 'entropy', 'standard_deviation', 'n_scores', 'scores', 'actions']#,'random_choice','n_choices']
 
     def store(self, state: GameState, bestScore: float, bestAction: Action, actionsScores: list):
         scores = [i[0] for i in actionsScores]
@@ -43,7 +43,7 @@ class MLAgent(Agent):
             logger.warning(f'Entropy out of range: {h}')
             logger.warning(f'{scores}')
 
-        data = [bestScore, type(bestAction).__name__, h, std, len(actionsScores), scores, actions , self.randomChoice, self.set]
+        data = [bestScore, type(bestAction).__name__, h, std, len(actionsScores), scores, actions]# , self.randomChoice, self.set]
 
         self.register(state, data)
 
