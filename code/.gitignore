@@ -3,3 +3,5 @@ output*/*
 data*/*
 log*/*
 tournament/*
+graph*/*
+data*
