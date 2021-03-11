@@ -23,7 +23,7 @@ class RandomAgent(Agent):
         ]
 
     def store(self, state: GameState, bestAction: Action):
-        data = [bestAction]
+        data = [type(bestAction).__name__]
 
         self.register(state, data)
 
