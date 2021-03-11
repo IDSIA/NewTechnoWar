@@ -10,10 +10,9 @@ from agents.commons import stateScore
 from agents.utils import entropy, standardD
 from core.actions import Action
 from core.figures import Figure
-from core.game import GameBoard, GameState, GoalParams, vectorState, vectorStateInfo
+from core.game import GameBoard, GameState, GoalParams
 from core.utils.coordinates import Hex
 from utils.copy import deepcopy
-from core.vectors import vectorAction, vectorActionInfo, vectorBoard, vectorBoardInfo
 
 logger = logging.getLogger(__name__)
 

@@ -1,13 +1,8 @@
-
-
 import numpy as np
-
 from agents import Agent
-from agents.utils import entropy, standardD
-from core.actions import Action
-from core.game import GameBoard, GameState, GoalParams, vectorState, vectorStateInfo
+from core.actions import Action, PassTeam, PassFigure
 from core.utils.coordinates import Hex
-
+from core.game import GameBoard, GameState, GoalParams
 
 ACTION_MOVE = 0
 ACTION_ATTACK = 1
@@ -19,23 +14,18 @@ class RandomAgent(Agent):
     def __init__(self, team: str, seed=0):
         super().__init__('RandomAgent', team, seed=seed)
 
-        '''  
         self.goal_params: GoalParams = GoalParams()
         self.maximize: bool = True
 
     def dataFrameInfo(self):
         return super().dataFrameInfo() + [
-            'score', 'action', 'entropy', 'standard_deviation', 'n_scores', 'scores', 'actions'
+            'action'
         ]
 
-    def store(self, state: GameState, bestScore: float, bestAction: Action, scoreActions: list, board: GameBoard):
-        scores = [x[0] for x in scoreActions]
-        actions = [type(x[1]).__name__ for x in scoreActions]
+    def store(self, state: GameState, bestAction: Action):
+        data = [bestAction]
 
-        data = [bestScore, type(bestAction).__name__, entropy(scores), standardD(scores), len(scoreActions), scores,
-                actions]
-
-        self.register(state, data)'''
+        self.register(state, data)
 
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
         # choose which figures that can still be activate will be activated
@@ -73,8 +63,10 @@ class RandomAgent(Agent):
 
         if toa == ACTION_ATTACK:
             actions = attacks
+        action = np.random.choice(actions)
+        self.store(state, action)
 
-        return np.random.choice(actions)
+        return action
 
     def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
         # choose to respond or not
@@ -93,6 +85,7 @@ class RandomAgent(Agent):
 
         if responses:
             response = np.random.choice(responses)
+            self.store(state, response)
             return response
         else:
             raise ValueError('no response available')
