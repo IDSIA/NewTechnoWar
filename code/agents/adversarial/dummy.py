@@ -2,6 +2,7 @@ import numpy as np
 
 from agents import Agent
 from core.actions import Action, PassTeam, PassFigure
+from agents.utils import entropy, standardD
 from core.game import GameBoard, GameState
 from core.utils.coordinates import Hex
 
@@ -15,6 +16,19 @@ class RandomAgent(Agent):
     def __init__(self, team: str, seed=0):
         super().__init__('RandomAgent', team, seed=seed)
 
+    def dataFrameInfo(self):
+        return super().dataFrameInfo() + [
+            'score', 'action', 'entropy', 'standard_deviation', 'n_scores', 'scores', 'actions'
+        ]
+
+    def store(self, state: GameState, bestScore: float, bestAction: Action, scoreActions: list, board: GameBoard):
+        scores = [x[0] for x in scoreActions]
+        actions = [type(x[1]).__name__ for x in scoreActions]
+
+        data = [bestScore, type(bestAction).__name__, entropy(scores), standardD(scores), len(scoreActions), scores,
+                actions]
+
+        self.register(state, data)
 
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
         # choose which figures that can still be activate will be activated
