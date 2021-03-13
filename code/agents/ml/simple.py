@@ -39,9 +39,9 @@ class MLAgent(Agent):
 
         eps = np.finfo(np.float32).eps
 
-        if h > 1. + 0.7 or h < 0. - eps:
+        '''if h > 1. + 0.7 or h < 0. - eps:
             logger.warning(f'Entropy out of range: {h}')
-            logger.warning(f'{scores}')
+            logger.warning(f'{scores}')'''
 
         data = [bestScore, type(bestAction).__name__, h, std, len(actionsScores), scores, actions]# , self.randomChoice, self.set]
 
@@ -109,7 +109,7 @@ class MLAgent(Agent):
             all_actions += actions
 
         if not all_actions:
-            logger.warning('No actions available: no response given')
+            #logger.warning('No actions available: no response given')
             raise ValueError('No response given')
 
         scores = self.scores(state, board, all_actions)
