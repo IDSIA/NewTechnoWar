@@ -4,7 +4,7 @@ import numpy as np
 
 from core.const import RED, BLUE
 from core.figures import FigureType
-from core.game.goals import Goal, GoalReachPoint
+from core.game.goals import Goal, GoalReachPoint, GoalMaxTurn
 from core.game.terrain import TERRAIN_TYPE
 from core.utils.coordinates import Cube, Hex
 
@@ -14,7 +14,7 @@ class GameBoard:
     Static parts of the game board.
     """
     __slots__ = ['name', 'shape', 'terrain', 'geography', 'objectives', 'limits', 'obstacles', 'moveCost',
-                 'protectionLevel']
+                 'protectionLevel', 'maxTurn']
 
     def __init__(self, shape: Tuple[int, int], name: str = ''):
         self.name: str = name
@@ -25,6 +25,7 @@ class GameBoard:
         self.geography: np.ndarray = np.zeros(shape, dtype='uint8')
 
         self.objectives: Dict[str, Dict[str, Goal]] = {RED: {}, BLUE: {}}
+        self.maxTurn = -1
 
         x, y = shape
 
@@ -81,6 +82,8 @@ class GameBoard:
         """Add the objectives for the given team to the current board."""
         for objective in objectives:
             self.objectives[objective.team][objective.__class__.__name__] = objective
+            if isinstance(objective, GoalMaxTurn):
+                self.maxTurn = objective.turn_max
 
     def getObjectives(self, team: str = None) -> List[Goal]:
         """Returns the goals for the team."""

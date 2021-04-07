@@ -1,6 +1,7 @@
 import logging
 import math
 from time import time
+from typing import Tuple, List
 
 from agents import Agent, MatchManager, GreedyAgent
 from agents.adversarial.puppets import Puppet
@@ -21,14 +22,15 @@ class AlphaBetaAgent(Agent):
         self.maxDepth: int = maxDepth
         self.cache: dict = {}
         self.goal_params: GoalParams = GoalParams()
-        self.timeLimit = timeLimit
+        self.timeLimit: int = timeLimit
 
         self.puppets: dict = {RED: Puppet(RED), BLUE: Puppet(BLUE)}
         self.mm: MatchManager = MatchManager('', self.puppets[RED], self.puppets[BLUE])
 
         self.searchCutOff: bool = False
+        self.forceHit : bool = False
 
-    def activateAction(self, board, state, action):
+    def activateAction(self, board: GameBoard, state: GameState, action: Action) -> Tuple[GameState, dict]:
         hashState0 = hash(state)
         hashAction = hash(action.__str__())
 
@@ -38,11 +40,36 @@ class AlphaBetaAgent(Agent):
             return self.cache[key]
 
         else:
-            state1, _ = self.gm.activate(board, state, action)
-            self.cache[key] = state1
-            return state1
+            state1, outcome = self.gm.activate(board, state, action, self.forceHit)
+            self.cache[key] = state1, outcome
+            return state1, outcome
 
-    def alphaBeta(self, board: GameBoard, state: GameState, depth, alpha, beta, startTime, timeLimit):
+    def evaluateState(self, team: str, params: GoalParams, board: GameBoard, state: GameState) -> float:
+        return stateScore(team, params, board, state)
+
+    def nextActions(self, team: str, step: str, board: GameBoard, state: GameState, depth: int) -> List[Action]:
+        nextActions = []
+        if step == 'response':
+            nextActions += [self.gm.actionPassResponse(team)]
+            for figure in state.getFiguresCanRespond(team):
+                nextActions += self.gm.buildResponses(board, state, figure)
+        else:
+            for figure in state.getFiguresCanBeActivated(team):
+                nextActions += [self.gm.actionPassFigure(figure)]
+
+                # standard actions
+                nextActions += self.gm.buildAttacks(board, state, figure)
+                nextActions += self.gm.buildMovements(board, state, figure)
+        return nextActions
+
+    def apply(self, board: GameBoard, state: GameState, action: Action, alpha: float, beta: float, depth: int,
+              startTime: float, timeLimit: float) -> float:
+        s1, _ = self.activateAction(board, state, action)
+        score, _ = self.alphaBeta(board, s1, depth - 1, alpha, beta, startTime, timeLimit)
+        return score
+
+    def alphaBeta(self, board: GameBoard, state: GameState, depth: int, alpha: float, beta: float, startTime: float,
+                  timeLimit: float) -> Tuple[float, Action or None]:
         currentTime = time()
         elapsedTime = currentTime - startTime
 
@@ -59,23 +86,11 @@ class AlphaBetaAgent(Agent):
 
         # if this is a terminal node, abort the search
         if self.searchCutOff or depth == 0 or step == 'end' or team == '':
-            score = stateScore(self.team, self.goal_params, board, state)
+            score = self.evaluateState(self.team, self.goal_params, board, state)
             return score, None
 
         # build actions
-        nextActions = []
-
-        if step == 'response':
-            nextActions += [self.gm.actionPassResponse(team)]
-            for figure in state.getFiguresCanRespond(team):
-                nextActions += self.gm.buildResponses(board, state, figure)
-        else:
-            for figure in state.getFiguresCanBeActivated(team):
-                nextActions += [self.gm.actionPassFigure(figure)]
-
-                # standard actions
-                nextActions += self.gm.buildAttacks(board, state, figure)
-                nextActions += self.gm.buildMovements(board, state, figure)
+        nextActions = self.nextActions(team, step, board, state, depth)
 
         # this team maximize...
         if team == self.team:
@@ -84,9 +99,7 @@ class AlphaBetaAgent(Agent):
             for nextAction in nextActions:
                 logging.debug(f'{depth:<4}{team:5}{step:6}{nextAction}')
 
-                # s1, _ = GM.activate(board, state, nextAction)
-                s1 = self.activateAction(board, state, nextAction)
-                score, _ = self.alphaBeta(board, s1, depth - 1, alpha, beta, startTime, timeLimit)
+                score = self.apply(board, state, nextAction, alpha, beta, depth, startTime, timeLimit)
 
                 if score > value:
                     value, action = score, nextAction
@@ -106,8 +119,7 @@ class AlphaBetaAgent(Agent):
             for nextAction in nextActions:
                 logging.debug(f'{depth:<4}{team:5}{step:6}{nextAction}')
 
-                s1, _ = self.gm.activate(board, state, nextAction)
-                score, _ = self.alphaBeta(board, s1, depth - 1, alpha, beta, startTime, timeLimit)
+                score = self.apply(board, state, nextAction, alpha, beta, depth, startTime, timeLimit)
 
                 if score < value:
                     value, action = score, nextAction
@@ -120,20 +132,20 @@ class AlphaBetaAgent(Agent):
 
             return value, action
 
-    def search(self, board, state):
+    def search(self, board: GameBoard, state: GameState) -> Tuple[float, Action]:
         """Using iterative deepening search."""
 
         # TODO: find a better log management...
         logger.disabled = True
 
-        startTime = time()
-        endTime = startTime + self.timeLimit
-        score = 0
-        action = None
+        startTime: float = time()
+        endTime: float = startTime + self.timeLimit
+        score: float = 0
+        action: Action or None = None
         self.searchCutOff = False
 
         for depth in range(1, self.maxDepth):
-            currentTime = time()
+            currentTime: float = time()
 
             if currentTime >= endTime:
                 break
