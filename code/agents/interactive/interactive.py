@@ -8,9 +8,16 @@ from core.utils.coordinates import Hex
 
 
 class Human(Agent):
+    """
+    This class works with the date from the web service.
+    """
+
     __slots__ = ['next_action', 'next_response', 'color', 'place']
 
     def __init__(self, team: str):
+        """
+        :param team:    color of the team
+        """
         super().__init__('Human', team)
         self.next_action: Action or None = None
         self.next_response: Response or None = None
@@ -50,6 +57,13 @@ class Human(Agent):
         state.choose(self.team, self.color)
 
     def nextAction(self, board: GameBoard, state: GameState, data: dict) -> None:
+        """
+        Parse the given data structure in order to get the next action.
+
+        :param board:       board of the game
+        :param state:       current state of the game
+        :param data:        data received from a human through the web interface
+        """
         action = data['action']
         self._clear()
 

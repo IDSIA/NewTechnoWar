@@ -15,7 +15,16 @@ from utils.copy import deepcopy
 
 
 def buildMatchManager(gid: str, scenario: str, red: str, blue: str, seed: int = 42):
-    """Utility function to create a standard MatchManager from string parameters."""
+    """
+    Utility function to create a standard MatchManager from string parameters.
+
+    :param gid: game unique id
+    :param scenario: scenario to use
+    :param red: red agent to use
+    :param blue: blue agent to use
+    :param seed: seed to use
+    :return: a configured MatchManager
+    """
     board, state = getattr(scenarios, scenario)()
 
     pRed: Agent = getattr(players, red)(RED)
@@ -74,7 +83,7 @@ class MatchManager:
 
         self.step = self._goInit
 
-    def reset(self):
+    def reset(self) -> None:
         """Restore the match to its original (before initialization) stage."""
         self.state: GameState = deepcopy(self.origin)
 
@@ -87,12 +96,19 @@ class MatchManager:
 
         self._goInit()
 
-    def _store(self, state: GameState, action: Action = None, outcome: Outcome = None):
+    def _store(self, state: GameState, action: Action = None, outcome: Outcome = None) -> None:
+        """
+        Saves in the internal history the state of the game, the action, and its outcome.
+
+        :param state:       state of the game before applying the action
+        :param action:      the action applied
+        :param outcome:     outcome after the action was applied to the state
+        """
         self.states_history.append(state)
         self.actions_history.append(action)
         self.outcome.append(outcome if outcome else Outcome())
 
-    def _goInit(self):
+    def _goInit(self) -> None:
         """Initialization step."""
         self.logger.debug('step: init')
         self.logger.info(f'{self.seed:10} SCENARIO: {self.board.name}')
@@ -119,7 +135,7 @@ class MatchManager:
         self.step = self._goUpdate
         self._goUpdate()
 
-    def _goRound(self):
+    def _goRound(self) -> None:
         """Round step."""
         self.logger.debug(f'{self.seed:10} step: round {self.first.team:5}')
         self.update = False
@@ -138,7 +154,7 @@ class MatchManager:
 
         self._goCheck()
 
-    def _goResponse(self):
+    def _goResponse(self) -> None:
         """Response step."""
         self.logger.debug(f'{self.seed:10} step: response {self.second.team:5}')
         state0 = deepcopy(self.state)
@@ -156,7 +172,7 @@ class MatchManager:
 
         self._goCheck()
 
-    def _goCheck(self):
+    def _goCheck(self) -> None:
         """Check next step to do."""
         # check if we are at the end of the game
         isEnd, winner = goalAchieved(self.board, self.state)
@@ -193,7 +209,7 @@ class MatchManager:
         # if we are at the end of a turn, need to update and then go to next one
         self.step = self._goUpdate
 
-    def _goUpdate(self):
+    def _goUpdate(self) -> None:
         """Update step."""
         self.logger.info(f'{self.seed:10} ' + ('=' * 100))
         self.logger.debug(f'{self.seed:10} step: update')
@@ -207,19 +223,19 @@ class MatchManager:
 
         self._goCheck()
 
-    def _goEnd(self):
+    def _goEnd(self) -> None:
         """End step."""
         self.logger.debug(f'{self.seed:10} step: end')
         self.end = True
         self.update = False
         self.step = self._goEnd
 
-    def nextStep(self):
+    def nextStep(self) -> None:
         """Go to the next step"""
         self.logger.debug('{self.seed:10} next: step')
         self.step()
 
-    def nextTurn(self):
+    def nextTurn(self) -> None:
         """Continue to execute nextStep() until the turn changes."""
         self.logger.debug(f'{self.seed:10} next: turn')
 
@@ -257,6 +273,10 @@ class MatchManager:
         return step, nextPlayer, nextHuman
 
     def nextPlayerDict(self) -> Dict:
+        """
+        Used for web interface.
+        :return: a dictionary with the next step, player, and if it is human
+        """
         step, nextPlayer, nextHuman = self.nextPlayer()
         return {
             'step': step,

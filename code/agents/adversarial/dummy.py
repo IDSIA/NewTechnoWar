@@ -16,6 +16,13 @@ class RandomAgent(Agent):
         super().__init__('RandomAgent', team)
 
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
+        """
+        Randomly choose an action between the possible ones.
+
+        :param board:   board of the game
+        :param state:   the current state
+        :return: the next action to apply
+        """
         # choose which figures that can still be activate will be activated
         figures = state.getFiguresCanBeActivated(self.team)
         if not figures:
@@ -55,6 +62,13 @@ class RandomAgent(Agent):
         return np.random.choice(actions)
 
     def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
+        """
+        Randomly choose a response between the possible ones.
+
+        :param board:   board of the game
+        :param state:   the current state
+        :return: the next response to apply
+        """
         # choose to respond or not
         if not np.random.choice([True, False]):
             raise ValueError('no response given')
@@ -76,6 +90,12 @@ class RandomAgent(Agent):
             raise ValueError('no response available')
 
     def placeFigures(self, board: GameBoard, state: GameState) -> None:
+        """
+        Random choose the initial position of the figures.
+
+        :param board:   board of the game
+        :param state:   the current state
+        """
         # select area
         x, y = np.where(state.placement_zone[self.team] > 0)
         figures = state.getFigures(self.team)
@@ -90,6 +110,12 @@ class RandomAgent(Agent):
             state.moveFigure(figure, figure.position, dst)
 
     def chooseFigureGroups(self, board: GameBoard, state: GameState) -> None:
+        """
+        Randomly choose the group of units to use.
+
+        :param board:   board of the game
+        :param state:   the current state
+        """
         # randomly choose a color
         colors = list(state.choices[self.team].keys())
         color = np.random.choice(colors)

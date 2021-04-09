@@ -162,10 +162,10 @@ class Population:
 def playJunction(seed: int, red: Player, blue: Player) -> MatchManager:
     """
     Start a game with the given configuration on the 'Junction' scenario.
-    @param seed: random seed to use
-    @param red:  red Player
-    @param blue: blue Player
-    @return: a MatchManger object with all the stored results from the match
+    :param seed: random seed to use
+    :param red:  red Player
+    :param blue: blue Player
+    :return: a MatchManger object with all the stored results from the match
     """
     board, state = scenarioJunction()
 

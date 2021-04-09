@@ -2,6 +2,10 @@ from math import log
 
 
 def entropy(values: list) -> float:
+    """
+    :param values:  a list of probabilities-like values
+    :return: the entropy value of the given list of values
+    """
     n = len(values)
     if n <= 1:
         return 0.0

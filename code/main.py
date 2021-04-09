@@ -32,7 +32,7 @@ if __name__ == '__main__':
     # blue = GreedyAgent(BLUE, seed=seed)
 
     # scenarioJunction RandomAgent GreedyAgent 151775519
-    red = AlphaBetaFast1Agent(RED, maxDepth=12)
+    red = AlphaBetaFast1Agent(RED, maxDepth=3)
     blue = AlphaBetaFast1Agent(BLUE, maxDepth=3)
 
     mm = MatchManager(' ', red, blue, board, state, seed=seed)

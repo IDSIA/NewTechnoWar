@@ -9,7 +9,9 @@ class Puppet(Agent):
     def __init__(self, team: str):
         super().__init__('puppet', team)
 
+        # action to perform
         self.action: Action or None = None
+        # response to perform
         self.response: Action or None = None
 
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:

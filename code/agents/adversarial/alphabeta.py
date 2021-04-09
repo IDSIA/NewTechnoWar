@@ -1,7 +1,7 @@
 import logging
 import math
 from time import time
-from typing import Tuple, List
+from typing import Tuple, List, Dict
 
 from agents import Agent, MatchManager, GreedyAgent
 from agents.adversarial.puppets import Puppet
@@ -17,38 +17,104 @@ logger = logging.getLogger(__name__)
 
 class AlphaBetaAgent(Agent):
 
-    def __init__(self, team: str, maxDepth: int = 3, timeLimit: int = 20, seed: int = 42):
-        super().__init__('AlphaBetaAgent', team)
+    def __init__(self, team: str, maxDepth: int = 3, timeLimit: int = 20, goal_params: GoalParams = GoalParams(),
+                 seed: int = 42):
+        """
+        :param team:        the color of the team for this agent
+        :param maxDepth:    max search depth (default: 3)
+        :param timeLimit:   max execution time in seconds (default: 20)
+        :param goal_params: parameters used for the evaluation of the state
+        :param seed:        internal random seed (default: 42)
+        """
+        super().__init__('AlphaBetaAgent', team, seed)
 
         self.maxDepth: int = maxDepth
-        self.cache: dict = {}
-        self.goal_params: GoalParams = GoalParams()
         self.timeLimit: int = timeLimit
 
+        # cache for the explored states
+        self.cache: Dict[Tuple[int, int], Tuple[GameState, Outcome]] = {}
+        self.goal_params: GoalParams = goal_params
+
+        # these pseudo-agents are used only internally, the cannot perform any action
         self.puppets: dict = {RED: Puppet(RED), BLUE: Puppet(BLUE)}
+        # internal and controlled MatchManager
         self.mm: MatchManager = MatchManager('', self.puppets[RED], self.puppets[BLUE], seed=seed, useLoggers=False)
 
         self.searchCutOff: bool = False
         self.forceHit: bool = False
 
+    def dataFrameInfo(self) -> List[str]:
+        """
+        The additional columns are:
+            - score:    score associated with the chosen action
+            - action:   action performed
+
+        :return: a list with the name of the columns used in the dataframe
+        """
+        return super().dataFrameInfo() + [
+            'score', 'action'
+        ]
+
+    def store(self, state: GameState, bestScore: float, bestAction: Action) -> None:
+        """
+        Wrapper of the register() method that does some pre-processing on the data that will be saved.
+
+        :param state:           state of the game
+        :param bestScore:       score of the best action found
+        :param bestAction:      best action found
+        """
+
+        data = [bestScore, type(bestAction).__name__, self.maxDepth]
+
+        self.register(state, data)
+
     def activateAction(self, board: GameBoard, state: GameState, action: Action) -> Tuple[GameState, Outcome]:
-        hashState0 = hash(state)
-        hashAction = hash(action.__str__())
+        """
+        Internal method to perform an action. If the action and the input states have been already explored, the cached
+        value is used instead of apply the action again.
+
+        :param board:   board of the game
+        :param state:   the given action will be applied to this state
+        :param action:  action to apply to the given state
+        :return: a tuple with the new state and the outcome of the action applied on the previous state
+        """
+        hashState0: int = hash(state)
+        hashAction: int = hash(action.__str__())
 
         key = (hashState0, hashAction)
 
         if key in self.cache:
             return self.cache[key]
 
-        else:
-            state1, outcome = self.gm.activate(board, state, action, self.forceHit)
-            self.cache[key] = state1, outcome
-            return state1, outcome
+        state1, outcome = self.gm.activate(board, state, action, self.forceHit)
+        self.cache[key] = state1, outcome
+        return state1, outcome
 
-    def evaluateState(self, team: str, board: GameBoard, state: GameState, params: GoalParams) -> float:
-        return stateScore(team, params, board, state)
+    def evaluateState(self, team: str, board: GameBoard, state: GameState) -> float:
+        """
+        Assign a score to the given state using the stateScore() function. This
+
+        :param team:    team to evaluate for
+        :param board:   board of the game
+        :param state:   the given state to be evaluated
+        :return: the score assigned to this state
+        """
+        return stateScore(team, self.goal_params, board, state)
 
     def nextActions(self, team: str, board: GameBoard, state: GameState, step: str, depth: int) -> List[Action]:
+        """
+        Generates a list of possible actions or responses.
+
+        By overriding this method you need to use the parameter "step" to discriminate between actions and responses. It
+        is mandatory to return a list of "Response" when the step value equals to "response".
+
+        :param team:    find the next actions for this team
+        :param board:   board of the game
+        :param state:   current state of the game
+        :param step:    if "response", this method will generate the possible next actions
+        :param depth:   current depth of the exploration
+        :return: a list of the available actions that can be applied
+        """
         nextActions = []
         if step == 'response':
             nextActions += [self.gm.actionPassResponse(team)]
@@ -65,12 +131,42 @@ class AlphaBetaAgent(Agent):
 
     def apply(self, board: GameBoard, state: GameState, action: Action, step: str, alpha: float, beta: float,
               depth: int, startTime: float, timeLimit: float) -> float:
+        """
+        Performs an exploration of the moves tree after the application of the given action. First the given action will
+        be activated with the "activateAction()" method, then the score will be assigned by exploring the tree with the
+        "alphaBeta()".
+
+        If you override this method, remember to invoke the "alphaBeta()" method to continue the exploration.
+        
+        :param board:       board of the game
+        :param state:       current state
+        :param action:      action to apply to the current state
+        :param step:        kind of step to perform
+        :param alpha:       maximization value
+        :param beta:        minimization value
+        :param depth:       current depth
+        :param startTime:   when the search started
+        :param timeLimit:   when the search ended
+        :return: the score associated with this exploration
+        """
         s1, _ = self.activateAction(board, state, action)
         score, _ = self.alphaBeta(board, s1, depth - 1, alpha, beta, startTime, timeLimit)
         return score
 
     def alphaBeta(self, board: GameBoard, state: GameState, depth: int, alpha: float, beta: float, startTime: float,
                   timeLimit: float) -> Tuple[float, Action or None]:
+        """
+        Perform the exploration of a branch in the tree of moves.
+
+        :param board:       board of the game
+        :param state:       current state
+        :param alpha:       maximization value
+        :param beta:        minimization value
+        :param depth:       current depth
+        :param startTime:   when the search started
+        :param timeLimit:   when the search ended
+        :return: a tuple composed by the score and the best Action found
+        """
         currentTime = time()
         elapsedTime = currentTime - startTime
 
@@ -87,7 +183,7 @@ class AlphaBetaAgent(Agent):
 
         # if this is a terminal node, abort the search
         if self.searchCutOff or depth == 0 or step == 'end' or team == '':
-            score = self.evaluateState(self.team, board, state, self.goal_params)
+            score = self.evaluateState(self.team, board, state)
             return score, None
 
         # build actions
@@ -134,10 +230,13 @@ class AlphaBetaAgent(Agent):
             return value, action
 
     def search(self, board: GameBoard, state: GameState) -> Tuple[float, Action]:
-        """Using iterative deepening search."""
+        """
+        Search for the best action using iterative deepening search and Alpha-Beta pruning.
 
-        # TODO: find a better log management...
-        logger.disabled = True
+        :param board:   board of the game
+        :param state:   starting state
+        :return: a tuple composed by the score and the best Action found
+        """
 
         startTime: float = time()
         endTime: float = startTime + self.timeLimit
@@ -153,29 +252,58 @@ class AlphaBetaAgent(Agent):
 
             score, action = self.alphaBeta(board, state, depth, -math.inf, math.inf, currentTime, endTime - currentTime)
 
-        logger.disabled = False
-
         if not action:
             raise ValueError('no action given')
 
         return score, action
 
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
-        _, action = self.search(board, state)
+        """
+        Uses the search() method to find the next best action to perform.
+
+        :param board:   board of the game
+        :param state:   the current state
+        :return: the next action to apply
+        """
+        score, action = self.search(board, state)
+
+        self.store(state, score, action)
+
         return action
 
     def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
-        _, action = self.search(board, state)
+        """
+        Uses the search() method to find the next best response to perform.
+
+        :param board:   board of the game
+        :param state:   the current state
+        :return: the next response to apply
+        """
+        score, action = self.search(board, state)
+
+        self.store(state, score, action)
+
         return action
 
     def placeFigures(self, board: GameBoard, state: GameState) -> None:
-        """Uses GreedyAgent placer method."""
+        """
+        Uses GreedyAgent's placer() method.
+
+        :param board:   board of the game
+        :param state:   the current state
+        """
+
         # TODO: find a better placer
         ga = GreedyAgent(self.team)
         ga.placeFigures(board, state)
 
     def chooseFigureGroups(self, board: GameBoard, state: GameState) -> None:
-        """Plays a game for each color and choose the best score."""
+        """
+        Plays a quick game with each color and choose the color with the best score.
+
+        :param board:   board of the game
+        :param state:   the current state
+        """
         colors = list(state.choices[self.team].keys())
 
         max_color = None
