@@ -2,7 +2,7 @@ import numpy as np
 
 from agents import Agent
 from core.actions import Action, PassTeam, PassFigure
-from core.game import GameBoard, GameState
+from core.game import GameBoard, GameState, GoalParams
 from core.utils.coordinates import Hex
 
 ACTION_MOVE = 0
@@ -12,8 +12,21 @@ ACTION_PASS = 2
 
 class RandomAgent(Agent):
 
-    def __init__(self, team: str):
-        super().__init__('RandomAgent', team)
+    def __init__(self, team: str, seed=0):
+        super().__init__('RandomAgent', team, seed=seed)
+
+        self.goal_params: GoalParams = GoalParams()
+        self.maximize: bool = True
+
+    def dataFrameInfo(self):
+        return super().dataFrameInfo() + [
+            'action'
+        ]
+
+    def store(self, state: GameState, bestAction: Action):
+        data = [type(bestAction).__name__]
+
+        self.register(state, data)
 
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
         """
@@ -58,8 +71,10 @@ class RandomAgent(Agent):
 
         if toa == ACTION_ATTACK:
             actions = attacks
+        action = np.random.choice(actions)
+        self.store(state, action)
 
-        return np.random.choice(actions)
+        return action
 
     def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
         """
@@ -85,6 +100,7 @@ class RandomAgent(Agent):
 
         if responses:
             response = np.random.choice(responses)
+            self.store(state, response)
             return response
         else:
             raise ValueError('no response available')

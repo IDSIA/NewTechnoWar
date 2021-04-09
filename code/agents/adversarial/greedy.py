@@ -7,7 +7,7 @@ import numpy as np
 
 from agents import Agent
 from agents.commons import stateScore
-from agents.utils import entropy
+from agents.utils import entropy, standardD
 from core.actions import Action, Attack, Response
 from core.figures import Figure
 from core.game import GameBoard, GameState, GoalParams
@@ -43,7 +43,7 @@ class GreedyAgent(Agent):
         :return: a list with the name of the columns used in the dataframe
         """
         return super().dataFrameInfo() + [
-            'score', 'action', 'entropy', 'n_scores', 'scores', 'actions'
+            'score', 'action', 'entropy', 'standard_deviation', 'n_scores', 'scores', 'actions'
         ]
 
     def store(self, state: GameState, bestScore: float, bestAction: Action,
@@ -59,7 +59,8 @@ class GreedyAgent(Agent):
         scores = [x[0] for x in scoreActions]
         actions = [type(x[1]).__name__ for x in scoreActions]
 
-        data = [bestScore, type(bestAction).__name__, entropy(scores), len(scoreActions), scores, actions]
+        data = [bestScore, type(bestAction).__name__, entropy(scores), standardD(scores), len(scoreActions), scores,
+                actions]
 
         self.register(state, data)
 
