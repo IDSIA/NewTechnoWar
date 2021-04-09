@@ -7,6 +7,7 @@ from core.actions import *
 from core.const import RED, BLUE
 from core.figures import Figure, FigureType, IN_MOTION, UNDER_FIRE, NO_EFFECT, HIDDEN, CUT_OFF, LOADED, Weapon
 from core.game.board import GameBoard
+from core.game.outcome import Outcome
 from core.game.scores import MISS_MATRIX, hitScoreCalculator
 from core.game.state import GameState
 from core.game.static import CUTOFF_RANGE
@@ -320,7 +321,8 @@ class GameManager(object):
 
         return responses
 
-    def activate(self, board: GameBoard, state: GameState, action: Action, forceHit: bool = False) -> (GameState, dict):
+    def activate(self, board: GameBoard, state: GameState, action: Action, forceHit: bool = False) -> (
+    GameState, Outcome):
         """Apply the step method to a deepcopy of the given GameState."""
         s1 = deepcopy(state)
         outcome = self.step(board, s1, action, forceHit)
@@ -353,7 +355,7 @@ class GameManager(object):
             for x in to_disable:
                 target.weapons[x].disable()
 
-    def step(self, board: GameBoard, state: GameState, action: Action, forceHit: bool = False) -> dict:
+    def step(self, board: GameBoard, state: GameState, action: Action, forceHit: bool = False) -> Outcome:
         """Update the given state with the given action in a irreversible way."""
 
         team: str = action.team  # team performing action
@@ -368,9 +370,14 @@ class GameManager(object):
                 f.activated = True
                 f.passed = True
 
+            if isinstance(action, PassTeam) and not isinstance(action, Response):
+                for f in state.getFigures(team):
+                    f.activated = True
+                    f.passed = True
+
             logger.debug(f'{action}: {comment}')
 
-            return {'comment': comment}
+            return Outcome(comment=comment)
 
         if isinstance(action, Move):
             f: Figure = state.getFigure(action)  # who performs the action
@@ -381,12 +388,12 @@ class GameManager(object):
                 # figure moves inside transporter
                 t = state.getTransporter(action)
                 t.transportLoad(f)
-                comment = f'loaded into {t}'
+                comment = f'(capacity: {len(t.transporting)}/{t.transport_capacity})'
             elif f.transported_by > -1:
                 # figure leaves transporter
                 t = state.getFigureByIndex(team, f.transported_by)
                 t.transportUnload(f)
-                comment = f'unloaded from {t}'
+                comment = f'(capacity: {len(t.transporting)}/{t.transport_capacity})'
 
             state.moveFigure(f, f.position, action.destination)
 
@@ -397,7 +404,7 @@ class GameManager(object):
 
             logger.debug(f'{action}: {comment}')
 
-            return {'comment': comment}
+            return Outcome(comment=comment)
 
         if isinstance(action, AttackGround):
             f: Figure = state.getFigure(action)  # who performs the action
@@ -428,7 +435,7 @@ class GameManager(object):
 
             logger.debug(f'{action}: {comment}')
 
-            return {'comment': comment}
+            return Outcome(comment=comment)
 
         if isinstance(action, Attack):  # Respond *is* an attack action
             f: Figure = state.getFigure(action)  # who performs the action
@@ -504,19 +511,19 @@ class GameManager(object):
 
             logger.debug(f'{action}: {comment}')
 
-            return {
-                'comment': comment,
-                'score': score,
-                'hitScore': hitScore,
-                'ATK': ATK,
-                'TER': TER,
-                'DEF': DEF,
-                'STAT': STAT,
-                'END': END,
-                'INT': INT,
-                'success': success > 0,
-                'hits': success,
-            }
+            return Outcome(
+                comment=comment,
+                score=score,
+                hitScore=hitScore,
+                ATK=ATK,
+                TER=TER,
+                DEF=DEF,
+                STAT=STAT,
+                END=END,
+                INT=INT,
+                success=success > 0,
+                hits=success,
+            )
 
     @staticmethod
     def update(state: GameState) -> None:

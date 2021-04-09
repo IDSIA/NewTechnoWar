@@ -1,14 +1,20 @@
 version: 1
+
 formatters:
   standard:
     datefmt: '%Y-%m-%d %H:%M:%S'
-    format: '%(asctime)s %(levelname)s %(message)s'
+    format: '%(asctime)s %(name)s %(levelname)s %(message)s'
 
 handlers:
   console:
     class: logging.StreamHandler
     formatter: standard
     stream: ext://sys.stdout
+
+  error_console:
+    class: logging.StreamHandler
+    formatter: standard
+    stream: ext://sys.stderr
 
   agents_file_handler:
     class: logging.FileHandler
@@ -34,28 +40,47 @@ handlers:
     filename: logs/tourney.all.log
     encoding: utf8
 
-root:
-  level: NOTSET
-  handlers: [ console ]
-  propagate: yes
+#root:
+#  level: NOTSET
+#  handlers: [ console ]
+#  propagate: yes
 
 loggers:
   agents:
+    propagate: false
     level: INFO
-    handlers: [ agents_file_handler ]
-    propagate: no
+    handlers:
+      - console
+      - agents_file_handler
 
   agents.ml:
+    propagate: false
     level: WARNING
-    handlers: [ agents_file_warning_handler ]
-    propagate: yes
+    handlers:
+      - agents_file_handler
+      - error_console
+
+  agents.adversarial:
+    propagate: false
+    level: WARNING
+    handlers:
+      - agents_file_handler
+      - error_console
+
+  agents.intereactive:
+    propagate: false
+    level: INFO
+    handlers:
+      - console
 
   web:
     level: INFO
-    handlers: [ web_file_handler ]
-    propagate: yes
+    handlers:
+      - web_file_handler
 
   tourney:
     level: INFO
-    handlers: [ console, tourney_file_handler ]
+    handlers:
+      - console
+      - tourney_file_handler
     propagate: no

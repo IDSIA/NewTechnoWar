@@ -8,21 +8,32 @@ from core.utils.coordinates import Cube, Hex
 
 
 class GoalParams:
-    # parameters GoalEliminateOpponent
-    unit_team_lost: float = -2.0
-    unit_team_alive: float = 1.0
-    unit_enemy_killed: float = 5.0
-    unit_enemy_alive: float = 0.0
+    __slots__ = [
+        'unit_team_lost', 'unit_team_alive', 'unit_enemy_killed', 'unit_enemy_alive', 'reach_team_near',
+        'defend_team_near', 'defend_enemy_near', 'wait_for_turn'
+    ]
 
-    # parameters GoalReachPoint
-    reach_team_near: float = 2.0
+    def __init__(self) -> None:
+        super().__init__()
 
-    # parameters GoalDefendPoint
-    defend_team_near: float = 2.0
-    defend_enemy_near: float = 0.5
+        # parameters GoalEliminateOpponent
+        self.unit_team_lost: float = -2.0
+        self.unit_team_alive: float = 1.0
+        self.unit_enemy_killed: float = 5.0
+        self.unit_enemy_alive: float = 0.0
 
-    # parameters GoalMaxTurn
-    wait_for_turn: float = 10.0
+        # parameters GoalReachPoint
+        self.reach_team_near: float = 2.0
+
+        # parameters GoalDefendPoint
+        self.defend_team_near: float = 2.0
+        self.defend_enemy_near: float = 0.5
+
+        # parameters GoalMaxTurn
+        self.wait_for_turn: float = 10.0
+
+    def __repr__(self) -> str:
+        return f'GoalParams'
 
 
 class Goal:

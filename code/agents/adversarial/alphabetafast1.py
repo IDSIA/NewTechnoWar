@@ -1,133 +1,95 @@
+import logging
 from typing import Tuple, List
 
 import numpy as np
 
 from agents import AlphaBetaAgent
-from core.actions import Action, Move, Attack, Response
+from core.actions import Action
 from core.const import RED, BLUE
 from core.game import GoalParams, GameBoard, GameState, GoalReachPoint
+
+logger = logging.getLogger(__name__)
 
 
 class AlphaBetaFast1Agent(AlphaBetaAgent):
 
-    def __init__(self, team: str, searchDepth: int = 2, maxSearchTime: int = 60, a: float = 1.0, b: float = 1.0,
-                 c: float = 0.1, d: float = 0.1):
-        super().__init__(team, searchDepth, maxSearchTime)
+    def __init__(self, team: str, maxDepth: int = 2, timeLimit: int = 60, baseAllyAlive: float = 1.0,
+                 baseEnemyAlive: float = 1.0, coeffAllyAlive: float = 0.1, coeffEnemyAlive: float = 0.1,
+                 seed: int = 42):
+        super().__init__(team, maxDepth, timeLimit, seed)
         self.name = 'AlphaBetaFast1Agent'
         self.forceHit = True
 
         self.boardValues: GoalReachPoint or None = None
 
-        self.a: float = a
-        self.b: float = b
-        self.c: float = c
-        self.d: float = d
+        self.baseAllyAlive: float = baseAllyAlive
+        self.baseEnemyAlive: float = baseEnemyAlive
+        self.coeffAllyAlive: float = coeffAllyAlive
+        self.coeffEnemyAlive: float = coeffEnemyAlive
 
-    def evaluateState(self, team: str, params: GoalParams, board: GameBoard, state: GameState) -> float:
+    def evaluateState(self, team: str, board: GameBoard, state: GameState, params: GoalParams) -> float:
         if state.turn >= board.maxTurn:
-            return -5
+            return -5.0
 
-        value: float = 0
         bv: np.ndarray = self.boardValues.values
-        courage: float = 1 / (1 - state.turn / board.maxTurn + np.exp(-5))
-
-        a: float = self.a
-        b: float = self.b  # * (1-courage)
-        c: float = self.c * courage
-        d: float = self.d  # * courage
+        courage: float = 1.0 / (1.0 - state.turn / board.maxTurn + np.exp(-5.0))
 
         other: str = RED if self.team == BLUE else BLUE
 
+        value: float = 0.0
         # ally figures alive increase value of the state
         for figure in state.figures[self.team]:
             if not figure.killed:
-                value += (a + c * bv[figure.position.tuple()])  # the prefactor is fully ad hoc. should be tuned
+                value += self.baseAllyAlive + self.coeffAllyAlive * bv[figure.position.tuple()] * courage
 
         # enemy figures alive reduce value of the state
         for figure in state.figures[other]:
             if not figure.killed:
-                value -= (b + d * bv[figure.position.tuple()])  # the prefactor is fully ad hoc. should be tuned
+                value -= self.baseEnemyAlive + self.coeffEnemyAlive * bv[figure.position.tuple()]
 
         return value
 
-    def nextActions(self, team: str, step: str, board: GameBoard, state: GameState, depth: int) -> List[Action]:
+    def nextActions(self, team: str, board: GameBoard, state: GameState, step: str, depth: int) -> List[Action]:
         nextActions = []
         if step == 'response':
             nextActions += [self.gm.actionPassResponse(team)]
             for figure in state.getFiguresCanRespond(team):
                 nextActions += self.gm.buildResponses(board, state, figure)
+
         else:
             for figure in state.getFiguresCanBeActivated(team):
-                nextActions += [self.gm.actionPassFigure(figure)]
+                # RED team can't pass
+                if team == BLUE:
+                    nextActions += [self.gm.actionPassFigure(figure)]
 
                 if self.maxDepth - depth == 0:
                     nextActions += self.gm.buildMovements(board, state, figure)
                 nextActions += self.gm.buildAttacks(board, state, figure)
+
+            # if we don't have actions available we are forced to pass with the whole team
+            if not nextActions:
+                nextActions += [self.gm.actionPassTeam(team)]
+
         return nextActions
 
-    def probabilitySuccessfulAttack(self, board: GameBoard, state: GameState, action: Action) -> float:
-        _, outcome = self.activateAction(board, state, action)  # this generates a new state, that we ignore
-        return outcome['hitScore'] / 20.0
+    def apply(self, board: GameBoard, state: GameState, action: Action, step: str, alpha: float, beta: float,
+              depth: int, startTime: int, timeLimit: int) -> float:
 
-    def listOfPossibleRespondersToMove(self, team: str, board: GameBoard, state: GameState, action: Action) -> List[
-        Response]:
-        """
-        @param team: other team
-        @param board: current board to use
-        @param state: current state to use
-        @param figureMoved: figure that moved and generated the current state
-        @return: a list of figures that can respond to the figure
-        """
-        responders = []
+        if step == 'response':
+            noEffect = self.mm.gm.actionPassResponse(action.team)
+        else:
+            noEffect = self.mm.gm.actionPassTeam(action.team)
 
-        for figure in state.getFiguresCanRespond(team):
-            responders += self.mm.gm.buildResponses(board, state, figure, action)
+        s0, _ = self.activateAction(board, state, noEffect)
+        score0 = self.evaluateState(action.team, board, s0, self.goal_params)
 
-        return responders
+        s1, outcome1 = self.activateAction(board, state, action)  # remember that this is always successful!
+        p1 = 1 - outcome1.hitScore / 20.0
+        score1, _ = self.alphaBeta(board, s1, depth - 1, alpha, beta, startTime, timeLimit)
 
-    def probSuccessfulResponseCumulative(self, team: str, board: GameBoard, state: GameState, action: Action):
-        prob: float = 0
+        score: float = (1 - p1) * score0 + p1 * score1
 
-        for figure in state.getFiguresCanRespond(team):
-            for response in self.mm.gm.buildResponses(board, state, figure, action):
-                r = self.probabilitySuccessfulAttack(board, state, response)
-                prob = max(prob, r)
-
-        return prob
-
-    def apply(self, board: GameBoard, state: GameState, action: Action, alpha: float, beta: float, depth: int,
-              startTime: int, timeLimit: int) -> float:
-
-        self.evaluateState(action.team)
-        s1, outcome = self.activateAction(board, state, action)
-
-        if isinstance(action, Move):
-            pResponse: float = self.probSuccessfulResponseCumulative('', board, state, action)
-            pNoResponse: float = 1 - pResponse
-
-            noResponseScore: float = self.evaluateState()
-            responseScore: float = self.evaluateState()
-
-            score = pResponse * responseScore * pNoResponse * noResponseScore
-
-        elif isinstance(action, Attack):
-
-            noEffectScore: float = 0
-
-            pAction: float = 0
-            pNoAction: float = 1 - pAction
-
-            actionScore: float = self.evaluateState()
-            pResponse: float = self.probSuccessfulResponseCumulative('', board, state, action)
-            pNoResponse: float = 1 - pResponse
-
-            noResponseScore: float = self.evaluateState()
-            responseScore: float = self.evaluateState()
-
-            score = pAction * actionScore + pNoAction * (pResponse * responseScore + pNoResponse * noEffectScore)
-
-        else:  # this is pass
-            score, _ = self.alphaBeta(board, state, depth - 1, alpha, beta, startTime, timeLimit)
+        logger.debug(f'depth={depth} step={step} score={score}')
 
         return score
 

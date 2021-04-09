@@ -206,19 +206,19 @@ class GameState:
         attackers = RED if defenders == BLUE else BLUE
 
         for attacker in self.figures[attackers]:
-            if target.index not in self.figuresLOS[defenders]:
-                self.figuresLOS[defenders][target.index] = {}
-            if attacker.index not in self.figuresLOS[attackers]:
-                self.figuresLOS[attackers][attacker.index] = {}
+            los = target.position.line(attacker.position)
 
-            self.figuresLOS[attackers][attacker.index][target.index] = target.position.line(attacker.position)
-            self.figuresLOS[defenders][target.index][attacker.index] = attacker.position.line(target.position)
+            self.figuresLOS[defenders].setdefault(target.index, {})[attacker.index] = los
+            self.figuresLOS[attackers].setdefault(attacker.index, {})[target.index] = list(reversed(los))
 
-        self.figuresDistance[defenders][target.index] = {
-            # defender's line of sight
-            defender.index: defender.position.line(target.position)
-            for defender in self.figures[defenders]
-        }
+        for defender in self.figures[defenders]:
+            if defender.index == target.index:
+                continue
+
+            los = target.position.line(defender.position)
+
+            self.figuresDistance[defenders].setdefault(target.index, {})[defender.index] = los
+            self.figuresDistance[defenders].setdefault(defender.index, {})[target.index] = list(reversed(los))
 
     def isObstacle(self, pos: Cube) -> bool:
         """Returns if the position is an obstacle (a VEHICLE) to LOS or not."""

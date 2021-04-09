@@ -10,9 +10,8 @@ from agents.interactive.interactive import Human
 from core.actions import Attack, Move, Action, Response, PassRespond, PassTeam
 from core.const import RED, BLUE
 from core.game import GameBoard, GameState, goalAchieved, GameManager
+from core.game.outcome import Outcome
 from utils.copy import deepcopy
-
-logger = logging.getLogger(__name__)
 
 
 def buildMatchManager(gid: str, scenario: str, red: str, blue: str, seed: int = 42):
@@ -28,12 +27,11 @@ def buildMatchManager(gid: str, scenario: str, red: str, blue: str, seed: int = 
 class MatchManager:
     __slots__ = [
         'gid', 'seed', 'states_history', 'actions_history', 'outcome', 'end', 'board', 'state', 'origin', 'gm',
-        'scenario', 'red', 'blue',
-        'first', 'second', 'step', 'update', 'winner', 'humans'
+        'scenario', 'red', 'blue', 'first', 'second', 'step', 'update', 'winner', 'humans', 'logger'
     ]
 
     def __init__(self, gid: str, red: Agent, blue: Agent, board: GameBoard = None, state: GameState = None,
-                 seed: int = 42):
+                 seed: int = 42, useLoggers: bool = True):
         """
         Initialize the state-machine.
 
@@ -44,13 +42,18 @@ class MatchManager:
         :param blue:        String value of the player to use. Check module agent.interactive for a list.
         :param seed:        Random seed value (default: 42)
         """
+        if useLoggers:
+            self.logger = logging.getLogger(__name__)
+        else:
+            self.logger = logging.getLogger("internal")
+
         self.gid: str = gid
         self.seed: int = seed
 
         self.actions_history: List[Action] = []
         self.states_history: List[GameState] = []
 
-        self.outcome: List[dict] = []
+        self.outcome: List[Outcome] = []
 
         self.winner: str = ''
         self.end: bool = False
@@ -84,16 +87,16 @@ class MatchManager:
 
         self._goInit()
 
-    def _store(self, state: GameState, action: Action = None, outcome: dict = None):
+    def _store(self, state: GameState, action: Action = None, outcome: Outcome = None):
         self.states_history.append(state)
         self.actions_history.append(action)
-        self.outcome.append(outcome if outcome else {})
+        self.outcome.append(outcome if outcome else Outcome())
 
     def _goInit(self):
         """Initialization step."""
-        logger.debug('step: init')
-        logger.info(f'{self.seed:10} SCENARIO: {self.board.name}')
-        logger.info(f'{self.seed:10} SEED:     {self.seed}')
+        self.logger.debug('step: init')
+        self.logger.info(f'{self.seed:10} SCENARIO: {self.board.name}')
+        self.logger.info(f'{self.seed:10} SEED:     {self.seed}')
 
         np.random.seed(self.seed)
 
@@ -118,38 +121,38 @@ class MatchManager:
 
     def _goRound(self):
         """Round step."""
-        logger.debug(f'{self.seed:10} step: round {self.first.team:5}')
+        self.logger.debug(f'{self.seed:10} step: round {self.first.team:5}')
         self.update = False
         state0 = deepcopy(self.state)
 
         try:
             action = self.first.chooseAction(self.board, self.state)
         except ValueError as e:
-            logger.debug(f'{self.seed:10} {self.first.team:5} {"exception":9}: {e}')
+            self.logger.debug(f'{self.seed:10} {self.first.team:5} {"exception":9}: {e}')
             action = PassTeam(self.first.team)
 
         outcome = self.gm.step(self.board, self.state, action)
 
         self._store(state0, action, outcome)
-        logger.info(f'{self.seed:10} {self.first.team:5} {"action":9}: {action} {outcome["comment"]}')
+        self.logger.info(f'{self.seed:10} {self.first.team:5} {"action":9}: {action} {outcome.comment}')
 
         self._goCheck()
 
     def _goResponse(self):
         """Response step."""
-        logger.debug(f'{self.seed:10} step: response {self.second.team:5}')
+        self.logger.debug(f'{self.seed:10} step: response {self.second.team:5}')
         state0 = deepcopy(self.state)
 
         try:
             response = self.second.chooseResponse(self.board, self.state)
         except ValueError as e:
-            logger.debug(f'{self.seed:10} {self.second.team:5} {"exception":9}: {e}')
+            self.logger.debug(f'{self.seed:10} {self.second.team:5} {"exception":9}: {e}')
             response = PassRespond(self.second.team)
 
         outcome = self.gm.step(self.board, self.state, response)
 
         self._store(state0, response, outcome)
-        logger.info(f'{self.seed:10} {self.second.team:5} {"response":9}: {response} {outcome["comment"]}')
+        self.logger.info(f'{self.seed:10} {self.second.team:5} {"response":9}: {response} {outcome.comment}')
 
         self._goCheck()
 
@@ -161,7 +164,7 @@ class MatchManager:
             # if we achieved a goal, end
             self.winner = winner
             self.step = self._goEnd
-            logger.info(f'{self.seed:10} End game! Winner is {winner}')
+            self.logger.info(f'{self.seed:10} End game! Winner is {winner}')
 
             return
 
@@ -192,33 +195,33 @@ class MatchManager:
 
     def _goUpdate(self):
         """Update step."""
-        logger.info(f'{self.seed:10} ' + ('=' * 100))
-        logger.debug(f'{self.seed:10} step: update')
+        self.logger.info(f'{self.seed:10} ' + ('=' * 100))
+        self.logger.debug(f'{self.seed:10} step: update')
         self.update = True
 
         self.first = self.red
         self.second = self.blue
 
         self.gm.update(self.state)
-        logger.info(f'{self.seed:10} Turn {self.state.turn}')
+        self.logger.info(f'{self.seed:10} Turn {self.state.turn}')
 
         self._goCheck()
 
     def _goEnd(self):
         """End step."""
-        logger.debug(f'{self.seed:10} step: end')
+        self.logger.debug(f'{self.seed:10} step: end')
         self.end = True
         self.update = False
         self.step = self._goEnd
 
     def nextStep(self):
         """Go to the next step"""
-        logger.debug('{self.seed:10} next: step')
+        self.logger.debug('{self.seed:10} next: step')
         self.step()
 
     def nextTurn(self):
         """Continue to execute nextStep() until the turn changes."""
-        logger.debug(f'{self.seed:10} next: turn')
+        self.logger.debug(f'{self.seed:10} next: turn')
 
         t = self.state.turn
         while self.state.turn == t and not self.end:

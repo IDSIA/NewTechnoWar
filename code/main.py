@@ -1,15 +1,16 @@
 import logging.config
 import os.path as op
 
-import pandas as pd
+import numpy
 import yaml
 
-from agents import GreedyAgent
+from agents import AlphaBetaAgent
+from agents.adversarial.alphabetafast1 import AlphaBetaFast1Agent
 from agents.matchmanager import MatchManager
 from core.const import RED, BLUE
-from core.game import vectorStateInfo, vectorState
-from core.vectors import vectorActionInfo, vectorAction, vectorBoardInfo, vectorBoard
 from scenarios import scenarioJunction
+
+numpy.seterr('raise')
 
 dir_path = op.dirname(op.realpath(__file__))
 
@@ -32,29 +33,29 @@ if __name__ == '__main__':
     # blue = GreedyAgent(BLUE, seed=seed)
 
     # scenarioJunction RandomAgent GreedyAgent 151775519
-    red = GreedyAgent(RED)
-    blue = GreedyAgent(BLUE)
+    red = AlphaBetaFast1Agent(RED, maxDepth=12)
+    blue = AlphaBetaFast1Agent(BLUE, maxDepth=3)
 
     mm = MatchManager(' ', red, blue, board, state, seed=seed)
     while not mm.end:
         mm.nextStep()
 
-    actions_cols = vectorActionInfo()
-    actions_data = [vectorAction(x) for x in mm.actions_history]
+    # actions_cols = vectorActionInfo()
+    # actions_data = [vectorAction(x) for x in mm.actions_history]
 
-    df_actions = pd.DataFrame(columns=actions_cols, data=actions_data)
+    # df_actions = pd.DataFrame(columns=actions_cols, data=actions_data)
 
-    states_cols = vectorStateInfo()
-    states_data = [vectorState(x) for x in mm.states_history]
+    # states_cols = vectorStateInfo()
+    # states_data = [vectorState(x) for x in mm.states_history]
 
-    df_states = pd.DataFrame(columns=states_cols, data=states_data)
+    # df_states = pd.DataFrame(columns=states_cols, data=states_data)
 
-    board_cols = vectorBoardInfo()
-    board_data = [vectorBoard(board, s, a) for s, a in zip(mm.states_history, mm.actions_history)]
+    # board_cols = vectorBoardInfo()
+    # board_data = [vectorBoard(board, s, a) for s, a in zip(mm.states_history, mm.actions_history)]
 
-    df_board = pd.DataFrame(columns=board_cols, data=board_data)
+    # df_board = pd.DataFrame(columns=board_cols, data=board_data)
 
-    print(df_states.shape, df_actions.shape, df_board.shape)
+    # print(df_states.shape, df_actions.shape, df_board.shape)
 
-    df_red = mm.red.createDataFrame()
-    df_blue = mm.blue.createDataFrame()
+    # df_red = mm.red.createDataFrame()
+    # df_blue = mm.blue.createDataFrame()

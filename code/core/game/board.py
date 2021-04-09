@@ -100,12 +100,13 @@ class GameBoard:
 
     def getObjectiveMark(self) -> List[Cube]:
         """Return the position of all objectives in the map."""
-        marks = []
+        marks = set()
         for team in [RED, BLUE]:
-            for o in self.objectives[team]:
+            for o in self.objectives[team].values():
                 if isinstance(o, GoalReachPoint):
-                    marks += o.objectives
-        return marks
+                    for x in o.objectives:
+                        marks.add(x)
+        return list(marks)
 
     def getNeighbors(self, position: Cube) -> List[Cube]:
         """Returns all the neighbors of the given position."""

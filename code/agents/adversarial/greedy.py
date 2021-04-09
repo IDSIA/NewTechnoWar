@@ -43,7 +43,7 @@ class GreedyAgent(Agent):
         score = stateScore(self.team, self.goal_params, board, s1)
 
         if 'hitScore' in outcome:
-            w = (outcome['hitScore'] - 1) / 19
+            w = (outcome.hitScore - 1) / 19
             score = w * score + (1 - w) * baseScore
 
         return score

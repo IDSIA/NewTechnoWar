@@ -9,6 +9,7 @@ from agents.commons import stateScore
 from core.actions import Action
 from core.const import RED, BLUE
 from core.game import GameBoard, GameState, GoalParams
+from core.game.outcome import Outcome
 from utils.copy import deepcopy
 
 logger = logging.getLogger(__name__)
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class AlphaBetaAgent(Agent):
 
-    def __init__(self, team: str, maxDepth: int = 3, timeLimit: int = 20):
+    def __init__(self, team: str, maxDepth: int = 3, timeLimit: int = 20, seed: int = 42):
         super().__init__('AlphaBetaAgent', team)
 
         self.maxDepth: int = maxDepth
@@ -25,12 +26,12 @@ class AlphaBetaAgent(Agent):
         self.timeLimit: int = timeLimit
 
         self.puppets: dict = {RED: Puppet(RED), BLUE: Puppet(BLUE)}
-        self.mm: MatchManager = MatchManager('', self.puppets[RED], self.puppets[BLUE])
+        self.mm: MatchManager = MatchManager('', self.puppets[RED], self.puppets[BLUE], seed=seed, useLoggers=False)
 
         self.searchCutOff: bool = False
-        self.forceHit : bool = False
+        self.forceHit: bool = False
 
-    def activateAction(self, board: GameBoard, state: GameState, action: Action) -> Tuple[GameState, dict]:
+    def activateAction(self, board: GameBoard, state: GameState, action: Action) -> Tuple[GameState, Outcome]:
         hashState0 = hash(state)
         hashAction = hash(action.__str__())
 
@@ -44,10 +45,10 @@ class AlphaBetaAgent(Agent):
             self.cache[key] = state1, outcome
             return state1, outcome
 
-    def evaluateState(self, team: str, params: GoalParams, board: GameBoard, state: GameState) -> float:
+    def evaluateState(self, team: str, board: GameBoard, state: GameState, params: GoalParams) -> float:
         return stateScore(team, params, board, state)
 
-    def nextActions(self, team: str, step: str, board: GameBoard, state: GameState, depth: int) -> List[Action]:
+    def nextActions(self, team: str, board: GameBoard, state: GameState, step: str, depth: int) -> List[Action]:
         nextActions = []
         if step == 'response':
             nextActions += [self.gm.actionPassResponse(team)]
@@ -62,8 +63,8 @@ class AlphaBetaAgent(Agent):
                 nextActions += self.gm.buildMovements(board, state, figure)
         return nextActions
 
-    def apply(self, board: GameBoard, state: GameState, action: Action, alpha: float, beta: float, depth: int,
-              startTime: float, timeLimit: float) -> float:
+    def apply(self, board: GameBoard, state: GameState, action: Action, step: str, alpha: float, beta: float,
+              depth: int, startTime: float, timeLimit: float) -> float:
         s1, _ = self.activateAction(board, state, action)
         score, _ = self.alphaBeta(board, s1, depth - 1, alpha, beta, startTime, timeLimit)
         return score
@@ -86,11 +87,11 @@ class AlphaBetaAgent(Agent):
 
         # if this is a terminal node, abort the search
         if self.searchCutOff or depth == 0 or step == 'end' or team == '':
-            score = self.evaluateState(self.team, self.goal_params, board, state)
+            score = self.evaluateState(self.team, board, state, self.goal_params)
             return score, None
 
         # build actions
-        nextActions = self.nextActions(team, step, board, state, depth)
+        nextActions = self.nextActions(team, board, state, step, depth)
 
         # this team maximize...
         if team == self.team:
@@ -99,11 +100,11 @@ class AlphaBetaAgent(Agent):
             for nextAction in nextActions:
                 logging.debug(f'{depth:<4}{team:5}{step:6}{nextAction}')
 
-                score = self.apply(board, state, nextAction, alpha, beta, depth, startTime, timeLimit)
+                score = self.apply(board, state, nextAction, step, alpha, beta, depth, startTime, timeLimit)
 
                 if score > value:
                     value, action = score, nextAction
-                    logging.debug(f'       AB{depth}: Max {action} [{score}]')
+                    logging.debug(f'      AB{depth}: Max {action} [{score}]')
 
                 alpha = max(alpha, value)
 
@@ -119,7 +120,7 @@ class AlphaBetaAgent(Agent):
             for nextAction in nextActions:
                 logging.debug(f'{depth:<4}{team:5}{step:6}{nextAction}')
 
-                score = self.apply(board, state, nextAction, alpha, beta, depth, startTime, timeLimit)
+                score = self.apply(board, state, nextAction, step, alpha, beta, depth, startTime, timeLimit)
 
                 if score < value:
                     value, action = score, nextAction
