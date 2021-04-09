@@ -4,7 +4,6 @@ import os.path as op
 import numpy
 import yaml
 
-from agents import AlphaBetaAgent
 from agents.adversarial.alphabetafast1 import AlphaBetaFast1Agent
 from agents.matchmanager import MatchManager
 from core.const import RED, BLUE

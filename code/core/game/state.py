@@ -196,7 +196,7 @@ class GameState:
         """Get all the lines of sight of all hostile figures of the given target."""
         return self.figuresLOS[target.team][target.index]
 
-    def getDistance(self, target: Figure) -> Dict[int, List[Cube]]:
+    def getDistances(self, target: Figure) -> Dict[int, List[Cube]]:
         """Get all the lines of sight of all ally figures of the given target."""
         return self.figuresDistance[target.team][target.index]
 
@@ -212,9 +212,6 @@ class GameState:
             self.figuresLOS[attackers].setdefault(attacker.index, {})[target.index] = list(reversed(los))
 
         for defender in self.figures[defenders]:
-            if defender.index == target.index:
-                continue
-
             los = target.position.line(defender.position)
 
             self.figuresDistance[defenders].setdefault(target.index, {})[defender.index] = los

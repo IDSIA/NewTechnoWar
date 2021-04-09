@@ -8,7 +8,7 @@ import numpy as np
 from agents import Agent
 from agents.commons import stateScore
 from agents.utils import entropy
-from core.actions import Action
+from core.actions import Action, Attack
 from core.figures import Figure
 from core.game import GameBoard, GameState, GoalParams
 from core.utils.coordinates import Hex
@@ -42,7 +42,7 @@ class GreedyAgent(Agent):
         s1, outcome = self.gm.activate(board, state, action)
         score = stateScore(self.team, self.goal_params, board, s1)
 
-        if 'hitScore' in outcome:
+        if isinstance(action, Attack):
             w = (outcome.hitScore - 1) / 19
             score = w * score + (1 - w) * baseScore
 

@@ -550,6 +550,6 @@ class GameManager(object):
                         figure.stat = LOADED
 
                     # compute there cutoff status
-                    allies = state.getDistance(figure)
+                    allies = state.getDistances(figure)
                     if min([len(v) for v in allies.values()]) > CUTOFF_RANGE:
                         figure.stat = CUT_OFF
