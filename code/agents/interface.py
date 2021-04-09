@@ -37,7 +37,7 @@ class Agent:
         :param data:    additional data to be registered
         """
         self.count += 1
-        self.history.append([datetime.now(), self.team, self.seed, state.turn, self.count] + data)
+        self.history.append([datetime.now(), self.team, self.seed, self.count] + data)
 
     def dataFrameInfo(self) -> List[str]:
         """
@@ -57,7 +57,7 @@ class Agent:
             "time",
             "team",
             "seed",
-            "turn",
+            #"turn",
             "count",
         ]
 

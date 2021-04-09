@@ -2,7 +2,7 @@ __all__ = [
     'MatchManager', 'buildMatchManager',
     'Agent', 'Human',
     'GreedyAgent', 'AlphaBetaAgent', 'RandomAgent',
-    'ClassifierAgent', 'RegressionAgent'
+    'ClassifierAgent', 'RegressionAgent', 'RegressionMultiAgent'
 ]
 
 from agents.interface import Agent
@@ -13,3 +13,4 @@ from agents.adversarial.greedy import GreedyAgent
 from agents.adversarial.alphabeta import AlphaBetaAgent
 from agents.ml.classifier import ClassifierAgent
 from agents.ml.regression import RegressionAgent
+from agents.ml.regressionMulti import RegressionMultiAgent
