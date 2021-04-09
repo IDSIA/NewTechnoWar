@@ -1,26 +1,39 @@
 from typing import List
+
 import numpy as np
-from core.game import BLUE, RED
+
+from core.const import BLUE, RED
 from core.game.state import GameState
-from utils.coordinates import to_cube, Cube, cube_distance, cube_to_hex
+from core.utils.coordinates import Cube, Hex
 
 
 class GoalParams:
-    # parameters GoalEliminateOpponent
-    unit_team_lost: float = -2.0
-    unit_team_alive: float = 1.0
-    unit_enemy_killed: float = 5.0
-    unit_enemy_alive: float = 0.0
+    __slots__ = [
+        'unit_team_lost', 'unit_team_alive', 'unit_enemy_killed', 'unit_enemy_alive', 'reach_team_near',
+        'defend_team_near', 'defend_enemy_near', 'wait_for_turn'
+    ]
 
-    # parameters GoalReachPoint
-    reach_team_near: float = 2.0
+    def __init__(self) -> None:
+        super().__init__()
 
-    # parameters GoalDefendPoint
-    defend_team_near: float = 2.0
-    defend_enemy_near: float = 0.5
+        # parameters GoalEliminateOpponent
+        self.unit_team_lost: float = -2.0
+        self.unit_team_alive: float = 1.0
+        self.unit_enemy_killed: float = 5.0
+        self.unit_enemy_alive: float = 0.0
 
-    # parameters GoalMaxTurn
-    wait_for_turn: float = 10.0
+        # parameters GoalReachPoint
+        self.reach_team_near: float = 2.0
+
+        # parameters GoalDefendPoint
+        self.defend_team_near: float = 2.0
+        self.defend_enemy_near: float = 0.5
+
+        # parameters GoalMaxTurn
+        self.wait_for_turn: float = 10.0
+
+    def __repr__(self) -> str:
+        return f'GoalParams'
 
 
 class Goal:
@@ -48,7 +61,7 @@ class GoalEliminateOpponent(Goal):
         alive = [f for f in state.figures[self.hostiles] if not f.killed]
         return len(alive) == 0
 
-    def score(self, state: GameState, p: GoalParams):
+    def score(self, state: GameState, p: GoalParams) -> float:
         score = 0
 
         # malus: lost a unit
@@ -67,34 +80,38 @@ class GoalReachPoint(Goal):
 
     __slots__ = ['turns', 'objectives', 'entered', 'values']
 
-    def __init__(self, team: str, shape: tuple, *objectives: tuple, turns: int = 1):
+    def __init__(self, team: str, shape: tuple, objectives: List[tuple or Hex or Cube], turns: int = 1):
+        """
         # TODO: this version support 1 turn maximum!
+        """
         super().__init__(team)
 
         self.objectives: List[Cube] = []
 
-        self.values = np.zeros(shape)
+        self.values: np.ndarray = np.zeros(shape)
 
         # self.turns = turns
         # self.entered: Dict[(Cube, int), int] = {}
 
         for o in objectives:
-            if len(o) == 2:
-                o = to_cube(o)
+            if isinstance(o, Hex):
+                o = o.cube()
+            elif isinstance(o, tuple):
+                o = Hex(t=o).cube()
             self.objectives.append(o)
 
         for x, y in np.ndindex(shape):
-            xy = to_cube((x, y))
+            xy = Hex(x, y).cube()
             for o in self.objectives:
-                self.values[x, y] = cube_distance(xy, o)
+                self.values[x, y] = xy.distance(o)
 
         maxBV = np.max(self.values)
 
         for x, y in np.ndindex(shape):
             self.values[x, y] = 1 - self.values[x, y] / maxBV
 
-        for o in objectives:
-            self.values[o] = 5
+        for o in self.objectives:
+            self.values[o.tuple()] = 5
 
     def check(self, state: GameState) -> bool:
         # for figure in state.figures[self.team]:
@@ -124,7 +141,7 @@ class GoalReachPoint(Goal):
         # bonus: be near the target
         for figure in state.getFigures(self.team):
             if not figure.killed:
-                score += p.reach_team_near * self.values[cube_to_hex(figure.position)] + 1
+                score += p.reach_team_near * self.values[figure.position.tuple()] + 1
 
         return score
 
@@ -133,10 +150,12 @@ class GoalDefendPoint(GoalReachPoint):
     """
     The "Defend a position" goal is a subject to another goal like a time limit or mandatory kill.
     It is always false up until another goal is reached.
+
+    # TODO: this version support 1 turn maximum!
     """
 
-    def __init__(self, team: str, hostiles: str, *objectives: tuple, turns: int = 1):
-        super().__init__(team, turns=turns, *objectives)
+    def __init__(self, team: str, hostiles: str, shape: tuple, objectives: List[tuple], turns: int = 1):
+        super().__init__(team, shape, objectives, turns=turns)
         self.hostiles = hostiles
 
     def check(self, state: GameState) -> bool:
@@ -148,12 +167,12 @@ class GoalDefendPoint(GoalReachPoint):
         # bonus: be near the target
         for figure in state.getFigures(self.team):
             if not figure.killed:
-                score += p.defend_team_near * self.values[cube_to_hex(figure.position)] + 1
+                score += p.defend_team_near * self.values[figure.position.tuple()] + 1
 
         # malus: having enemy units near the target
         for figure in state.getFigures(self.hostiles):
             if not figure.killed:
-                score -= p.defend_enemy_near * self.values[cube_to_hex(figure.position)] + 1
+                score -= p.defend_enemy_near * self.values[figure.position.tuple()] + 1
 
         return score
 
@@ -175,8 +194,8 @@ class GoalMaxTurn(Goal):
 
 def goalAchieved(board, state: GameState) -> (bool, str):
     """Checks if the goals are achieved or not. If yes, returns the winner team."""
-    redObj = [g.check(state) for g in board.objectives[RED]]
-    blueObj = [g.check(state) for g in board.objectives[BLUE]]
+    redObj = [g.check(state) for g in board.objectives[RED].values()]
+    blueObj = [g.check(state) for g in board.objectives[BLUE].values()]
 
     if any(redObj):
         # red wins

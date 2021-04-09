@@ -1,12 +1,12 @@
 import unittest
 
 from agents import MatchManager
-from agents.adversarial.alphabeta import ABPuppet
-from core import GM
+from agents.adversarial.alphabeta import Puppet
 from core.const import RED, BLUE
 from core.figures import Infantry
-from core.game.board import GameBoard
-from core.game.state import GameState
+from core.game import GameBoard, GameState, GameManager
+
+GM: GameManager = GameManager()
 
 
 class TestExecutionFlow(unittest.TestCase):
@@ -24,12 +24,12 @@ class TestExecutionFlow(unittest.TestCase):
             self.inf_2,
         )
 
-        self.red = ABPuppet(RED)
-        self.red.action = GM.actionMove(self.board, self.inf_1, destination=self.inf_1.position)
+        self.red = Puppet(RED)
+        self.red.action = GM.actionMove(self.board, self.state, self.inf_1, destination=self.inf_1.position)
         self.red.response = GM.actionPassResponse(RED)
 
-        self.blue = ABPuppet(BLUE)
-        self.blue.action = GM.actionMove(self.board, self.inf_2, destination=self.inf_2.position)
+        self.blue = Puppet(BLUE)
+        self.blue.action = GM.actionMove(self.board, self.state, self.inf_2, destination=self.inf_2.position)
         self.blue.response = GM.actionPassResponse(BLUE)
 
         self.mm = MatchManager('', self.red, self.blue)

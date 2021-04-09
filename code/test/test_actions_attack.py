@@ -1,11 +1,11 @@
 import unittest
 
-from core import GM
 from core.const import RED, BLUE
 from core.figures import Tank, Infantry
-from core.game.board import GameBoard
-from core.game.state import GameState
-from utils.coordinates import to_cube
+from core.game import GameBoard, GameState, GameManager
+from core.utils.coordinates import Hex
+
+GM: GameManager = GameManager()
 
 
 class TestAttackAction(unittest.TestCase):
@@ -38,7 +38,7 @@ class TestAttackAction(unittest.TestCase):
 
         o = GM.step(self.board, self.state, attack, True)
 
-        self.assertTrue(o['success'], 'failed to attack target')
+        self.assertTrue(o.success, 'failed to attack target')
         self.assertTrue(target.killed, 'target still alive')
 
         self.assertEqual(target.hp, target.hp_max - 1, 'no damage to the target')
@@ -50,8 +50,8 @@ class TestAttackAction(unittest.TestCase):
         t0 = self.state.getTarget(atk)
         w0 = self.state.getWeapon(atk)
 
-        s1, o = GM.activate(self.board, self.state, atk, True)
-        s2, o = GM.activate(self.board, self.state, atk, True)
+        s1, _ = GM.activate(self.board, self.state, atk, True)
+        s2, _ = GM.activate(self.board, self.state, atk, True)
 
         self.assertNotEqual(hash(self.state), hash(s1), 'state1 and state0 are the same')
         self.assertNotEqual(hash(self.state), hash(s2), 'state2 and state0 are the same')
@@ -66,8 +66,8 @@ class TestAttackAction(unittest.TestCase):
         self.assertEqual(w0.ammo - 1, w1.ammo, 'shots fired in the wrong state')
 
     def testShootingGround(self):
-        ground = (2, 6)
-        attack = GM.actionAttackGround(self.red_tank, to_cube(ground), self.red_tank.weapons['SM'])
+        ground = Hex(2, 6).cube()
+        attack = GM.actionAttackGround(self.red_tank, ground, self.red_tank.weapons['SM'])
 
         GM.step(self.board, self.state, attack)
 
@@ -80,7 +80,7 @@ class TestAttackAction(unittest.TestCase):
         atk = GM.actionAttack(self.board, self.state, self.blue_tank, self.red_tank, self.red_tank.weapons['CA'])
         outcome = GM.step(self.board, self.state, atk)
 
-        self.assertGreaterEqual(outcome['DEF'], 18, 'smoke defense not active')
+        self.assertGreaterEqual(outcome.DEF, 18, 'smoke defense not active')
 
         GM.update(self.state)
         GM.update(self.state)

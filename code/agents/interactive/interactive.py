@@ -1,18 +1,23 @@
 import numpy as np
 
 from agents import Agent
-from core import GM
 from core.actions import Action, Response
 from core.const import RED, BLUE
-from core.game.board import GameBoard
-from core.game.state import GameState
-from utils.coordinates import to_cube
+from core.game import GameBoard, GameState
+from core.utils.coordinates import Hex
 
 
 class Human(Agent):
+    """
+    This class works with the date from the web service.
+    """
+
     __slots__ = ['next_action', 'next_response', 'color', 'place']
 
     def __init__(self, team: str):
+        """
+        :param team:    color of the team
+        """
         super().__init__('Human', team)
         self.next_action: Action or None = None
         self.next_response: Response or None = None
@@ -52,6 +57,13 @@ class Human(Agent):
         state.choose(self.team, self.color)
 
     def nextAction(self, board: GameBoard, state: GameState, data: dict) -> None:
+        """
+        Parse the given data structure in order to get the next action.
+
+        :param board:       board of the game
+        :param state:       current state of the game
+        :param data:        data received from a human through the web interface
+        """
         action = data['action']
         self._clear()
 
@@ -63,7 +75,7 @@ class Human(Agent):
             idx = int(data['idx'])
             x = int(data['x'])
             y = int(data['y'])
-            pos = to_cube((x, y))
+            pos = Hex(x, y).cube()
 
             self.place[idx] = pos
             return
@@ -72,17 +84,17 @@ class Human(Agent):
             if 'idx' in data and data['team'] == self.team:
                 idx = int(data['idx'])
                 figure = state.getFigureByIndex(self.team, idx)
-                self.next_action = GM.actionPassFigure(figure)
+                self.next_action = self.gm.actionPassFigure(figure)
             elif data['step'] == 'respond':
-                self.next_action = GM.actionPassResponse(self.team)
+                self.next_action = self.gm.actionPassResponse(self.team)
             else:
-                self.next_action = GM.actionPassTeam(self.team)
+                self.next_action = self.gm.actionPassTeam(self.team)
             return
 
         idx = int(data['idx'])
         x = int(data['x'])
         y = int(data['y'])
-        pos = to_cube((x, y))
+        pos = Hex(x, y).cube()
 
         figure = state.getFigureByIndex(self.team, idx)
 
@@ -96,10 +108,10 @@ class Human(Agent):
             fs = state.getFiguresByPos(self.team, pos)
             for transport in fs:
                 if transport.canTransport(figure):
-                    self.next_action = GM.actionLoadInto(board, figure, transport)
+                    self.next_action = self.gm.actionLoadInto(board, state, figure, transport)
                     return
 
-            self.next_action = GM.actionMove(board, figure, destination=pos)
+            self.next_action = self.gm.actionMove(board, state, figure, destination=pos)
             return
 
         if action == 'attack':
@@ -115,7 +127,7 @@ class Human(Agent):
                 otherTeam = BLUE if self.team == RED else RED
                 target = state.getFiguresByPos(otherTeam, pos)[0]  # TODO: get unit based on index or weapon target type
 
-            self.next_action = GM.actionAttack(board, state, figure, target, weapon)
-            self.next_response = GM.actionRespond(board, state, figure, target, weapon)
+            self.next_action = self.gm.actionAttack(board, state, figure, target, weapon)
+            self.next_response = self.gm.actionRespond(board, state, figure, target, weapon)
 
         # TODO: implement smoke

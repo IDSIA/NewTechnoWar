@@ -6,10 +6,11 @@ import uuid
 from flask import Blueprint, render_template, make_response, request, jsonify, redirect
 from flask import current_app as app
 
-from agents import Human
-from agents import MatchManager, buildMatchManager
+from agents import Human, MatchManager, buildMatchManager
 from core.const import BLUE, RED
 from web.server.utils import scroll, fieldShape, cube_to_ijxy, pzoneToHex, pos_to_dict
+
+logger = logging.getLogger(__name__)
 
 main = Blueprint('main', __name__, template_folder='templates', static_folder='static')
 
@@ -20,10 +21,10 @@ def index():
     if request.method == 'POST':
         try:
             if app.config['DEBUG']:
-                logging.info('Using debug configuration!')
-                redPlayer = 'AlphaBetaAgent'
-                bluePlayer = 'AlphaBetaAgent'
-                scen = 'scenarioTest1v1ArmedRace'
+                logger.info('Using debug configuration!')
+                redPlayer = 'Human'
+                bluePlayer = 'Human'
+                scen = 'scenarioCrossingTheCity'
                 autoplay = not True
                 seed = 0
                 replay = ''
@@ -57,17 +58,17 @@ def index():
             }
             app.actions[mm.gid] = None
 
-            logging.info(f'Created game #{mm.gid} with scenario {mm.board.name}')
+            logger.info(f'Created game #{mm.gid} with scenario {mm.board.name}')
 
             response = make_response(
                 redirect(f'/game/')
             )
             response.set_cookie('gameId', mm.gid)
         except Exception as e:
-            logging.exception(e)
+            logger.exception(e)
             return redirect('/')
     else:
-        logging.info(f'New lobby access')
+        logger.info(f'New lobby access')
 
         scenarios = [
             'Test1v1',
@@ -79,7 +80,7 @@ def index():
             'JunctionExo',
             'BridgeHead',
             'Roadblock',
-            # 'CrossingTheCity', TODO: need fixes and bigger map!
+            'CrossingTheCity',
         ]
 
         players = [
@@ -87,6 +88,7 @@ def index():
             'RandomAgent',
             'GreedyAgent',
             'AlphaBetaAgent',
+            'AlphaRandomAgent',
         ]
 
         response = make_response(
@@ -124,7 +126,7 @@ def game():
     try:
         gameId, mm = checkGameId()
 
-        logging.info(f'Restored game #{gameId} with scenario {mm.board.name}')
+        logger.info(f'Restored game #{gameId} with scenario {mm.board.name}')
 
         # compute view box size and zoom (default is: 0, 0, 400, 300)
         eps = 20
@@ -177,7 +179,7 @@ def game():
         return response
 
     except ValueError as ve:
-        logging.error(ve)
+        logger.error(ve)
         return redirect('/')
 
 
@@ -186,7 +188,6 @@ def gameReset():
     try:
         _, mm = checkGameId()
         mm.reset()
-        mm.step()
 
         response = make_response(
             redirect(f'/game/')
@@ -195,13 +196,13 @@ def gameReset():
         return response
 
     except ValueError as ve:
-        logging.error(ve)
+        logger.error(ve)
         return redirect('/')
 
 
 @main.route('/game/state', methods=['GET'])
 def gameState():
-    logging.info('Request state')
+    logger.info('Request state')
 
     try:
         _, mm = checkGameId()
@@ -213,13 +214,13 @@ def gameState():
         }), 200
 
     except ValueError as e:
-        logging.error(e)
+        logger.error(e)
         return None, 404
 
 
 @main.route('/game/next/step', methods=['GET'])
 def gameNextStep():
-    logging.debug('Request next')
+    logger.debug('Request next')
 
     try:
         _, mm = checkGameId()
@@ -236,6 +237,7 @@ def gameNextStep():
 
         return jsonify({
             'end': mm.end,
+            'winner': mm.winner,
             'update': mm.update,
             'state': mm.state,
             'action': lastAction,
@@ -246,7 +248,7 @@ def gameNextStep():
         }), 200
 
     except ValueError as e:
-        logging.error(e)
+        logger.error(e)
         return None, 404
 
 
@@ -271,7 +273,7 @@ def gameHumanClick():
         return jsonify(ret), 200
 
     except ValueError as e:
-        logging.exception(f'Human click error: {e}')
+        logger.exception(f'Human click error: {e}')
         return jsonify({'error': str(e)}), 403
 
 

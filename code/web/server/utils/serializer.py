@@ -1,12 +1,10 @@
 import numpy as np
 from flask.json import JSONEncoder
 
-from core.actions import Move, Attack, LoadInto, AttackGround, AttackRespond, PassFigure, PassTeam, PassRespond
+from core.actions import Move, Attack, MoveLoadInto, AttackGround, AttackRespond, PassFigure, PassTeam, PassRespond
 from core.const import RED, BLUE
-from core.figures import Figure
-from core.figures import FigureType
-from core.figures.weapons import Weapon
-from core.game.state import GameState
+from core.figures import Figure, FigureType, Weapon
+from core.game import GameState
 from web.server.utils import cube_to_ijxy, cube_to_dict
 
 
@@ -42,6 +40,7 @@ class GameJSONEncoder(JSONEncoder):
             return {
                 'id': obj.fid,
                 'team': obj.team,
+                'color': obj.color,
                 'name': obj.name,
                 'idx': obj.index,
                 'kind': kind,
@@ -105,7 +104,7 @@ class GameJSONEncoder(JSONEncoder):
                 'text': str(obj),
             }
 
-        if isinstance(obj, LoadInto):
+        if isinstance(obj, MoveLoadInto):
             return {
                 'action': 'Move',
                 'team': obj.team,

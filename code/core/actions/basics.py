@@ -1,7 +1,7 @@
 from core.figures import Figure
 
-
 # TODO: add method to EXECUTE the action directly on an Action object
+
 
 class Action:
     """Basic action class"""
@@ -39,3 +39,4 @@ class ActionFigure(Action):
 
     def __str__(self):
         return f'{super().__str__()} {self.figure_name:10}'
+

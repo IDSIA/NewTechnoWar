@@ -2,12 +2,11 @@ from typing import Dict, List
 
 import numpy as np
 
-from core.actions.basics import ActionFigure
+from core.actions import Action, ActionFigure, Attack, AttackGround, MoveLoadInto
 from core.const import RED, BLUE
-from core.actions import Action, Attack, AttackGround, LoadInto
-from core.figures import FigureType, Figure, Weapon
-from core.game import MAX_SMOKE
-from utils.coordinates import to_cube, Cube, cube_linedraw, cube_to_hex
+from core.figures import FigureType, Figure, Weapon, vectorFigureInfo
+from core.game.static import MAX_SMOKE, MAX_UNITS_PER_TEAM
+from core.utils.coordinates import Cube
 
 
 class GameState:
@@ -16,12 +15,13 @@ class GameState:
     """
 
     __slots__ = [
-        'name', 'turn', 'figures', 'posToFigure', 'smoke', 'figuresLOS', 'figuresDistance', 'lastAction',
+        'name', 'seed', 'turn', 'figures', 'posToFigure', 'smoke', 'figuresLOS', 'figuresDistance', 'lastAction',
         'has_choice', 'choices', 'has_placement', 'placement_zone', 'initialized'
     ]
 
-    def __init__(self, shape: tuple, name: str = ''):
+    def __init__(self, shape: tuple, name: str = '', seed=0):
         self.name: str = name
+        self.seed: int = seed
         self.turn: int = -1
 
         # lists of all figures divided by team
@@ -69,33 +69,23 @@ class GameState:
 
         self.initialized: bool = False
 
-    def vector(self) -> tuple:
-        """Convert the state in a vector, used for internal hashing."""
-        data = []
-
-        for team in [RED, BLUE]:
-            for f in self.figures[team]:
-                data += list(f.vector())
-
-        return tuple(data)
-
     def __eq__(self, other):
         if not other:
             return False
         if not isinstance(other, GameState):
             return False
-        v = self.vector()
-        v_other = other.vector()
+        v = vectorState(self)
+        v_other = vectorState(other)
         for i in range(len(v)):
             if v[i] != v_other[i]:
                 return False
         return True
 
     def __hash__(self):
-        return hash(self.vector())
+        return hash(vectorState(self))
 
     def __repr__(self) -> str:
-        return f'{self.turn}:\n{self.figures}\n{self.posToFigure}'
+        return f'GameState({self.name}): {self.turn}:\n{self.figures}\n{self.posToFigure}'
 
     def completeInit(self):
         """Removes part used for placement of figures."""
@@ -124,11 +114,14 @@ class GameState:
         for figure in newFigures:
             figures = self.choices[team][color]
             figure.index = len(figures)
+            figure.color = color
             figures.append(figure)
 
     def choose(self, team: str, color: str) -> None:
         """Choose and add the figures to use based on the given color."""
-        self.addFigure(*self.choices[team][color])
+        for f in self.choices[team][color]:
+            f.color = ''
+            self.addFigure(f)
 
     def addFigure(self, *newFigures: Figure) -> None:
         """
@@ -154,7 +147,7 @@ class GameState:
         """Given an Attack Action, returns the weapon used."""
         return self.getFigure(action).weapons[action.weapon_id]
 
-    def getTransporter(self, action: LoadInto) -> Figure:
+    def getTransporter(self, action: MoveLoadInto) -> Figure:
         """Given a LoadInto action, return the destination transporter."""
         return self.getFigureByIndex(action.team, action.transporter_id)
 
@@ -162,13 +155,9 @@ class GameState:
         """Returns all figures of a team."""
         return self.figures[team]
 
-    def getFiguresByPos(self, team: str, pos: tuple) -> List[Figure]:
+    def getFiguresByPos(self, team: str, pos: Cube) -> List[Figure]:
         """Returns all the figures that occupy the given position."""
 
-        # TODO: only one unit per hexagon!
-
-        if len(pos) == 2:
-            pos = to_cube(pos)
         if pos not in self.posToFigure[team]:
             return []
         return [self.getFigureByIndex(team, i) for i in self.posToFigure[team][pos]]
@@ -184,6 +173,10 @@ class GameState:
     def getFiguresCanRespond(self, team: str) -> List[Figure]:
         """Returns a list of figures that have not responded."""
         return [f for f in self.figures[team] if not f.responded and not f.killed]
+
+    def getMovementCost(self, pos: Cube, kind: int) -> float:
+        # TODO: this method is for future expansions
+        return 0.0
 
     def moveFigure(self, figure: Figure, curr: Cube = None, dst: Cube = None) -> None:
         """Moves a figure from current position to another destination."""
@@ -203,7 +196,7 @@ class GameState:
         """Get all the lines of sight of all hostile figures of the given target."""
         return self.figuresLOS[target.team][target.index]
 
-    def getDistance(self, target: Figure) -> Dict[int, List[Cube]]:
+    def getDistances(self, target: Figure) -> Dict[int, List[Cube]]:
         """Get all the lines of sight of all ally figures of the given target."""
         return self.figuresDistance[target.team][target.index]
 
@@ -213,19 +206,16 @@ class GameState:
         attackers = RED if defenders == BLUE else BLUE
 
         for attacker in self.figures[attackers]:
-            if target.index not in self.figuresLOS[defenders]:
-                self.figuresLOS[defenders][target.index] = {}
-            if attacker.index not in self.figuresLOS[attackers]:
-                self.figuresLOS[attackers][attacker.index] = {}
+            los = target.position.line(attacker.position)
 
-            self.figuresLOS[attackers][attacker.index][target.index] = cube_linedraw(target.position, attacker.position)
-            self.figuresLOS[defenders][target.index][attacker.index] = cube_linedraw(attacker.position, target.position)
+            self.figuresLOS[defenders].setdefault(target.index, {})[attacker.index] = los
+            self.figuresLOS[attackers].setdefault(attacker.index, {})[target.index] = list(reversed(los))
 
-        self.figuresDistance[defenders][target.index] = {
-            # defender's line of sight
-            defender.index: cube_linedraw(defender.position, target.position)
-            for defender in self.figures[defenders]
-        }
+        for defender in self.figures[defenders]:
+            los = target.position.line(defender.position)
+
+            self.figuresDistance[defenders].setdefault(target.index, {})[defender.index] = los
+            self.figuresDistance[defenders].setdefault(defender.index, {})[target.index] = list(reversed(los))
 
     def isObstacle(self, pos: Cube) -> bool:
         """Returns if the position is an obstacle (a VEHICLE) to LOS or not."""
@@ -235,18 +225,87 @@ class GameState:
                     return True
         return False
 
-    def addSmoke(self, smoke: list) -> None:
+    def addSmoke(self, smoke: List[Cube]) -> None:
         """Add a cloud of smoke to the status. This cloud is defined by a list of Cubes."""
-        for h in smoke:
-            self.smoke[cube_to_hex(h)] = MAX_SMOKE
+        for c in smoke:
+            self.smoke[c.tuple()] = MAX_SMOKE
 
-    def hasSmoke(self, lof: list) -> bool:
+    def hasSmoke(self, lof: List[Cube]) -> bool:
         """
         Smoke rule: if you fire against a panzer, and during the line of sight, you meet a smoke hexagon (not only on
         the hexagon where the panzer is), this smoke protection is used, and not the basic protection value.
         """
-        return any([self.smoke[cube_to_hex(h)] > 0 for h in lof])
+        return any([self.smoke[c.tuple()] > 0 for c in lof])
 
     def reduceSmoke(self) -> None:
         """Reduce by 1 the counter for of smoke clouds."""
         self.smoke = np.clip(self.smoke - 1, 0, MAX_SMOKE)
+
+
+def vectorStateInfo() -> tuple:
+    """Convert the state in a vector, used for internal hashing."""
+    info = [
+        "meta_seed", "meta_scenario", "turn"
+    ]
+
+    for team in [RED, BLUE]:
+        for i in range(MAX_UNITS_PER_TEAM):
+            meta = f'{team}_figure_{i}'
+            info += vectorFigureInfo(meta)
+
+    # distance between figures of same team
+    for team in [RED, BLUE]:
+        for i in range(MAX_UNITS_PER_TEAM):
+            for j in range(MAX_UNITS_PER_TEAM):
+                if i != j:
+                    info.append(f'{team}_distance_{i}_{j}')
+
+    # LOS between figures of different team
+    for team in [RED, BLUE]:
+        for i in range(MAX_UNITS_PER_TEAM):
+            for j in range(MAX_UNITS_PER_TEAM):
+                info.append(f'{team}_LOS_{i}_{j}')
+
+    return tuple(info)
+
+
+def vectorState(state: GameState) -> tuple:
+    """Convert the state in a vector, used for internal hashing."""
+    data = [
+        state.seed,
+        state.name,
+        state.turn,
+    ]
+
+    x: int = len(vectorFigureInfo(''))
+
+    for team in [RED, BLUE]:
+        for i in range(MAX_UNITS_PER_TEAM):
+            if i < len(state.figures[team]):
+                f: Figure = state.figures[team][i]
+                data += list(f.vector())
+            else:
+                data += [None] * x
+
+    for teams in [(RED, BLUE), (BLUE, RED)]:
+        team, other = teams
+        for i in range(MAX_UNITS_PER_TEAM):
+            for j in range(MAX_UNITS_PER_TEAM):
+                if i != j:
+                    if i < len(state.figures[team]) and j < len(state.figures[team]):
+                        dist: list = state.figuresDistance.get(team)[j][i]
+                        data.append(len(dist) - 1)
+                    else:
+                        data.append(None)
+
+    for teams in [(RED, BLUE), (BLUE, RED)]:
+        team, other = teams
+        for i in range(MAX_UNITS_PER_TEAM):
+            for j in range(MAX_UNITS_PER_TEAM):
+                if i < len(state.figures[team]) and j < len(state.figures[other]):
+                    dist: list = state.figuresLOS.get(team)[j][i]
+                    data.append(len(dist) - 1)
+                else:
+                    data.append(None)
+
+    return tuple(data)

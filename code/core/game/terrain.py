@@ -5,10 +5,8 @@ class Terrain:
     ROAD = 1
     ISOLATED_TREE = 2
     FOREST = 3
-    URBAN = 4
-    BUILDING = 5
-    WOODEN_BUILDING = 6
-    CONCRETE_BUILDING = 7
+    WOODEN_BUILDING = 4
+    CONCRETE_BUILDING = 5
 
     def __init__(self, name: str, protectionLevel: int, moveCostInf: float, moveCostVehicle: float,
                  blockLos: bool = False):
@@ -29,17 +27,6 @@ TERRAIN_TYPE = [
     Terrain('Isolated tree cover', 2, 1., 1., blockLos=True),
     # stops all vehicle from moving
     Terrain('Forest', 4, 1., 1000., blockLos=True),
-    # vehicle can move only 1 hexagon on urban terrain
-    Terrain('Urban', 0, 1., 6., blockLos=True),
-    # solid obstacle
-    Terrain('Building', 0, 1000., 1000., blockLos=True),
-    # terrain type inside a building
-    Terrain('Wooden building', 6, 1., 1000.),
-    Terrain('Concrete building', 8, 1., 1000.),
+    Terrain('Wooden building', 6, 1., 1., blockLos=True),
+    Terrain('Concrete building', 8, 1., 6., blockLos=True),
 ]
-
-
-class ObstaclesType:
-    FOREST = 1
-    BUILDING = 2
-    ARMORED = 3

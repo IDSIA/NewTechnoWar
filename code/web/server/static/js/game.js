@@ -21,8 +21,8 @@ function ammoClass(data) {
 }
 
 function updateFigure(data) {
-    let figure = $(`#figure-${data.team}-${data.idx}`);
-    let mark = $(`#mark-${data.team}-${data.idx}`);
+    let figure = $(`#figure-${data.team}${data.color}-${data.idx}`);
+    let mark = $(`#mark-${data.team}${data.color}-${data.idx}`);
 
     figure.removeClass('killed activated notActivated');
     figure.find('div.uOpt').removeClass('passed moving attacking responded transported').text('');
@@ -80,9 +80,9 @@ function updateFigure(data) {
     figures[gameId][data.id] = data;
 }
 
-function addFigure(figure, team, color = '') {
-    let fid = `figure-${figure.team}-${figure.idx}`;
-    let gid = `mark-${figure.team}-${figure.idx}`;
+function addFigure(figure, team) {
+    let fid = `figure-${figure.team}${figure.color}-${figure.idx}`;
+    let gid = `mark-${figure.team}${figure.color}-${figure.idx}`;
 
     let uWeapons = $('<div class="uWeapons"/>');
     Object.entries(figure.weapons).forEach(entry => {
@@ -102,7 +102,7 @@ function addFigure(figure, team, color = '') {
 
     $(`#${team}Units`)
         .append(
-            $(`<div id="${fid}" class="unit ${team} ${figure.kind} ${color}"/>`)
+            $(`<div id="${fid}" class="unit ${team} ${figure.kind} ${figure.color}"/>`)
                 .append([
                     $('<div class="uTitle uTitleHP">HP</div>'),
                     $('<div class="uTitle uTitleMove">MOVE</div>'),
@@ -132,7 +132,7 @@ function addFigure(figure, team, color = '') {
     let g = svg('g')
         .attr('id', gid)
         .attr('transform', `translate(${figure.x},${figure.y + vEps})`)
-        .addClass(`unit ${team} ${figure.kind} ${color}`)
+        .addClass(`unit ${team} ${figure.kind} ${figure.color}`)
         .append(svg('circle')
             .attr('cx', '0')
             .attr('cy', '0')
@@ -257,7 +257,7 @@ function step() {
 
         if (data.end) {
             console.log('end game');
-            appendLine('End');
+            appendLine(`${data.winner.toUpperCase()} wins!`);
             end = true;
         }
 
@@ -277,26 +277,21 @@ function step() {
 
         $('#btnTurn').removeClass('highlight');
 
-        let mark, figure, current;
+        let current;
 
         switch (action.action) {
             case 'DoNothing':
                 break;
             case 'Move':
-                mark = $(document.getElementById(`mark-${figureData.team}-${figureData.idx}`));
-                move(mark, action);
+                move(figureData, action);
                 break;
             case 'Respond':
                 current = figures[gameId][figureData.id];
-                figure = $(`#figure-${figureData.team}-${figureData.idx}`);
-                mark = $(document.getElementById(`mark-${figureData.team}-${figureData.idx}`));
-                shoot(current, figure, mark, data);
+                shoot(current, figureData, data);
                 break;
             case 'Attack':
                 current = figures[gameId][figureData.id];
-                figure = $(`#figure-${figureData.team}-${figureData.idx}`);
-                mark = $(document.getElementById(`mark-${figureData.team}-${figureData.idx}`));
-                shoot(current, figure, mark, data);
+                shoot(current, figureData, data);
                 break;
             case 'Pass':
                 break;
@@ -334,7 +329,8 @@ function drawLine(path) {
     return g;
 }
 
-function move(mark, data) {
+function move(figureData, data) {
+    let mark = $(document.getElementById(`mark-${figureData.team}${figureData.color}-${figureData.idx}`));
     let end = data.path.slice(-1)[0];
 
     $(document.getElementById('moves')).append(drawLine(data.path).addClass('move'));
@@ -373,7 +369,7 @@ function initState(state, team) {
                 );
 
                 figures.forEach((figure, _) => {
-                    addFigure(figure, team, color);
+                    addFigure(figure, team);
                     updateFigure(figure);
                 });
             });
@@ -381,7 +377,9 @@ function initState(state, team) {
     }
 }
 
-function shoot(current, figure, mark, data) {
+function shoot(current, figureData, data) {
+    let figure = $(`#figure-${figureData.team}${figureData.color}-${figureData.idx}`);
+
     let outcome = data.outcome;
     let action = data.action;
     let end = action.los.slice(-1)[0];

@@ -1,32 +1,86 @@
 version: 1
+
 formatters:
-  basic:
+  standard:
     datefmt: '%Y-%m-%d %H:%M:%S'
-    format: '%(asctime)s %(levelname)s %(message)s'
+    format: '%(asctime)s %(name)s %(levelname)s %(message)s'
 
 handlers:
   console:
     class: logging.StreamHandler
-    level: DEBUG
-    formatter: basic
+    formatter: standard
     stream: ext://sys.stdout
 
-  file:
+  error_console:
+    class: logging.StreamHandler
+    formatter: standard
+    stream: ext://sys.stderr
+
+  agents_file_handler:
     class: logging.FileHandler
-    level: DEBUG
-    formatter: basic
-    filename: newtechnowar.log
+    formatter: standard
+    filename: logs/agents.info.log
+    encoding: utf8
+
+  agents_file_warning_handler:
+    class: logging.FileHandler
+    formatter: standard
+    filename: logs/agents.warn.log
+    encoding: utf8
+
+  web_file_handler:
+    class: logging.FileHandler
+    formatter: standard
+    filename: logs/web.log
+    encoding: utf8
+
+  tourney_file_handler:
+    class: logging.FileHandler
+    formatter: standard
+    filename: logs/tourney.all.log
+    encoding: utf8
+
+#root:
+#  level: NOTSET
+#  handlers: [ console ]
+#  propagate: yes
 
 loggers:
-  basicExample:
+  agents:
+    propagate: false
     level: INFO
     handlers:
       - console
-      - file
-    propagate: no
+      - agents_file_handler
 
-root:
-  level: INFO
-  handlers:
-    - console
-    - file
+  agents.ml:
+    propagate: false
+    level: WARNING
+    handlers:
+      - agents_file_handler
+      - error_console
+
+  agents.adversarial:
+    propagate: false
+    level: WARNING
+    handlers:
+      - agents_file_handler
+      - error_console
+
+  agents.intereactive:
+    propagate: false
+    level: INFO
+    handlers:
+      - console
+
+  web:
+    level: INFO
+    handlers:
+      - web_file_handler
+
+  tourney:
+    level: INFO
+    handlers:
+      - console
+      - tourney_file_handler
+    propagate: no

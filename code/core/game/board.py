@@ -4,9 +4,9 @@ import numpy as np
 
 from core.const import RED, BLUE
 from core.figures import FigureType
-from core.game.goals import Goal, GoalReachPoint
+from core.game.goals import Goal, GoalReachPoint, GoalMaxTurn
 from core.game.terrain import TERRAIN_TYPE
-from utils.coordinates import to_cube, Cube, cube_neighbor, cube_to_hex, cube_range
+from core.utils.coordinates import Cube, Hex
 
 
 class GameBoard:
@@ -14,7 +14,7 @@ class GameBoard:
     Static parts of the game board.
     """
     __slots__ = ['name', 'shape', 'terrain', 'geography', 'objectives', 'limits', 'obstacles', 'moveCost',
-                 'protectionLevel']
+                 'protectionLevel', 'maxTurn']
 
     def __init__(self, shape: Tuple[int, int], name: str = ''):
         self.name: str = name
@@ -24,15 +24,16 @@ class GameBoard:
         self.terrain: np.ndarray = np.zeros(shape, dtype='uint8')
         self.geography: np.ndarray = np.zeros(shape, dtype='uint8')
 
-        self.objectives: dict = {RED: [], BLUE: []}
+        self.objectives: Dict[str, Dict[str, Goal]] = {RED: {}, BLUE: {}}
+        self.maxTurn = -1
 
         x, y = shape
 
         self.limits: Set[Cube] = set(
-            [to_cube((q, -1)) for q in range(-1, y + 1)] +
-            [to_cube((q, y)) for q in range(-1, y + 1)] +
-            [to_cube((-1, r)) for r in range(0, y)] +
-            [to_cube((x, r)) for r in range(0, y)]
+            [Hex(q, -1).cube() for q in range(-1, y + 1)] +
+            [Hex(q, y).cube() for q in range(-1, y + 1)] +
+            [Hex(-1, r).cube() for r in range(0, y)] +
+            [Hex(x, r).cube() for r in range(0, y)]
         )
 
         # obstructions to LOS
@@ -48,6 +49,9 @@ class GameBoard:
 
         # internal values initialization
         self.addTerrain(self.terrain)
+
+    def __repr__(self):
+        return f'GameBoard({self.shape}, {self.name})'
 
     def addTerrain(self, terrain: np.array):
         """
@@ -68,20 +72,22 @@ class GameBoard:
                 self.moveCost[FigureType.VEHICLE][i, j] = tt.moveCostVehicle
 
                 if tt.blockLos:
-                    self.obstacles.add(to_cube((i, j)))
+                    self.obstacles.add(Hex(i, j).cube())
 
-    def addGeography(self, geography: np.array):
+    def addGeography(self, geography: np.array) -> None:
         """Add a geography matrix to the current board."""
         self.geography += geography
 
-    def addObjectives(self, *objectives: Goal):
+    def addObjectives(self, *objectives: Goal) -> None:
         """Add the objectives for the given team to the current board."""
         for objective in objectives:
-            self.objectives[objective.team].append(objective)
+            self.objectives[objective.team][objective.__class__.__name__] = objective
+            if isinstance(objective, GoalMaxTurn):
+                self.maxTurn = objective.turn_max
 
-    def getObjectives(self, team: str = None):
+    def getObjectives(self, team: str = None) -> List[Goal]:
         """Returns the goals for the team."""
-        return self.objectives[team]
+        return list(self.objectives[team].values())
 
     def getObjectivesPositions(self, team: str = None) -> List[Cube]:
         """Returns a list with the positions referred by the objectives with a point as goal (i.e. GoalReachPoint)."""
@@ -92,44 +98,45 @@ class GameBoard:
 
         return objs
 
-    def getObjectiveMark(self):
+    def getObjectiveMark(self) -> List[Cube]:
         """Return the position of all objectives in the map."""
-        marks = []
+        marks = set()
         for team in [RED, BLUE]:
-            for o in self.objectives[team]:
+            for o in self.objectives[team].values():
                 if isinstance(o, GoalReachPoint):
-                    marks += o.objectives
-        return marks
+                    for x in o.objectives:
+                        marks.add(x)
+        return list(marks)
 
-    def getNeighbors(self, position: Cube):
+    def getNeighbors(self, position: Cube) -> List[Cube]:
         """Returns all the neighbors of the given position."""
-        return [n for n in cube_neighbor(position) if n not in self.limits]
+        return [n for n in position.neighbor() if n not in self.limits]
 
     def getMovementCost(self, pos: Cube, kind: int):
         """Returns the cost of move in the given position."""
         try:
-            h = cube_to_hex(pos)
+            h = pos.hex()
             if 0 <= h.q < self.shape[0] and 0 <= h.r < self.shape[1]:
-                return self.moveCost[kind][h]
+                return self.moveCost[kind][h.tuple()]
             raise IndexError('Outside map!')
         except IndexError as _:
             return 1000.0
         except KeyError as _:
             return 1000.0
 
-    def getProtectionLevel(self, pos: Cube):
+    def getProtectionLevel(self, pos: Cube) -> int:
         """Returns the protection level in the given position."""
-        return self.protectionLevel[cube_to_hex(pos)]
+        return self.protectionLevel[pos.tuple()]
 
     def isObstacle(self, pos: Cube) -> bool:
         """Return if the given position is an obstacle or not."""
         return pos in self.obstacles
 
-    def getRange(self, center: Cube, n: int):
+    def getRange(self, center: Cube, n: int) -> List[Cube]:
         """Returns all the positions inside a given range and a center."""
         r = []
-        for x in cube_range(center, n):
-            h = cube_to_hex(x)
+        for x in center.range(n):
+            h = x.hex()
             if 0 < h.q < self.shape[0] and 0 < h.r < self.shape[1]:
                 r.append(x)
         return r

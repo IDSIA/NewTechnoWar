@@ -2,7 +2,7 @@ from typing import List
 
 from core.actions.basics import ActionFigure
 from core.figures import Figure
-from utils.coordinates import Cube, cube_to_hex
+from core.utils.coordinates import Cube
 
 
 class Move(ActionFigure):
@@ -24,10 +24,10 @@ class Move(ActionFigure):
         return f'{super().__repr__()}: Move to {self.destination}'
 
     def __str__(self):
-        return f'{super().__str__()}: Moved to {cube_to_hex(self.destination)}'
+        return f'{super().__str__()}: Moved to {self.destination.hex()}'
 
 
-class LoadInto(Move):
+class MoveLoadInto(Move):
     """Action to load a Figure in a transporter at the destination."""
 
     __slots__ = ['transporter_id', 'transporter_name']

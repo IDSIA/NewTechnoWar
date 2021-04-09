@@ -1,6 +1,6 @@
 from core.actions.basics import ActionFigure
 from core.figures import Figure, Weapon
-from utils.coordinates import Cube, cube_to_hex
+from core.utils.coordinates import Cube
 
 
 class Attack(ActionFigure):
@@ -57,4 +57,4 @@ class AttackGround(ActionFigure):
         return f'{super().__repr__()}: Attack ground at {self.ground} with {self.weapon_name}'
 
     def __str__(self):
-        return f'{super().__str__()}: Attack ground at {cube_to_hex(self.ground)} with {self.weapon_name}'
+        return f'{super().__str__()}: Attack ground at {self.ground.hex()} with {self.weapon_name}'

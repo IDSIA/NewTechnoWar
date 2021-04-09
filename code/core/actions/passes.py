@@ -19,10 +19,10 @@ class PassTeam(Pass, Action):
         super().__init__(team)
 
     def __repr__(self):
-        return f'{Action.__repr__(self)} {Pass.__repr__(self)}'
+        return f'{Action.__repr__(self)} {"":10}: {Pass.__repr__(self)} Team'
 
     def __str__(self):
-        return f'{Action.__str__(self)} {Pass.__str__(self)}'
+        return f'{Action.__str__(self)} {"":10}: {Pass.__str__(self)} Team'
 
 
 class PassFigure(Pass, ActionFigure):
@@ -32,7 +32,7 @@ class PassFigure(Pass, ActionFigure):
         super().__init__(figure=figure)
 
     def __repr__(self):
-        return f'{ActionFigure.__repr__(self)} {Pass.__repr__(self)}'
+        return f'{ActionFigure.__repr__(self)}: {Pass.__repr__(self)} Figure'
 
     def __str__(self):
-        return f'{ActionFigure.__str__(self)} {Pass.__str__(self)}'
+        return f'{ActionFigure.__str__(self)}: {Pass.__str__(self)} Figure'

@@ -2,11 +2,8 @@
 import numpy as np
 
 from core.const import RED, BLUE
-from core.figures import Infantry, Tank
-from core.figures.status import HIDDEN
-from core.game.board import GameBoard
-from core.game.goals import GoalReachPoint, GoalEliminateOpponent, GoalMaxTurn, GoalDefendPoint
-from core.game.state import GameState
+from core.figures import Infantry, Tank, HIDDEN
+from core.game import GameBoard, GameState, GoalReachPoint, GoalEliminateOpponent, GoalMaxTurn, GoalDefendPoint
 from core.game.terrain import Terrain
 
 
@@ -34,8 +31,8 @@ def scenarioDummy1() -> (GameBoard, GameState):
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (9, 9)),
-        GoalDefendPoint(BLUE, RED, board.shape, (9, 9)),
+        GoalReachPoint(RED, board.shape, [(9, 9)]),
+        GoalDefendPoint(BLUE, RED, board.shape, [(9, 9)]),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
@@ -59,12 +56,12 @@ def scenarioDummy2() -> (GameBoard, GameState):
 
     board, state, terrain = _dummyBattleground((10, 20))
 
-    terrain[:, 12:20] = Terrain.URBAN
+    terrain[:, 12:20] = Terrain.CONCRETE_BUILDING
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (9, 9)),
-        GoalDefendPoint(BLUE, RED, board.shape, (9, 9)),
+        GoalReachPoint(RED, board.shape, [(9, 9)]),
+        GoalDefendPoint(BLUE, RED, board.shape, [(9, 9)]),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
@@ -88,12 +85,12 @@ def scenarioDummy3() -> (GameBoard, GameState):
 
     board, state, terrain = _dummyBattleground((10, 20))
 
-    terrain[:, 12:20] = Terrain.URBAN
+    terrain[:, 12:20] = Terrain.CONCRETE_BUILDING
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (9, 9)),
-        GoalDefendPoint(BLUE, RED, board.shape, (9, 9)),
+        GoalReachPoint(RED, board.shape, [(9, 9)]),
+        GoalDefendPoint(BLUE, RED, board.shape, [(9, 9)]),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
@@ -124,12 +121,12 @@ def scenarioDummyResponseCheck() -> (GameBoard, GameState):
     terrain[(8, 5)] = Terrain.FOREST
     terrain[(5, 4)] = Terrain.OPEN_GROUND
 
-    terrain[:, 14:20] = Terrain.URBAN
+    terrain[:, 14:20] = Terrain.CONCRETE_BUILDING
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (9, 12)),
-        GoalDefendPoint(BLUE, RED, board.shape, (9, 12)),
+        GoalReachPoint(RED, board.shape, [(9, 12)]),
+        GoalDefendPoint(BLUE, RED, board.shape, [(9, 12)]),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
@@ -158,12 +155,12 @@ def scenarioInSightTest() -> (GameBoard, GameState):
     terrain[(8, 5)] = Terrain.FOREST
     terrain[(5, 4)] = Terrain.OPEN_GROUND
 
-    terrain[:, 14:20] = Terrain.URBAN
+    terrain[:, 14:20] = Terrain.CONCRETE_BUILDING
     board.addTerrain(terrain)
 
     board.addObjectives(
-        GoalReachPoint(RED, board.shape, (9, 12)),
-        GoalDefendPoint(BLUE, RED, board.shape, (9, 12)),
+        GoalReachPoint(RED, board.shape, [(9, 12)]),
+        GoalDefendPoint(BLUE, RED, board.shape, [(9, 12)]),
         GoalEliminateOpponent(RED, BLUE),
         GoalEliminateOpponent(BLUE, RED),
         GoalMaxTurn(BLUE, 12)
