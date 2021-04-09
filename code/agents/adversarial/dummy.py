@@ -1,8 +1,9 @@
 import numpy as np
+
 from agents import Agent
 from core.actions import Action, PassTeam, PassFigure
-from core.utils.coordinates import Hex
 from core.game import GameBoard, GameState, GoalParams
+from core.utils.coordinates import Hex
 
 ACTION_MOVE = 0
 ACTION_ATTACK = 1
