@@ -1,5 +1,6 @@
 figure:
 
+  # Armoured Personnel Carrier
   APC:
     type: vehicle
 
@@ -8,6 +9,8 @@ figure:
     hp: 1
 
     defense:
+      basic: 5
+      smoke: 18
       antitank: 0
 
     weapons:

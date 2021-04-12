@@ -29,8 +29,6 @@ class MLAgent(Agent):
         self.filename: str = filename
         self.model = joblib.load(os.path.join(os.getcwd(), filename))
 
-        # TODO qui vorrei caricare il modello in base al tipo di azione
-
         self.randomChoice: bool = randomChoice
         self.tops: int = tops
 
@@ -51,7 +49,8 @@ class MLAgent(Agent):
         :return: a list with the name of the columns used in the dataframe
         """
         return super().dataFrameInfo() + [
-            'score', 'action', 'entropy', 'standard_deviation', 'n_scores', 'scores', 'actions']#,'random_choice','n_choices']
+            'score', 'action', 'entropy', 'standard_deviation', 'n_scores', 'scores',
+            'actions']  # ,'random_choice','n_choices']
 
     def store(self, state: GameState, bestScore: float, bestAction: Action,
               scoreActions: List[Tuple[float, Action]]) -> None:
@@ -75,7 +74,8 @@ class MLAgent(Agent):
         #     logger.warning(f'Entropy out of range: {h}')
         #     logger.warning(f'{scores}')
 
-        data = [bestScore, type(bestAction).__name__, h, std, len(scores), scores, actions]  # , self.randomChoice, self.tops]
+        data = [bestScore, type(bestAction).__name__, h, std, len(scores), scores,
+                actions]  # , self.randomChoice, self.tops]
 
         self.register(state, data)
 

@@ -5,7 +5,7 @@ import numpy
 from agents.adversarial.alphabetafast1 import AlphaBetaFast1Agent
 from agents.matchmanager import MatchManager
 from core.const import RED, BLUE
-from scenarios import buildScenario
+from core.scenarios import buildScenario
 from utils.setup_logging import setup_logging
 
 numpy.seterr('raise')

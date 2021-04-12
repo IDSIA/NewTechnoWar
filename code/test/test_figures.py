@@ -1,7 +1,7 @@
 import unittest
 
 from core.const import RED, BLUE
-from core.figures import Infantry
+from core.figures import buildFigure
 from core.game import GameBoard, GameState, GameManager
 from core.utils.coordinates import Hex
 
@@ -15,13 +15,13 @@ class TestFigures(unittest.TestCase):
         self.board = GameBoard(shape)
         self.state = GameState(shape)
 
-        self.inf_1 = Infantry((5, 11), RED)
-        self.inf_2 = Infantry((7, 12), RED)
+        self.inf_1 = buildFigure('Infantry', (5, 11), RED)
+        self.inf_2 = buildFigure('Infantry', (7, 12), RED)
 
-        self.target_1 = Infantry((3, 13), BLUE)
-        self.target_2 = Infantry((5, 13), BLUE)
-        self.target_3 = Infantry((7, 13), BLUE)
-        self.target_4 = Infantry((9, 13), BLUE)
+        self.target_1 = buildFigure('Infantry', (3, 13), BLUE)
+        self.target_2 = buildFigure('Infantry', (5, 13), BLUE)
+        self.target_3 = buildFigure('Infantry', (7, 13), BLUE)
+        self.target_4 = buildFigure('Infantry', (9, 13), BLUE)
 
         self.state.addFigure(
             self.inf_1,

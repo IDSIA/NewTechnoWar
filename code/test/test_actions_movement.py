@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from core.const import RED
-from core.figures import Infantry, buildFigure
+from core.figures import buildFigure
 from core.figures.stats import stat
 from core.game import GameManager
 from core.game.board import GameBoard
@@ -111,9 +111,9 @@ class TestMovementAction(unittest.TestCase):
                          'self.state2 and self.state3 have different end location')
 
     def testMoveWithTransport(self):
-        inf1 = Infantry((7, 7), RED, 'Inf1', stat('NO_EFFECT'))
-        inf2 = Infantry((7, 8), RED, 'Inf2', stat('NO_EFFECT'))
-        inf3 = Infantry((7, 9), RED, 'Inf3', stat('NO_EFFECT'))
+        inf1 = buildFigure('Infantry', (7, 7), RED, 'Inf1', stat('NO_EFFECT'))
+        inf2 = buildFigure('Infantry', (7, 8), RED, 'Inf2', stat('NO_EFFECT'))
+        inf3 = buildFigure('Infantry', (7, 9), RED, 'Inf3', stat('NO_EFFECT'))
 
         # add infantry units
         self.state.addFigure(inf1)

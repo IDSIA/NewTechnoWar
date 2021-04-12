@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from core.const import RED, BLUE
-from core.figures import Tank, Infantry
+from core.figures import buildFigure
 from core.game import GameManager
 from core.game.board import GameBoard
 from core.game.state import GameState
@@ -23,9 +23,9 @@ class TestLOS(unittest.TestCase):
         self.board = GameBoard(self.shape)
         self.state = GameState(self.shape)
 
-        self.blue_tank = Tank((4, 6), BLUE)
-        self.red_tank = Tank((4, 1), RED)
-        self.red_inf = Infantry((1, 4), RED)
+        self.blue_tank = buildFigure('Tank', (4, 6), BLUE)
+        self.red_tank = buildFigure('Tank', (4, 1), RED)
+        self.red_inf = buildFigure('Infantry', (1, 4), RED)
 
         self.state.addFigure(self.red_tank, self.red_inf, self.blue_tank)
 
@@ -125,7 +125,7 @@ class TestLOS(unittest.TestCase):
 
         # we replace the blue tank with an infantry so we can use the mortar for an indirect hit
         self.state.clearFigures(BLUE)
-        blue_inf = Infantry((4, 6), BLUE)
+        blue_inf = buildFigure('Infantry', (4, 6), BLUE)
         self.state.addFigure(blue_inf)
 
         los_on_target = self.state.getLOS(blue_inf)

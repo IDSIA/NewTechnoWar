@@ -6,7 +6,7 @@ import yaml
 
 from agents import MatchManager, AlphaBetaAgent, RandomAgent
 from core.const import BLUE, RED
-from scenarios import buildScenario
+from core.scenarios import buildScenario
 
 dir_path = op.dirname(op.realpath(__file__))
 

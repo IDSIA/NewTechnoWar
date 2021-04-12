@@ -1,6 +1,5 @@
 __all__ = [
     "Figure",
-    "Tank", "APC", "Infantry", "Exoskeleton", "Sniper", "Civilian",
     "buildFigure",
     "FigureStatus", "stat",
     "FigureType",
@@ -13,7 +12,7 @@ __all__ = [
 
 from core.const import INFINITE
 from core.figures.defenses import DEFENSE_KEY_LIST
-from core.figures.figure import Figure, vectorFigureInfo, Tank, APC, Infantry, Exoskeleton, Sniper, Civilian
+from core.figures.figure import Figure, vectorFigureInfo
 from core.figures.lists import WEAPON_KEY_LIST
 from core.figures.stats import stat
 from core.figures.status import FigureStatus, HIDDEN, LOADED, NO_EFFECT, IN_MOTION, UPSTAIRS, UNDER_FIRE, CUT_OFF, \
@@ -40,15 +39,19 @@ def setup_weapons(figure: Figure, values: dict) -> None:
         figure.addWeapon(w)
 
 
-def buildFigure(type: str, position: tuple, team: str, status: FigureStatus = None) -> Figure:
+def buildFigure(type: str, position: tuple, team: str, name: str = None, status: FigureStatus = None) -> Figure:
     t = TMPL_FIGURES[type]
+    n = name if name else type
     s = status if status else stat('NO_EFFECT')
 
-    figure = Figure(position, type, team, t['kind'], s)
+    figure = Figure(position, n, team, t['kind'], s)
 
     for k, v in t.items():
         if k == 'weapons':
             setup_weapons(figure, v)
+        elif k == 'update':
+            for uData in v:
+                figure.updates.append(uData)
         else:
             setattr(figure, k, v)
 

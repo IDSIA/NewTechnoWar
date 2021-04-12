@@ -11,7 +11,7 @@ from core.actions import Attack, Move, Action, Response, PassRespond, PassTeam
 from core.const import RED, BLUE
 from core.game import GameBoard, GameState, goalAchieved, GameManager
 from core.game.outcome import Outcome
-from scenarios import buildScenario
+from core.scenarios import buildScenario
 from utils.copy import deepcopy
 
 

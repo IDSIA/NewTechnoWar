@@ -3,7 +3,7 @@ from collections import Counter
 
 from agents import GreedyAgent, MatchManager
 from core.const import RED, BLUE
-from scenarios import buildScenario
+from core.scenarios import buildScenario
 
 
 class TestAgentGreedy(unittest.TestCase):

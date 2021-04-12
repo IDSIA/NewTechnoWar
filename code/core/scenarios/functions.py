@@ -1,13 +1,13 @@
 import numpy as np
 
 from core.const import RED, BLUE
-from core.figures import Figure, stat, setup_weapons
+from core.figures import Figure, stat, setup_weapons, buildFigure
 from core.game.board import GameBoard
 from core.game.goals import GoalEliminateOpponent, GoalReachPoint, GoalDefendPoint, GoalMaxTurn
 from core.game.state import GameState
 from core.game.terrain import TERRAIN_TYPE
+from core.scenarios.utils import fillLine, parse_slice
 from core.templates import TMPL_BOARDS, TMPL_SCENARIOS, TMPL_FIGURES
-from scenarios.utils import fillLine, parse_slice
 
 
 def parseBoard(name: str) -> GameBoard:
@@ -74,15 +74,7 @@ def addFigure(state: GameState, team: str, f: dict) -> None:
     for fName, fData in f.items():
         # setup main figure
         s = stat(fData['status']) if 'status' in fData else stat('NO_EFFECT')
-        t = TMPL_FIGURES[fData['type']]
-        figure = Figure(fData['position'], fName, team, t['kind'], s)
-
-        # add parameters to figure
-        for k, v in t.items():
-            if k == 'weapons':
-                setup_weapons(figure, v)
-            else:
-                setattr(figure, k, v)
+        figure = buildFigure(fData['type'], fData['position'], team, fName, s)
 
         # setup colors
         color = fData.get('color', None)

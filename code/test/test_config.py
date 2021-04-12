@@ -2,7 +2,7 @@ import unittest
 
 from core.const import RED, BLUE
 from core.templates import collect
-from scenarios import buildScenario
+from core.scenarios import buildScenario
 
 
 class TestConfig(unittest.TestCase):

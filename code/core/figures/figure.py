@@ -4,15 +4,13 @@ This module defines the available figures and their rules.
 import uuid
 from typing import Dict, List
 
-from core.const import INFINITE
 from core.figures.defenses import DEFENSE_KEY_LIST
 from core.figures.lists import DEFENSE_KEY_LIST, WEAPON_KEY_LIST
-from core.figures.static import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, ENDURANCE_EXO
+from core.figures.static import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE
 from core.figures.stats import FigureStatus, stat
 from core.figures.status import FigureStatus, STATS_LIST
 from core.figures.types import FigureType
-from core.figures.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, \
-    SniperRifle, Weapon
+from core.figures.weapons import Weapon
 from core.utils.coordinates import Cube, Hex
 
 
@@ -65,7 +63,7 @@ class Figure:
         'fid', 'team', 'name', 'index', 'kind', 'move', 'load', 'hp', 'hp_max', 'defense', 'weapons',
         'int_atk', 'int_def', 'endurance', 'stat', 'position', 'activated', 'responded', 'killed', 'hit',
         'attacked_by', 'can_transport', 'transport_capacity', 'transporting', 'transported_by', 'bonus',
-        'attacked', 'moved', 'passed', 'color'
+        'attacked', 'moved', 'passed', 'color', 'updates'
     ]
 
     def __init__(self, position: tuple or Hex or Cube, name: str, team: str, kind: str, status: FigureStatus = None):
@@ -119,6 +117,8 @@ class Figure:
         self.transport_capacity: int = 0
         self.transporting: List[int] = []
         self.transported_by: int = -1
+
+        self.updates: list = []
 
     def vector(self) -> tuple:
         """Data on the figure in vectorized version, used for internal hashing."""
@@ -197,6 +197,9 @@ class Figure:
             self.activated = True
             self.hit = False
 
+        for u in self.updates:
+            update(self, u)
+
     def goto(self, destination: Cube) -> None:
         self.position = destination
 
@@ -228,118 +231,26 @@ class Figure:
         return f'{self.name}{self.position}'
 
 
-class Tank(Figure):
-    """3 red tanks"""
+def update(f: Figure, data: dict):
+    ut = data['type']
+    at = data['attribute']
 
-    def __init__(self, position: tuple, team: str, name: str = 'Tank', status: FigureStatus = None):
-        super().__init__(position, name, team, FigureType.VEHICLE, status)
-        self.move = 7
-        self.load = 1
-        self.hp = 1
-        self.hp_max = 1
+    if ut == 'fixed':
+        """Keep the attribute of a figure to a given value."""
+        uv = data['value']
+        setattr(f, at, uv)
 
-        self.defense: dict = {
-            'basic': 5,
-            'smoke': 18,
-            'antitank': 0
-        }
+    if ut == 'add':
+        """Increase the attribute of a figure by a given value"""
+        uv = data['value']
+        setattr(f, at, getattr(f, at) + uv)
 
-        self.addWeapon(MachineGun(INFINITE))
-        self.addWeapon(Cannon(8))
-        self.addWeapon(SmokeGrenade(2))
+    if ut == 'remove':
+        """Decrease the attribute of a figure by a given value"""
+        uv = data['value']
+        setattr(f, at, getattr(f, at) - uv)
 
-        self.can_transport = True
-        self.transport_capacity = 2
-
-
-class APC(Figure):
-    """1 blue armoured personnel carrier"""
-
-    def __init__(self, position: tuple, team: str, name: str = 'APC', status: FigureStatus = None):
-        super().__init__(position, name, team, FigureType.VEHICLE, status)
-        self.move = 7
-        self.load = 1
-        self.hp = 1
-        self.hp_max = 1
-
-        self.defense: dict = {
-            'basic': 5,
-            'smoke': 18,
-            'antitank': 0
-        }
-
-        self.addWeapon(MachineGun(INFINITE))
-        self.addWeapon(SmokeGrenade(2))
-
-        self.can_transport = True
-        self.transport_capacity = 2
-
-
-class Infantry(Figure):
-    """6x4 red and 2x4 blue"""
-
-    def __init__(self, position: tuple, team: str, name: str = 'Infantry', status: FigureStatus = None):
-        super().__init__(position, name, team, FigureType.INFANTRY, status)
-        self.move = 4
-        self.load = 1
-        self.hp = 4
-        self.hp_max = 4
-
-        self.addWeapon(AssaultRifle(INFINITE))
-        self.addWeapon(MachineGun(5))
-        self.addWeapon(AntiTank(4))
-        self.addWeapon(Mortar(2))
-        self.addWeapon(Grenade(2))
-
-
-class Exoskeleton(Infantry):
-    """
-        3 exoskeleton
-        The exoskeleton is a device worn by soldiers to enhance their physical strength,
-        endurance and ability to carry heavy loads.
-    """
-
-    def __init__(self, position: tuple, team: str, name: str = 'Exoskeleton', status: FigureStatus = None):
-        super().__init__(position, team, name, status)
-        self.move = 4
-        self.load = 0
-        self.hp = 4
-        self.hp_max = 4
-
-        self.addWeapon(AssaultRifle(INFINITE))
-        self.addWeapon(MachineGun(2))
-        self.addWeapon(AntiTank(4))
-        self.addWeapon(Mortar(5))
-        self.addWeapon(Grenade(2))
-
-    def update(self, turn: int):
-        super(Exoskeleton, self).update(turn)
-        self.endurance = ENDURANCE_EXO[turn]
-
-
-class Sniper(Infantry):
-    """
-        Special unit based on scenario
-        The sniper has a status advantage of +2 and an accuracy advantage of +3 (+5 in total) added to his hit score
-    """
-
-    def __init__(self, position: tuple, team: str, name: str = 'Sniper', status: FigureStatus = None):
-        super().__init__(position, team, name, status)
-        self.move = 0
-        self.hp = 4
-        self.hp_max = 4
-
-        self.addWeapon(SniperRifle(INFINITE))
-
-        self.bonus = 5
-
-
-class Civilian(Figure):
-    """4 civilians"""
-
-    def __init__(self, position: tuple, team: str, name: str = 'Civilian', status: FigureStatus = None):
-        super().__init__(position, name, team, 'other', status)
-        self.move = 0
-        self.load = 0
-        self.hp = 1
-        self.hp_max = 1
+    if ut == 'clamp':
+        """Keep the attribute of a figure between a min and a max value"""
+        umin, umax = data['min'], data['max']
+        setattr(f, at, min(umax, max(umin, getattr(f, at))))
