@@ -6,11 +6,13 @@ from typing import Dict, List
 
 from core.const import INFINITE
 from core.figures.defenses import DEFENSE_KEY_LIST
+from core.figures.lists import DEFENSE_KEY_LIST, WEAPON_KEY_LIST
 from core.figures.static import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE, ENDURANCE_EXO
-from core.figures.status import FigureStatus, NO_EFFECT, LOADED, STATS_LIST
+from core.figures.stats import FigureStatus, stat
+from core.figures.status import FigureStatus, STATS_LIST
 from core.figures.types import FigureType
-from core.figures.weapons import Weapon, MachineGun, Cannon, SmokeGrenade, AssaultRifle, AntiTank, Mortar, Grenade, \
-    SniperRifle, WEAPON_KEY_LIST
+from core.figures.weapons import AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, \
+    SniperRifle, Weapon
 from core.utils.coordinates import Cube, Hex
 
 
@@ -66,7 +68,7 @@ class Figure:
         'attacked', 'moved', 'passed', 'color'
     ]
 
-    def __init__(self, position: tuple or Hex or Cube, name: str, team: str, kind: int, stat: FigureStatus):
+    def __init__(self, position: tuple or Hex or Cube, name: str, team: str, kind: str, status: FigureStatus = None):
         self.fid = str(uuid.uuid4())
         self.team: str = team
         self.color: str = ''
@@ -74,7 +76,7 @@ class Figure:
         self.name: str = name
         self.index: int = -1
 
-        self.kind: int = kind
+        self.kind: str = kind
 
         self.move: int = 0
         self.load: int = 0
@@ -91,7 +93,7 @@ class Figure:
         self.int_def: int = 0
         self.endurance: int = 0
 
-        self.stat: FigureStatus = stat
+        self.stat: FigureStatus = status
         self.bonus = 0
 
         if isinstance(position, Cube):
@@ -203,7 +205,7 @@ class Figure:
             raise ValueError('cannot load figure')
         self.transporting.append(figure.index)
         figure.transported_by = self.index
-        figure.stat = LOADED
+        figure.stat = stat('LOADED')
 
     def transportUnload(self, figure) -> None:
         self.transporting.remove(figure.index)
@@ -229,8 +231,8 @@ class Figure:
 class Tank(Figure):
     """3 red tanks"""
 
-    def __init__(self, position: tuple, team: str, name: str = 'Tank', stat: FigureStatus = NO_EFFECT):
-        super().__init__(position, name, team, FigureType.VEHICLE, stat)
+    def __init__(self, position: tuple, team: str, name: str = 'Tank', status: FigureStatus = None):
+        super().__init__(position, name, team, FigureType.VEHICLE, status)
         self.move = 7
         self.load = 1
         self.hp = 1
@@ -253,8 +255,8 @@ class Tank(Figure):
 class APC(Figure):
     """1 blue armoured personnel carrier"""
 
-    def __init__(self, position: tuple, team: str, name: str = 'APC', stat: FigureStatus = NO_EFFECT):
-        super().__init__(position, name, team, FigureType.VEHICLE, stat)
+    def __init__(self, position: tuple, team: str, name: str = 'APC', status: FigureStatus = None):
+        super().__init__(position, name, team, FigureType.VEHICLE, status)
         self.move = 7
         self.load = 1
         self.hp = 1
@@ -276,8 +278,8 @@ class APC(Figure):
 class Infantry(Figure):
     """6x4 red and 2x4 blue"""
 
-    def __init__(self, position: tuple, team: str, name: str = 'Infantry', stat: FigureStatus = NO_EFFECT):
-        super().__init__(position, name, team, FigureType.INFANTRY, stat)
+    def __init__(self, position: tuple, team: str, name: str = 'Infantry', status: FigureStatus = None):
+        super().__init__(position, name, team, FigureType.INFANTRY, status)
         self.move = 4
         self.load = 1
         self.hp = 4
@@ -297,8 +299,8 @@ class Exoskeleton(Infantry):
         endurance and ability to carry heavy loads.
     """
 
-    def __init__(self, position: tuple, team: str, name: str = 'Exoskeleton', stat: FigureStatus = NO_EFFECT):
-        super().__init__(position, team, name, stat)
+    def __init__(self, position: tuple, team: str, name: str = 'Exoskeleton', status: FigureStatus = None):
+        super().__init__(position, team, name, status)
         self.move = 4
         self.load = 0
         self.hp = 4
@@ -321,8 +323,8 @@ class Sniper(Infantry):
         The sniper has a status advantage of +2 and an accuracy advantage of +3 (+5 in total) added to his hit score
     """
 
-    def __init__(self, position: tuple, team: str, name: str = 'Sniper', stat: FigureStatus = NO_EFFECT):
-        super().__init__(position, team, name, stat)
+    def __init__(self, position: tuple, team: str, name: str = 'Sniper', status: FigureStatus = None):
+        super().__init__(position, team, name, status)
         self.move = 0
         self.hp = 4
         self.hp_max = 4
@@ -335,8 +337,8 @@ class Sniper(Infantry):
 class Civilian(Figure):
     """4 civilians"""
 
-    def __init__(self, position: tuple, team: str, name: str = 'Civilian', stat: FigureStatus = NO_EFFECT):
-        super().__init__(position, name, team, FigureType.OTHER, stat)
+    def __init__(self, position: tuple, team: str, name: str = 'Civilian', status: FigureStatus = None):
+        super().__init__(position, name, team, 'other', status)
         self.move = 0
         self.load = 0
         self.hp = 1

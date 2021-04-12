@@ -18,7 +18,7 @@ class TestAttackAction(unittest.TestCase):
         for _ in range(100):
 
             seed = np.random.randint(1, 1000000000)
-            mm = buildMatchManager('', 'scenarioJunction', 'PlayerDummy', 'PlayerDummy', seed=seed)
+            mm = buildMatchManager('', 'Junction', 'PlayerDummy', 'PlayerDummy', seed=seed)
 
             start = time.time()
             while not mm.end:

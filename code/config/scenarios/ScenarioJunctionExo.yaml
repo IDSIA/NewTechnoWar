@@ -1,0 +1,15 @@
+scenario:
+
+  JunctionExo:
+    template: Junction
+
+    blue:
+      figures:
+        - bInf1:
+            type: Exoskeleton
+            position: [ 36, 31 ]
+            status: HIDDEN
+        - bInf2:
+            type: Exoskeleton
+            position: [ 37, 33 ]
+            status: HIDDEN

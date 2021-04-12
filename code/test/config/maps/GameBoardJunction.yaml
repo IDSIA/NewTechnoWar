@@ -1,0 +1,29 @@
+board:
+
+  GameBoardJunction:
+    template: GameBoard
+
+    terrain:
+      TREE:
+        - region: "16, 20:23"
+        - region: "17, 21:24"
+        - region: "20, 24:27"
+        - region: "21, 24:27"
+
+        - line: [ 15, 27, 21, 24 ]
+        - line: [ 20, 25, 21, 25 ]
+        - line: [ 20, 26, 21, 26 ]
+        - region: "16, 27"
+
+        - region: "19, 19"
+        - region: "20, 18"
+        - region: "21, 19"
+
+        - line: [ 25, 21, 26, 20 ]
+        - line: [ 25, 22, 27, 21 ]
+        - line: [ 26, 22, 28, 21 ]
+
+        - region: "23, 31"
+        - region: "27, 35"
+
+        - region: "28, 32"

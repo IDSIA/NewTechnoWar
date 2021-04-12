@@ -28,8 +28,7 @@ def reachablePath(figure: Figure, board: GameBoard, state: GameState, max_cost: 
         visited.add(current)
 
         for next in board.getNeighbors(current):
-            new_cost = cost_so_far[current] + board.getMovementCost(next, figure.kind) + state.getMovementCost(next,
-                                                                                                               figure.kind)
+            new_cost = cost_so_far[current] + board.getMovementCost(next, figure.kind) + state.getMovementCost(next, figure.kind)
 
             if new_cost > max_cost:
                 continue
@@ -54,7 +53,7 @@ def reachablePath(figure: Figure, board: GameBoard, state: GameState, max_cost: 
     return visited, paths
 
 
-def findPath(start: Cube, goal: Cube, board: GameBoard, state: GameState, kind: int) -> List[Cube]:
+def findPath(start: Cube, goal: Cube, board: GameBoard, state: GameState, kind: str) -> List[Cube]:
     """This uses A*"""
     frontier = PriorityQueue()
     frontier.put((0, start))

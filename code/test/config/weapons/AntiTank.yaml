@@ -1,0 +1,12 @@
+weapon:
+
+  AntiTank:
+    wid: AT
+    name: 'Anti-tank weapon'
+    max_range: 18
+
+    atk:
+      normal: 10
+      response: 5
+
+    antitank: true

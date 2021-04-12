@@ -1,0 +1,14 @@
+board:
+
+  GameBoardCrossingTheCity:
+    template: GameBoard
+
+    terrain:
+      TREE:
+        - region: "25, 17:20"
+        - region: "26, 16:19"
+        - region: "27, 18:19"
+        - region: "28, 17:18"
+        - region: "29, 17:18"
+        - region: "30, 15:17"
+        - region: "31, 16"

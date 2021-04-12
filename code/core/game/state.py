@@ -2,10 +2,12 @@ from typing import Dict, List
 
 import numpy as np
 
-from core.actions import Action, ActionFigure, Attack, AttackGround, MoveLoadInto
+from core.actions import Action, Attack, AttackGround
+from core.actions import ActionFigure, MoveLoadInto
 from core.const import RED, BLUE
-from core.figures import FigureType, Figure, Weapon, vectorFigureInfo
-from core.game.static import MAX_SMOKE, MAX_UNITS_PER_TEAM
+from core.figures import Figure, Weapon
+from core.figures.figure import vectorFigureInfo
+from core.game.static import MAX_UNITS_PER_TEAM, MAX_SMOKE
 from core.utils.coordinates import Cube
 
 
@@ -174,7 +176,7 @@ class GameState:
         """Returns a list of figures that have not responded."""
         return [f for f in self.figures[team] if not f.responded and not f.killed]
 
-    def getMovementCost(self, pos: Cube, kind: int) -> float:
+    def getMovementCost(self, pos: Cube, kind: str) -> float:
         # TODO: this method is for future expansions
         return 0.0
 
@@ -221,7 +223,7 @@ class GameState:
         """Returns if the position is an obstacle (a VEHICLE) to LOS or not."""
         for team in (RED, BLUE):
             for f in self.getFiguresByPos(team, pos):
-                if f.kind == FigureType.VEHICLE:
+                if f.kind == 'vehicle':
                     return True
         return False
 

@@ -6,7 +6,7 @@ import yaml
 
 from agents import MatchManager, AlphaBetaAgent, RandomAgent
 from core.const import BLUE, RED
-from scenarios import scenarioJunction
+from scenarios import buildScenario
 
 dir_path = op.dirname(op.realpath(__file__))
 
@@ -24,7 +24,7 @@ class TestAgentAlphaBeta(unittest.TestCase):
     def testAgainstRandom(self):
         r = AlphaBetaAgent(RED, maxDepth=7, timeLimit=5)
         b = RandomAgent(BLUE)
-        board, state = scenarioJunction()
+        board, state = buildScenario('Junction')
 
         mm = MatchManager('', r, b, board, state, 24)
 

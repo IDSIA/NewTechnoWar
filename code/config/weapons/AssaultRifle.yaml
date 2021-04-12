@@ -1,0 +1,12 @@
+weapon:
+
+  AssaultRifle:
+    wid: AR
+    name: 'Assault Rifle'
+    max_range: 10
+
+    atk:
+      normal: 6
+      response: 3
+
+    dices: 4

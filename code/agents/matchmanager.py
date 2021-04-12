@@ -1,16 +1,17 @@
 import logging
-from typing import List, Tuple, Dict
+from typing import List
+from typing import Tuple, Dict
 
 import numpy as np
 
 import agents as players
-import scenarios
 from agents import Agent
 from agents.interactive.interactive import Human
 from core.actions import Attack, Move, Action, Response, PassRespond, PassTeam
 from core.const import RED, BLUE
 from core.game import GameBoard, GameState, goalAchieved, GameManager
 from core.game.outcome import Outcome
+from scenarios import buildScenario
 from utils.copy import deepcopy
 
 
@@ -25,7 +26,7 @@ def buildMatchManager(gid: str, scenario: str, red: str, blue: str, seed: int = 
     :param seed: seed to use
     :return: a configured MatchManager
     """
-    board, state = getattr(scenarios, scenario)()
+    board, state = buildScenario(scenario)
 
     pRed: Agent = getattr(players, red)(RED)
     pBlue: Agent = getattr(players, blue)(BLUE)

@@ -231,15 +231,15 @@ def scenarioBridgeHead() -> (GameBoard, GameState):
 
     state.addChoice(RED, 'orange',
                     Tank((39, 36), RED, 'rTank1', HIDDEN),
-                    Infantry((34, 32), RED, 'rInf11', HIDDEN)
+                    Infantry((34, 32), RED, 'rInf1', HIDDEN)
                     )
     state.addChoice(RED, 'lightred',
                     Tank((37, 35), RED, 'rTank2', HIDDEN),
-                    Infantry((33, 31), RED, 'rInf12', HIDDEN)
+                    Infantry((33, 31), RED, 'rInf2', HIDDEN)
                     )
     state.addChoice(RED, 'darkred',
                     Tank((35, 33), RED, 'rTank3', HIDDEN),
-                    Infantry((32, 30), RED, 'rInf21', HIDDEN)
+                    Infantry((32, 30), RED, 'rInf3', HIDDEN)
                     )
 
     state.addFigure(
@@ -351,17 +351,17 @@ def scenarioCrossingTheCity() -> (GameBoard, GameState):
     t3.transportLoad(i32)
 
     placement_zone_blue = np.zeros(MAP_SHAPE, dtype='uint8')
-    placement_zone_blue[45, 17:26] = Terrain.ISOLATED_TREE
-    placement_zone_blue[44, 17:25] = Terrain.ISOLATED_TREE
-    placement_zone_blue[43, 17:26] = Terrain.ISOLATED_TREE
-    placement_zone_blue[42, 17:26] = Terrain.ISOLATED_TREE
-    placement_zone_blue[41, 18:26] = Terrain.ISOLATED_TREE
-    placement_zone_blue[40, 17:26] = Terrain.ISOLATED_TREE
-    placement_zone_blue[39, 18:26] = Terrain.ISOLATED_TREE
-    placement_zone_blue[38, 17:26] = Terrain.ISOLATED_TREE
-    placement_zone_blue[37, 18:26] = Terrain.ISOLATED_TREE
-    placement_zone_blue[36, 18:26] = Terrain.ISOLATED_TREE
-    placement_zone_blue[35, 24:26] = Terrain.ISOLATED_TREE
+    placement_zone_blue[45, 17:26] = 1
+    placement_zone_blue[44, 17:25] = 1
+    placement_zone_blue[43, 17:26] = 1
+    placement_zone_blue[42, 17:26] = 1
+    placement_zone_blue[41, 18:26] = 1
+    placement_zone_blue[40, 17:26] = 1
+    placement_zone_blue[39, 18:26] = 1
+    placement_zone_blue[38, 17:26] = 1
+    placement_zone_blue[37, 18:26] = 1
+    placement_zone_blue[36, 18:26] = 1
+    placement_zone_blue[35, 24:26] = 1
 
     state.addPlacementZone(BLUE, placement_zone_blue)
 

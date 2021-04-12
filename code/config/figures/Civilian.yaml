@@ -1,0 +1,7 @@
+figure:
+
+  Civilian:
+    type: other
+    move: 0
+    load: 0
+    hp: 1
