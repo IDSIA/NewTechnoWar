@@ -1,0 +1,20 @@
+weapon:
+
+  template:
+    wid: ''
+    name: Weapon
+    max_range: inf
+
+    atk:
+      normal: 0
+      response: 0
+
+    ammo: 0
+    dices: 1
+    damage: 1
+
+    curved: false
+    antitank: false
+    miss_matrix: false
+    attack_ground: false
+    smoke: false

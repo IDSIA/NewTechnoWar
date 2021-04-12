@@ -8,6 +8,7 @@ from flask import current_app as app
 
 from agents import Human, MatchManager, buildMatchManager
 from core.const import BLUE, RED
+from core.templates import TMPL_SCENARIOS
 from web.server.utils import scroll, fieldShape, cube_to_ijxy, pzoneToHex, pos_to_dict
 
 logger = logging.getLogger(__name__)
@@ -24,7 +25,7 @@ def index():
                 logger.info('Using debug configuration!')
                 redPlayer = 'Human'
                 bluePlayer = 'Human'
-                scen = 'scenarioCrossingTheCity'
+                scen = 'Junction'
                 autoplay = not True
                 seed = 0
                 replay = ''
@@ -36,7 +37,7 @@ def index():
                 bluePlayer = data['bluePlayer']
 
                 autoplay = 'autoplay' in data or redPlayer == 'Human' or bluePlayer == 'Human'
-                scen = 'scenario' + data['scenario']
+                scen = data['scenario']
                 replay = data['replay']
 
             mm = buildMatchManager(
@@ -70,18 +71,7 @@ def index():
     else:
         logger.info(f'New lobby access')
 
-        scenarios = [
-            'Test1v1',
-            'Test2v2',
-            'Test3v1',
-            'TestBench',
-            'TestInfantry',
-            'Junction',
-            'JunctionExo',
-            'BridgeHead',
-            'Roadblock',
-            'CrossingTheCity',
-        ]
+        scenarios = [k for k, v in TMPL_SCENARIOS.items() if 'offline' not in v]
 
         players = [
             'Human',

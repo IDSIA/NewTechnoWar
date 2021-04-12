@@ -3,8 +3,6 @@ This module contains a description of all weapons and their rules.
 """
 from core.const import INFINITE
 
-WEAPON_KEY_LIST = ['CA', 'AR', 'MG', 'AT', 'MT', 'GR', 'SM', 'SR']
-
 
 class Weapon:
     """
@@ -15,9 +13,9 @@ class Weapon:
         'antitank', 'miss_matrix', 'disabled', 'attack_ground', 'smoke',
     ]
 
-    def __init__(self, wid: str, name: str, max_range: int, atk_normal: int, atk_response: int, ammo: int, dices: int,
-                 curved: bool = False, damage: int = 1, antitank: bool = False, miss_matrix: bool = False,
-                 attack_ground: bool = False, smoke: bool = False):
+    def __init__(self, wid: str = '', name: str = '', max_range: int = 0, atk_normal: int = 0, atk_response: int = 0,
+                 ammo: int = 0, dices: int = 1, curved: bool = False, damage: int = 1, antitank: bool = False,
+                 miss_matrix: bool = False, attack_ground: bool = False, smoke: bool = False):
         self.wid: str = wid
         self.name: str = name
         self.max_range: int = max_range

@@ -1,0 +1,96 @@
+scenario:
+
+  Test1v1:
+    map: battleground16x16
+
+    red:
+      figures:
+        - Tank1:
+            type: Tank
+            position: [ 2, 3 ]
+      objectives:
+        reach_point: [ [ 8, 8 ] ]
+        eliminate_opponent:
+
+    blue:
+      figures:
+        - Tank2:
+            type: Tank
+            position: [ 12, 12 ]
+      objectives:
+        defend_point: [ [ 8, 8 ] ]
+        eliminate_opponent:
+        max_turn: 12
+
+  Test2v2:
+    map: battleground16x16
+
+    red:
+      figures:
+        - Tank1:
+            type: Tank
+            position: [ 2, 2 ]
+        - Tank2:
+            type: Tank
+            position: [ 3, 3 ]
+      objectives:
+        reach_point: [ [ 8, 8 ] ]
+        eliminate_opponent:
+
+    blue:
+      figures:
+        - Tank3:
+            type: Tank
+            position: [ 11, 11 ]
+        - Tank4:
+            type: Tank
+            position: [ 12, 12 ]
+      objectives:
+        defend_point: [ [ 8, 8 ] ]
+        eliminate_opponent:
+        max_turn: 12
+
+  TestBench:
+    map: battleground16x16
+
+    red:
+      figures:
+        - rInf1:
+            type: Infantry
+            position: [ 3, 1 ]
+        - rInf2:
+            type: Infantry
+            position: [ 7, 2 ]
+        - rInf3:
+            type: Infantry
+            position: [ 6, 2 ]
+        - rInf4:
+            type: Infantry
+            position: [ 1, 4 ]
+        - rTank1:
+            type: Tank
+            position: [ 2, 3 ]
+        - rTank2:
+            type: Tank
+            position: [ 2, 1 ]
+      objectives:
+        reach_point: [ [ 8, 8 ] ]
+        eliminate_opponent:
+
+    blue:
+      figures:
+        - bInf1:
+            type: Infantry
+            position: [ 14, 14 ]
+        - bInf2:
+            type: Infantry
+            position: [ 13, 10 ]
+            status: HIDDEN
+        - bTank1:
+            type: Tank
+            position: [ 9, 13 ]
+            status: HIDDEN
+      objectives:
+        defend_point: [ [ 8, 8 ] ]
+        eliminate_opponent:
+        max_turn: 12

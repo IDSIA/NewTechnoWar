@@ -3,7 +3,7 @@ import unittest
 from agents import MatchManager
 from agents.adversarial.alphabeta import Puppet
 from core.const import RED, BLUE
-from core.figures import Infantry
+from core.figures import buildFigure
 from core.game import GameBoard, GameState, GameManager
 
 GM: GameManager = GameManager()
@@ -16,8 +16,8 @@ class TestExecutionFlow(unittest.TestCase):
         self.board = GameBoard(shape)
         self.state = GameState(shape)
 
-        self.inf_1 = Infantry((4, 0), RED)
-        self.inf_2 = Infantry((8, 0), BLUE)
+        self.inf_1 = buildFigure('Infantry', (4, 0), RED)
+        self.inf_2 = buildFigure('Infantry', (8, 0), BLUE)
 
         self.state.addFigure(
             self.inf_1,

@@ -1,0 +1,54 @@
+scenario:
+
+  Test1v1:
+    map: battleground16x16
+
+    red:
+      figures:
+        - Tank1:
+            type: Tank
+            position: [ 2, 3 ]
+
+      objectives:
+        reach_point: [ [ 8, 8 ] ]
+        eliminate_opponent:
+
+    blue:
+      figures:
+        - Tank2:
+            type: Tank
+            position: [ 12, 12 ]
+
+      objectives:
+        defend_point: [ [ 8, 8 ] ]
+        eliminate_opponent:
+        max_turn: 12
+
+  Test2v2:
+    map: battleground16x16
+
+    red:
+      figures:
+        - Tank1:
+            type: Tank
+            position: [ 2, 2 ]
+        - Tank2:
+            type: Tank
+            position: [ 3, 3 ]
+      objectives:
+        reach_point: [ [ 8, 8 ] ]
+        eliminate_opponent:
+
+    blue:
+      figures:
+        - Tank3:
+            type: Tank
+            position: [ 11, 11 ]
+        - Tank4:
+            type: Tank
+            position: [ 12, 12 ]
+
+      objectives:
+        defend_point: [ [ 8, 8 ] ]
+        eliminate_opponent:
+        max_turn: 12

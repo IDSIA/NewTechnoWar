@@ -3,8 +3,12 @@ import unittest
 import numpy as np
 
 from core.const import RED, BLUE
-from core.figures import Tank, Infantry
-from core.game import GameBoard, GameState, Terrain, GameManager
+from core.figures import buildFigure
+from core.game import GameManager
+from core.game.board import GameBoard
+from core.game.state import GameState
+from core.game.terrain import TERRAIN_TYPE
+from core.templates import collect
 from core.utils.coordinates import Hex
 
 GM: GameManager = GameManager()
@@ -13,13 +17,15 @@ GM: GameManager = GameManager()
 class TestLOS(unittest.TestCase):
 
     def setUp(self):
+        collect()
+
         self.shape = (8, 8)
         self.board = GameBoard(self.shape)
         self.state = GameState(self.shape)
 
-        self.blue_tank = Tank((4, 6), BLUE)
-        self.red_tank = Tank((4, 1), RED)
-        self.red_inf = Infantry((1, 4), RED)
+        self.blue_tank = buildFigure('Tank', (4, 6), BLUE)
+        self.red_tank = buildFigure('Tank', (4, 1), RED)
+        self.red_inf = buildFigure('Infantry', (1, 4), RED)
 
         self.state.addFigure(self.red_tank, self.red_inf, self.blue_tank)
 
@@ -68,10 +74,10 @@ class TestLOS(unittest.TestCase):
 
     def testForestBlock(self):
         blocker = np.zeros(self.shape, 'uint8')
-        blocker[4, 4] = Terrain.FOREST
-        blocker[3, 6] = Terrain.FOREST
-        blocker[4, 6] = Terrain.FOREST
-        blocker[5, 6] = Terrain.FOREST
+        blocker[4, 4] = TERRAIN_TYPE['FOREST'].level
+        blocker[3, 6] = TERRAIN_TYPE['FOREST'].level
+        blocker[4, 6] = TERRAIN_TYPE['FOREST'].level
+        blocker[5, 6] = TERRAIN_TYPE['FOREST'].level
         self.board.addTerrain(blocker)
 
         self.assertFalse(GM.checkLine(self.board, self.state, self.los_tank), 'forest: tank has LOS on target')
@@ -79,10 +85,10 @@ class TestLOS(unittest.TestCase):
 
     def testForestMarginNoBlock(self):
         blocker = np.zeros(self.shape, 'uint8')
-        blocker[4, 6] = Terrain.FOREST
-        blocker[3, 7] = Terrain.FOREST
-        blocker[4, 7] = Terrain.FOREST
-        blocker[5, 7] = Terrain.FOREST
+        blocker[4, 6] = TERRAIN_TYPE['FOREST'].level
+        blocker[3, 7] = TERRAIN_TYPE['FOREST'].level
+        blocker[4, 7] = TERRAIN_TYPE['FOREST'].level
+        blocker[5, 7] = TERRAIN_TYPE['FOREST'].level
         self.board.addTerrain(blocker)
 
         self.assertTrue(GM.checkLine(self.board, self.state, self.los_tank), 'forest: tank has LOS on target')
@@ -90,10 +96,10 @@ class TestLOS(unittest.TestCase):
 
     def testBuildingBlock(self):
         blocker = np.zeros(self.shape, 'uint8')
-        blocker[4, 4] = Terrain.CONCRETE_BUILDING
-        blocker[3, 6] = Terrain.CONCRETE_BUILDING
-        blocker[4, 6] = Terrain.CONCRETE_BUILDING
-        blocker[5, 6] = Terrain.CONCRETE_BUILDING
+        blocker[4, 4] = TERRAIN_TYPE['CONCRETE_BUILDING'].level
+        blocker[3, 6] = TERRAIN_TYPE['CONCRETE_BUILDING'].level
+        blocker[4, 6] = TERRAIN_TYPE['CONCRETE_BUILDING'].level
+        blocker[5, 6] = TERRAIN_TYPE['CONCRETE_BUILDING'].level
         self.board.addTerrain(blocker)
 
         self.assertFalse(GM.checkLine(self.board, self.state, self.los_tank), 'urban: tank has LOS on target')
@@ -113,13 +119,13 @@ class TestLOS(unittest.TestCase):
 
     def testIndirectFire(self):
         blocker = np.zeros(self.shape, 'uint8')
-        blocker[2, 5] = Terrain.CONCRETE_BUILDING
-        blocker[3, 5] = Terrain.CONCRETE_BUILDING
+        blocker[2, 5] = TERRAIN_TYPE['CONCRETE_BUILDING'].level
+        blocker[3, 5] = TERRAIN_TYPE['CONCRETE_BUILDING'].level
         self.board.addTerrain(blocker)
 
         # we replace the blue tank with an infantry so we can use the mortar for an indirect hit
         self.state.clearFigures(BLUE)
-        blue_inf = Infantry((4, 6), BLUE)
+        blue_inf = buildFigure('Infantry', (4, 6), BLUE)
         self.state.addFigure(blue_inf)
 
         los_on_target = self.state.getLOS(blue_inf)

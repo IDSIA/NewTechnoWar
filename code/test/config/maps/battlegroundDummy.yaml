@@ -1,0 +1,40 @@
+board:
+
+  battlegroundDummy10x10:
+    shape: [ 10, 10 ]
+    default: OPEN_GROUND
+
+    terrain:
+      FOREST:
+        - region: "4, 5"
+        - region: "5, 5"
+        - region: "5, 4"
+
+      ROAD:
+        - region: "0, :"
+
+  battlegroundDummy10x20:
+    template: battlegroundDummy10x10
+    shape: [ 10, 20 ]
+
+    terrain:
+      ROAD:
+        - column: 0
+
+      CONCRETE_BUILDING:
+        - region: ":, 12:20"
+
+  battlegroundDummy10x20Forest:
+    template: battlegroundDummy10x10
+    shape: [ 10, 20 ]
+
+    terrain:
+      FOREST:
+        - region: "2, 5"
+        - region: "3, 5"
+        - region: "6, 5"
+        - region: "7, 5"
+        - region: "8, 5"
+
+      CONCRETE_BUILDING:
+        - region: ":, 14:20"

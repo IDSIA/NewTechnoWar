@@ -1,0 +1,14 @@
+weapon:
+
+  Grenade:
+    wid: GR
+    name: 'Grenade'
+    max_range: 3
+
+    atk:
+      normal: 18
+      response: 9
+
+    damage: 4
+
+    curved: true

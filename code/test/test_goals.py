@@ -2,7 +2,7 @@ import unittest
 
 from core.actions import Move
 from core.const import RED, BLUE
-from core.figures import Tank, Infantry
+from core.figures import buildFigure
 from core.game import GameBoard, GameState, GoalMaxTurn, GoalReachPoint, GoalEliminateOpponent, GameManager
 from core.utils.coordinates import Hex
 
@@ -16,9 +16,9 @@ class TestGoals(unittest.TestCase):
         self.board = GameBoard(shape)
         self.state = GameState(shape)
 
-        self.blue_tank = Tank((6, 4), BLUE)
-        self.red_tank = Tank((1, 4), RED)
-        self.red_inf = Infantry((2, 4), RED)
+        self.blue_tank = buildFigure('Tank', (6, 4), BLUE)
+        self.red_tank = buildFigure('Tank', (1, 4), RED)
+        self.red_inf = buildFigure('Infantry', (2, 4), RED)
 
         self.state.addFigure(self.red_tank, self.red_inf, self.blue_tank)
 

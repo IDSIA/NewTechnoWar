@@ -5,7 +5,8 @@ import numpy as np
 
 from core.actions import *
 from core.const import RED, BLUE
-from core.figures import Figure, FigureType, IN_MOTION, UNDER_FIRE, NO_EFFECT, HIDDEN, CUT_OFF, LOADED, Weapon
+from core.figures import Figure, stat
+from core.figures.weapons import Weapon
 from core.game.board import GameBoard
 from core.game.outcome import Outcome
 from core.game.scores import MISS_MATRIX, hitScoreCalculator
@@ -123,21 +124,21 @@ class GameManager(object):
         if not weapon.hasAmmo():
             raise ValueError(f'{weapon} does not have enough ammo')
 
-        if figure.stat == LOADED:
+        if figure.stat == stat('LOADED'):
             raise ValueError(f'{weapon} cannot hit {target}: unit is LOADED in a vehicle')
 
-        if target.stat == LOADED:
+        if target.stat == stat('LOADED'):
             raise ValueError(f'{weapon} cannot hit {target}: target is LOADED in a vehicle')
 
-        if target.stat == HIDDEN:
+        if target.stat == stat('HIDDEN'):
             raise ValueError(f'{weapon} cannot hit {target}: target is HIDDEN')
 
         if weapon.antitank:
             # can shoot only against vehicles
-            validTarget = target.kind == FigureType.VEHICLE
+            validTarget = target.kind == 'vehicle'
         else:
             # can shoot against infantry and others only
-            validTarget = target.kind != FigureType.VEHICLE
+            validTarget = target.kind != 'vehicle'
 
         if not validTarget:
             raise ValueError(f'{weapon} cannot hit {target}: target is not valid')
@@ -195,7 +196,7 @@ class GameManager(object):
         attacks = []
 
         for target in state.figures[tTeam]:
-            if target.killed or target.stat == HIDDEN:
+            if target.killed or target.stat == stat('HIDDEN'):
                 continue
 
             for _, weapon in figure.weapons.items():
@@ -231,7 +232,7 @@ class GameManager(object):
         if target.team == figure.team:
             return responses
 
-        if not any([figure.responded, figure.killed, target.killed, target.stat == HIDDEN]):
+        if not any([figure.responded, figure.killed, target.killed, target.stat == stat('HIDDEN')]):
 
             for _, weapon in figure.weapons.items():
                 if weapon.smoke:
@@ -322,7 +323,7 @@ class GameManager(object):
         return responses
 
     def activate(self, board: GameBoard, state: GameState, action: Action, forceHit: bool = False) -> (
-    GameState, Outcome):
+            GameState, Outcome):
         """Apply the step method to a deepcopy of the given GameState."""
         s1 = deepcopy(state)
         outcome = self.step(board, s1, action, forceHit)
@@ -383,7 +384,8 @@ class GameManager(object):
             f: Figure = state.getFigure(action)  # who performs the action
             f.activated = True
             f.moved = True
-            f.stat = IN_MOTION
+
+            f.stat = stat('IN_MOTION')
             if isinstance(action, MoveLoadInto):
                 # figure moves inside transporter
                 t = state.getTransporter(action)
@@ -399,7 +401,7 @@ class GameManager(object):
 
             for transported in f.transporting:
                 t = state.getFigureByIndex(team, transported)
-                t.stat = LOADED
+                t.stat = stat('LOADED')
                 state.moveFigure(t, t.position, action.destination)
 
             logger.debug(f'{action}: {comment}')
@@ -411,7 +413,7 @@ class GameManager(object):
             x: Cube = action.ground
             w: Weapon = state.getWeapon(action)
 
-            f.stat = NO_EFFECT
+            f.stat = stat('NO_EFFECT')
             f.activated = True
             f.attacked = True
             w.shoot()
@@ -446,7 +448,7 @@ class GameManager(object):
             lof: list = action.lof  # line-of-fire on target of figure
 
             # consume ammunition
-            f.stat = NO_EFFECT
+            f.stat = stat('NO_EFFECT')
             w.shoot()
 
             if forceHit:
@@ -469,7 +471,7 @@ class GameManager(object):
             # anti-tank rule
             if state.hasSmoke(lof):
                 DEF = t.defense['smoke']
-            elif w.antitank and t.kind == FigureType.VEHICLE:
+            elif w.antitank and t.kind == 'vehicle':
                 DEF = t.defense['antitank']
             else:
                 DEF = t.defense['basic']
@@ -483,7 +485,7 @@ class GameManager(object):
             success = len([x for x in score if x <= hitScore])
 
             # target status changes for the _next_ hit
-            t.stat = UNDER_FIRE
+            t.stat = stat('UNDER_FIRE')
             # target can now respond to the fire
             t.attacked_by = f.index
 
@@ -543,13 +545,13 @@ class GameManager(object):
                 state.updateLOS(figure)
 
                 # update status
-                if figure.stat != HIDDEN:
-                    figure.stat = NO_EFFECT
+                if figure.stat != stat('HIDDEN'):
+                    figure.stat = stat('NO_EFFECT')
 
                     if figure.transported_by > -1:
-                        figure.stat = LOADED
+                        figure.stat = stat('LOADED')
 
                     # compute there cutoff status
                     allies = state.getDistances(figure)
                     if min([len(v) for v in allies.values()]) > CUTOFF_RANGE:
-                        figure.stat = CUT_OFF
+                        figure.stat = stat('CUT_OFF')

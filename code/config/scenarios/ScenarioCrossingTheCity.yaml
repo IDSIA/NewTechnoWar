@@ -1,0 +1,71 @@
+scenario:
+
+  CrossingTheCity:
+    map: GameBoardCrossingTheCity
+
+    red:
+      figures:
+        - rTank1:
+            type: Tank
+            position: [ 25, 19 ]
+            color: darkred
+            loaded:
+              - rInf11:
+                  type: Infantry
+              - rInf12:
+                  type: Infantry
+
+        - rTank2:
+            type: Tank
+            position: [ 26, 16 ]
+            color: orange
+            loaded:
+              - rInf21:
+                  type: Infantry
+              - rInf22:
+                  type: Infantry
+
+        - rTank3:
+            type: Tank
+            position: [ 30, 15 ]
+            color: lightred
+            loaded:
+              - rInf31:
+                  type: Infantry
+              - rInf32:
+                  type: Infantry
+
+      objectives:
+        reach_point:
+          - [ 39, 23 ]
+        eliminate_opponent:
+
+    blue:
+      figures:
+        - bAPC:
+            type: APC
+            position: [ 38, 21 ]
+            status: HIDDEN
+        - bInf:
+            type: Infantry
+            position: [ 41, 23 ]
+            status: HIDDEN
+
+      placement:
+        - region: "45, 17:26"
+        - region: "44, 17:25"
+        - region: "43, 17:26"
+        - region: "42, 17:26"
+        - region: "41, 18:26"
+        - region: "40, 17:26"
+        - region: "39, 18:26"
+        - region: "38, 17:26"
+        - region: "37, 18:26"
+        - region: "36, 18:26"
+        - region: "35, 24:26"
+
+      objectives:
+        defend_point:
+          - [ 39, 23 ]
+        eliminate_opponent:
+        max_turn: 7

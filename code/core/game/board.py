@@ -4,8 +4,9 @@ import numpy as np
 
 from core.const import RED, BLUE
 from core.figures import FigureType
-from core.game.goals import Goal, GoalReachPoint, GoalMaxTurn
-from core.game.terrain import TERRAIN_TYPE
+from core.game.goals import Goal, GoalReachPoint
+from core.game.goals import GoalMaxTurn
+from core.game.terrain import TYPE_TERRAIN
 from core.utils.coordinates import Cube, Hex
 
 
@@ -40,7 +41,7 @@ class GameBoard:
         self.obstacles: Set[Cube] = set()
 
         # movement obstructions are considered in the cost
-        self.moveCost: Dict[int, np.ndarray] = {
+        self.moveCost: Dict[str, np.ndarray] = {
             FigureType.INFANTRY: np.zeros(shape, dtype='float'),
             FigureType.VEHICLE: np.zeros(shape, dtype='float'),
         }
@@ -66,7 +67,7 @@ class GameBoard:
         for i in range(0, x):
             for j in range(0, y):
                 index = self.terrain[i, j]
-                tt = TERRAIN_TYPE[index]
+                tt = TYPE_TERRAIN[index]
                 self.protectionLevel[i, j] = tt.protectionLevel
                 self.moveCost[FigureType.INFANTRY][i, j] = tt.moveCostInf
                 self.moveCost[FigureType.VEHICLE][i, j] = tt.moveCostVehicle
@@ -112,7 +113,7 @@ class GameBoard:
         """Returns all the neighbors of the given position."""
         return [n for n in position.neighbor() if n not in self.limits]
 
-    def getMovementCost(self, pos: Cube, kind: int):
+    def getMovementCost(self, pos: Cube, kind: str):
         """Returns the cost of move in the given position."""
         try:
             h = pos.hex()

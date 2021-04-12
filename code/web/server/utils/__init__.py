@@ -2,7 +2,8 @@ from math import sqrt
 
 import numpy as np
 
-from core.game import GameBoard, Terrain, TERRAIN_TYPE
+from core.game.board import GameBoard
+from core.game.terrain import Terrain, TYPE_TERRAIN, TERRAIN_TYPE
 from core.utils.coordinates import Cube, Hex
 
 SIZE = 10
@@ -56,7 +57,7 @@ class Hexagon:
                 'terrConcrete']
 
         for i in range(len(csss)):
-            if self.terrain == TERRAIN_TYPE[i]:
+            if self.terrain == TYPE_TERRAIN[i]:
                 return csss[i]
 
         return ''
@@ -77,7 +78,7 @@ def scroll(board: GameBoard):
             p = Hex(i, j)
 
             index = board.terrain[p]
-            tt = TERRAIN_TYPE[index]
+            tt = TYPE_TERRAIN[index]
 
             h = Hexagon(
                 p,
@@ -99,7 +100,7 @@ def pzoneToHex(zone):
     for item in zip(x, y):
         h = Hexagon(
             Hex(t=item),
-            Terrain.OPEN_GROUND,
+            TERRAIN_TYPE['OPEN_GROUND'],
             0,
             False,
             False

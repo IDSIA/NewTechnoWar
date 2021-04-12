@@ -1,0 +1,145 @@
+scenario:
+
+  Dummy1:
+    map: battlegroundDummy10x10
+    offline:
+
+    red:
+      figures:
+        - Infantry1:
+            type: Infantry
+            position: [ 4, 1 ]
+        - Tank1:
+            type: Tank
+            position: [ 4, 3 ]
+
+      objectives:
+        reach_point: [ [ 9, 9 ] ]
+        eliminate_opponent:
+
+    blue:
+      figures:
+        - Infantry1:
+            type: Infantry
+            position: [ 5, 2 ]
+
+      objectives:
+        defend_point: [ [ 9, 9 ] ]
+        eliminate_opponent:
+        max_turn: 12
+
+  Dummy2:
+    map: battlegroundDummy10x20
+    offline:
+
+    red:
+      figures:
+        - Infantry1:
+            type: Infantry
+            position: [ 4, 1 ]
+        - Tank1:
+            type: Tank
+            position: [ 4, 3 ]
+
+      objectives:
+        reach_point: [ [ 9, 9 ] ]
+        eliminate_opponent:
+
+    blue:
+      figures:
+        - Infantry1:
+            type: Infantry
+            position: [ 2, 16 ]
+            status: HIDDEN
+
+      objectives:
+        defend_point: [ [ 9, 9 ] ]
+        eliminate_opponent:
+        max_turn: 12
+
+  Dummy3:
+    map: battlegroundDummy10x20
+    offline:
+
+    red:
+      figures:
+        - Infantry1:
+            type: Infantry
+            position: [ 4, 1 ]
+        - Tank1:
+            type: Tank
+            position: [ 4, 3 ]
+
+      objectives:
+        reach_point: [ [ 9, 9 ] ]
+        eliminate_opponent:
+
+    blue:
+      figures:
+        - Infantry1:
+            type: Infantry
+            position: [ 4, 14 ]
+            status: HIDDEN
+
+      objectives:
+        defend_point: [ [ 9, 9 ] ]
+        eliminate_opponent:
+        max_turn: 12
+
+  DummyResponseCheck:
+    map: battlegroundDummy10x20Forest
+    offline:
+
+    red:
+      figures:
+        - Infantry1:
+            type: Infantry
+            position: [ 4, 1 ]
+        - Tank1:
+            type: Tank
+            position: [ 4, 3 ]
+
+      objectives:
+        reach_point: [ [ 9, 12 ] ]
+        eliminate_opponent:
+
+    blue:
+      figures:
+        - Infantry1:
+            type: Infantry
+            position: [ 4, 14 ]
+            status: HIDDEN
+
+      objectives:
+        defend_point: [ [ 9, 12 ] ]
+        eliminate_opponent:
+        max_turn: 12
+
+  DummyInSightTest:
+    map: battlegroundDummy10x20Forest
+    offline:
+
+    red:
+      figures:
+        - Tank1:
+            type: Tank
+            position: [ 7, 10 ]
+        - Tank2:
+            type: Tank
+            position: [ 9, 7 ]
+
+      objectives:
+        reach_point: [ [ 9, 12 ] ]
+        eliminate_opponent:
+
+    blue:
+      figures:
+        - Infantry1:
+            type: Infantry
+            position: [ 4, 14 ]
+            status: HIDDEN
+
+      objectives:
+        defend_point: [ [ 9, 12 ] ]
+        eliminate_opponent:
+        max_turn: 12
