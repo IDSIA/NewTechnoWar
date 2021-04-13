@@ -323,3 +323,8 @@ class MatchManager:
                 self.second = self.red
 
         self._goCheck()
+
+    def play(self) -> None:
+        """Plays a match until the end is reached."""
+        while not self.end:
+            self.nextStep()
