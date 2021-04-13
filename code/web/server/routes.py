@@ -23,10 +23,10 @@ def index():
         try:
             if app.config['DEBUG']:
                 logger.info('Using debug configuration!')
-                redPlayer = 'Human'
-                bluePlayer = 'Human'
+                redPlayer = 'GreedyAgent'
+                bluePlayer = 'GreedyAgent'
                 scen = 'Junction'
-                autoplay = not True
+                autoplay = True
                 seed = 0
                 replay = ''
             else:
@@ -78,7 +78,6 @@ def index():
             'RandomAgent',
             'GreedyAgent',
             'AlphaBetaAgent',
-            'AlphaRandomAgent',
         ]
 
         response = make_response(

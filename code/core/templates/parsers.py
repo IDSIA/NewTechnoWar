@@ -1,7 +1,6 @@
 from core.figures import FigureType, WEAPON_KEY_LIST, DEFENSE_KEY_LIST
 from core.figures.stats import FIGURES_STATUS_TYPE, FigureStatus
-from core.game import TERRAIN_TYPE, Terrain
-from core.game.terrain import TYPE_TERRAIN
+from core.game.terrain import TERRAIN_TYPE, TYPE_TERRAIN, Terrain
 from core.templates import TMPL_FIGURES_STATUS_TYPE, TMPL_TERRAIN_TYPE, TMPL_WEAPONS, TMPL_FIGURES
 
 
