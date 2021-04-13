@@ -13,8 +13,8 @@ from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from agents import MatchManager, GreedyAgent, ClassifierAgent, RegressionAgent, RandomAgent, Agent
 from core.const import RED, BLUE
 from core.game import vectorStateInfo, vectorState
+from core.scenarios import buildScenario
 from core.vectors import vectorActionInfo, vectorAction, vectorBoardInfo, vectorBoard
-from scenarios import scenarioJunction
 from utils.setup_logging import setup_logging
 
 ALL = 'all'
@@ -35,7 +35,7 @@ class Player:
         self.points = points
         self.wins = 0
         self.losses = 0
-        
+
     def games(self) -> int:
         return self.wins + self.losses
 
@@ -101,7 +101,7 @@ class Population:
         return p
 
     def ladder(self, raw: pd.DataFrame) -> None:
-        self.population = sorted(self.population, key=lambda x: -x.points if x.games() > 0 else 1000.0 )
+        self.population = sorted(self.population, key=lambda x: -x.points if x.games() > 0 else 1000.0)
 
         logger.info(f'{self}: Ladder TOP 10')
         for i in range(self.size):
@@ -167,7 +167,7 @@ def playJunction(seed: int, red: Player, blue: Player) -> MatchManager:
     :param blue: blue Player
     :return: a MatchManger object with all the stored results from the match
     """
-    board, state = scenarioJunction()
+    board, state = buildScenario('Junction')
 
     playerRed = red.agent(RED, seed)
     playerBlue = blue.agent(BLUE, seed)
