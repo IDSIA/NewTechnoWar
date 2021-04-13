@@ -11,7 +11,7 @@ w = SIZE * 2
 h = SIZE * sqrt(3)
 
 
-def pos_to_xy(position):
+def pos_to_xy(position: tuple) -> tuple:
     i, j = position
 
     x = w / 2 + 3 / 4 * w * i
@@ -24,18 +24,18 @@ def pos_to_xy(position):
     return x, y
 
 
-def pos_to_dict(i, j):
+def pos_to_dict(i: int, j: int) -> dict:
     x, y = pos_to_xy((i, j))
     return {'i': i, 'j': j, 'x': x, 'y': y}
 
 
-def cube_to_ijxy(position: Cube):
+def cube_to_ijxy(position: Cube) -> tuple:
     i, j = position.tuple()
     x, y = pos_to_xy((i, j))
     return i, j, x, y
 
 
-def cube_to_dict(position: Cube):
+def cube_to_dict(position: Cube) -> dict:
     i, j = position.tuple()
     x, y = pos_to_xy((i, j))
     return {'i': i, 'j': j, 'x': x, 'y': y}
@@ -50,9 +50,9 @@ class Hexagon:
         self.cube = position.cube()
 
         self.i, self.j = position.tuple()
-        self.x, self.y = pos_to_xy(position)
+        self.x, self.y = pos_to_xy((self.i, self.j))
 
-    def css(self):
+    def css(self) -> str:
         csss = ['terrOpen', 'terrRoad', 'terrTree', 'terrForest', 'terrUrban', 'terrBuilding', 'terrWooden',
                 'terrConcrete']
 
@@ -63,7 +63,7 @@ class Hexagon:
         return ''
 
 
-def fieldShape(board: GameBoard):
+def fieldShape(board: GameBoard) -> tuple:
     x, y = board.shape
     return (x + 3 / 4) * w, (y + 1 / 2) * h
 
@@ -76,14 +76,15 @@ def scroll(board: GameBoard):
     for i in range(0, x):
         for j in range(0, y):
             p = Hex(i, j)
+            x = p.tuple()
 
-            index = board.terrain[p]
+            index = board.terrain[x]
             tt = TYPE_TERRAIN[index]
 
             h = Hexagon(
                 p,
                 tt,
-                board.geography[p],
+                board.geography[x],
                 p.cube() in objectiveMarks,
                 tt.blockLos
             )
