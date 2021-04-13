@@ -5,7 +5,9 @@ from core.actions import Move, Attack, MoveLoadInto, AttackGround, AttackRespond
 from core.const import RED, BLUE
 from core.figures import Figure
 from core.figures.weapons import Weapon
+from core.game.outcome import Outcome
 from core.game.state import GameState
+from core.utils.coordinates import Cube
 from web.server.utils import cube_to_ijxy, cube_to_dict
 
 
@@ -160,10 +162,28 @@ class GameJSONEncoder(JSONEncoder):
                 'text': str(obj),
             }
 
+        if isinstance(obj, Outcome):
+            return {
+                'comment': obj.comment,
+                'score': obj.score,
+                'hitScore': obj.hitScore,
+                'ATK': obj.ATK,
+                'TER': obj.TER,
+                'DEF': obj.DEF,
+                'STAT': obj.STAT,
+                'END': obj.END,
+                'INT': obj.INT,
+                'success': obj.success,
+                'hits': obj.hits,
+            }
+
         if isinstance(obj, np.ndarray):
             return obj.tolist()
 
         if isinstance(obj, np.generic):
             return obj.item()
+
+        if isinstance(obj, Cube):
+            return obj.tuple()
 
         return super(GameJSONEncoder, self).default(obj)
