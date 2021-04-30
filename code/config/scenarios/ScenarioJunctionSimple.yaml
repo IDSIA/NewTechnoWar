@@ -1,6 +1,6 @@
 scenario:
 
-  Junction:
+  JunctionSimple:
     map: GameBoardJunction
 
     red:
@@ -8,6 +8,7 @@ scenario:
         rTank1:
           type: Tank
           position: [ 8, 17 ]
+          color: orange
           loaded:
             - rInf11:
                 type: Infantry
@@ -17,22 +18,27 @@ scenario:
         rTank2:
           type: Tank
           position: [ 7, 28 ]
+          color: lightred
           loaded:
             - rInf21:
                 type: Infantry
         rInf22:
           type: Infantry
           position: [ 6, 29 ]
+          color: lightred
 
         rTank3:
           type: Tank
           position: [ 17, 37 ]
+          color: darkred
         rInf31:
           type: Infantry
           position: [ 17, 34 ]
+          color: darkred
         rInf32:
           type: Infantry
           position: [ 25, 39 ]
+          color: darkred
 
       objectives:
         reach_point:

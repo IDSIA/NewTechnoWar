@@ -18,7 +18,8 @@ def parse_terrain():
             tData['protection'],
             tData['move_cost'][FigureType.INFANTRY],
             tData['move_cost'][FigureType.VEHICLE],
-            tData['block_los']
+            tData['block_los'],
+            tData['color']
         )
 
         TERRAIN_TYPE[tName] = terrain

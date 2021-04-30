@@ -1,8 +1,10 @@
 import unittest
 
 from core.const import RED, BLUE
-from core.templates import collect
+from core.game import TERRAIN_TYPE
+from core.game.terrain import TYPE_TERRAIN
 from core.scenarios import buildScenario
+from core.templates import collect
 
 
 class TestConfig(unittest.TestCase):
@@ -33,3 +35,29 @@ class TestConfig(unittest.TestCase):
 
         self.assertEqual(len(redsIdx), len(set(redsIdx)), "reds have duplicated index!")
         self.assertEqual(len(bluesIdx), len(set(bluesIdx)), "reds have duplicated index!")
+
+    def testScenarioReplace(self):
+        filename = 'config/scenarios/ScenarioJunction.yaml'
+        with open(filename, 'r') as f:
+            originalContent = f.readlines()
+
+        newContent = [line for line in originalContent if 'color' not in line]
+
+        try:
+            # update content
+            with open(filename, 'w') as f:
+                f.writelines(newContent)
+            collect()
+
+            board, state = buildScenario('Junction')
+
+            self.assertTrue(board)
+            self.assertTrue(state)
+
+            self.assertEqual(TYPE_TERRAIN[board.terrain[0, 0]], TERRAIN_TYPE['FOREST'])
+            self.assertEqual(TYPE_TERRAIN[board.terrain[30, 30]], TERRAIN_TYPE['ROAD'])
+        finally:
+
+            # restore original content
+            with open(filename, 'w') as f:
+                f.writelines(originalContent)

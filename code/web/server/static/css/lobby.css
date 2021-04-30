@@ -17,6 +17,45 @@ body {
     border: 1px solid dodgerblue;
 }
 
+.item {
+    grid-column: auto;
+    padding: 2em;
+    background-color: #efefff;
+    border-radius: 2em;
+    border: 1px solid dodgerblue;
+}
+
+.item > h1 {
+    text-transform: uppercase;
+}
+
+.entry {
+    display: grid;
+    grid-template-columns: 40% auto;
+}
+
+.entry > h2 {
+    margin-bottom: 0;
+    grid-column: 1/3;
+}
+
+.board-image {
+    width: 400px;
+    grid-column: 1/3;
+}
+
+.entry .blue {
+    grid-column: 1/3;
+}
+
+.entry .red {
+    grid-column: 1/3;
+}
+
+.voice {
+    color: #777777;
+}
+
 .title {
     grid-column: 1 / 4;
     width: 100%;

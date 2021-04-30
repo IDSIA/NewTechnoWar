@@ -5,35 +5,35 @@ scenario:
 
     red:
       figures:
-        - rTank1:
-            type: Tank
-            position: [ 25, 19 ]
-            color: darkred
-            loaded:
-              - rInf11:
-                  type: Infantry
-              - rInf12:
-                  type: Infantry
+        rTank1:
+          type: Tank
+          position: [ 25, 19 ]
+#          color: darkred
+          loaded:
+            - rInf11:
+                type: Infantry
+            - rInf12:
+                type: Infantry
 
-        - rTank2:
-            type: Tank
-            position: [ 26, 16 ]
-            color: orange
-            loaded:
-              - rInf21:
-                  type: Infantry
-              - rInf22:
-                  type: Infantry
+        rTank2:
+          type: Tank
+          position: [ 26, 16 ]
+#          color: orange
+          loaded:
+            - rInf21:
+                type: Infantry
+            - rInf22:
+                type: Infantry
 
-        - rTank3:
-            type: Tank
-            position: [ 30, 15 ]
-            color: lightred
-            loaded:
-              - rInf31:
-                  type: Infantry
-              - rInf32:
-                  type: Infantry
+        rTank3:
+          type: Tank
+          position: [ 30, 15 ]
+#          color: lightred
+          loaded:
+            - rInf31:
+                type: Infantry
+            - rInf32:
+                type: Infantry
 
       objectives:
         reach_point:
@@ -42,14 +42,14 @@ scenario:
 
     blue:
       figures:
-        - bAPC:
-            type: APC
-            position: [ 38, 21 ]
-            status: HIDDEN
-        - bInf:
-            type: Infantry
-            position: [ 41, 23 ]
-            status: HIDDEN
+        bAPC:
+          type: APC
+          position: [ 38, 21 ]
+          status: HIDDEN
+        bInf:
+          type: Infantry
+          position: [ 41, 23 ]
+          status: HIDDEN
 
       placement:
         - region: "45, 17:26"

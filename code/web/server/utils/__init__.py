@@ -42,12 +42,14 @@ def cube_to_dict(position: Cube) -> dict:
 
 
 class Hexagon:
-    def __init__(self, position: Hex, terrain: Terrain, geography: int, objective: bool, blockLos: bool):
+    def __init__(self, position: Hex, terrain: Terrain, geography: int, objective: bool, blockLos: bool,
+                 color: str = 'white'):
         self.terrain = terrain
         self.geography = geography
         self.objective = objective
         self.blockLos = blockLos
         self.cube = position.cube()
+        self.color = color
 
         self.i, self.j = position.tuple()
         self.x, self.y = pos_to_xy((self.i, self.j))
@@ -86,7 +88,8 @@ def scroll(board: GameBoard):
                 tt,
                 board.geography[x],
                 p.cube() in objectiveMarks,
-                tt.blockLos
+                tt.blockLos,
+                tt.color
             )
 
             yield h

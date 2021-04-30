@@ -1,0 +1,75 @@
+figure:
+
+  MissileTank:
+    type: vehicle
+
+    move: 4
+    load: 1
+    hp: 2
+
+    defense:
+      basic: 4
+      smoke: 18
+      antitank: 0
+
+    weapons:
+      AntiTank: 8
+      Cannon: 4
+      MachineGun: inf
+
+board:
+  battleground10x10:
+    shape: [ 10 , 10 ]
+    default: OPEN_GROUND
+
+    terrain:
+      FOREST:
+        - line: [ 0, 0, 0, 9 ]
+        - line: [ 0, 0, 9, 0 ]
+        - line: [ 0, 9, 9, 9 ]
+        - line: [ 9, 0, 9, 9 ]
+        - region: "1, 1"
+        - region: "8, 1"
+        - region: "1, 8"
+        - region: "8, 8"
+
+      TREE:
+        - region: "3, 3"
+        - region: "3, 6"
+        - region: "6, 3"
+        - region: "6, 6"
+
+scenario:
+
+  RocketArena:
+    map: battleground10x10
+
+    red:
+      figures:
+        Red1:
+          type: MissileTank
+          position: [ 2, 1 ]
+        Red2:
+          type: MissileTank
+          position: [ 1, 1 ]
+        Red3:
+          type: MissileTank
+          position: [ 2, 2 ]
+
+      objectives:
+        eliminate_opponent:
+
+    blue:
+      figures:
+        Blue1:
+          type: MissileTank
+          position: [ 8, 7 ]
+        Blue2:
+          type: MissileTank
+          position: [ 8, 8 ]
+        Blue3:
+          type: MissileTank
+          position: [ 7, 7 ]
+
+      objectives:
+        eliminate_opponent:

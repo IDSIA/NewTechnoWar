@@ -7,6 +7,7 @@ terrain:
       infantry: 1.0
       vehicle: 1.0
     block_los: false
+    color: '#92C060'
 
   ROAD:
     name: 'Road'
@@ -15,6 +16,7 @@ terrain:
       infantry: 0.75
       vehicle: 0.75
     block_los: false
+    color: '#E3854D'
 
   TREE:
     name: 'Isolated tree cover'
@@ -23,6 +25,7 @@ terrain:
       infantry: 1.0
       vehicle: 1.0
     block_los: true
+    color: '#457313'
 
   FOREST:
     name: 'Forest'
@@ -31,6 +34,7 @@ terrain:
       infantry: 1.0
       vehicle: 1000.0
     block_los: true
+    color: '#00410B'
 
   WOODEN_BUILDING:
     name: 'Wooden building'
@@ -39,6 +43,7 @@ terrain:
       infantry: 1.0
       vehicle: 1.0
     block_los: true
+    color: '#A76B11'
 
   CONCRETE_BUILDING:
     name: 'Concrete building'
@@ -47,3 +52,4 @@ terrain:
       infantry: 1.0
       vehicle: 6.0
     block_los: true
+    color: '#454545'

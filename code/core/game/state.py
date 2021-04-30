@@ -295,7 +295,7 @@ def vectorState(state: GameState) -> tuple:
             for j in range(MAX_UNITS_PER_TEAM):
                 if i != j:
                     if i < len(state.figures[team]) and j < len(state.figures[team]):
-                        dist: list = state.figuresDistance.get(team)[j][i]
+                        dist: list = state.figuresDistance[team][j][i]
                         data.append(len(dist) - 1)
                     else:
                         data.append(None)
@@ -305,7 +305,7 @@ def vectorState(state: GameState) -> tuple:
         for i in range(MAX_UNITS_PER_TEAM):
             for j in range(MAX_UNITS_PER_TEAM):
                 if i < len(state.figures[team]) and j < len(state.figures[other]):
-                    dist: list = state.figuresLOS.get(team)[j][i]
+                    dist: list = state.figuresLOS[team][i][j]
                     data.append(len(dist) - 1)
                 else:
                     data.append(None)

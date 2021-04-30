@@ -3,12 +3,13 @@ import os
 import random
 import uuid
 
-from flask import Blueprint, render_template, make_response, request, jsonify, redirect
+from flask import Blueprint, render_template, make_response, request, jsonify, redirect, send_file
 from flask import current_app as app
 
 from agents import Human, MatchManager, buildMatchManager
 from core.const import BLUE, RED
-from core.templates import TMPL_SCENARIOS
+from core.templates import *
+from web.server.images import board2png, scenario2png
 from web.server.utils import scroll, fieldShape, cube_to_ijxy, pzoneToHex, pos_to_dict
 
 logger = logging.getLogger(__name__)
@@ -71,6 +72,7 @@ def index():
     else:
         logger.info(f'New lobby access')
 
+        collect()
         scenarios = [k for k, v in TMPL_SCENARIOS.items() if 'offline' not in v]
 
         players = [
@@ -78,6 +80,7 @@ def index():
             'RandomAgent',
             'GreedyAgent',
             'AlphaBetaAgent',
+            'AlphaBetaFast1Agent',
         ]
 
         response = make_response(
@@ -92,6 +95,61 @@ def index():
         response.delete_cookie('gameId')
 
     return response
+
+
+@main.route('/config', methods=['GET'])
+def config():
+    """Serve a list of available configuration object"""
+    try:
+        collect()
+
+        return make_response(
+            render_template(
+                'config.html',
+                title='Game | NewTechnoWar',
+                template='game-template',
+                data={
+                    'weapons': TMPL_WEAPONS,
+                    'figures': TMPL_FIGURES,
+                    'status': TMPL_FIGURES_STATUS_TYPE,
+                    'terrain': TMPL_TERRAIN_TYPE,
+                    'boards': TMPL_BOARDS,
+                    'scenarios': TMPL_SCENARIOS
+                }
+            )
+        )
+
+    except ValueError as ve:
+        logger.error(ve)
+        return redirect('/')
+
+
+@main.route('/config/map/<name>', methods=['GET'])
+def configMap(name: str):
+    if '/' in name or '\\' in name or '.' in name:
+        logger.warning(f'invalid map name! {name}')
+        return ''
+
+    logger.info(f'serving map for {name}')
+
+    filename = os.path.join(os.getcwd(), 'cache', f'{name}.png')
+    board2png(filename, name)
+
+    return send_file(filename, mimetype='image/png')
+
+
+@main.route('/config/scenario/<name>', methods=['GET'])
+def configScenario(name: str):
+    if '/' in name or '\\' in name or '.' in name:
+        logger.warning(f'invalid map name! {name}')
+        return ''
+
+    logger.info(f'serving scenario for {name}')
+
+    filename = os.path.join(os.getcwd(), 'cache', f'{name}.png')
+    scenario2png(filename, name)
+
+    return send_file(filename, mimetype='image/png')
 
 
 def checkGameId() -> (str, MatchManager):

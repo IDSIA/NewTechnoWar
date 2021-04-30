@@ -66,43 +66,42 @@ def addObjectives(board: GameBoard, team: str, objective: str, value) -> None:
         board.addObjectives(obj)
 
 
-def addFigure(state: GameState, team: str, f: dict) -> None:
+def addFigure(state: GameState, team: str, fName: str, fData: dict) -> None:
     """
     Add figures to a state for the given team, if needed add the color scheme, and also add the loaded units if there
     are any.
     """
-    for fName, fData in f.items():
-        # setup main figure
-        s = stat(fData['status']) if 'status' in fData else stat('NO_EFFECT')
-        figure = buildFigure(fData['type'], fData['position'], team, fName, s)
+    # setup main figure
+    s = stat(fData['status']) if 'status' in fData else stat('NO_EFFECT')
+    figure = buildFigure(fData['type'], fData['position'], team, fName, s)
 
-        # setup colors
-        color = fData.get('color', None)
-        if color:
-            state.addChoice(team, color, figure)
-        else:
-            state.addFigure(figure)
+    # setup colors
+    color = fData.get('color', None)
+    if color:
+        state.addChoice(team, color, figure)
+    else:
+        state.addFigure(figure)
 
-        for x in fData.get('loaded', []):
-            # parse loaded figures
-            for lName, lData in x.items():
-                # setup loaded figure
-                lt = TMPL_FIGURES[lData['type']]
-                lFigure = Figure(fData['position'], lName, team, lt['kind'])
+    for x in fData.get('loaded', []):
+        # parse loaded figures
+        for lName, lData in x.items():
+            # setup loaded figure
+            lt = TMPL_FIGURES[lData['type']]
+            lFigure = Figure(fData['position'], lName, team, lt['kind'])
 
-                # add parameters to loaded figure
-                for lk, lv in lt.items():
-                    if lk == 'weapons':
-                        setup_weapons(lFigure, lv)
-                    else:
-                        setattr(lFigure, lk, lv)
-
-                if color:
-                    state.addChoice(team, color, lFigure)
+            # add parameters to loaded figure
+            for lk, lv in lt.items():
+                if lk == 'weapons':
+                    setup_weapons(lFigure, lv)
                 else:
-                    state.addFigure(lFigure)
+                    setattr(lFigure, lk, lv)
 
-                figure.transportLoad(lFigure)
+            if color:
+                state.addChoice(team, color, lFigure)
+            else:
+                state.addFigure(lFigure)
+
+            figure.transportLoad(lFigure)
 
 
 def buildScenario(name: str) -> (GameBoard, GameState):
@@ -125,6 +124,6 @@ def buildScenario(name: str) -> (GameBoard, GameState):
 
         if 'figures' in template[team]:
             for f in template[team]['figures']:
-                addFigure(state, team, f)
+                addFigure(state, team, f, template[team]['figures'][f])
 
     return board, state

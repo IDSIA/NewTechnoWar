@@ -1,7 +1,8 @@
 from utils.setup_logging import setup_logging
-from web.server import create_app as game_app
 
 setup_logging()
+
+from web.server import create_app as game_app
 
 application = game_app()
 
