@@ -5,7 +5,7 @@ from PIL import Image, ImageColor, ImageDraw
 
 from core.const import RED, BLUE
 from core.scenarios.functions import parseBoard, buildScenario
-from web.server.utils import scroll
+from web.backend.utils import scroll
 
 sqrt3 = math.sqrt(3)
 

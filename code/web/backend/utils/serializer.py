@@ -8,7 +8,7 @@ from core.figures.weapons import Weapon
 from core.game.outcome import Outcome
 from core.game.state import GameState
 from core.utils.coordinates import Cube
-from web.server.utils import cube_to_ijxy, cube_to_dict
+from web.backend.utils import cube_to_ijxy, cube_to_dict
 
 
 class GameJSONEncoder(JSONEncoder):

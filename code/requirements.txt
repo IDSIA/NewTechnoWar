@@ -7,6 +7,7 @@ PyYAML==5.4.1
 
 # required for web
 flask==1.1.2
+flask-restful==0.3.8
 gunicorn==20.1.0
 pillow==8.2.0
 

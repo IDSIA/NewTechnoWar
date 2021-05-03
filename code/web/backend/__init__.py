@@ -1,8 +1,8 @@
 """Initialize application"""
 from flask import Flask
 
-from web.server.config import conf
-from web.server.utils.serializer import GameJSONEncoder
+from web.backend.config import conf
+from web.backend.utils.serializer import GameJSONEncoder
 
 
 def create_app():
