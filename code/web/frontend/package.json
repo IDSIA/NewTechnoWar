@@ -1,0 +1,23 @@
+{
+  "name": "newtechnowar-frontend",
+  "version": "1.0.0",
+  "description": "This is the web-interface for the wargame 'New Techno War' developed by IDSIA in collaboration with Armasuisse.",
+  "repository": "https://github.com/IDSIA/NewTechnoWar",
+  "keywords": [],
+  "author": "Claudio Bonesana",
+  "license": "LGPL-3.0-only",
+  "scripts": {
+    "start": "parcel serve ./src/index.html --open --no-cache",
+    "build": "parcel build ./src/index.js --dist-dir ../backend/static/ --public-url ./static/"
+  },
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.14.0",
+    "@babel/preset-env": "^7.14.0",
+    "@babel/preset-react": "^7.13.13",
+    "parcel": "^2.0.0-beta.2"
+  }
+}

@@ -1,0 +1,6 @@
+frontend/dist
+frontend/.parcel-cache
+frontend/node_modules
+
+# this is a file generated
+backend/static/index.js
