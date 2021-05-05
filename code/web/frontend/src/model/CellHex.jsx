@@ -1,4 +1,5 @@
 export const size = 30;
+export const middleHeight = size * Math.sqrt(3) / 2;
 
 function offset(center, size, i) {
     var angle_deg = 60 * i;
@@ -10,13 +11,17 @@ function offset(center, size, i) {
 }
 
 
-export default class Hexagon {
+export default class CellHex {
 
     id = "";
-    x = null;
-    y = null;
+    x = 0;
+    y = 0;
     size = size;
     points = []
+    center = {
+        x: 0,
+        y: 0,
+    }
 
     constructor(id, x, y) {
         this.id = id;
