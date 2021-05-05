@@ -1,13 +1,24 @@
 import React from "react";
-import Square from "./Square";
+import Hexagon from "../model/Hexagon";
+import GridHex from "./GridHex";
 
 export default class Board extends React.Component {
 
     constructor(props) {
         super(props)
-        this.state = {
 
+        this.state = {
+            cells: Array(props.rows * props.cols),
         }
+
+        var i = 0;
+        for (let x = 0; x < props.rows; x++) {
+            for (let y = 0; y < props.cols; y++) {
+                this.state.cells[i] = new Hexagon(i, x, y);
+                i++;
+            }
+        }
+
     }
 
     renderSquare(i) {
@@ -22,20 +33,19 @@ export default class Board extends React.Component {
     render() {
         return (
             <div className="game-board">
-                <div className="status">{status}</div>
-                <div className="board">
-                    {this.renderSquare(0)}
-                    {this.renderSquare(1)}
-                    {this.renderSquare(2)}
-
-                    {this.renderSquare(3)}
-                    {this.renderSquare(4)}
-                    {this.renderSquare(5)}
-
-                    {this.renderSquare(6)}
-                    {this.renderSquare(7)}
-                    {this.renderSquare(8)}
-                </div>
+                <svg
+                    width="800"
+                    height="600"
+                >
+                    <g>
+                        {this.state.cells.map(cell =>
+                            <GridHex
+                                key={cell.id}
+                                cell={cell}
+                            />
+                        )}
+                    </g>
+                </svg>
             </div>
         );
     }

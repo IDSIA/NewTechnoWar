@@ -66,13 +66,11 @@ export default class Game extends React.Component {
         return (
             <div className="game">
                 <Board
+                    rows={20}
+                    cols={15}
                     squares={current.squares}
                     onClick={(i) => this.handleClick(i)}
                 />
-                <div className="game-info">
-                    <div>{status}</div>
-                    <ol>{moves}</ol>
-                </div>
             </div>
         );
     }
