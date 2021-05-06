@@ -57,3 +57,11 @@ ul {
 .game-info {
     margin-left: 20px;
 }
+
+.red {
+    background-color: red;
+}
+
+.blue {
+    background-color: dodgerblue;
+}

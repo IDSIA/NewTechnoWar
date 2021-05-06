@@ -4,18 +4,8 @@ import GridHex, { size, middleHeight } from "./GridHex";
 /** @jsx */
 import { css, jsx } from '@emotion/react';
 
-const clickThreshold = 5;
+const clickThreshold = 1;
 
-
-function passedClickThreshold(lastMouse, event) {
-    if (!lastMouse || !event)
-        return false;
-
-    return (
-        Math.abs(lastMouse.x - event.screenX) > clickThreshold ||
-        Math.abs(lastMouse.y - event.screenY) > clickThreshold
-    );
-}
 
 class Transform extends React.Component {
     render() {
@@ -49,8 +39,8 @@ export default class Board extends React.Component {
 
         this.state = {
             viewport: {
-                x: this.screenBoundX(width / 2 - x, cols),
-                y: this.screenBoundY(height / 2 - y, rows),
+                x: 0,//this.screenBoundX(width / 2 - x, cols),
+                y: 0,//this.screenBoundY(height / 2 - y, rows),
             },
             grid: {
                 x: cols, // number of cols
@@ -63,17 +53,17 @@ export default class Board extends React.Component {
         };
     }
 
-    screenBoundX(x, xOffset) {
-        return Math.max(
-            Math.min(0, x),
-            this.props.width - (xOffset + 0.5) * 2 * size
+    screenBoundX(x) {
+        return Math.min(
+            Math.max(this.props.width - this.gridWidth(), x),
+            0
         );
     }
 
-    screenBoundY(y, yOffset) {
+    screenBoundY(y) {
         return Math.max(
-            Math.min(0, y),
-            this.props.height - (yOffset + 0.5) * 3 / 2 * middleHeight
+            Math.min(this.props.height - this.gridHeight(), y),
+            0
         );
     }
 
@@ -84,14 +74,28 @@ export default class Board extends React.Component {
 
     gridHeight() {
         const cells = this.props.cells;
-        return cells[cells.length - 1].center.y + middleHeight;
+        return cells[cells.length - 1].center.y + 5 * middleHeight / 2;
+    }
+
+    passedClickThreshold(x, y) {
+        const lastMouse = this.state.lastMouse;
+        if (!lastMouse || !event)
+            return false;
+
+        return (
+            Math.abs(lastMouse.x - x) > clickThreshold ||
+            Math.abs(lastMouse.y - y) > clickThreshold
+        );
     }
 
     handleMouseDown(event) {
-        this.setState({
-            isDragging: true,
-            lastMouse: { x: event.screenX, y: event.screenY },
-        });
+        if (!this.state.isDragging) {
+            this.setState({
+                ...this.state,
+                isDragging: true,
+                lastMouse: { x: event.screenX, y: event.screenY },
+            });
+        }
     }
 
     handleMouseUp(event, cell) {
@@ -99,13 +103,16 @@ export default class Board extends React.Component {
             if (this.state.didMove) {
                 // dragging mouse
                 this.setState({
+                    ...this.state,
                     isDragging: false,
+                    didMove: false,
                     lastMouse: { x: event.screenX, y: event.screenY },
                 });
             } else {
                 // selection click
                 console.log(cell);
                 this.setState({
+                    ...this.state,
                     selected: cell,
                     isDragging: false,
                     didMove: false,
@@ -116,39 +123,37 @@ export default class Board extends React.Component {
     }
 
     handleMouseLeave(event) {
-        if (passedClickThreshold(this.state.lastMouse, event)) {
-            console.log(`moving ${this.state.lastMouse.x} ${this.state.lastMouse.y}`);
+        const x = event.screenX;
+        const y = event.screenY;
+        if (this.state.isDragging && this.passedClickThreshold(x, y)) {
             this.setState({
+                ...this.state,
                 didMove: true,
-                lastMouse: { x: event.screenX, y: event.screenY },
+                lastMouse: { x: x, y: y },
             });
         }
     }
 
     handleMouseMove(event) {
+        const x = event.screenX;
+        const y = event.screenY;
         if (
             this.state.isDragging
             &&
             this.state.didMove
-            ||
-            passedClickThreshold(this.state.lastMouse, event)
+            &&
+            this.passedClickThreshold(x, y)
         ) {
-            const x = event.screenX;
-            const y = event.screenY
             const state = this.state;
 
-            const viewport_x = this.screenBoundX(
-                state.viewport.x + x - state.lastMouse.x,
-                state.grid.x
-            );
-            const viewport_y = this.screenBoundX(
-                state.viewport.y + y - state.lastMouse.y,
-                state.grid.y
-            );
+            const vx = state.viewport.x + x - state.lastMouse.x;
+            const vy = state.viewport.x + y - state.lastMouse.y;
 
-            console.log(`moveing ${viewport_x} ${viewport_y}`);
+            const viewport_x = this.screenBoundX(state.viewport.x + x - state.lastMouse.x);
+            const viewport_y = this.screenBoundX(state.viewport.y + y - state.lastMouse.y);
 
             this.setState({
+                ...this.state,
                 didMove: true,
                 isDragging: true,
                 viewport: {
@@ -165,7 +170,14 @@ export default class Board extends React.Component {
 
     render() {
         return (
-            <div className="game-board">
+            <div className="game-board"
+                css={{
+                    overflow: 'hidden',
+                    border: '2px solid black',
+                    width: `${this.props.width}px`,
+                    height: `${this.props.height}px`,
+                }}
+            >
                 <Transform
                     x={this.state.viewport.x}
                     y={this.state.viewport.y}
