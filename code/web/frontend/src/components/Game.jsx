@@ -7,7 +7,7 @@ export default class Game extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = new GameState(10, 4)
+        this.state = new GameState(4, 6)
     }
 
     render() {

@@ -65,3 +65,7 @@ ul {
 .blue {
     background-color: dodgerblue;
 }
+
+.viewport {
+    text-align: start;
+}

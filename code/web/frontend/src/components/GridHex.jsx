@@ -42,10 +42,7 @@ export default class GridHex extends React.Component {
     render() {
         return (
             <g
-                onMouseDown={event => this.props.onMouseDown(event)}
-                onMouseMove={event => this.props.onMouseMove(event)}
                 onMouseUp={event => this.props.onMouseUp(event, this.props.cell)}
-                onMouseLeave={event => this.props.onMouseLeave(event)}
             >
                 <path
                     d={line().curve(curveLinearClosed)(this.state.points)}
