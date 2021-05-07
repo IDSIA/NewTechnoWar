@@ -1,5 +1,6 @@
 import React from "react";
 import GridHex, { size, middleHeight } from "./GridHex";
+import "../styles/board.css";
 
 const clickThreshold = 1;
 
@@ -11,7 +12,6 @@ class Transform extends React.Component {
         return (
             <div
                 className="viewport"
-                // css={css`transform: translate3d(${x}px,${y}px, 0)`}
                 style={{
                     transform: `translate3d(${x}px, ${y}px, 0)`
                 }}
@@ -27,15 +27,20 @@ export default class Board extends React.Component {
     constructor(props) {
         super(props)
 
+        this.container = React.createRef();
+
         const cols = props.cols;
         const rows = props.rows;
         const last_cell = props.cells[props.cells.length - 1];
 
+        // TODO: center on unit or center-map if too small
         const { x, y } = props.cells[
             Math.floor(cols * rows / 2) + Math.floor(rows / 2)
         ].center;
 
         this.state = {
+            width: 0,
+            height: 0,
             viewport: {
                 x: 0,//this.screenBoundX(width / 2 - x, cols),
                 y: 0,//this.screenBoundY(height / 2 - y, rows),
@@ -52,8 +57,9 @@ export default class Board extends React.Component {
     }
 
     screenBoundX(x) {
-        const margin = this.props.width - this.gridWidth();
-        if (this.gridWidth() < this.props.width) {
+        const w = this.container.offsetWidth;
+        const margin = w - this.gridWidth();
+        if (this.gridWidth() < w) {
             return Math.max(
                 Math.min(margin, x),
                 0
@@ -67,8 +73,9 @@ export default class Board extends React.Component {
     }
 
     screenBoundY(y) {
-        const margin = this.props.height - this.gridHeight();
-        if (this.gridHeight() < this.props.height) {
+        const h = this.container.offsetHeight;
+        const margin = h - this.gridHeight();
+        if (this.gridHeight() < h) {
             return Math.max(
                 Math.min(margin, y),
                 0
@@ -181,13 +188,8 @@ export default class Board extends React.Component {
 
     render() {
         return (
-            <div className="game-board"
-                style={{
-                    overflow: 'hidden',
-                    border: '2px solid black',
-                    width: `${this.props.width}px`,
-                    height: `${this.props.height}px`,
-                }}
+            <div className="board"
+                ref={e => this.container = e}
             >
                 <Transform
                     x={this.state.viewport.x}

@@ -1,7 +1,9 @@
 import React from "react";
 import GameState from "../model/GameState";
+import Cockpit from "./Cockpit";
 import Board from "./Board";
 import Panel from "./Panel";
+import '../styles/game.css';
 
 export default class Game extends React.Component {
 
@@ -12,13 +14,12 @@ export default class Game extends React.Component {
 
     render() {
         return (
-            <div className="game">
+            <div id="game">
+                <Cockpit />
                 <Panel
                     team='red'
                 />
                 <Board
-                    width={400}
-                    height={300}
                     cols={this.state.cols}
                     rows={this.state.rows}
                     cells={this.state.cells}

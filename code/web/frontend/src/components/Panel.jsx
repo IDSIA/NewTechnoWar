@@ -1,4 +1,5 @@
 import React from "react";
+import '../styles/panel.css';
 
 
 export default class Panel extends React.Component {
@@ -10,11 +11,11 @@ export default class Panel extends React.Component {
     render() {
         return (
             <div
-                className={`panel ${this.props.team}`}
-                css={{
-                    width: '200px',
-                }}
-            ></div>
+                id={`${this.props.team}Units`}
+                className={`units ${this.props.team}`}
+            >
+                <h1 id={`${this.props.team}Player`} className="player-title"></h1>
+            </div>
         )
     }
 }
