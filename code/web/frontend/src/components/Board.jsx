@@ -1,5 +1,5 @@
 import React from "react";
-import GridHex, { size, middleHeight } from "./GridHex";
+import GridHex from "./GridHex";
 import "../styles/board.css";
 
 const clickThreshold = 1;
@@ -29,25 +29,14 @@ export default class Board extends React.Component {
 
         this.container = React.createRef();
 
-        const cols = props.cols;
-        const rows = props.rows;
-        const last_cell = props.cells[props.cells.length - 1];
-
-        // TODO: center on unit or center-map if too small
-        const { x, y } = props.cells[
-            Math.floor(cols * rows / 2) + Math.floor(rows / 2)
-        ].center;
-
         this.state = {
-            width: 0,
-            height: 0,
             viewport: {
-                x: 0,//this.screenBoundX(width / 2 - x, cols),
-                y: 0,//this.screenBoundY(height / 2 - y, rows),
+                x: 0, // this.screenBoundX(width / 2 - x, cols),
+                y: 0, // this.screenBoundY(height / 2 - y, rows),
             },
             grid: {
-                width: last_cell.center.x + size,
-                height: last_cell.center.y + 5 * middleHeight / 2,
+                width: props.width,
+                height: props.height,
             },
             isDragging: false,
             didMove: false,
@@ -89,11 +78,11 @@ export default class Board extends React.Component {
     }
 
     gridWidth() {
-        return this.state.grid.width;
+        return this.props.width;
     }
 
     gridHeight() {
-        return this.state.grid.height;
+        return this.props.height;
     }
 
     passedClickThreshold(x, y) {

@@ -1,11 +1,16 @@
 import CellHex, { size, middleHeight } from "./CellHex";
+import Cookies from "universal-cookie";
 
+const cookies = new Cookies();
+
+cookies.set('gameId', '1234567890asdfghjkl'); // TODO: remove this
 
 export default class GameState {
 
-    cells = [];
-
     constructor(cols, rows) {
+        this.gameId = cookies.get('gameId');
+        console.log('gameId: ' + this.gameId)
+
         this.cols = cols;
         this.rows = rows;
 
@@ -20,12 +25,8 @@ export default class GameState {
         }
     }
 
-    centerSelected() {
-        if (this.selected) {
-            const { x, y } = this.selected.center;
-            this.viewport.x = this.screenBoundX(this.viewport.width / 2 - x, this.grid.x);
-            this.viewport.y = this.screenBoundY(this.viewport.height / 2 - y, this.grid.y);
-        }
+    collectState() {
+
     }
 
 }

@@ -1,28 +1,42 @@
 {
-  "name": "newtechnowar-frontend",
-  "version": "1.0.0",
-  "description": "This is the web-interface for the wargame 'New Techno War' developed by IDSIA in collaboration with Armasuisse.",
-  "repository": "https://github.com/IDSIA/NewTechnoWar",
-  "keywords": [],
-  "author": "Claudio Bonesana",
-  "license": "LGPL-3.0-only",
-  "scripts": {
-    "start": "parcel serve ./src/index.html --no-cache",
-    "build": "parcel build ./src/index.js --dist-dir ../backend/static/ --public-url ./static/"
-  },
-  "dependencies": {
-    "@emotion/react": "^11.1.5",
-    "@emotion/styled": "^11.3.0",
-    "d3-shape": "^2.1.0",
-    "prop-types": "^15.7.2",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.14.0",
-    "@babel/preset-env": "^7.14.0",
-    "@babel/preset-react": "^7.13.13",
-    "@emotion/babel-preset-css-prop": "^11.2.0",
-    "parcel": "^2.0.0-beta.2"
-  }
+    "name": "newtechnowar-frontend",
+    "version": "1.0.0",
+    "description": "This is the web-interface for the wargame 'New Techno War' developed by IDSIA in collaboration with Armasuisse.",
+    "repository": "https://github.com/IDSIA/NewTechnoWar",
+    "keywords": [],
+    "author": "Claudio Bonesana",
+    "license": "LGPL-3.0-only",
+    "scripts": {
+        "start": "parcel serve ./src/index.html --no-cache",
+        "build": "parcel build ./src/index.js --dist-dir ../backend/static/ --public-url ./static/"
+    },
+    "dependencies": {
+        "@emotion/react": "^11.1.5",
+        "@emotion/styled": "^11.3.0",
+        "d3-shape": "^2.1.0",
+        "prop-types": "^15.7.2",
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2",
+        "universal-cookie": "^4.0.4"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.14.0",
+        "@babel/preset-env": "^7.14.0",
+        "@babel/preset-react": "^7.13.13",
+        "@emotion/babel-preset-css-prop": "^11.2.0",
+        "@parcel/transformer-image": "^2.0.0-beta.2",
+        "parcel": "^2.0.0-beta.2",
+        "parcel-plugin-custom-dist-structure": "^1.1.17"
+    },
+    "customDistStructure": {
+        "config": {
+            ".css": "css",
+            ".js": "js",
+            "images": [
+                ".jpg",
+                ".svg",
+                ".png"
+            ]
+        }
+    }
 }
