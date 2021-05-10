@@ -1,8 +1,13 @@
 """Initialize application"""
+import logging
+
 from flask import Flask
 
+from core.templates import collect, TMPL_SCENARIOS
 from web.backend.config import conf
 from web.backend.utils.serializer import GameJSONEncoder
+
+logger = logging.getLogger(__name__)
 
 
 def create_app():
@@ -18,6 +23,35 @@ def create_app():
     app.config.from_object(conf)
     app.json_encoder = GameJSONEncoder
 
+    # list of all available agents
+    app.players = [
+        'Human', # this should be "interactive"
+        'RandomAgent',
+        'GreedyAgent',
+        'AlphaBetaAgent',
+        'AlphaBetaFast1Agent',
+    ]
+
+    # this is for the control of data collection
+    app.collecting = False
+    app.scenarios = []
+
+    def collect_config():
+        if app.collecting:
+            return
+
+        app.collecting = True
+        try:
+            collect()
+            app.scenarios = [k for k, v in TMPL_SCENARIOS.items() if 'offline' not in v]
+        except Exception as e:
+            logger.error(f'could not collect configuration! {e}')
+        finally:
+            app.collecting = False
+
+    app.collect_config = collect_config
+
+    # parameters for games
     app.games = dict()
     app.params = dict()
     app.actions = dict()

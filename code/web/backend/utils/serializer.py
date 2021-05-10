@@ -5,6 +5,7 @@ from core.actions import Move, Attack, MoveLoadInto, AttackGround, AttackRespond
 from core.const import RED, BLUE
 from core.figures import Figure
 from core.figures.weapons import Weapon
+from core.game import GameBoard, GoalEliminateOpponent, GoalReachPoint, GoalDefendPoint, GoalMaxTurn
 from core.game.outcome import Outcome
 from core.game.state import GameState
 from core.utils.coordinates import Cube
@@ -36,6 +37,46 @@ class GameJSONEncoder(JSONEncoder):
                     o['colors'][team] = obj.choices[team]
 
             return o
+
+        if isinstance(obj, GameBoard):
+            return {
+                'name': obj.name,
+                'shape': obj.shape,
+                'terrain': obj.terrain,
+                'objectives': obj.objectives,
+                'maxTurn': obj.maxTurn,
+                'protectionLevel': obj.protectionLevel,
+            }
+
+        if isinstance(obj, GoalEliminateOpponent):
+            return {
+                'goal':'GoalEliminateOpponent',
+                'team': obj.team,
+                'hostiles': obj.hostiles,
+            }
+
+        if isinstance(obj, GoalReachPoint):
+            return {
+                'goal': 'GoalReachPoint',
+                'team': obj.team,
+                'objectives': obj.objectives,
+                'turns': obj.turns,
+            }
+
+        if isinstance(obj, GoalDefendPoint):
+            return {
+                'goal': 'GoalDefendPoint',
+                'team': obj.team,
+                'objectives': obj.objectives,
+                'turns': obj.turns,
+            }
+
+        if isinstance(obj, GoalMaxTurn):
+            return {
+                'goal': 'GoalMaxTurn',
+                'team': obj.team,
+                'turnMax': obj.turn_max,
+            }
 
         if isinstance(obj, Figure):
             i, j, x, y = cube_to_ijxy(obj.position)

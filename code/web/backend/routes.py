@@ -5,6 +5,7 @@ import uuid
 
 from flask import Blueprint, render_template, make_response, request, jsonify, redirect, send_file
 from flask import current_app as app
+from flask_cors import CORS
 
 from agents import Human, MatchManager, buildMatchManager
 from core.const import BLUE, RED
@@ -15,6 +16,7 @@ from web.backend.utils import scroll, fieldShape, cube_to_ijxy, pzoneToHex, pos_
 logger = logging.getLogger(__name__)
 
 main = Blueprint('main', __name__, template_folder='templates', static_folder='static')
+cors = CORS(app, resources={r'/api/*': {'origins': '*'}})
 
 
 @main.route('/', methods=['GET', 'POST'])
@@ -72,24 +74,15 @@ def index():
     else:
         logger.info(f'New lobby access')
 
-        collect()
-        scenarios = [k for k, v in TMPL_SCENARIOS.items() if 'offline' not in v]
-
-        players = [
-            'Human',
-            'RandomAgent',
-            'GreedyAgent',
-            'AlphaBetaAgent',
-            'AlphaBetaFast1Agent',
-        ]
+        app.collect_config()
 
         response = make_response(
             render_template(
                 'index.html',
                 title='Home | NewTechnoWar',
                 template='game-template',
-                scenarios=scenarios,
-                players=players
+                scenarios=app.scenarios,
+                players=app.players,
             )
         )
         response.delete_cookie('gameId')
@@ -333,3 +326,131 @@ def autoversion_filter(filename):
         return filename
 
     return f'{filename}?v={timestamp}'
+
+
+@main.route('/api/setup/data', methods=['GET'])
+def getSetupData():
+    app.collect_config()
+    data = {
+        'players': app.players,
+        'scenarios': app.scenarios,
+    }
+
+    return jsonify(data), 200
+
+
+@main.route('/api/game/start', methods=['POST'])
+def postGameStart():
+    data: dict = request.json
+    errors: list = []
+    ret_data: dict = {}
+
+    logger.info(f'requested new game with data={data}')
+
+    if app.config['DEBUG']:
+        logger.info('Using debug configuration!')
+        redPlayer = 'GreedyAgent'
+        bluePlayer = 'GreedyAgent'
+        scenario = 'Junction'
+        autoplay = True
+        seed = 0
+        ret_data['debug'] = True
+    else:
+        seed = int(data.get('seed', 0))
+
+        redPlayer = ''
+        bluePlayer = ''
+        scenario = ''
+
+        if 'red' in data and data['red'] in app.players:
+            redPlayer = data['red']
+        else:
+            errors.append("Invalid or missing parameter for player 'red'")
+
+        if 'blue' in data and data['blue'] in app.players:
+            bluePlayer = data['blue']
+        else:
+            errors.append("Invalid or missing parameter for player 'blue'")
+
+        if 'scenario' in data and data['scenario'] in app.scenarios:
+            scenario = data['scenario']
+        else:
+            errors.append("Invalid or missing parameter for 'scenario'")
+
+        autoplay = 'autoplay' in data or redPlayer == 'Human' or bluePlayer == 'Human'
+
+    if errors:
+        return jsonify({"error": errors}), 400
+
+    mm = buildMatchManager(
+        str(uuid.uuid4()),
+        scenario,
+        redPlayer,
+        bluePlayer,
+        seed if seed > 0 else random.randint(1, 1000000000)
+    )
+
+    app.games[mm.gid] = mm
+    app.params[mm.gid] = {
+        'seed': mm.seed,
+        'scenario': scenario,
+        'player': {RED: redPlayer, BLUE: bluePlayer},
+        'autoplay': autoplay,
+    }
+    app.actions[mm.gid] = None
+    ret_data["gameId"] = mm.gid
+    ret_data['params'] = app.params[mm.gid]
+
+    logger.info(f'Created game with gid={mm.gid} with scenario {mm.board.name}')
+
+    return jsonify(ret_data), 200
+
+
+@main.route('/api/game/board/<gameId>')
+def getBoard(gameId: str):
+    try:
+        if not gameId:
+            raise ValueError('GameId is missing!')
+
+        if gameId not in app.games:
+            raise ValueError('GameId not valid.')
+
+        mm: MatchManager = app.games[gameId]
+
+        logger.info(f'Restored game #{gameId} with scenario {mm.board.name}')
+
+        return jsonify({
+            'board': mm.board,
+            'gameId': gameId,
+        }), 200
+
+    except ValueError as ve:
+        logger.error(ve)
+        return jsonify({
+            'error': str(ve),
+        }), 400
+
+
+@main.route('/api/game/state/<gameId>')
+def getState(gameId: str):
+    try:
+        if not gameId:
+            raise ValueError('GameId is missing!')
+
+        if gameId not in app.games:
+            raise ValueError('GameId not registered')
+
+        mm: MatchManager = app.games[gameId]
+
+        logger.info(f'Restored game #{gameId} with scenario {mm.board.name}')
+
+        return jsonify({
+            'state': mm.state,
+            'gameId': gameId,
+        }), 200
+
+    except ValueError as ve:
+        logger.error(ve)
+        return jsonify({
+            'error': str(ve),
+        }), 400
