@@ -13,48 +13,18 @@ export default class Lobby extends React.Component {
     constructor(props) {
         super(props);
 
-        const v = "Please select";
-
         this.state = {
-            players: [v],
-            scenarios: [v],
-            selection: {
-                red: v,
-                blue: v,
-                scenario: v,
-                seed: 0,
-                autoplay: true,
-            },
+            red: this.props.players[0],
+            blue: this.props.players[0],
+            scenario: this.props.scenarios[0],
+            seed: 0,
+            autoplay: true,
         };
-    }
-
-    componentDidMount() {
-        fetch(`${API}/api/setup/data`, { method: "GET" })
-            .then(
-                result => {
-                    return result.json();
-                },
-                error => {
-                    console.error(`Could not get setup data from ${API}: ${error}`);
-                }
-            )
-            .then(
-                data => {
-                    this.setState({
-                        ...this.state,
-                        players: this.state.players.concat(data.players),
-                        scenarios: this.state.scenarios.concat(data.scenarios),
-                    });
-                },
-                error => {
-                    console.error(`Could not read setup data from ${API}: ${error}`)
-                }
-            );
     }
 
     handleSubmit(event) {
         event.preventDefault();
-        this.props.onSubmitting(this.state.selection);
+        this.props.onSubmitting(this.state);
     }
 
     handleInputChange(event) {
@@ -63,7 +33,7 @@ export default class Lobby extends React.Component {
         const name = target.name;
 
         let state = this.state;
-        state.selection[name] = value;
+        state[name] = value;
 
         this.setState(state);
     }
@@ -90,10 +60,10 @@ export default class Lobby extends React.Component {
                             <label className="red" htmlFor="redPlayer">Red team</label>
                             <select id="redPlayer"
                                 name="red"
-                                value={this.state.selection.red}
+                                value={this.state.red}
                                 onChange={e => this.handleInputChange(e)}
                             >
-                                {this.state.players.map((player, i) =>
+                                {this.props.players.map((player, i) =>
                                     <option key={player}>{player}</option>
                                 )}
                             </select>
@@ -102,10 +72,10 @@ export default class Lobby extends React.Component {
                             <select
                                 id="bluePlayer"
                                 name="blue"
-                                value={this.state.selection.blue}
+                                value={this.state.blue}
                                 onChange={e => this.handleInputChange(e)}
                             >
-                                {this.state.players.map((player, i) =>
+                                {this.props.players.map((player, i) =>
                                     <option key={i} value={player}>{player}</option>
                                 )}
                             </select>
@@ -114,10 +84,10 @@ export default class Lobby extends React.Component {
                             <select
                                 id="scenario"
                                 name="scenario"
-                                value={this.state.selection.scenario}
+                                value={this.state.scenario}
                                 onChange={e => this.handleInputChange(e)}
                             >
-                                {this.state.scenarios.map((scenario, i) =>
+                                {this.props.scenarios.map((scenario, i) =>
                                     <option key={i} value={scenario}>{scenario}</option>
                                 )}
                             </select>
@@ -127,7 +97,7 @@ export default class Lobby extends React.Component {
                                 id="randomSeed"
                                 name="seed"
                                 type="number"
-                                value={this.state.selection.seed}
+                                value={this.state.seed}
                                 onChange={e => this.handleInputChange(e)}
                             />
 
@@ -136,7 +106,7 @@ export default class Lobby extends React.Component {
                                 id="autoPlay"
                                 name="autoplay"
                                 type="checkbox"
-                                checked={this.state.selection.autoplay}
+                                checked={this.state.autoplay}
                                 onChange={e => this.handleInputChange(e)}
                             />
 

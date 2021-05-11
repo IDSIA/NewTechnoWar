@@ -1,3 +1,180 @@
 .board {
     overflow: hidden;
 }
+
+
+/* SVGs */
+
+.coord {
+    fill: black;
+    text-anchor: middle;
+    font-size: 3pt;
+}
+
+.hex {
+    stroke: #555555;
+    stroke-width: 0.5pt;
+}
+
+
+/* Game colors */
+
+.terrain:hover {
+    fill: yellow;
+}
+
+.terrain.OPEN_GROUND {
+    fill: #92C060;
+}
+
+.terrain.TREE {
+    fill: #457313;
+}
+
+.terrain.FOREST {
+    fill: #00410B;
+}
+
+.terrain.ROAD {
+    fill: #E3854D;
+}
+
+.terrain.URBAN {
+    fill: #676767;
+}
+
+.terrain.BUILDING {
+    fill: #454545;
+}
+
+.terrain.WOODEN_BUILDING {
+    fill: #A76B11;
+}
+
+.terrain.CONCRETE_BUILDING {
+    fill: #999999;
+}
+
+.content {
+    text-anchor: middle;
+    font-size: 4pt;
+}
+
+
+/* figures */
+
+g.loaded {
+    display: none;
+}
+
+g.loaded.highlight {
+    display: block;
+}
+
+g.unit.red>circle {
+    fill: red;
+}
+
+g.unit.blue>circle {
+    fill: dodgerblue;
+}
+
+g.killed.red>circle {
+    fill: #555555;
+    stroke: darkred;
+    stroke-width: 0.5;
+}
+
+g.killed.blue>circle {
+    fill: #555555;
+    stroke: dodgerblue;
+    stroke-width: 0.5;
+}
+
+g.hit.red>circle {
+    /* this inversion is done on purpose! */
+    stroke: dodgerblue;
+    stroke-width: 1;
+}
+
+g.hit.blue>circle {
+    /* this inversion is done on purpose! */
+    stroke: darkred;
+    stroke-width: 1;
+}
+
+.pz-red {
+    fill: rgba(255, 0, 0, 0.5);
+}
+
+.pz-blue {
+    fill: rgba(30, 144, 255, 0.5);
+}
+
+.highlight {
+    border: 1px solid yellow !important;
+}
+
+g.unit.highlight>circle {
+    fill: yellow !important;
+}
+
+
+/* Actions */
+
+.move>line {
+    stroke: white;
+    stroke-width: 1;
+}
+
+.shoot.lof.red>line {
+    stroke: red;
+    stroke-opacity: 0.5;
+    stroke-width: 2;
+}
+
+.shoot.lof.blue>line {
+    stroke: dodgerblue;
+    stroke-opacity: 0.5;
+    stroke-width: 2;
+}
+
+.shoot.los.red>line {
+    stroke: darkred;
+    stroke-opacity: 0.5;
+    stroke-width: 1;
+}
+
+.shoot.los.blue>line {
+    stroke: darkblue;
+    stroke-opacity: 0.5;
+    stroke-width: 1;
+}
+
+g.shoot g {
+    display: none;
+    /* TODO: implement console or info on map */
+}
+
+g.shoot g>rect {
+    opacity: 0.8;
+    width: 40px;
+    height: 60px;
+}
+
+g.shoot.blue g>rect {
+    fill: dodgerblue;
+}
+
+g.shoot.red g>rect {
+    fill: red;
+}
+
+g.shoot g>text {
+    fill: white;
+    font-size: 4pt;
+}
+
+.hide {
+    display: none;
+}

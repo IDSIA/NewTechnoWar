@@ -4,7 +4,8 @@ import Cockpit from "./Cockpit";
 import Board from "./Board";
 import Panel from "./Panel";
 import Lobby from "./Lobby";
-import { size, middleHeight } from "./GridHex";
+import Config from "./Config";
+import { size, middleHeight } from "../model/CellHex";
 
 import '../styles/game.css';
 
@@ -19,8 +20,17 @@ export default class Game extends React.Component {
 
     constructor(props) {
         super(props);
+
+        const v = "Please select";
+
         this.state = {
+            config: {
+                players: [v],
+                scenarios: [v],
+                terrains: [],
+            },
             showLobby: true,
+            showConfig: false,
             selection: null,
             gid: '',
             cols: 0,
@@ -33,11 +43,48 @@ export default class Game extends React.Component {
     }
 
     componentDidMount() {
-        // TODO: get there data from remote server
-        const cols = test_cols;
-        const rows = test_rows;
+        fetch(`${API}/api/setup/data`, { method: "GET" })
+            .then(
+                result => { return result.json(); },
+                error => { console.error(`Could not get setup data from ${API}: ${error}`); }
+            )
+            .then(
+                data => {
+                    this.setState({
+                        ...this.state,
+                        config: {
+                            players: this.state.config.players.concat(data.players),
+                            scenarios: this.state.config.scenarios.concat(data.scenarios),
+                            terrains: data.terrains,
+                        }
+                    });
+                },
+                error => { console.error(`Could not read setup data from ${API}: ${error}`); }
+            );
+    }
 
-        const cells = this.buildBoard(cols, rows);
+    buildBoard(cols, rows, board) {
+        let cells = Array(cols * rows);
+        let i = 0;
+        for (let x = 0; x < cols; x++) {
+            for (let y = 0; y < rows; y++) {
+                cells[i] = new CellHex(i, x, y, this.state.config.terrains[board.terrain[x][y]]);
+                i++;
+            }
+        }
+
+        return cells;
+    }
+
+    initGame(gid, board, state, selection) {
+        console.log({
+            gid: gid,
+            board: board,
+            state: state,
+        });
+
+        const [cols, rows] = board.shape;
+        const cells = this.buildBoard(cols, rows, board);
 
         let width = 0;
         let height = 0;
@@ -55,6 +102,9 @@ export default class Game extends React.Component {
 
         this.setState({
             ...this.state,
+            selection: selection,
+            showLobby: false,
+            gid: gid,
             cols: cols,
             rows: rows,
             cells: cells,
@@ -63,21 +113,12 @@ export default class Game extends React.Component {
         });
     }
 
-    buildBoard(cols, rows) {
-        let cells = Array(cols * rows);
-        let i = 0;
-        for (let x = 0; x < cols; x++) {
-            for (let y = 0; y < rows; y++) {
-                cells[i] = new CellHex(i, x, y);
-                i++;
-            }
-        }
-
-        return cells;
-    }
-
     handleLobbyStart(selection) {
         let gameId = null;
+        let gameState = null;
+        let gameBoard = null;
+
+        // get game id
         fetch(`${API}/api/game/start`, {
             method: "POST",
             headers: {
@@ -87,36 +128,60 @@ export default class Game extends React.Component {
             body: JSON.stringify(selection),
         })
             .then(
-                result => {
-                    return result.json();
-                },
-                error => {
-                    console.error(`could not get game start data from ${API}: ${error}`);
-                }
+                result => { return result.json(); },
+                error => { console.error(`could not get game id data from ${API}: ${error}`); }
             )
             .then(
                 result => {
                     gameId = result.gameId;
                     console.log(`received game-id=${gameId}`);
-
-                    this.setState({
-                        ...this.state,
-                        showLobby: false,
-                        selection: selection,
-                        gid: gameId,
-                    });
                 },
-                error => {
-                    console.error(`no game-id received`);
+                error => { console.error(`no game-id received: ${error}`); }
+            )
+            .then(
+                // load board
+                () => {
+                    fetch(`${API}/api/game/board/${gameId}`, { method: "GET", headers: { 'Accept': 'application/json' } })
+                        .then(
+                            result => { return result.json(); },
+                            error => { console.error(`could not get game board data from ${API}: ${error}`); }
+                        )
+                        .then(
+                            data => { gameBoard = data.board; },
+                            error => { console.error(`no game board received: ${error}`); }
+                        )
+                        .then(
+                            // load state
+                            () => {
+                                fetch(`${API}/api/game/state/${gameId}`, { method: "GET", headers: { 'Accept': 'application/json' } })
+                                    .then(
+                                        result => { return result.json() },
+                                        error => { console.error(`could not get game state data from ${API}: ${error}`); }
+                                    )
+                                    .then(
+                                        data => { gameState = data.state; },
+                                        error => { console.error(`no game state received: ${error}`); }
+                                    )
+                                    .then(() => this.initGame(gameId, gameBoard, gameState, selection))
+                            }
+                        );
                 }
             );
     }
 
     render() {
+        if (this.state.showConfig)
+            return (
+                <div>
+                    <Config />
+                </div>
+            );
         if (this.state.showLobby)
             return (
                 <div>
                     <Lobby
+                        players={this.state.config.players}
+                        scenarios={this.state.config.scenarios}
                         onSubmitting={(selection) => this.handleLobbyStart(selection)}
                     />
                 </div>

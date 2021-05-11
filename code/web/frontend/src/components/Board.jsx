@@ -38,7 +38,7 @@ export default class Board extends React.Component {
                 width: props.width,
                 height: props.height,
             },
-            isDragging: false,
+            isDown: false,
             didMove: false,
             lastMouse: null,
             selected: null,
@@ -97,13 +97,13 @@ export default class Board extends React.Component {
     }
 
     handleClick(event, cell) {
-        if (this.state.isDragging && !this.state.didMove) {
+        if (this.state.isDown && !this.state.didMove) {
             // selection click
             console.log(cell);
             this.setState({
                 ...this.state,
                 selected: cell,
-                isDragging: false,
+                isDown: false,
                 didMove: false,
                 lastMouse: { x: event.screenX, y: event.screenY },
             });
@@ -111,33 +111,33 @@ export default class Board extends React.Component {
     }
 
     handleMouseDown(event) {
-        if (!this.state.isDragging) {
+        if (!this.state.isDown) {
             this.setState({
                 ...this.state,
-                isDragging: true,
+                isDown: true,
                 lastMouse: { x: event.screenX, y: event.screenY },
             });
         }
     }
 
     handleMouseUp(event, cell) {
-        if (this.state.isDragging) {
+        if (this.state.isDown) {
             // dragging mouse
             this.setState({
                 ...this.state,
                 didMove: false,
-                isDragging: false,
+                isDown: false,
                 lastMouse: { x: event.screenX, y: event.screenY },
             });
         }
     }
 
     handleMouseLeave(event) {
-        if (this.state.isDragging) {
+        if (this.state.isDown) {
             this.setState({
                 ...this.state,
                 didMove: false,
-                isDragging: false,
+                isDown: false,
                 lastMouse: null,
             });
         }
@@ -147,7 +147,7 @@ export default class Board extends React.Component {
         const x = event.screenX;
         const y = event.screenY;
         if (
-            this.state.isDragging
+            this.state.isDown
             &&
             this.passedClickThreshold(x, y)
         ) {
@@ -162,7 +162,7 @@ export default class Board extends React.Component {
             this.setState({
                 ...this.state,
                 didMove: true,
-                isDragging: true,
+                isDown: true,
                 viewport: {
                     x: viewport_x,
                     y: viewport_y,
@@ -186,19 +186,22 @@ export default class Board extends React.Component {
                 >
                     <svg
                         width={this.gridWidth()}
-                        height={this.gridHeight()}
-                        onMouseDown={event => this.handleMouseDown(event)}
-                        onMouseUp={event => this.handleMouseUp(event)}
-                        onMouseLeave={event => this.handleMouseLeave(event)}
-                        onMouseMove={event => this.handleMouseMove(event)}
-                    >
-                        {this.props.cells.map(cell =>
-                            <GridHex
-                                key={cell.id}
-                                cell={cell}
-                                onMouseUp={(event, cell) => this.handleClick(event, cell)}
-                            />
-                        )}
+                        height={this.gridHeight()}>
+                        <g
+                            id="g-board"
+                            onMouseDown={event => this.handleMouseDown(event)}
+                            onMouseUp={event => this.handleMouseUp(event)}
+                            onMouseLeave={event => this.handleMouseLeave(event)}
+                            onMouseMove={event => this.handleMouseMove(event)}
+                        >
+                            {this.props.cells.map(cell =>
+                                <GridHex
+                                    key={cell.id}
+                                    cell={cell}
+                                    onMouseUp={(event, cell) => this.handleClick(event, cell)}
+                                />
+                            )}
+                        </g>
                     </svg>
                 </Transform>
             </div>
