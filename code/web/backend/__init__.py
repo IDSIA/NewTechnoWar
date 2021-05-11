@@ -3,7 +3,7 @@ import logging
 
 from flask import Flask
 
-from core.templates import collect, TMPL_SCENARIOS
+from core.templates import collect, TMPL_SCENARIOS, TMPL_TERRAIN_TYPE
 from web.backend.config import conf
 from web.backend.utils.serializer import GameJSONEncoder
 
@@ -25,16 +25,22 @@ def create_app():
 
     # list of all available agents
     app.players = [
-        'Human', # this should be "interactive"
+        'Human',  # this should be "interactive"
         'RandomAgent',
         'GreedyAgent',
         'AlphaBetaAgent',
         'AlphaBetaFast1Agent',
     ]
 
+    # parameters for games
+    app.games = dict()
+    app.params = dict()
+    app.actions = dict()
+    app.terrains = dict()
+    app.scenarios = list()
+
     # this is for the control of data collection
     app.collecting = False
-    app.scenarios = []
 
     def collect_config():
         if app.collecting:
@@ -44,17 +50,13 @@ def create_app():
         try:
             collect()
             app.scenarios = [k for k, v in TMPL_SCENARIOS.items() if 'offline' not in v]
+            app.terrains = {v['level']: v for k, v in TMPL_TERRAIN_TYPE.items()}
         except Exception as e:
             logger.error(f'could not collect configuration! {e}')
         finally:
             app.collecting = False
 
     app.collect_config = collect_config
-
-    # parameters for games
-    app.games = dict()
-    app.params = dict()
-    app.actions = dict()
 
     with app.app_context():
         # Import parts of our application

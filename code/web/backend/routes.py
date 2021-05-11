@@ -334,6 +334,7 @@ def getSetupData():
     data = {
         'players': app.players,
         'scenarios': app.scenarios,
+        'terrains': app.terrains,
     }
 
     return jsonify(data), 200
