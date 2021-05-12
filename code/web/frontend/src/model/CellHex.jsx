@@ -1,4 +1,4 @@
-export const size = 20;
+export const size = 15;
 export const middleHeight = size * Math.sqrt(3) / 2;
 
 function offset(center, size, i) {
@@ -27,14 +27,11 @@ export default class CellHex {
         this.center.x = size + size * 3 / 2 * x;
         this.center.y = 2 * size + size * Math.sqrt(3) * (y - 0.5 * (x & 1));
 
-        this.points = [
-            offset(this.center, size, 0),
-            offset(this.center, size, 1),
-            offset(this.center, size, 2),
-            offset(this.center, size, 3),
-            offset(this.center, size, 4),
-            offset(this.center, size, 5),
-        ]
+        this.points = []
+
+        for (let i = 0; i < 6; i++) {
+            this.points.push(offset(this.center, size, i));
+        }
     }
 
 }
