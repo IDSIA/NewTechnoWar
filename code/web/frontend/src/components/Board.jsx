@@ -1,26 +1,10 @@
 import React from "react";
 import GridHex from "./GridHex";
 import "../styles/board.css";
+import { pointRadial } from "d3-shape";
 
 const clickThreshold = 1;
 
-
-class Transform extends React.Component {
-    render() {
-        const x = this.props.x;
-        const y = this.props.y;
-        return (
-            <div
-                className="viewport"
-                style={{
-                    transform: `translate3d(${x}px, ${y}px, 0)`
-                }}
-            >
-                {this.props.children}
-            </div>
-        );
-    }
-}
 
 export default class Board extends React.Component {
 
@@ -28,11 +12,15 @@ export default class Board extends React.Component {
         super(props)
 
         this.container = React.createRef();
+        this.svg = React.createRef();
+        this.point = null;
 
         this.state = {
+            scale: 2,
+            viewBox: { x: 0, y: 0, width: 0, height: 0 },
             viewport: {
-                x: 0, // this.screenBoundX(width / 2 - x, cols),
-                y: 0, // this.screenBoundY(height / 2 - y, rows),
+                x: 0,
+                y: 0,
             },
             grid: {
                 width: props.width,
@@ -40,9 +28,21 @@ export default class Board extends React.Component {
             },
             isDown: false,
             didMove: false,
-            lastMouse: null,
+            point: null,
             selected: null,
         };
+    }
+
+    componentDidMount() {
+        this.setState({
+            ...this.state,
+            viewBox: {
+                x: 0,
+                y: 0,
+                width: this.container.offsetWidth * this.state.scale,
+                height: this.container.offsetHeight * this.state.scale,
+            },
+        });
     }
 
     screenBoundX(x) {
@@ -85,15 +85,21 @@ export default class Board extends React.Component {
         return this.props.height;
     }
 
-    passedClickThreshold(x, y) {
-        const lastMouse = this.state.lastMouse;
-        if (!lastMouse || !event)
-            return false;
 
-        return (
-            Math.abs(lastMouse.x - x) > clickThreshold ||
-            Math.abs(lastMouse.y - y) > clickThreshold
-        );
+    getPointerFromEvent(event) {
+        let point = this.svg.createSVGPoint();
+
+        if (event.targetTouches) {
+            point.x = event.targetTouches[0].clientX;
+            point.y = event.targetTouches[0].clientY;
+        } else {
+            point.x = event.screenX;
+            point.y = event.screenY;
+        }
+
+        const invertedSVGMatrix = this.svg.getScreenCTM().inverse();
+
+        return point.matrixTransform(invertedSVGMatrix);
     }
 
     handleClick(event, cell) {
@@ -105,7 +111,7 @@ export default class Board extends React.Component {
                 selected: cell,
                 isDown: false,
                 didMove: false,
-                lastMouse: { x: event.screenX, y: event.screenY },
+                point: this.getPointerFromEvent(event),
             });
         }
     }
@@ -115,7 +121,7 @@ export default class Board extends React.Component {
             this.setState({
                 ...this.state,
                 isDown: true,
-                lastMouse: { x: event.screenX, y: event.screenY },
+                point: this.getPointerFromEvent(event),
             });
         }
     }
@@ -127,7 +133,7 @@ export default class Board extends React.Component {
                 ...this.state,
                 didMove: false,
                 isDown: false,
-                lastMouse: { x: event.screenX, y: event.screenY },
+                point: this.getPointerFromEvent(event),
             });
         }
     }
@@ -138,41 +144,37 @@ export default class Board extends React.Component {
                 ...this.state,
                 didMove: false,
                 isDown: false,
-                lastMouse: null,
+                point: null,
             });
         }
     }
 
     handleMouseMove(event) {
-        const x = event.screenX;
-        const y = event.screenY;
-        if (
-            this.state.isDown
-            &&
-            this.passedClickThreshold(x, y)
-        ) {
-            const state = this.state;
+        if (!this.state.isDown)
+            return;
 
-            const viewport_x = this.screenBoundX(state.viewport.x + x - state.lastMouse.x);
-            const viewport_y = this.screenBoundY(state.viewport.y + y - state.lastMouse.y);
+        event.preventDefault();
 
-            if (viewport_x === this.state.viewport.x && viewport_y === this.state.viewport.y)
-                return
+        let position = this.getPointerFromEvent(event);
 
-            this.setState({
-                ...this.state,
-                didMove: true,
-                isDown: true,
-                viewport: {
-                    x: viewport_x,
-                    y: viewport_y,
-                },
-                lastMouse: {
-                    x: x,
-                    y: y,
-                },
-            });
-        }
+        let viewBox = this.svg.viewBox.baseVal;
+
+        const x = viewBox.x - (position.x - this.state.point.x);
+        const y = viewBox.y - (position.y - this.state.point.y);
+
+        this.setState({
+            ...this.state,
+            viewBox: {
+                x: x,
+                y: y,
+                width: this.state.viewBox.width,
+                height: this.state.viewBox.height,
+            },
+            didMove: true,
+            isDown: true,
+            point: position,
+        });
+
     }
 
     render() {
@@ -180,30 +182,28 @@ export default class Board extends React.Component {
             <div className="board"
                 ref={e => this.container = e}
             >
-                <Transform
-                    x={this.state.viewport.x}
-                    y={this.state.viewport.y}
+                <svg id="svgy"
+                    ref={e => this.svg = e}
+
+                    viewBox={`${this.state.viewBox.x} ${this.state.viewBox.y} ${this.state.viewBox.width} ${this.state.viewBox.height} `}
+
+                    width={this.gridWidth()}
+                    height={this.gridHeight()}
+                    onMouseDown={event => this.handleMouseDown(event)}
+                    onMouseUp={event => this.handleMouseUp(event)}
+                    onMouseLeave={event => this.handleMouseLeave(event)}
+                    onMouseMove={event => this.handleMouseMove(event)}
                 >
-                    <svg
-                        width={this.gridWidth()}
-                        height={this.gridHeight()}>
-                        <g
-                            id="g-board"
-                            onMouseDown={event => this.handleMouseDown(event)}
-                            onMouseUp={event => this.handleMouseUp(event)}
-                            onMouseLeave={event => this.handleMouseLeave(event)}
-                            onMouseMove={event => this.handleMouseMove(event)}
-                        >
-                            {this.props.cells.map(cell =>
-                                <GridHex
-                                    key={cell.id}
-                                    cell={cell}
-                                    onMouseUp={(event, cell) => this.handleClick(event, cell)}
-                                />
-                            )}
-                        </g>
-                    </svg>
-                </Transform>
+                    <g id="g-board" >
+                        {this.props.cells.map(cell =>
+                            <GridHex
+                                key={cell.id}
+                                cell={cell}
+                                onMouseUp={(event, cell) => this.handleClick(event, cell)}
+                            />
+                        )}
+                    </g>
+                </svg>
             </div>
         );
     }

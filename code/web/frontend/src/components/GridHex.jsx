@@ -17,7 +17,7 @@ export default class GridHex extends React.Component {
                 <path
                     className={`terrain ${cell.terrain.key}`}
                     d={line().curve(curveLinearClosed)(cell.points)}
-                    stroke='black'
+                    stroke='#222222'
                 />
                 {/* TODO: on hover show text */}
                 {/* <text

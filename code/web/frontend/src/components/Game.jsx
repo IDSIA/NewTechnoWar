@@ -13,9 +13,6 @@ const API = process.env.API_URL;
 
 
 
-const test_cols = 4;
-const test_rows = 5;
-
 export default class Game extends React.Component {
 
     constructor(props) {
