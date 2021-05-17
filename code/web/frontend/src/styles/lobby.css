@@ -1,3 +1,7 @@
+body {
+    background-color: white;
+}
+
 #lobby-page {
     color: black;
     background-color: #fefeff;
@@ -49,7 +53,7 @@
 
 .block {
     grid-column: 2;
-    padding: 2em;
+    padding: 1em;
     background-color: #efefff;
     border-radius: 2em;
     border: 1px solid dodgerblue;
@@ -96,7 +100,7 @@
 
 .lobby {
     display: grid;
-    grid-template-columns: 37% auto;
+    grid-template-columns: auto 27em;
     grid-template-rows: auto;
 }
 
@@ -157,4 +161,12 @@ input#replay {
 
 label[for=replay] {
     display: none;
+}
+
+img#map {
+    border: none;
+    grid-column: 2;
+    width: 18em;
+    padding: 0;
+    margin: 0;
 }

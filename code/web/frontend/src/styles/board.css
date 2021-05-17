@@ -61,7 +61,7 @@
 }
 
 
-/* figures */
+/* figures markers */
 
 g.loaded {
     display: none;
@@ -71,12 +71,22 @@ g.loaded.highlight {
     display: block;
 }
 
-g.unit.red>circle {
+g.unit.red>circle.color {
     fill: red;
 }
 
-g.unit.blue>circle {
+g.unit.blue>circle.color {
     fill: dodgerblue;
+}
+
+g.unit.infantry>circle {
+    -webkit-mask: url('../images/infantry.png');
+    mask: url('../images/infantry.png');
+}
+
+g.unit.vehicle>circle {
+    -webkit-mask: url('../images/vehicle.png');
+    mask: url('../images/vehicle.png');
 }
 
 g.killed.red>circle {

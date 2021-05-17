@@ -9,7 +9,7 @@ from core.game import GameBoard, GoalEliminateOpponent, GoalReachPoint, GoalDefe
 from core.game.outcome import Outcome
 from core.game.state import GameState
 from core.utils.coordinates import Cube
-from web.backend.utils import cube_to_ijxy, cube_to_dict
+from web.backend.utils import cube_to_dict
 
 
 class GameJSONEncoder(JSONEncoder):
@@ -50,7 +50,7 @@ class GameJSONEncoder(JSONEncoder):
 
         if isinstance(obj, GoalEliminateOpponent):
             return {
-                'goal':'GoalEliminateOpponent',
+                'goal': 'GoalEliminateOpponent',
                 'team': obj.team,
                 'hostiles': obj.hostiles,
             }
@@ -79,7 +79,7 @@ class GameJSONEncoder(JSONEncoder):
             }
 
         if isinstance(obj, Figure):
-            i, j, x, y = cube_to_ijxy(obj.position)
+            x, y = obj.position.tuple()
             return {
                 'id': obj.fid,
                 'team': obj.team,
@@ -100,8 +100,6 @@ class GameJSONEncoder(JSONEncoder):
                 'bonus': obj.bonus,
                 'x': x,
                 'y': y,
-                'i': i,
-                'j': j,
                 'activated': obj.activated,
                 'responded': obj.responded,
                 'attacked': obj.attacked,

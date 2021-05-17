@@ -34,6 +34,7 @@ export default class Game extends React.Component {
             rows: 0,
             cells: [],
             figures: { red: [], blue: [] },
+            markers: [],
             width: 0,
             height: 0,
         };
@@ -65,6 +66,8 @@ export default class Game extends React.Component {
         let i = 0;
         for (let x = 0; x < cols; x++) {
             for (let y = 0; y < rows; y++) {
+                if (x == 8 && y == 17)
+                    console.log({ i: i, cols: cols, rows: rows, c: x * rows + y })
                 cells[i] = new CellHex(i, x, y, this.state.config.terrains[board.terrain[x][y]]);
                 i++;
             }
@@ -74,12 +77,6 @@ export default class Game extends React.Component {
     }
 
     initGame(gid, board, state, selection) {
-        console.log({
-            gid: gid,
-            board: board,
-            state: state,
-        });
-
         const [cols, rows] = board.shape;
         const cells = this.buildBoard(cols, rows, board);
 
@@ -97,6 +94,17 @@ export default class Game extends React.Component {
             ].center;
         }
 
+        let markers = []
+        let figureToMarker = (f) => {
+            const i = f.x * rows + f.y
+            markers.push({
+                figure: f,
+                cell: cells[i],
+            })
+        }
+        state.figures.red.forEach(figureToMarker)
+        state.figures.blue.forEach(figureToMarker)
+
         this.setState({
             ...this.state,
             selection: selection,
@@ -105,6 +113,11 @@ export default class Game extends React.Component {
             cols: cols,
             rows: rows,
             cells: cells,
+            figures: {
+                red: state.figures.red,
+                blue: state.figures.blue,
+            },
+            markers: markers,
             width: width,
             height: height,
         });
@@ -169,25 +182,23 @@ export default class Game extends React.Component {
     render() {
         if (this.state.showConfig)
             return (
-                <div>
-                    <Config />
-                </div>
+                <Config />
             );
         if (this.state.showLobby)
             return (
-                <div>
-                    <Lobby
-                        players={this.state.config.players}
-                        scenarios={this.state.config.scenarios}
-                        onSubmitting={(selection) => this.handleLobbyStart(selection)}
-                    />
-                </div>
+                <Lobby
+                    players={this.state.config.players}
+                    scenarios={this.state.config.scenarios}
+
+                    onSubmitting={(selection) => this.handleLobbyStart(selection)}
+                />
             );
         return (
             <div id="game">
                 <Cockpit />
                 <Panel
                     team='red'
+                    agent={this.state.selection.red}
                     figures={this.state.figures.red}
                 />
                 <Board
@@ -195,11 +206,13 @@ export default class Game extends React.Component {
                     rows={this.state.rows}
                     cells={this.state.cells}
                     figures={this.state.figures}
+                    markers={this.state.markers}
                     width={this.state.width}
                     height={this.state.height}
                 />
                 <Panel
                     team='blue'
+                    agent={this.state.selection.blue}
                     figures={this.state.figures.blue}
                 />
             </div>

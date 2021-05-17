@@ -146,19 +146,19 @@ h1.player-pass:hover {
     text-align: center;
 }
 
-.uTitleHP {
+.uTitle.HP {
     grid-column-start: stat1;
 }
 
-.uTitleMove {
+.uTitle.Move {
     grid-column-start: stat2;
 }
 
-.uTitleLoad {
+.uTitle.Load {
     grid-column-start: stat3;
 }
 
-.uTitleWeapons {
+.uTitle.Weapons {
     grid-column-start: weapons;
 }
 
@@ -189,14 +189,21 @@ h1.player-pass:hover {
 
 .uWeapons {
     display: grid;
-    grid-template-columns: 2em 2.2em 2em 2.2em;
+    grid-template-columns: 4em 4em;
     grid-template-rows: 1fr 1fr 1fr;
     row-gap: 0.2em;
-    justify-items: stretch;
-    align-items: stretch;
+    column-gap: 0.2em;
     grid-column-start: weapons;
     grid-row-start: top;
     grid-row-end: span 3;
+}
+
+.weapon {
+    display: flex;
+}
+
+.weapon>div {
+    width: 2em;
 }
 
 .empty {
@@ -222,7 +229,7 @@ h1.player-pass:hover {
     color: white;
 }
 
-.weapon.image {
+.weapon>.image {
     background-image: url('../images/weapons.png');
     background-size: auto 85%;
     background-color: #666666;
@@ -230,39 +237,42 @@ h1.player-pass:hover {
     background-repeat: no-repeat;
     overflow: hidden;
     display: block;
+    width: 2em;
 }
 
-.weapon.image:hover,
+.weapon:hover,
+.weapon:hover>.image,
 .weapon.highlight {
     background-color: cyan;
+    color: black;
     cursor: pointer;
 }
 
-.weapon.image.wCA {
+.weapon>.image.wCA {
     background-position: 1%;
 }
 
-.weapon.image.wAR {
+.weapon>.image.wAR {
     background-position: 18%;
 }
 
-.weapon.image.wMG {
+.weapon>.image.wMG {
     background-position: 35%;
 }
 
-.weapon.image.wAT {
+.weapon>.image.wAT {
     background-position: 48%;
 }
 
-.weapon.image.wMT {
+.weapon>.image.wMT {
     background-position: 62%;
 }
 
-.weapon.image.wGR {
+.weapon>.image.wGR {
     background-position: 76%;
 }
 
-.weapon.image.wSG {
+.weapon>.image.wSG {
     background-position: 94%;
 }
 

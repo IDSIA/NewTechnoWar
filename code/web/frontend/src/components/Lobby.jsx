@@ -39,6 +39,12 @@ export default class Lobby extends React.Component {
     }
 
     render() {
+        let map = '';
+        if (this.state.scenario !== this.props.scenarios[0]) {
+            map = (
+                <img id="map" src={`${API}/config/scenario/${this.state.scenario}`} />
+            )
+        }
         return (
             <div id="lobby-page">
                 <div className="title">
@@ -91,6 +97,8 @@ export default class Lobby extends React.Component {
                                     <option key={i} value={scenario}>{scenario}</option>
                                 )}
                             </select>
+
+                            {map}
 
                             <label htmlFor="randomSeed">Random seed</label>
                             <input
