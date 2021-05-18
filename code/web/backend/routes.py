@@ -7,7 +7,7 @@ from flask import Blueprint, render_template, make_response, request, jsonify, r
 from flask import current_app as app
 from flask_cors import CORS
 
-from agents import Human, MatchManager, buildMatchManager
+from agents import  Agent, Human, MatchManager, buildMatchManager
 from core.const import BLUE, RED
 from core.templates import *
 from web.backend.images import board2png, scenario2png
@@ -300,7 +300,9 @@ def gameHumanClick():
     team = data['team']
 
     try:
-        player: Human = mm.getPlayer(team)
+        player: Agent = mm.getPlayer(team)
+        if not isinstance(player, Human):
+            raise ValueError('player is not controllable')
         player.nextAction(mm.board, mm.state, data)
 
         ret = {}
@@ -334,7 +336,6 @@ def getSetupData():
     data = {
         'players': app.players,
         'scenarios': app.scenarios,
-        'terrains': app.terrains,
     }
 
     return jsonify(data), 200
@@ -399,16 +400,98 @@ def postGameStart():
         'autoplay': autoplay,
     }
     app.actions[mm.gid] = None
-    ret_data["gameId"] = mm.gid
+    ret_data['gameId'] = mm.gid
     ret_data['params'] = app.params[mm.gid]
+    ret_data['terrains'] = app.terrains
 
     logger.info(f'Created game with gid={mm.gid} with scenario {mm.board.name}')
 
     return jsonify(ret_data), 200
 
 
+@main.route('/api/game/reset/<gameId>', methods=['POST'])
+def getGameReset(gameId: str):
+    try:
+        if not gameId:
+            raise ValueError('GameId is missing!')
+
+        if gameId not in app.games:
+            raise ValueError('GameId not valid.')
+
+        mm: MatchManager = app.games[gameId]
+        mm.reset()
+
+        logger.info(f'Reset game #{gameId} with scenario {mm.board.name}')
+
+        return jsonify({
+            'gameId': gameId
+        }), 200
+
+    except ValueError as ve:
+        logger.error(ve)
+        return jsonify({
+            'error': str(ve),
+        }), 400
+
+
+@main.route('/api/game/step/<gameId>', methods=['POST'])
+def getGameStep(gameId: str):
+    # TODO: step forward and backward? Maybe play the whole game first or in parallel?
+    try:
+        if not gameId:
+            raise ValueError('GameId is missing!')
+
+        if gameId not in app.games:
+            raise ValueError('GameId not valid.')
+
+        mm: MatchManager = app.games[gameId]
+        mm.nextStep()
+
+        return getGameState(gameId)
+
+    except ValueError as ve:
+        logger.error(ve)
+        return jsonify({
+            'error': str(ve),
+        }), 400
+
+
+@main.route('/api/game/action/<gameId>', methods=['POST'])
+def getGameAction(gameId: str):
+    try:
+        if not gameId:
+            raise ValueError('GameId is missing!')
+
+        if gameId not in app.games:
+            raise ValueError('GameId not valid.')
+
+        mm: MatchManager = app.games[gameId]
+
+        data: dict = request.json
+        team = data['team']
+
+        player: Agent = mm.getPlayer(team)
+
+        if not isinstance(player, Human):
+            raise ValueError('Action for not an interactive player')
+
+        player.nextAction(mm.board, mm.state, data)
+
+        # TODO: return something informative
+
+        return jsonify({
+            'gameId': gameId,
+        }), 200
+
+    except ValueError as ve:
+        logger.error(ve)
+        return jsonify({
+            'error': str(ve),
+        }), 400
+
+
 @main.route('/api/game/board/<gameId>')
-def getBoard(gameId: str):
+def getGameBoard(gameId: str):
     try:
         if not gameId:
             raise ValueError('GameId is missing!')
@@ -433,7 +516,7 @@ def getBoard(gameId: str):
 
 
 @main.route('/api/game/state/<gameId>')
-def getState(gameId: str):
+def getGameState(gameId: str):
     try:
         if not gameId:
             raise ValueError('GameId is missing!')
@@ -442,12 +525,33 @@ def getState(gameId: str):
             raise ValueError('GameId not registered')
 
         mm: MatchManager = app.games[gameId]
+        nxt = mm.nextPlayerDict()
+
+        lastAction = None
+        lastOutcome = None
+
+        if not mm.update and len(mm.actions_history) > 0:
+            lastAction = mm.actions_history[-1]
+            lastOutcome = mm.outcome[-1]
 
         logger.info(f'Restored game #{gameId} with scenario {mm.board.name}')
 
         return jsonify({
-            'state': mm.state,
             'gameId': gameId,
+            'state': mm.state,
+            'meta': {
+                'next': {
+                    'step': nxt['step'],
+                    'player': nxt['player'],
+                    'interactive': nxt['isHuman'],
+                },
+                'end': mm.end,
+                'winner': mm.winner,
+                'update': mm.update,
+                'action': lastAction,
+                'outcome': lastOutcome,
+                'interactive': mm.humans,
+            }
         }), 200
 
     except ValueError as ve:
