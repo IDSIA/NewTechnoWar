@@ -1,4 +1,4 @@
-export const size = 15
+export const size = 20
 export const middleHeight = size * Math.sqrt(3) / 2
 
 function offset(center, size, i) {

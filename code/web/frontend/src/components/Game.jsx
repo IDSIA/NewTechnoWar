@@ -1,97 +1,84 @@
-import React from "react";
-import CellHex from "../model/CellHex";
-import Cockpit from "./Cockpit";
-import Board from "./Board";
-import Panel from "./Panel";
-import Lobby from "./Lobby";
-import Config from "./Config";
-import { size, middleHeight } from "../model/CellHex";
+import React from "react"
+import CellHex from "../model/CellHex"
+import Cockpit from "./Cockpit"
+import Board from "./Board"
+import Panel from "./Panel"
+import Lobby from "./Lobby"
+import Config from "./Config"
+import { size, middleHeight } from "../model/CellHex"
 
-import '../styles/game.css';
+import '../styles/game.css'
 
-const API = process.env.API_URL;
+const API = process.env.API_URL
 
 
 
 export default class Game extends React.Component {
 
     constructor(props) {
-        super(props);
-
-        const v = "Please select";
+        super(props)
 
         this.state = {
-            config: {
-                players: [v],
-                scenarios: [v],
-                terrains: [],
-            },
             showLobby: true,
             showConfig: false,
+            initialized: false,
+            end: false,
             selection: null,
-            gid: '',
+            params: null,
+            gameId: '',
             cols: 0,
             rows: 0,
             cells: [],
             figures: { red: [], blue: [] },
             markers: [],
+            turn: 0,
             width: 0,
             height: 0,
-        };
+            log: '',
+        }
     }
 
     componentDidMount() {
-        fetch(`${API}/api/setup/data`, { method: "GET" })
-            .then(
-                result => { return result.json(); },
-                error => { console.error(`Could not get setup data from ${API}: ${error}`); }
-            )
-            .then(
-                data => {
-                    this.setState({
-                        ...this.state,
-                        config: {
-                            players: this.state.config.players.concat(data.players),
-                            scenarios: this.state.config.scenarios.concat(data.scenarios),
-                            terrains: data.terrains,
-                        }
-                    });
-                },
-                error => { console.error(`Could not read setup data from ${API}: ${error}`); }
-            );
+        window.onkeyup = (e) => this.handleKeyUp(e, this)
     }
 
-    buildBoard(cols, rows, board) {
-        let cells = Array(cols * rows);
-        let i = 0;
+    buildBoard(cols, rows, board, terrains) {
+        let cells = Array(cols * rows)
+        let i = 0
         for (let x = 0; x < cols; x++) {
             for (let y = 0; y < rows; y++) {
-                if (x == 8 && y == 17)
-                    console.log({ i: i, cols: cols, rows: rows, c: x * rows + y })
-                cells[i] = new CellHex(i, x, y, this.state.config.terrains[board.terrain[x][y]]);
-                i++;
+                cells[i] = new CellHex(i, x, y, terrains[board.terrain[x][y]])
+                i++
             }
         }
 
-        return cells;
+        return cells
     }
 
-    initGame(gid, board, state, selection) {
-        const [cols, rows] = board.shape;
-        const cells = this.buildBoard(cols, rows, board);
+    appendLine(content, text, newLine = true) {
+        if (this.state.end)
+            return content
+        if (newLine)
+            text = '\n' + text
+        return content + text
+    }
 
-        let width = 0;
-        let height = 0;
+    initGame(gameId, params, terrains, board, state, selection) {
+        const [cols, rows] = board.shape
+        const cells = this.buildBoard(cols, rows, board, terrains)
+
+        let width = 0
+        let height = 0
         if (cells.length > 0) {
-            const last_cell = cells[cells.length - 1];
-            width = last_cell.center.x + size;
-            height = last_cell.center.y + 5 * middleHeight / 2;
+            const last_cell = cells[cells.length - 1]
+            width = last_cell.center.x + size
+            height = last_cell.center.y + 5 * middleHeight / 2
 
             // TODO: center on unit or center-map if too small
 
             const { x, y } = cells[
                 Math.floor(cols * rows / 2) + Math.floor(rows / 2)
-            ].center;
+            ].center
         }
 
         let markers = []
@@ -105,11 +92,18 @@ export default class Game extends React.Component {
         state.figures.red.forEach(figureToMarker)
         state.figures.blue.forEach(figureToMarker)
 
+        let content = `Seed:        ${params.seed}\nScenario:    ${params.scenario}\nPlayer red:  ${params.player.red}\nPlayer blue: ${params.player.blue}`
+
+        if (params.autoplay)
+            console.log('Autoplay enabled')
+
         this.setState({
             ...this.state,
+            params: params,
             selection: selection,
             showLobby: false,
-            gid: gid,
+            initialized: true,
+            gameId: gameId,
             cols: cols,
             rows: rows,
             cells: cells,
@@ -117,18 +111,114 @@ export default class Game extends React.Component {
                 red: state.figures.red,
                 blue: state.figures.blue,
             },
+            turn: state.turn,
             markers: markers,
             width: width,
             height: height,
-        });
+            log: content,
+        })
+    }
+
+    checkNextPlayer(meta) {
+        // TODO:
+    }
+
+    step() {
+        if (!this.state.initialized)
+            return
+
+        fetch(`${API}/api/game/step/${this.state.gameId}`, {
+            method: "POST",
+            headers: { "Accept": "application/json" }
+        })
+            .then(
+                result => { return result.json() },
+                error => { console.error(`could not execute step from${API}: ${error}`) }
+            )
+            .then(
+                result => { this.handleUpdate(result) },
+                error => { console.error(`no game state received: ${error}`) }
+            )
+    }
+
+    handleUpdate(data) {
+        if (this.state.end) {
+            // game already ended
+            return
+        }
+
+        let s = this.state
+        const meta = data.meta
+        const state = data.state
+
+        if (meta.end) {
+            // game ended this step
+            console.log('end game')
+            s.end = true
+            s.log = s.log + `\n${meta.winner.toUpperCase()} wins!`
+        }
+
+        const action = meta.action
+        if (action === null) {
+            // no actions performed
+            console.log('no actions')
+            s.log = s.log + `${meta.curr.player.toUpperCase().padEnd(5, " ")}: No actions as ${meta.curr.step}`
+            this.checkNextPlayer(meta)
+            this.setState(s)
+            return
+        }
+
+        // check performed action
+
+        console.log(`step: ${action.team} + ${action.action}`)
+
+        switch (action.action) {
+            case 'Move':
+                this.move(s, data);
+                break;
+            case 'Respond':
+                this.shoot(s, data);
+                break;
+            case 'Attack':
+                this.shoot(s, data);
+                break;
+            case 'DoNothing':
+            case 'Pass':
+                break;
+            default:
+                console.log("Not implemented yet: " + action.action);
+        }
+
+        this.checkNextPlayer(meta)
+        this.setState(s)
+    }
+
+    move(state, data) {
+        // TODO: implement this
+        console.log('move')
+        console.log(data)
+    }
+
+    shoot(state, data) {
+        // TODO: implement this
+        console.log('shoot');
+        console.log(data);
+    }
+
+    handleKeyUp(event, self) {
+        if (event.key === ' ') {
+            self.step()
+        }
     }
 
     handleLobbyStart(selection) {
-        let gameId = null;
-        let gameState = null;
-        let gameBoard = null;
+        let gameId = null
+        let params = null
+        let terrains = null
+        let gameState = null
+        let gameBoard = null
 
-        // get game id
+        // get game id and params
         fetch(`${API}/api/game/start`, {
             method: "POST",
             headers: {
@@ -138,27 +228,29 @@ export default class Game extends React.Component {
             body: JSON.stringify(selection),
         })
             .then(
-                result => { return result.json(); },
-                error => { console.error(`could not get game id data from ${API}: ${error}`); }
+                result => { return result.json() },
+                error => { console.error(`could not get game id data from ${API}: ${error}`) }
             )
             .then(
                 result => {
-                    gameId = result.gameId;
-                    console.log(`received game-id=${gameId}`);
+                    gameId = result.gameId
+                    params = result.params
+                    terrains = result.terrains
+                    console.log(`received game-id=${gameId}`)
                 },
-                error => { console.error(`no game-id received: ${error}`); }
+                error => { console.error(`no game-id received: ${error}`) }
             )
             .then(
                 // load board
                 () => {
                     fetch(`${API}/api/game/board/${gameId}`, { method: "GET", headers: { 'Accept': 'application/json' } })
                         .then(
-                            result => { return result.json(); },
-                            error => { console.error(`could not get game board data from ${API}: ${error}`); }
+                            result => { return result.json() },
+                            error => { console.error(`could not get game board data from ${API}: ${error}`) }
                         )
                         .then(
-                            data => { gameBoard = data.board; },
-                            error => { console.error(`no game board received: ${error}`); }
+                            data => { gameBoard = data.board },
+                            error => { console.error(`no game board received: ${error}`) }
                         )
                         .then(
                             // load state
@@ -166,39 +258,40 @@ export default class Game extends React.Component {
                                 fetch(`${API}/api/game/state/${gameId}`, { method: "GET", headers: { 'Accept': 'application/json' } })
                                     .then(
                                         result => { return result.json() },
-                                        error => { console.error(`could not get game state data from ${API}: ${error}`); }
+                                        error => { console.error(`could not get game state data from ${API}: ${error}`) }
                                     )
                                     .then(
-                                        data => { gameState = data.state; },
-                                        error => { console.error(`no game state received: ${error}`); }
+                                        data => { gameState = data.state },
+                                        error => { console.error(`no game state received: ${error}`) }
                                     )
-                                    .then(() => this.initGame(gameId, gameBoard, gameState, selection))
+                                    .then(() => this.initGame(gameId, params, terrains, gameBoard, gameState, selection))
                             }
-                        );
+                        )
                 }
-            );
+            )
     }
 
     render() {
         if (this.state.showConfig)
             return (
                 <Config />
-            );
+            )
         if (this.state.showLobby)
             return (
                 <Lobby
-                    players={this.state.config.players}
-                    scenarios={this.state.config.scenarios}
-
                     onSubmitting={(selection) => this.handleLobbyStart(selection)}
                 />
-            );
+            )
         return (
             <div id="game">
-                <Cockpit />
+                <Cockpit
+                    turn={this.state.turn}
+                    content={this.state.log}
+                    step={() => this.step()}
+                />
                 <Panel
-                    team='red'
-                    agent={this.state.selection.red}
+                    team="red"
+                    agent={this.state.params.player.red}
                     figures={this.state.figures.red}
                 />
                 <Board
@@ -211,12 +304,12 @@ export default class Game extends React.Component {
                     height={this.state.height}
                 />
                 <Panel
-                    team='blue'
-                    agent={this.state.selection.blue}
+                    team="blue"
+                    agent={this.state.params.player.blue}
                     figures={this.state.figures.blue}
                 />
             </div>
-        );
+        )
     }
 
 }

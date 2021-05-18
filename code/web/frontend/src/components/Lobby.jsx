@@ -13,18 +13,46 @@ export default class Lobby extends React.Component {
     constructor(props) {
         super(props);
 
+        const v = "Please select"
+
         this.state = {
-            red: this.props.players[0],
-            blue: this.props.players[0],
-            scenario: this.props.scenarios[0],
-            seed: 0,
-            autoplay: true,
+            config: {
+                players: [v],
+                scenarios: [v],
+            },
+            selection: {
+                red: v,
+                blue: v,
+                scenario: v,
+                seed: 0,
+                autoplay: true,
+            },
         };
+    }
+
+    componentDidMount() {
+        fetch(`${API}/api/setup/data`, { method: "GET" })
+            .then(
+                result => { return result.json() },
+                error => { console.error(`Could not get setup data from ${API}: ${error}`) }
+            )
+            .then(
+                data => {
+                    this.setState({
+                        ...this.state,
+                        config: {
+                            players: this.state.config.players.concat(data.players),
+                            scenarios: this.state.config.scenarios.concat(data.scenarios),
+                        }
+                    })
+                },
+                error => { console.error(`Could not read setup data from ${API}: ${error}`) }
+            )
     }
 
     handleSubmit(event) {
         event.preventDefault();
-        this.props.onSubmitting(this.state);
+        this.props.onSubmitting(this.state.selection);
     }
 
     handleInputChange(event) {
@@ -33,16 +61,16 @@ export default class Lobby extends React.Component {
         const name = target.name;
 
         let state = this.state;
-        state[name] = value;
+        state.selection[name] = value;
 
         this.setState(state);
     }
 
     render() {
         let map = '';
-        if (this.state.scenario !== this.props.scenarios[0]) {
+        if (this.state.selection.scenario !== this.state.config.scenarios[0]) {
             map = (
-                <img id="map" src={`${API}/config/scenario/${this.state.scenario}`} />
+                <img id="map" src={`${API}/config/scenario/${this.state.selection.scenario}`} />
             )
         }
         return (
@@ -66,10 +94,10 @@ export default class Lobby extends React.Component {
                             <label className="red" htmlFor="redPlayer">Red team</label>
                             <select id="redPlayer"
                                 name="red"
-                                value={this.state.red}
+                                value={this.state.selection.red}
                                 onChange={e => this.handleInputChange(e)}
                             >
-                                {this.props.players.map((player, i) =>
+                                {this.state.config.players.map((player, i) =>
                                     <option key={player}>{player}</option>
                                 )}
                             </select>
@@ -78,10 +106,10 @@ export default class Lobby extends React.Component {
                             <select
                                 id="bluePlayer"
                                 name="blue"
-                                value={this.state.blue}
+                                value={this.state.selection.blue}
                                 onChange={e => this.handleInputChange(e)}
                             >
-                                {this.props.players.map((player, i) =>
+                                {this.state.config.players.map((player, i) =>
                                     <option key={i} value={player}>{player}</option>
                                 )}
                             </select>
@@ -90,10 +118,10 @@ export default class Lobby extends React.Component {
                             <select
                                 id="scenario"
                                 name="scenario"
-                                value={this.state.scenario}
+                                value={this.state.selection.scenario}
                                 onChange={e => this.handleInputChange(e)}
                             >
-                                {this.props.scenarios.map((scenario, i) =>
+                                {this.state.config.scenarios.map((scenario, i) =>
                                     <option key={i} value={scenario}>{scenario}</option>
                                 )}
                             </select>
@@ -105,7 +133,7 @@ export default class Lobby extends React.Component {
                                 id="randomSeed"
                                 name="seed"
                                 type="number"
-                                value={this.state.seed}
+                                value={this.state.selection.seed}
                                 onChange={e => this.handleInputChange(e)}
                             />
 
@@ -114,7 +142,7 @@ export default class Lobby extends React.Component {
                                 id="autoPlay"
                                 name="autoplay"
                                 type="checkbox"
-                                checked={this.state.autoplay}
+                                checked={this.state.selection.autoplay}
                                 onChange={e => this.handleInputChange(e)}
                             />
 

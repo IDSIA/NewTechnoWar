@@ -445,9 +445,42 @@ def getGameStep(gameId: str):
             raise ValueError('GameId not valid.')
 
         mm: MatchManager = app.games[gameId]
-        mm.nextStep()
 
-        return getGameState(gameId)
+        curr = mm.nextPlayerDict()
+        mm.nextStep()
+        nxt = mm.nextPlayerDict()
+
+        lastAction = None
+        lastOutcome = None
+
+        if not mm.update and len(mm.actions_history) > 0:
+            lastAction = mm.actions_history[-1]
+            lastOutcome = mm.outcome[-1]
+
+        logger.info(f'Restored game #{gameId} with scenario {mm.board.name}')
+
+        return jsonify({
+            'gameId': gameId,
+            'state': mm.state,
+            'meta': {
+                'curr': {
+                    'step': curr['step'],
+                    'player': curr['player'],
+                    'interactive': curr['isHuman'],
+                },
+                'next': {
+                    'step': nxt['step'],
+                    'player': nxt['player'],
+                    'interactive': nxt['isHuman'],
+                },
+                'end': mm.end,
+                'winner': mm.winner,
+                'update': mm.update,
+                'action': lastAction,
+                'outcome': lastOutcome,
+                'interactive': mm.humans,
+            }
+        }), 200
 
     except ValueError as ve:
         logger.error(ve)
@@ -479,9 +512,7 @@ def getGameAction(gameId: str):
 
         # TODO: return something informative
 
-        return jsonify({
-            'gameId': gameId,
-        }), 200
+        return gameNextStep(gameId)
 
     except ValueError as ve:
         logger.error(ve)
@@ -527,13 +558,6 @@ def getGameState(gameId: str):
         mm: MatchManager = app.games[gameId]
         nxt = mm.nextPlayerDict()
 
-        lastAction = None
-        lastOutcome = None
-
-        if not mm.update and len(mm.actions_history) > 0:
-            lastAction = mm.actions_history[-1]
-            lastOutcome = mm.outcome[-1]
-
         logger.info(f'Restored game #{gameId} with scenario {mm.board.name}')
 
         return jsonify({
@@ -548,8 +572,6 @@ def getGameState(gameId: str):
                 'end': mm.end,
                 'winner': mm.winner,
                 'update': mm.update,
-                'action': lastAction,
-                'outcome': lastOutcome,
                 'interactive': mm.humans,
             }
         }), 200

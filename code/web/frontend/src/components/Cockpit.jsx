@@ -1,16 +1,21 @@
-import React from "react";
-import '../styles/cockpit.css';
+import React from "react"
+import '../styles/cockpit.css'
 
 
 export default class Cockpit extends React.Component {
 
     constructor(props) {
-        super(props);
-
+        super(props)
+        this.textArea = React.createRef()
         this.state = {
-            turn: 0,
             histroy: []
         }
+    }
+
+    componentDidUpdate() {
+        // FIXME: looks like current is not defined
+        // if (this.textArea)
+        //     this.textArea.current.scrollTop = this.textArea.current.scrollHeight
     }
 
     render() {
@@ -19,13 +24,18 @@ export default class Cockpit extends React.Component {
                 <div id="title">
                     <a id="home" href="/">🏚</a>
                     <h1>New Techno War - AI Demo</h1>
-                    <a id="btnReset" onClick={event => this.props.reset(event)} >↩</a>
-                    <a id="btnNext" onClick={event => this.props.step(event)} >▶</a>
-                    <a id="btnTurn">{this.state.turn}</a>
+                    <a id="btnReset" onClick={this.props.reset} >↩</a>
+                    <a id="btnNext" onClick={this.props.step} >▶</a>
+                    <a id="btnTurn">{this.props.turn}</a>
                 </div>
                 <label htmlFor="console" ></label>
-                <textarea id="console" readOnly></textarea>
+                <textarea
+                    id="console"
+                    ref={this.textarea}
+                    value={this.props.content}
+                    readOnly
+                ></textarea>
             </div>
-        );
+        )
     }
 }

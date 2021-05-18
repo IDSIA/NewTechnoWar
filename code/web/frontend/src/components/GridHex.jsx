@@ -20,6 +20,7 @@ export default class GridHex extends React.Component {
                     stroke='#222222'
                 />
                 {/* TODO: on hover show text */}
+                {/*
                 <text
                     fontSize="0.5em"
                     x={cell.center.x}
@@ -28,6 +29,7 @@ export default class GridHex extends React.Component {
                 >
                     {cell.x}, {cell.y}
                 </text>
+                 */}
             </g>
         );
     }

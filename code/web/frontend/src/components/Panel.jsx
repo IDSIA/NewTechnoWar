@@ -6,7 +6,7 @@ class Figure extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            fid: `figure-${props.team}-${props.figure.idx}`
+            fid: `figure-${props.figure.team}-${props.figure.idx}`
         }
     }
 
@@ -19,12 +19,12 @@ class Figure extends React.Component {
     }
 
     render() {
-        const team = this.props.team
+        const team = this.props.figure.team
         const f = this.props.figure
         return (
             <div
                 id={this.state.fid}
-                className={`unit ${team} ${f.kind} ${f.color} ${f.highlight ? 'highlight' : ''}`
+                className={`unit ${team} ${f.kind} ${f.color} ${f.highlight ? 'highlight' : ''} ${f.activated ? 'activated' : 'notActivated'}`
                     // TODO: onClick
                 }>
                 <div className="uTitle HP">HP</div>
@@ -78,7 +78,6 @@ export default class Panel extends React.Component {
                     <Figure
                         key={figure.id}
                         figure={figure}
-                        team={team}
                     />
                 )}
             </div>

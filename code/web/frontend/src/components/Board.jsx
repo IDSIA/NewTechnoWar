@@ -1,48 +1,10 @@
 import React from "react"
-import { size, middleHeight } from "../model/CellHex";
 import GridHex from "./GridHex"
+import Marker from "./Marker"
 import "../styles/board.css"
 
+
 const clickThreshold = 1
-
-
-class Marker extends React.Component {
-    constructor(props) {
-        super(props)
-        const f = props.marker.figure
-        const c = props.marker.cell
-
-        this.state = {
-            gid: `mark-${f.team}-${f.idx}`,
-            x: c.center.x,
-            y: c.center.y,
-            r: size * .6,
-        }
-
-        console.log(this.state)
-        console.log(c.center);
-    }
-
-    render() {
-        const team = this.props.marker.figure.team
-        const f = this.props.marker.figure
-        return (
-            <g
-                id={this.state.gid}
-                transform={`translate(${this.state.x}, ${this.state.y})`}
-                className={`unit ${team} ${f.kind} ${f.color} ${f.highlight ? 'highlight' : ''}`}
-            >
-                <circle className="color" cx="0" cy="0" r={this.state.r}></circle>
-                {/* <circle cx={-size} cy={-middleHeight} r="2" fill="yellow"></circle>
-                <circle cx={-size} cy={+middleHeight} r="2" fill="yellow"></circle>
-                <circle cx={+size} cy={+middleHeight} r="2" fill="yellow"></circle>
-                <circle cx={+size} cy={-middleHeight} r="2" fill="yellow"></circle>
-                <circle cx={0} cy={0} r="2" fill="cyan"></circle> */}
-                {/* <image width="500" height="500"></image> */}
-            </g>
-        )
-    }
-}
 
 
 class Transform extends React.Component {
