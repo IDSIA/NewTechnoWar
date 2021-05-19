@@ -21,6 +21,7 @@ export default class Game extends React.Component {
         this.state = {
             showLobby: true,
             showConfig: false,
+            initCompleted: false,
             initialized: false,
             end: false,
             selection: null,
@@ -30,7 +31,9 @@ export default class Game extends React.Component {
             rows: 0,
             cells: [],
             figures: { red: [], blue: [] },
-            markers: [],
+            colors: [],
+            zones: { red: [], blue: [] },
+            actions: [],
             turn: 0,
             width: 0,
             height: 0,
@@ -55,14 +58,6 @@ export default class Game extends React.Component {
         return cells
     }
 
-    appendLine(content, text, newLine = true) {
-        if (this.state.end)
-            return content
-        if (newLine)
-            text = '\n' + text
-        return content + text
-    }
-
     initGame(gameId, params, terrains, board, state, selection) {
         const [cols, rows] = board.shape
         const cells = this.buildBoard(cols, rows, board, terrains)
@@ -81,18 +76,22 @@ export default class Game extends React.Component {
             ].center
         }
 
-        let markers = []
-        let figureToMarker = (f) => {
-            const i = f.x * rows + f.y
-            markers.push({
-                figure: f,
-                cell: cells[i],
-            })
-        }
-        state.figures.red.forEach(figureToMarker)
-        state.figures.blue.forEach(figureToMarker)
-
         let content = `Seed:        ${params.seed}\nScenario:    ${params.scenario}\nPlayer red:  ${params.player.red}\nPlayer blue: ${params.player.blue}`
+
+        // placement zones
+        let zones = { red: [], blue: [] }
+        for (const team in zones) {
+            if (state.has_zones[team]) {
+                for (let x = 0; x < cols; x++) {
+                    for (let y = 0; y < rows; y++) {
+                        if (state.zones[team][x][y] > 0) {
+                            const i = x * rows + y
+                            zones[team].push({ id: i, team: team, cell: cells[i] })
+                        }
+                    }
+                }
+            }
+        }
 
         if (params.autoplay)
             console.log('Autoplay enabled')
@@ -102,17 +101,14 @@ export default class Game extends React.Component {
             params: params,
             selection: selection,
             showLobby: false,
-            initialized: true,
+            initCompleted: true,
             gameId: gameId,
             cols: cols,
             rows: rows,
             cells: cells,
-            figures: {
-                red: state.figures.red,
-                blue: state.figures.blue,
-            },
+            figures: state.figures,
+            zones: zones,
             turn: state.turn,
-            markers: markers,
             width: width,
             height: height,
             log: content,
@@ -124,7 +120,7 @@ export default class Game extends React.Component {
     }
 
     step() {
-        if (!this.state.initialized)
+        if (!this.state.initCompleted)
             return
 
         fetch(`${API}/api/game/step/${this.state.gameId}`, {
@@ -136,20 +132,40 @@ export default class Game extends React.Component {
                 error => { console.error(`could not execute step from${API}: ${error}`) }
             )
             .then(
-                result => { this.handleUpdate(result) },
+                result => { this.handleStep(result) },
                 error => { console.error(`no game state received: ${error}`) }
             )
     }
 
-    handleUpdate(data) {
+    handleStep(data) {
+        let s = this.state
+        // update figures
+        s.figures = data.state.figures
+
+        if (!s.initialized && data.state.initialized) {
+            // clear zone
+            s.zones = { red: [], blue: [] }
+
+            // check for next player
+            this.checkNextPlayer(data.meta)
+
+            s.initialized = true
+        }
+
         if (this.state.end) {
             // game already ended
+            this.setState(s)
             return
         }
 
-        let s = this.state
         const meta = data.meta
-        const state = data.state
+
+        if (meta.update) {
+            this.updateTurn(s, data)
+            this.checkNextPlayer(data)
+            this.setState(s)
+            return
+        }
 
         if (meta.end) {
             // game ended this step
@@ -162,7 +178,7 @@ export default class Game extends React.Component {
         if (action === null) {
             // no actions performed
             console.log('no actions')
-            s.log = s.log + `${meta.curr.player.toUpperCase().padEnd(5, " ")}: No actions as ${meta.curr.step}`
+            s.log = s.log + `\n${meta.curr.player.toUpperCase().padEnd(5, " ")}: No actions as ${meta.curr.step}`
             this.checkNextPlayer(meta)
             this.setState(s)
             return
@@ -170,39 +186,25 @@ export default class Game extends React.Component {
 
         // check performed action
 
+        s.actions.push(action)
+        s.log = s.log + `\n${action.text}`
+
         console.log(`step: ${action.team} + ${action.action}`)
+        console.log(s.actions)
 
-        switch (action.action) {
-            case 'Move':
-                this.move(s, data);
-                break;
-            case 'Respond':
-                this.shoot(s, data);
-                break;
-            case 'Attack':
-                this.shoot(s, data);
-                break;
-            case 'DoNothing':
-            case 'Pass':
-                break;
-            default:
-                console.log("Not implemented yet: " + action.action);
-        }
-
+        console.log({ before: s.figures })
         this.checkNextPlayer(meta)
         this.setState(s)
+        console.log({ after: this.state })
     }
 
-    move(state, data) {
-        // TODO: implement this
-        console.log('move')
-        console.log(data)
-    }
+    updateTurn(state, data) {
+        // update the turn ticker, hide actions on map
+        state.turn = data.state.turn + 1
 
-    shoot(state, data) {
-        // TODO: implement this
-        console.log('shoot');
-        console.log(data);
+        state.actions.map(m => m.hide = true)
+
+        state.log = state.log + `\nTurn: ${state.turn}`
     }
 
     handleKeyUp(event, self) {
@@ -297,9 +299,12 @@ export default class Game extends React.Component {
                 <Board
                     cols={this.state.cols}
                     rows={this.state.rows}
+
                     cells={this.state.cells}
                     figures={this.state.figures}
-                    markers={this.state.markers}
+                    zones={this.state.zones}
+                    actions={this.state.actions}
+
                     width={this.state.width}
                     height={this.state.height}
                 />

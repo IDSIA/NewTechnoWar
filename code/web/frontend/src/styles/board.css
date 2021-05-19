@@ -132,9 +132,9 @@ g.unit.highlight>circle {
 
 /* Actions */
 
-.move>line {
+.move>path {
     stroke: white;
-    stroke-width: 1;
+    stroke-width: 3;
 }
 
 .shoot.lof.red>line {

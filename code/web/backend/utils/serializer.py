@@ -9,7 +9,11 @@ from core.game import GameBoard, GoalEliminateOpponent, GoalReachPoint, GoalDefe
 from core.game.outcome import Outcome
 from core.game.state import GameState
 from core.utils.coordinates import Cube
-from web.backend.utils import cube_to_dict
+
+
+def cube_to_xy(c: Cube):
+    x, y = c.tuple()
+    return {'x': x, 'y': y}
 
 
 class GameJSONEncoder(JSONEncoder):
@@ -30,11 +34,20 @@ class GameJSONEncoder(JSONEncoder):
             if obj.initialized:
                 return o
 
-            o['colors'] = dict()
+            o['has_colors'] = {RED: False, BLUE: False}
+            o['has_zones'] = {RED: False, BLUE: False}
 
             for team in [RED, BLUE]:
                 if obj.has_choice[team]:
+                    o['has_colors'][team] = True
+                    if 'colors' not in o:
+                        o['colors'] = dict()
                     o['colors'][team] = obj.choices[team]
+                if obj.has_placement[team]:
+                    o['has_zones'][team] = True
+                    if 'zones' not in o:
+                        o['zones'] = dict()
+                    o['zones'][team] = obj.placement_zone[team]
 
             return o
 
@@ -153,7 +166,7 @@ class GameJSONEncoder(JSONEncoder):
                 'figure_name': obj.figure_name,
                 'position': obj.position,
                 'destination': obj.destination,
-                'path': [cube_to_dict(h) for h in obj.path],
+                'path': [cube_to_xy(h) for h in obj.path],
                 'transporter_id': obj.transporter_id,
                 'transporter_name': obj.transporter_name,
                 'text': str(obj),
@@ -167,7 +180,7 @@ class GameJSONEncoder(JSONEncoder):
                 'figure_name': obj.figure_name,
                 'position': obj.position,
                 'destination': obj.destination,
-                'path': [cube_to_dict(h) for h in obj.path],
+                'path': [cube_to_xy(h) for h in obj.path],
                 'text': str(obj),
             }
 
@@ -184,8 +197,8 @@ class GameJSONEncoder(JSONEncoder):
                 'guard_id': obj.guard_id,
                 'guard_name': obj.guard_name,
                 'weapon_name': obj.weapon_name,
-                'los': [cube_to_dict(h) for h in obj.los],
-                'lof': [cube_to_dict(h) for h in obj.lof],
+                'los': [cube_to_xy(h) for h in obj.los],
+                'lof': [cube_to_xy(h) for h in obj.lof],
                 'text': str(obj),
             }
 

@@ -1,7 +1,9 @@
-import React from "react"
-import GridHex from "./GridHex"
-import Marker from "./Marker"
-import "../styles/board.css"
+import React from 'react'
+import GridHex from './GridHex'
+import Zone from './ZoneHex'
+import Marker from './Marker'
+import '../styles/board.css'
+import Action from './Action'
 
 
 const clickThreshold = 1
@@ -12,7 +14,7 @@ class Transform extends React.Component {
         const { x, y } = this.props.viewport
         return (
             <div
-                className="viewport"
+                className='viewport'
                 style={{
                     transform: `translate3d(${x}px, ${y}px, 0)`
                 }}
@@ -189,14 +191,17 @@ export default class Board extends React.Component {
     }
 
     render() {
+        const figures = this.props.figures.red.concat(this.props.figures.blue)
+        const zones = this.props.zones.red.concat(this.props.zones.blue)
+
         return (
-            <div className="board"
+            <div className='board'
                 ref={e => this.container = e}
             >
                 <Transform
                     viewport={this.state.viewport}
                 >
-                    <svg id="svgy"
+                    <svg id='svgy'
                         ref={e => this.svg = e}
 
                         width={this.gridWidth()}
@@ -206,7 +211,7 @@ export default class Board extends React.Component {
                         onMouseLeave={event => this.handleMouseLeave(event)}
                         onMouseMove={event => this.handleMouseMove(event)}
                     >
-                        <g id="g-board" >
+                        <g id='g-board' >
                             {this.props.cells.map(cell =>
                                 <GridHex
                                     key={cell.id}
@@ -215,8 +220,34 @@ export default class Board extends React.Component {
                                 />
                             )}
                         </g>
+                        <g id='zones'>
+                            {zones.map((z) =>
+                                <Zone
+                                    key={z.id}
+                                    team={z.team}
+                                    cell={z.cell}
+                                />
+                            )}
+                        </g>
+                        <g id='actions'>
+                            {this.props.actions.map((action, i) =>
+                                <Action
+                                    key={i}
+                                    action={action}
+                                    cells={this.props.cells}
+                                    rows={this.props.rows}
+                                    cols={this.props.cols}
+                                />
+                            )}
+                        </g>
                         <g id='markers'>
-                            {this.props.markers.map((m) => <Marker key={m.figure.id} marker={m} />)}
+                            {figures.map((f) =>
+                                <Marker
+                                    key={`${f.team}-${f.idx}`}
+                                    figure={f}
+                                    cell={this.props.cells[f.x * this.props.rows + f.y]}
+                                />
+                            )}
                         </g>
                     </svg>
                 </Transform>

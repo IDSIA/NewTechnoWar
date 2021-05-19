@@ -20,6 +20,7 @@ cors = CORS(app, resources={r'/api/*': {'origins': '*'}})
 
 
 @main.route('/', methods=['GET', 'POST'])
+# TODO: change this to serve the new webapp
 def index():
     """Serve list of available scenarios."""
     if request.method == 'POST':
@@ -160,6 +161,7 @@ def checkGameId() -> (str, MatchManager):
 
 
 @main.route('/game/', methods=['GET'])
+# TODO: deprecated, remove this
 def game():
     """Serve game main page."""
 
@@ -224,6 +226,7 @@ def game():
 
 
 @main.route('/game/reset', methods=['GET'])
+# TODO: deprecated, remove this
 def gameReset():
     try:
         _, mm = checkGameId()
@@ -241,6 +244,7 @@ def gameReset():
 
 
 @main.route('/game/state', methods=['GET'])
+# TODO: deprecated, remove this
 def gameState():
     logger.info('Request state')
 
@@ -259,6 +263,7 @@ def gameState():
 
 
 @main.route('/game/next/step', methods=['GET'])
+# TODO: deprecated, remove this
 def gameNextStep():
     logger.debug('Request next')
 
@@ -293,6 +298,7 @@ def gameNextStep():
 
 
 @main.route('/game/human/click', methods=['POST'])
+# TODO: deprecated, remove this
 def gameHumanClick():
     gameId, mm = checkGameId()
 
