@@ -24,6 +24,7 @@ export default class Panel extends React.Component {
                     <Figure
                         key={figure.id}
                         figure={figure}
+                        setHighlight={this.props.setHighlight}
                     />
                 )}
             </div>

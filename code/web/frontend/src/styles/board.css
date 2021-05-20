@@ -15,7 +15,7 @@
 /* Game colors */
 
 .terrain.objective {
-    stroke: yellow;
+    stroke: magenta;
     stroke-width: 2pt;
 }
 

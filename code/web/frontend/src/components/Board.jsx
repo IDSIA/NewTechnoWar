@@ -246,6 +246,7 @@ export default class Board extends React.Component {
                                     key={`${f.team}-${f.idx}`}
                                     figure={f}
                                     cell={this.props.cells[f.x * this.props.rows + f.y]}
+                                    setHighlight={this.props.setHighlight}
                                 />
                             )}
                         </g>

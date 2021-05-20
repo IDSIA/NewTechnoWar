@@ -284,6 +284,11 @@ export default class Game extends React.Component {
             )
     }
 
+    setHighlight(figure, value) {
+        this.state.figures[figure.team][figure.idx].highlight = value
+        this.setState(this.state)
+    }
+
     render() {
         if (this.state.showConfig)
             return (
@@ -306,6 +311,7 @@ export default class Game extends React.Component {
                     team="red"
                     agent={this.state.params.player.red}
                     figures={this.state.figures.red}
+                    setHighlight={(f, v) => this.setHighlight(f, v)}
                 />
                 <Board
                     cols={this.state.cols}
@@ -318,11 +324,14 @@ export default class Game extends React.Component {
 
                     width={this.state.width}
                     height={this.state.height}
+
+                    setHighlight={(f, v) => this.setHighlight(f, v)}
                 />
                 <Panel
                     team="blue"
                     agent={this.state.params.player.blue}
                     figures={this.state.figures.blue}
+                    setHighlight={(f, v) => this.setHighlight(f, v)}
                 />
             </div>
         )
