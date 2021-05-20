@@ -11,13 +11,13 @@
     font-size: 3pt;
 }
 
-.hex {
-    stroke: #555555;
-    stroke-width: 0.5pt;
-}
-
 
 /* Game colors */
+
+.terrain.objective {
+    stroke: yellow;
+    stroke-width: 2pt;
+}
 
 .terrain:hover {
     fill: yellow;
@@ -90,15 +90,15 @@ g.unit.vehicle>circle {
 }
 
 g.killed.red>circle {
-    fill: #555555;
+    fill: #555555 !important;
     stroke: darkred;
-    stroke-width: 0.5;
+    stroke-width: 1pt;
 }
 
 g.killed.blue>circle {
-    fill: #555555;
+    fill: #555555 !important;
     stroke: dodgerblue;
-    stroke-width: 0.5;
+    stroke-width: 1pt;
 }
 
 g.hit.red>circle {
@@ -137,28 +137,28 @@ g.unit.highlight>circle {
     stroke-width: 3;
 }
 
-.shoot.lof.red>line {
+.shoot.lof.red>path {
     stroke: red;
-    stroke-opacity: 0.5;
-    stroke-width: 2;
+    stroke-opacity: 0.8;
+    stroke-width: 3;
 }
 
-.shoot.lof.blue>line {
+.shoot.lof.blue>path {
     stroke: dodgerblue;
-    stroke-opacity: 0.5;
-    stroke-width: 2;
+    stroke-opacity: 0.8;
+    stroke-width: 3;
 }
 
-.shoot.los.red>line {
+.shoot.los.red>path {
     stroke: darkred;
-    stroke-opacity: 0.5;
-    stroke-width: 1;
+    stroke-opacity: 0.6;
+    stroke-width: 6;
 }
 
-.shoot.los.blue>line {
+.shoot.los.blue>path {
     stroke: darkblue;
-    stroke-opacity: 0.5;
-    stroke-width: 1;
+    stroke-opacity: 0.6;
+    stroke-width: 6;
 }
 
 g.shoot g {

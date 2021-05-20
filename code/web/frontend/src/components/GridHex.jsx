@@ -15,9 +15,8 @@ export default class GridHex extends React.Component {
                 onMouseUp={event => this.props.onMouseUp(event, cell)}
             >
                 <path
-                    className={`terrain ${cell.terrain.key}`}
+                    className={`terrain ${cell.terrain.key} ${cell.objective ? 'objective' : ''}`}
                     d={line().curve(curveLinearClosed)(cell.points)}
-                    stroke='#222222'
                 />
                 {/* TODO: on hover show text */}
                 {/*

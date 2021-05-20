@@ -18,12 +18,15 @@ export default class CellHex {
     center = { x: 0, y: 0 }
     points = []
     marker = null
+    objective = false
+    protection = 0
 
-    constructor(id, x, y, terrain) {
+    constructor(id, x, y, terrain, protection) {
         this.id = id
         this.x = x
         this.y = y
         this.terrain = terrain
+        this.protection = protection
 
         this.center.x = size + size * 3 / 2 * x
         this.center.y = 2 * size + size * Math.sqrt(3) * (y - 0.5 * (x & 1))
@@ -31,7 +34,7 @@ export default class CellHex {
         this.points = []
 
         for (let i = 0; i < 6; i++) {
-            this.points.push(offset(this.center, size, i))
+            this.points.push(offset(this.center, size - 1, i))
         }
     }
 

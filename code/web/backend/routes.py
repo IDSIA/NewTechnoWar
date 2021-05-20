@@ -359,9 +359,9 @@ def postGameStart():
         logger.info('Using debug configuration!')
         redPlayer = 'GreedyAgent'
         bluePlayer = 'GreedyAgent'
-        scenario = 'Junction'
+        scenario = 'TestBench'
         autoplay = True
-        seed = 0
+        seed = 1
         ret_data['debug'] = True
     else:
         seed = int(data.get('seed', 0))

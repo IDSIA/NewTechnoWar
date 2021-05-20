@@ -50,10 +50,21 @@ export default class Game extends React.Component {
         let i = 0
         for (let x = 0; x < cols; x++) {
             for (let y = 0; y < rows; y++) {
-                cells[i] = new CellHex(i, x, y, terrains[board.terrain[x][y]])
+                cells[i] = new CellHex(i, x, y, terrains[board.terrain[x][y]], board.protectionLevel[x][y])
                 i++
             }
         }
+
+        ['red', 'blue'].forEach(team => {
+            for (const o in board.objectives[team]) {
+                const obj = board.objectives[team][o]
+                if (obj.goal === 'GoalReachPoint' || obj.goal === 'GoalDefendPoint') {
+                    obj.objectives.forEach(h => {
+                        cells[h[0] * rows + h[1]].objective = true
+                    })
+                }
+            }
+        })
 
         return cells
     }
@@ -108,7 +119,7 @@ export default class Game extends React.Component {
             cells: cells,
             figures: state.figures,
             zones: zones,
-            turn: state.turn,
+            turn: state.turn + 1,
             width: width,
             height: height,
             log: content,
