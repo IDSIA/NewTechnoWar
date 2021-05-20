@@ -10,7 +10,7 @@ import { size, middleHeight } from "../model/CellHex"
 import '../styles/game.css'
 
 const API = process.env.API_URL
-
+const TIMEOUT = 1000 // milliseconds
 
 
 export default class Game extends React.Component {
@@ -19,30 +19,63 @@ export default class Game extends React.Component {
         super(props)
 
         this.state = {
+            // if true, show the lobby form
             showLobby: true,
+            // if true show the config page (TODO: implement this)
             showConfig: false,
+            // if true, interface initialization completed
             initCompleted: false,
+            // if true, game inizialization done
             initialized: false,
+            // if true, game has ended
             end: false,
+            // parameters got from lobby
             selection: null,
+            // parameters got from remote server
             params: null,
+            // control the autoplay feature
+            autoplay: false,
+            // current game unique identifies
             gameId: '',
+            // number of columns in the board
             cols: 0,
+            // number of rows in the board
             rows: 0,
-            cells: [],
-            figures: { red: [], blue: [] },
-            colors: [],
-            zones: { red: [], blue: [] },
-            actions: [],
-            turn: 0,
+            // board width in pixels
             width: 0,
+            // board height in pixels
             height: 0,
+            // all available hexagons in the board
+            cells: [],
+            // board zone states
+            zones: { red: [], blue: [] },
+            // colors of the scenario
+            colors: [],
+            // figures states
+            figures: { red: [], blue: [] },
+            // actions performed
+            actions: [],
+            // current turn
+            turn: 0,
+            // content of the cockpit textarea/log
             log: '',
+            // data for interactivity management
+            interactive: {
+                red: { pass: false, text: '' },
+                blue: { pass: false, text: '' }
+            }
         }
     }
 
     componentDidMount() {
         window.onkeyup = (e) => this.handleKeyUp(e, this)
+    }
+
+    componentDidUpdate() {
+        if (this.state.params.autoplay) {
+            // update timeout
+            setTimeout(() => this.step(), TIMEOUT)
+        }
     }
 
     buildBoard(cols, rows, board, terrains) {
@@ -69,7 +102,7 @@ export default class Game extends React.Component {
         return cells
     }
 
-    initGame(gameId, params, terrains, board, state, selection) {
+    initGame(gameId, params, terrains, board, state, meta, selection) {
         const [cols, rows] = board.shape
         const cells = this.buildBoard(cols, rows, board, terrains)
 
@@ -104,10 +137,7 @@ export default class Game extends React.Component {
             }
         }
 
-        if (params.autoplay)
-            console.log('Autoplay enabled')
-
-        this.setState({
+        let s = {
             ...this.state,
             params: params,
             selection: selection,
@@ -123,14 +153,51 @@ export default class Game extends React.Component {
             width: width,
             height: height,
             log: content,
-        })
+        }
+
+        this.checkNextPlayer(s, meta)
+        this.setState(s)
     }
 
-    checkNextPlayer(meta) {
-        // TODO:
+    checkNextPlayer(state, meta) {
+        if (meta.next.step === 'init' && meta.interactive) {
+            return
+        }
+
+        if (meta.curr !== undefined) {
+            state.interactive[meta.curr.player] = { pass: false, text: '' }
+        }
+
+        let next = { pass: false, text: '' }
+        state.interactive[meta.next.player] = next
+
+        if (meta.next.interactive) {
+            // TODO: implement interactivity
+            // human.step = data.next.step
+            next.pass = true
+            state.autoplay = false
+
+            switch (meta.next.step) {
+                case 'round':
+                    next.text = 'Next: Round';
+                    break;
+                case 'response':
+                    next.text = 'Next: Response';
+                    break;
+                case 'update':
+                    next.text = 'Next: Update';
+                    state.autoplay = true
+                    break
+                default:
+            }
+        } else if (state.params.autoplay) {
+            state.autoplay = true
+        }
     }
 
     step() {
+        this.state.autoplay = false
+
         if (!this.state.initCompleted)
             return
 
@@ -158,7 +225,7 @@ export default class Game extends React.Component {
             s.zones = { red: [], blue: [] }
 
             // check for next player
-            this.checkNextPlayer(data.meta)
+            this.checkNextPlayer(s, data.meta)
 
             s.initialized = true
         }
@@ -173,7 +240,7 @@ export default class Game extends React.Component {
 
         if (meta.update) {
             this.updateTurn(s, data)
-            this.checkNextPlayer(data)
+            this.checkNextPlayer(s, meta)
             this.setState(s)
             return
         }
@@ -190,7 +257,7 @@ export default class Game extends React.Component {
             // no actions performed
             console.log('no actions')
             s.log = s.log + `\n${meta.curr.player.toUpperCase().padEnd(5, " ")}: No actions as ${meta.curr.step}`
-            this.checkNextPlayer(meta)
+            this.checkNextPlayer(s, meta)
             this.setState(s)
             return
         }
@@ -200,13 +267,8 @@ export default class Game extends React.Component {
         s.actions.push(action)
         s.log = s.log + `\n${action.text}`
 
-        console.log(`step: ${action.team} + ${action.action}`)
-        console.log(s.actions)
-
-        console.log({ before: s.figures })
-        this.checkNextPlayer(meta)
+        this.checkNextPlayer(s, meta)
         this.setState(s)
-        console.log({ after: this.state })
     }
 
     updateTurn(state, data) {
@@ -228,6 +290,7 @@ export default class Game extends React.Component {
         let gameId = null
         let params = null
         let terrains = null
+        let gameMeta = null
         let gameState = null
         let gameBoard = null
 
@@ -274,10 +337,13 @@ export default class Game extends React.Component {
                                         error => { console.error(`could not get game state data from ${API}: ${error}`) }
                                     )
                                     .then(
-                                        data => { gameState = data.state },
+                                        data => {
+                                            gameState = data.state
+                                            gameMeta = data.meta
+                                        },
                                         error => { console.error(`no game state received: ${error}`) }
                                     )
-                                    .then(() => this.initGame(gameId, params, terrains, gameBoard, gameState, selection))
+                                    .then(() => this.initGame(gameId, params, terrains, gameBoard, gameState, gameMeta, selection))
                             }
                         )
                 }
