@@ -212,7 +212,7 @@ class MatchManager:
 
     def _goUpdate(self) -> None:
         """Update step."""
-        self.logger.info(f'{self.seed:10} ' + ('=' * 100))
+        self.logger.info(f'{self.seed:10} ' + ('=' * 50))
         self.logger.debug(f'{self.seed:10} step: update')
         self.update = True
 

@@ -9,7 +9,7 @@ from flask import current_app as app
 from agents import Human, MatchManager, buildMatchManager
 from core.const import BLUE, RED
 from core.templates import *
-from web.server.images import board2png, scenario2png
+from utils.images import board2png, scenario2png
 from web.server.utils import scroll, fieldShape, cube_to_ijxy, pzoneToHex, pos_to_dict
 
 logger = logging.getLogger(__name__)
