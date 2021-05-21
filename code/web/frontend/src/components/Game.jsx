@@ -72,8 +72,10 @@ export default class Game extends React.Component {
     }
 
     componentDidUpdate() {
-        if (this.state.params.autoplay) {
+        if (this.state.autoplay) {
+            console.log('timeout')
             // update timeout
+            this.state.autoplay = false
             setTimeout(() => this.step(), TIMEOUT)
         }
     }
@@ -230,7 +232,7 @@ export default class Game extends React.Component {
             s.initialized = true
         }
 
-        if (this.state.end) {
+        if (s.end) {
             // game already ended
             this.setState(s)
             return
@@ -239,6 +241,7 @@ export default class Game extends React.Component {
         const meta = data.meta
 
         if (meta.update) {
+            // apply game update
             this.updateTurn(s, data)
             this.checkNextPlayer(s, meta)
             this.setState(s)
