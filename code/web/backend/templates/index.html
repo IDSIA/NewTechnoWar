@@ -5,7 +5,9 @@
 {% endblock %}
 
 {% block content %}
-    <div class="title">
+    <div id="root"></div>
+
+    <!--div class="title">
         <div class="header">
             <a id="idsia" href="http://www.idsia.ch/">
                 <img class="logo" src="{{ url_for('static', filename='img/idsia.png') }}" alt="idsia"/>
@@ -60,9 +62,10 @@
                 <a id="guide" href="{{ url_for('static', filename='ntw-gui.pdf') }}" target="_blank">Help</a>
             </div>
         </form>
-    </div>
+    </div-->
 {% endblock %}
 
 {% block additionalscripts %}
-    <script src="{{ url_for('static', filename='js/lobby.js')|autoversion }}"></script>
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
+    {#    <script src="{{ url_for('static', filename='js/lobby.js')|autoversion }}"></script>#}
 {% endblock %}
