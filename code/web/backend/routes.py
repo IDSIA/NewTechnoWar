@@ -1,13 +1,14 @@
 import logging
 import os
 import random
+from typing import Tuple
 import uuid
 
 from flask import Blueprint, render_template, make_response, request, jsonify, redirect, send_file
 from flask import current_app as app
 from flask_cors import CORS
 
-from agents import  Agent, Human, MatchManager, buildMatchManager
+from agents import Agent, Human, MatchManager, buildMatchManager
 from core.const import BLUE, RED
 from core.templates import *
 from web.backend.images import board2png, scenario2png
@@ -146,7 +147,7 @@ def configScenario(name: str):
     return send_file(filename, mimetype='image/png')
 
 
-def checkGameId() -> (str, MatchManager):
+def checkGameId() -> Tuple[str, MatchManager]:
     if 'gameId' not in request.cookies:
         raise ValueError('GameId is missing!')
 
@@ -357,10 +358,10 @@ def postGameStart():
 
     if app.config['DEBUG']:
         logger.info('Using debug configuration!')
-        redPlayer = 'GreedyAgent'
-        bluePlayer = 'GreedyAgent'
+        redPlayer = 'Human'
+        bluePlayer = 'Human'
         scenario = 'TestBench'
-        autoplay = True
+        autoplay = False
         seed = 1
         ret_data['debug'] = True
     else:

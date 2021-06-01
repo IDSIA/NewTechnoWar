@@ -5,3 +5,4 @@ log*/*
 tournament/*
 graph*/*
 data*
+*__pycache__*
