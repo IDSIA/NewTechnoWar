@@ -80,13 +80,17 @@ class Human(Agent):
             self.place[idx] = pos
             return
 
+        if action == 'wait':
+            self.next_action = self.gm.actionWait(self.team)
+            return
+
         if action == 'pass':
             if 'idx' in data and data['team'] == self.team:
                 idx = int(data['idx'])
                 figure = state.getFigureByIndex(self.team, idx)
                 self.next_action = self.gm.actionPassFigure(figure)
             elif data['step'] == 'respond':
-                self.next_action = self.gm.actionPassResponse(self.team)
+                self.next_action = self.gm.actionNoResponse(self.team)
             else:
                 self.next_action = self.gm.actionPassTeam(self.team)
             return
