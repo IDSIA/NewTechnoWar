@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 
@@ -33,9 +33,13 @@ class GameManager(object):
         """Creates a PassFigure action where the given figure will be activated but no action will be performed."""
         return PassFigure(figure)
 
-    def actionPassResponse(self, team: str) -> PassRespond:
+    def actionNoResponse(self, team: str) -> NoResponse:
         """Creates a PassResponse action where a team will give no response in this step."""
-        return PassRespond(team)
+        return NoResponse(team)
+
+    def actionWait(self, team: str) -> Wait:
+        """Creates a Wait action where the team will not activate its figures."""
+        return Wait(team)
 
     def actionMove(self, board: GameBoard, state: GameState, figure: Figure, path: List[Cube] = None,
                    destination: Cube = None) -> Move:
@@ -208,7 +212,7 @@ class GameManager(object):
         return attacks
 
     def actionRespond(self, board: GameBoard, state: GameState, figure: Figure, target: Figure,
-                      weapon: Weapon) -> AttackRespond:
+                      weapon: Weapon) -> AttackResponse:
         """
         Creates a Respond action for a figure given the specified target and weapon. Can raise ValueError if the shot
         is not doable.
@@ -217,7 +221,7 @@ class GameManager(object):
         args = self.canShoot(board, state, figure, target, weapon)
         if not args:
             raise ValueError
-        return AttackRespond(*args)
+        return AttackResponse(*args)
 
     def buildResponses(self, board: GameBoard, state: GameState, figure: Figure, lastAction=None) -> List[Response]:
         """Returns a list of all possible response action that can be performed."""
@@ -274,7 +278,8 @@ class GameManager(object):
         """Build all possible actions for the given figure."""
 
         actions = [
-            self.actionPassFigure(figure)
+            self.actionPassFigure(figure),
+            self.actionWait(figure.team),
         ]
 
         for movement in self.buildMovements(board, state, figure):
@@ -303,7 +308,10 @@ class GameManager(object):
         Build a list with all the possible actions that can be executed by an team with the current status of the board.
         """
 
-        actions = [self.actionPassTeam(team)]
+        actions = [
+            self.actionWait(team),
+            self.actionPassTeam(team),
+        ]
 
         for figure in state.figures[team]:
             actions += self.buildActionsForFigure(board, state, figure)
@@ -315,15 +323,16 @@ class GameManager(object):
         Build a list with all the possible actions that can be executed by an team with the current status of the board.
         """
 
-        responses = [self.actionPassResponse(team)]
+        responses = [
+            self.actionNoResponse(team)
+        ]
 
         for figure in state.figures[team]:
             responses += self.buildResponsesForFigure(board, state, figure)
 
         return responses
 
-    def activate(self, board: GameBoard, state: GameState, action: Action, forceHit: bool = False) -> (
-            GameState, Outcome):
+    def activate(self, board: GameBoard, state: GameState, action: Action, forceHit: bool = False) -> Tuple[GameState, Outcome]:
         """Apply the step method to a deepcopy of the given GameState."""
         s1 = deepcopy(state)
         outcome = self.step(board, s1, action, forceHit)
@@ -364,6 +373,10 @@ class GameManager(object):
 
         logger.debug(f'{team} step with {action}')
         state.lastAction = action
+
+        if isinstance(action, Wait):
+            logger.debug(f'{action}: {comment}')
+            return Outcome(comment=comment)
 
         if isinstance(action, Pass):
             if isinstance(action, PassFigure):

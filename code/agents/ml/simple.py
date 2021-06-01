@@ -121,7 +121,7 @@ class MLAgent(Agent):
 
         return bestScore, bestAction
 
-    def bestActionRandom(self, scores: List[Tuple[float, Action]]) -> (float, Action):
+    def bestActionRandom(self, scores: List[Tuple[float, Action]]) -> Tuple[float, Action]:
         """
         Sort the given list of scores and take one randomly between the best N actions, where N is defined by the top .
 
@@ -148,8 +148,8 @@ class MLAgent(Agent):
 
         for figure in state.getFiguresCanBeActivated(self.team):
             actions = [self.gm.actionPassFigure(figure)] + \
-                      self.gm.buildAttacks(board, state, figure) + \
-                      self.gm.buildMovements(board, state, figure)
+                self.gm.buildAttacks(board, state, figure) + \
+                self.gm.buildMovements(board, state, figure)
 
             all_actions += actions
 
@@ -184,8 +184,8 @@ class MLAgent(Agent):
         all_actions = []
 
         for figure in state.getFiguresCanBeActivated(self.team):
-            actions = [self.gm.actionPassResponse(self.team)] + \
-                      self.gm.buildResponses(board, state, figure)
+            actions = [self.gm.actionNoResponse(self.team)] + \
+                self.gm.buildResponses(board, state, figure)
 
             all_actions += actions
 

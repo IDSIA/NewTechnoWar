@@ -1,6 +1,7 @@
 import logging
 import os
 import random
+from typing import Tuple
 import uuid
 
 from flask import Blueprint, render_template, make_response, request, jsonify, redirect, send_file
@@ -152,7 +153,7 @@ def configScenario(name: str):
     return send_file(filename, mimetype='image/png')
 
 
-def checkGameId() -> (str, MatchManager):
+def checkGameId() -> Tuple[str, MatchManager]:
     if 'gameId' not in request.cookies:
         raise ValueError('GameId is missing!')
 
