@@ -30,9 +30,7 @@ export default class Marker extends React.Component {
         return (
             <g
                 id={this.state.gid}
-                className={`unit ${team} ${f.kind} ${f.color} ${highlight} ${hit} ${loaded} ${killed}`}
-                onMouseEnter={() => this.props.setHighlight(f, true)}
-                onMouseLeave={() => this.props.setHighlight(f, false)}
+                className={`unit mark ${team} ${f.kind} ${f.color} ${highlight} ${hit} ${loaded} ${killed}`}
             >
                 <circle className="color" cx={x} cy={y} r={this.state.r}></circle>
                 {/* 

@@ -14,13 +14,19 @@
 
 /* Game colors */
 
-.terrain.objective {
-    stroke: magenta;
+.selected {
+    stroke: orange;
+    stroke-width: 3pt;
+}
+
+.highlight {
+    stroke: yellow;
     stroke-width: 2pt;
 }
 
-.terrain:hover {
-    fill: yellow;
+.terrain.objective {
+    stroke: magenta;
+    stroke-width: 2pt;
 }
 
 .terrain.OPEN_GROUND {

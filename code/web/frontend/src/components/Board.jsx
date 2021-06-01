@@ -1,7 +1,6 @@
 import React from 'react'
 import GridHex from './GridHex'
 import Zone from './ZoneHex'
-import Marker from './Marker'
 import '../styles/board.css'
 import Action from './Action'
 
@@ -120,6 +119,7 @@ export default class Board extends React.Component {
         if (this.state.isDown && !this.state.didMove) {
             // selection click
             console.log(cell)
+            this.props.cellSelect(cell)
             this.setState({
                 ...this.state,
                 selected: cell,
@@ -191,7 +191,6 @@ export default class Board extends React.Component {
     }
 
     render() {
-        const figures = this.props.figures.red.concat(this.props.figures.blue)
         const zones = this.props.zones.red.concat(this.props.zones.blue)
 
         return (
@@ -216,7 +215,9 @@ export default class Board extends React.Component {
                                 <GridHex
                                     key={cell.id}
                                     cell={cell}
-                                    onMouseUp={(event, cell) => this.handleClick(event, cell)}
+                                    onMouseUp={(e, c) => this.handleClick(e, c)}
+                                    onMouseEnter={(c) => this.props.cellHighlight(c, true)}
+                                    onMouseLeave={(c) => this.props.cellHighlight(c, false)}
                                 />
                             )}
                         </g>
@@ -237,16 +238,6 @@ export default class Board extends React.Component {
                                     cells={this.props.cells}
                                     rows={this.props.rows}
                                     cols={this.props.cols}
-                                />
-                            )}
-                        </g>
-                        <g id='markers'>
-                            {figures.map((f) =>
-                                <Marker
-                                    key={`${f.team}-${f.idx}`}
-                                    figure={f}
-                                    cell={this.props.cells[f.x * this.props.rows + f.y]}
-                                    setHighlight={this.props.setHighlight}
                                 />
                             )}
                         </g>

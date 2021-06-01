@@ -14,12 +14,17 @@ export default class CellHex {
     id = ""
     x = 0
     y = 0
-    terrain = 0
     center = { x: 0, y: 0 }
     points = []
-    marker = null
-    objective = false
+
+    terrain = 0
     protection = 0
+
+    figures = []
+
+    objective = false
+    highlight = false
+    selected = false
 
     constructor(id, x, y, terrain, protection) {
         this.id = id

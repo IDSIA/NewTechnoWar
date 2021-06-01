@@ -104,9 +104,17 @@ export default class Game extends React.Component {
         return cells
     }
 
+    updateFigurePosition(cells, figures, rows = this.state.rows) {
+        cells.filter(c => c.figures.length > 0).forEach(c => c.figures = [])
+        const append = f => cells[f.x * rows + f.y].figures.push(f)
+        figures.red.forEach(append)
+        figures.blue.forEach(append)
+    }
+
     initGame(gameId, params, terrains, board, state, meta, selection) {
         const [cols, rows] = board.shape
         const cells = this.buildBoard(cols, rows, board, terrains)
+        this.updateFigurePosition(cells, state.figures, rows)
 
         let width = 0
         let height = 0
@@ -163,7 +171,13 @@ export default class Game extends React.Component {
 
     checkNextPlayer(state, meta) {
         if (meta.next.step === 'init' && meta.interactive) {
+            state.interactive.red.text = 'Initialization'
+            state.interactive.blue.text = 'Initialization'
+            state.log = state.log + '\nInitialization step'
             return
+        } else {
+            state.interactive.red.text = ''
+            state.interactive.blue.text = ''
         }
 
         if (meta.curr !== undefined) {
@@ -221,6 +235,7 @@ export default class Game extends React.Component {
         let s = this.state
         // update figures
         s.figures = data.state.figures
+        this.updateFigurePosition(s.cells, s.figures)
 
         if (!s.initialized && data.state.initialized) {
             // clear zone
@@ -266,7 +281,6 @@ export default class Game extends React.Component {
         }
 
         // check performed action
-
         s.actions.push(action)
         s.log = s.log + `\n${action.text}`
 
@@ -353,8 +367,19 @@ export default class Game extends React.Component {
             )
     }
 
-    setHighlight(figure, value) {
-        this.state.figures[figure.team][figure.idx].highlight = value
+    figureHighlight(figure, value) {
+        figure.highlight = value
+        this.setState(this.state)
+    }
+
+    cellSelect(cell) {
+        cell.selected = !cell.selected
+        this.setState(this.state)
+    }
+
+    cellHighlight(cell, value) {
+        cell.highlight = value
+        cell.figures.forEach(f => f.highlight = value)
         this.setState(this.state)
     }
 
@@ -378,9 +403,10 @@ export default class Game extends React.Component {
                 />
                 <Panel
                     team="red"
+                    interactive={this.state.interactive.red}
                     agent={this.state.params.player.red}
                     figures={this.state.figures.red}
-                    setHighlight={(f, v) => this.setHighlight(f, v)}
+                    setHighlight={(f, v) => this.figureHighlight(f, v)}
                 />
                 <Board
                     cols={this.state.cols}
@@ -394,13 +420,16 @@ export default class Game extends React.Component {
                     width={this.state.width}
                     height={this.state.height}
 
-                    setHighlight={(f, v) => this.setHighlight(f, v)}
+                    figureHighlight={(f, v) => this.figureHighlight(f, v)}
+                    cellHighlight={(c, v) => this.cellHighlight(c, v)}
+                    cellSelect={(c, v) => this.cellSelect(c, v)}
                 />
                 <Panel
                     team="blue"
+                    interactive={this.state.interactive.blue}
                     agent={this.state.params.player.blue}
                     figures={this.state.figures.blue}
-                    setHighlight={(f, v) => this.setHighlight(f, v)}
+                    setHighlight={(f, v) => this.figureHighlight(f, v)}
                 />
             </div>
         )

@@ -1,3 +1,7 @@
+.hide {
+    display: none;
+}
+
 h1.player-title {
     text-align: center;
     margin: 0.1em;
@@ -67,7 +71,7 @@ h1.player-pass:hover {
 
 /* Figures structure */
 
-.unit {
+.panel.unit {
     margin: 0.1em 0.2em;
     padding: 0.2em;
     display: grid;
@@ -81,7 +85,6 @@ h1.player-pass:hover {
 
 .unit.red {
     border: 1px solid #ff6666;
-    ;
 }
 
 .unit.blue {
@@ -113,6 +116,7 @@ h1.player-pass:hover {
 .uWeapons>div {
     background-color: #444444;
     text-align: center;
+    vertical-align: middle;
 }
 
 .uKind {

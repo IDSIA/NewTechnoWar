@@ -2,20 +2,39 @@ import React from "react"
 import '../styles/cockpit.css'
 
 
+class AutoScrollTextarea extends React.Component {
+    constructor(props) {
+        super(props)
+        this.textArea = React.createRef()
+    }
+
+    componentDidMount() {
+        this.textArea.current.scrollTop = this.textArea.current.scrollHeight
+    }
+
+    componentDidUpdate() {
+        this.textArea.current.scrollTop = this.textArea.current.scrollHeight
+    }
+
+    render() {
+        return (
+            <textarea
+                id="console"
+                ref={this.textArea}
+                value={this.props.content}
+                readOnly
+            ></textarea>
+        )
+    }
+}
+
 export default class Cockpit extends React.Component {
 
     constructor(props) {
         super(props)
-        this.textArea = React.createRef()
         this.state = {
             histroy: []
         }
-    }
-
-    componentDidUpdate() {
-        // FIXME: looks like current is not defined
-        // if (this.textArea)
-        //     this.textArea.current.scrollTop = this.textArea.current.scrollHeight
     }
 
     render() {
@@ -29,12 +48,7 @@ export default class Cockpit extends React.Component {
                     <a id="btnTurn">{this.props.turn}</a>
                 </div>
                 <label htmlFor="console" ></label>
-                <textarea
-                    id="console"
-                    ref={this.textarea}
-                    value={this.props.content}
-                    readOnly
-                ></textarea>
+                <AutoScrollTextarea content={this.props.content} />
             </div>
         )
     }

@@ -42,7 +42,7 @@ export default class Figure extends React.Component {
         return (
             <div
                 id={this.state.fid}
-                className={`unit ${team} ${f.kind} ${f.color} ${highlight} ${activated} ${killed}`}
+                className={`unit panel ${team} ${f.kind} ${f.color} ${highlight} ${activated} ${killed}`}
                 // TODO: onClick
                 onMouseEnter={() => { this.props.setHighlight(f, true) }}
                 onMouseLeave={() => { this.props.setHighlight(f, false) }}
