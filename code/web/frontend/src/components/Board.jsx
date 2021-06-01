@@ -118,7 +118,6 @@ export default class Board extends React.Component {
     handleClick(event, cell) {
         if (this.state.isDown && !this.state.didMove) {
             // selection click
-            console.log(cell)
             this.props.cellSelect(cell)
             this.setState({
                 ...this.state,

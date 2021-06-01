@@ -497,7 +497,7 @@ def getGameStep(gameId: str):
 
 
 @main.route('/api/game/action/<gameId>', methods=['POST'])
-def getGameAction(gameId: str):
+def postGameAction(gameId: str):
     try:
         if not gameId:
             raise ValueError('GameId is missing!')

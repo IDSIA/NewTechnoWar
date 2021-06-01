@@ -61,8 +61,10 @@ export default class Game extends React.Component {
             log: '',
             // data for interactivity management
             interactive: {
-                red: { pass: false, text: '' },
-                blue: { pass: false, text: '' }
+                step: '',
+                next: '',
+                red: { showButtons: false, text: '' },
+                blue: { showButtons: false, text: '' }
             }
         }
     }
@@ -185,6 +187,8 @@ export default class Game extends React.Component {
         }
 
         let next = { pass: false, text: '' }
+        state.interactive.next = meta.next.player
+        state.interactive.step = meta.next.step
         state.interactive[meta.next.player] = next
 
         if (meta.next.interactive) {
@@ -372,15 +376,133 @@ export default class Game extends React.Component {
         this.setState(this.state)
     }
 
-    cellSelect(cell) {
-        cell.selected = !cell.selected
-        this.setState(this.state)
-    }
-
     cellHighlight(cell, value) {
         cell.highlight = value
         cell.figures.forEach(f => f.highlight = value)
         this.setState(this.state)
+    }
+
+    actionToPerform = {
+        cells: [],          // selected cells
+        figures: [],        // selected figures
+        weapon_wid: null,   // weapon id selected
+        weapon_fid: null,   // figure id with weapon selected
+        pass: false,        // pass button pressed
+        wait: false,        // wait button pressed
+        team: null,
+    }
+
+    passButton(team) {
+        this.actionToPerform.team = team
+        this.actionToPerform.pass = true
+        this.performAction()
+    }
+
+    waitButton(team) {
+        this.actionToPerform.team = team
+        this.actionToPerform.wait = true
+        this.performAction()
+    }
+
+    figureSelect(figure) {
+        this.cellSelect(this.state.cells[figure.x * this.state.rows + figure.y])
+    }
+
+    weaponSelect(figure, weapon) {
+        if (figure.weapons[weapon].selected) {
+            // deselect
+            figure.weapons[weapon].selected = false
+            this.actionToPerform.weapon_wid = null
+            this.actionToPerform.weapon_fid = null
+            this.setState(this.state)
+            return
+        }
+
+        Object.values(figure.weapons).forEach(w => w.selected = false)
+        figure.weapons[weapon].selected = true
+        this.actionToPerform.weapon_wid = weapon
+        this.actionToPerform.weapon_fid = figure.id
+        if (!figure.selected)
+            this.figureSelect(figure)
+        else
+            this.performAction()
+    }
+
+    cellSelect(cell) {
+        cell.selected = !cell.selected
+        if (cell.selected)
+            this.actionToPerform.cells.push(cell)
+        else
+            this.actionToPerform.cells = this.actionToPerform.cells.filter(e => e.x != cell.x && e.y != cell.y)
+
+        // figure selection
+        let figures = this.state.figures.red.concat(this.state.figures.blue).filter(f => f.x == cell.x && f.y == cell.y)
+        if (figures.length > 1) {
+            figures = figures.filter(f => f.kind == 'vehicle')
+        }
+        if (figures.length == 1) {
+            const figure = figures[0]
+            figure.selected = !figure.selected
+            if (figure.selected) {
+                // select the figure
+                this.actionToPerform.figures.push(figure)
+            } else {
+                // deselect the figure
+                if (!figure.selected && this.actionToPerform.weapon_fid && figure.id === this.actionToPerform.weapon_fid) {
+                    // if we have a weapon selected, deselect it
+                    this.actionToPerform.weapon_fid.weapons[this.actionToPerform.weapon_wid].selected = false
+                    this.actionToPerform.weapon_fid = null
+                    this.actionToPerform.weapon_wid = null
+                }
+                this.actionToPerform.figures = this.actionToPerform.figures.filter(e => e.id != figure.id)
+            }
+        }
+        this.performAction()
+    }
+
+    performAction() {
+        console.log(this.actionToPerform)
+        this.setState(this.state)
+
+        const data = {
+            step: this.state.interactive.step
+        }
+
+        if (this.actionToPerform.pass !== null) {
+            data.action = 'pass'
+            // pass
+            data.team = this.actionToPerform.pass
+            const figures = this.actionToPerform.figures.filter(f => f.team === data.team)
+
+            if (figures.length > 0) {
+                // pass unit
+                data.idx = figures[0].idx
+            } else {
+                // pass team
+            }
+        } else if (this.actionToPerform.weapon_fid !== null) {
+            // attack
+            const fid = this.actionToPerform.weapon_fid
+            const wid = this.actionToPerform.weapon_wid
+            const attacker = this.actionToPerform.figures.filter(f => f.id === fid)[0]
+
+
+        } else {
+            // move
+
+
+        }
+
+        // execute action
+        fetch(`${API}/api/game/action/${this.state.gameId}`, {
+            method: "POST",
+            headers: { "Accept": "application/json" },
+            data: { yay: 'yay!' }
+        })
+            .then(
+                result => { return result.json() },
+                error => { console.error(`could not execute step from${API}: ${error}`) }
+            )
     }
 
     render() {
@@ -406,7 +528,11 @@ export default class Game extends React.Component {
                     interactive={this.state.interactive.red}
                     agent={this.state.params.player.red}
                     figures={this.state.figures.red}
-                    setHighlight={(f, v) => this.figureHighlight(f, v)}
+                    figureHighlight={(f, v) => this.figureHighlight(f, v)}
+                    figureSelect={(f) => this.figureSelect(f)}
+                    weaponSelect={(f, w) => this.weaponSelect(f, w)}
+                    passButton={() => this.passButton('red')}
+                    waitButton={() => this.waitButton('red')}
                 />
                 <Board
                     cols={this.state.cols}
@@ -429,7 +555,11 @@ export default class Game extends React.Component {
                     interactive={this.state.interactive.blue}
                     agent={this.state.params.player.blue}
                     figures={this.state.figures.blue}
-                    setHighlight={(f, v) => this.figureHighlight(f, v)}
+                    figureHighlight={(f, v) => this.figureHighlight(f, v)}
+                    figureSelect={(f) => this.figureSelect(f)}
+                    weaponSelect={(f, w) => this.weaponSelect(f, w)}
+                    passButton={() => this.passButton('blue')}
+                    waitButton={() => this.waitButton('blue')}
                 />
             </div>
         )

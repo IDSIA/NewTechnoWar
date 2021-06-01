@@ -2,6 +2,14 @@
     display: none;
 }
 
+.selected {
+    background-color: darkorange !important;
+}
+
+.weapon.selected {
+    background-color: orangered !important;
+}
+
 h1.player-title {
     text-align: center;
     margin: 0.1em;
@@ -24,7 +32,12 @@ h1.player-choose:hover {
     cursor: pointer;
 }
 
-h1.player-pass {
+.player-buttons {
+    display: grid;
+    grid-template-columns: auto auto;
+}
+
+.player-button {
     text-align: center;
     margin: 0.1em 0.2em;
     padding: 0.2em;
@@ -32,7 +45,7 @@ h1.player-pass {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-h1.player-pass:hover {
+.player-button:hover {
     background-color: darkorange;
     cursor: pointer;
 }

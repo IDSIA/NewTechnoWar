@@ -17,12 +17,25 @@ export default class Figure extends React.Component {
         return ammo === 0 ? 'empty' : '';
     }
 
+    handleWeaponClick(event, f, wid) {
+        this.props.weaponSelect(f, wid)
+
+        // stop click propagation
+        if (!event)
+            event = window.event;
+
+        event.cancelBubble = true;
+        if (event.stopPropagation)
+            event.stopPropagation();
+    }
+
     render() {
         const team = this.props.figure.team
         const f = this.props.figure
         const killed = f.killed ? 'killed' : ''
         const activated = f.activated ? 'activated' : 'notActivated'
         const highlight = f.highlight ? 'highlight' : ''
+        const selected = f.selected ? 'selected' : ''
 
         let opt1 = { class: '', text: '' }
         let opt2 = { class: '', text: '' }
@@ -42,10 +55,10 @@ export default class Figure extends React.Component {
         return (
             <div
                 id={this.state.fid}
-                className={`unit panel ${team} ${f.kind} ${f.color} ${highlight} ${activated} ${killed}`}
-                // TODO: onClick
-                onMouseEnter={() => { this.props.setHighlight(f, true) }}
-                onMouseLeave={() => { this.props.setHighlight(f, false) }}
+                className={`unit panel ${team} ${f.kind} ${f.color} ${highlight} ${activated} ${killed} ${selected}`}
+                onMouseEnter={() => this.props.figureHighlight(f, true)}
+                onMouseLeave={() => this.props.figureHighlight(f, false)}
+                onMouseUp={() => this.props.figureSelect(f)}
             >
                 <div className="uTitle HP">HP</div>
                 <div className="uTitle Move">MOVE</div>
@@ -64,8 +77,8 @@ export default class Figure extends React.Component {
                         <div
                             key={item.id}
                             id={item.id}
-                            className={`weapon ${item.no_effect ? 'disabled' : ''}`}
-                        // TODO: onClick
+                            className={`weapon ${item.no_effect ? 'disabled' : ''} ${item.selected ? 'selected' : ''}`}
+                            onMouseUp={(e) => this.handleWeaponClick(e, f, item.id)}
                         >
                             <div className={`w${item.id} image`}></div>
                             <div className={`ammo ${this.ammoClass(item.ammo)}`}>{this.ammoNum(item.ammo)}</div>
