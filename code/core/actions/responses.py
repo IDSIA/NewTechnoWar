@@ -13,7 +13,7 @@ class Response:
         return 'in response'
 
 
-class PassRespond(PassTeam, Response):
+class NoResponse(PassTeam, Response):
     """Response that does nothing and does not activate a unit."""
 
     def __init__(self, team: str):
@@ -26,7 +26,7 @@ class PassRespond(PassTeam, Response):
         return f'{PassTeam.__str__(self)} {Response.__str__(self)}'
 
 
-class AttackRespond(Attack, Response):
+class AttackResponse(Attack, Response):
     """Similar to Attack, but created only after a Attack Action."""
 
     def __init__(self, figure: Figure, target: Figure, guard: Figure, weapon: Weapon, los: list, lof: list):

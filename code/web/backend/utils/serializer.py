@@ -1,7 +1,7 @@
 import numpy as np
 from flask.json import JSONEncoder
 
-from core.actions import Move, Attack, MoveLoadInto, AttackGround, AttackRespond, PassFigure, PassTeam, PassRespond
+from core.actions import Move, Attack, MoveLoadInto, AttackGround, AttackResponse, PassFigure, PassTeam, NoResponse, Wait
 from core.const import RED, BLUE
 from core.figures import Figure
 from core.figures.weapons import Weapon
@@ -142,6 +142,13 @@ class GameJSONEncoder(JSONEncoder):
                 'no_effect': obj.disabled,
             }
 
+        if isinstance(obj, Wait):
+            return {
+                'action': 'Wait',
+                'team': obj.team,
+                'text': str(obj),
+            }
+
         if isinstance(obj, PassFigure):
             return {
                 'action': 'Pass',
@@ -151,7 +158,7 @@ class GameJSONEncoder(JSONEncoder):
                 'text': str(obj),
             }
 
-        if isinstance(obj, PassTeam) or isinstance(obj, PassRespond):
+        if isinstance(obj, PassTeam) or isinstance(obj, NoResponse):
             return {
                 'action': 'Pass',
                 'team': obj.team,
@@ -184,9 +191,9 @@ class GameJSONEncoder(JSONEncoder):
                 'text': str(obj),
             }
 
-        if isinstance(obj, Attack) or isinstance(obj, AttackRespond):
+        if isinstance(obj, Attack) or isinstance(obj, AttackResponse):
             return {
-                'action': 'Respond' if isinstance(obj, AttackRespond) else 'Attack',
+                'action': 'Respond' if isinstance(obj, AttackResponse) else 'Attack',
                 'team': obj.team,
                 'figure_id': obj.figure_id,
                 'figure_name': obj.figure_name,

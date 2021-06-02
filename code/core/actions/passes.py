@@ -3,7 +3,7 @@ from core.figures import Figure
 
 
 class Pass:
-    """Group of actions that passes the turn to the opposite team."""
+    """Group of actions that passes the turn to the opposite team activating the units."""
 
     def __repr__(self):
         return 'Pass'
@@ -13,7 +13,7 @@ class Pass:
 
 
 class PassTeam(Pass, Action):
-    """Action that does absolutely nothing."""
+    """Action that activates all units without performing anything."""
 
     def __init__(self, team: str):
         super().__init__(team)
