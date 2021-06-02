@@ -41,6 +41,15 @@ class GameManager(object):
         """Creates a Wait action where the team will not activate its figures."""
         return Wait(team)
 
+    def buildWaits(self, board: GameBoard, state: GameState, team: str) -> List[Wait]:
+        """Build a wait action if both teams have at least one unit that can be activated."""
+        other: str = RED if team == BLUE else BLUE
+
+        if any(not f.activated for f in state.figures[other]) and any(not f.activated for f in state.figures[team]):
+            return [self.actionWait(team)]
+
+        return []
+
     def actionMove(self, board: GameBoard, state: GameState, figure: Figure, path: List[Cube] = None,
                    destination: Cube = None) -> Move:
         """
@@ -279,8 +288,10 @@ class GameManager(object):
 
         actions = [
             self.actionPassFigure(figure),
-            self.actionWait(figure.team),
         ]
+
+        for wait in self.buildWaits(board, state, figure.team):
+            actions.append(wait)
 
         for movement in self.buildMovements(board, state, figure):
             actions.append(movement)
@@ -309,9 +320,10 @@ class GameManager(object):
         """
 
         actions = [
-            self.actionWait(team),
             self.actionPassTeam(team),
         ]
+
+        actions += self.buildWaits(board, state, team)
 
         for figure in state.figures[team]:
             actions += self.buildActionsForFigure(board, state, figure)
