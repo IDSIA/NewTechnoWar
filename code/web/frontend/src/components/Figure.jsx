@@ -18,7 +18,7 @@ export default class Figure extends React.Component {
     }
 
     handleWeaponClick(event, f, wid) {
-        this.props.weaponSelect(f, wid)
+        this.props.clickOnWeapon(f, wid)
 
         // stop click propagation
         if (!event)
@@ -56,9 +56,9 @@ export default class Figure extends React.Component {
             <div
                 id={this.state.fid}
                 className={`unit panel ${team} ${f.kind} ${f.color} ${highlight} ${activated} ${killed} ${selected}`}
-                onMouseEnter={() => this.props.figureHighlight(f, true)}
-                onMouseLeave={() => this.props.figureHighlight(f, false)}
-                onMouseUp={() => this.props.figureSelect(f)}
+                onMouseEnter={() => this.props.hoverOnFigure(f, true)}
+                onMouseLeave={() => this.props.hoverOnFigure(f, false)}
+                onMouseUp={() => this.props.clickOnFigure(f)}
             >
                 <div className="uTitle HP">HP</div>
                 <div className="uTitle Move">MOVE</div>

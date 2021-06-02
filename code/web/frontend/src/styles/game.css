@@ -44,3 +44,21 @@ span.blue {
     color: dodgerblue;
     font-weight: bolder;
 }
+
+#messages {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    top: 6vh;
+    left: 21em;
+}
+
+.message {
+    margin-top: 1em;
+    width: 20em;
+    background-color: rgba(255, 0, 0, 0.7);
+    border: 1px solid red;
+    z-index: 1000;
+    color: white;
+    padding: 0.25em;
+}

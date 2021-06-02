@@ -441,7 +441,7 @@ def getGameReset(gameId: str):
         }), 400
 
 
-@main.route('/api/game/step/<gameId>', methods=['POST'])
+@main.route('/api/game/step/<gameId>', methods=['GET'])
 def getGameStep(gameId: str):
     # TODO: step forward and backward? Maybe play the whole game first or in parallel?
     try:
@@ -507,6 +507,9 @@ def postGameAction(gameId: str):
 
         mm: MatchManager = app.games[gameId]
 
+        logger.info(request.content_type)
+        logger.info(request.get_json(force=True))
+
         data: dict = request.json
         team = data['team']
 
@@ -519,12 +522,12 @@ def postGameAction(gameId: str):
 
         # TODO: return something informative
 
-        return gameNextStep(gameId)
+        return getGameStep(gameId)
 
-    except ValueError as ve:
-        logger.error(ve)
+    except Exception as e:
+        logger.error(e)
         return jsonify({
-            'error': str(ve),
+            'error': str(e),
         }), 400
 
 
@@ -588,3 +591,5 @@ def getGameState(gameId: str):
         return jsonify({
             'error': str(ve),
         }), 400
+
+# TODO: add endpoints to get a list of possible actions for team (too many?!) or for figure

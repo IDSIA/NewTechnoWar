@@ -1,5 +1,5 @@
 .hide {
-    display: none;
+    display: none !important;
 }
 
 .selected {
@@ -34,7 +34,7 @@ h1.player-choose:hover {
 
 .player-buttons {
     display: grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: 50% 50%;
 }
 
 .player-button {

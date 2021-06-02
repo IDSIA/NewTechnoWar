@@ -118,7 +118,7 @@ export default class Board extends React.Component {
     handleClick(event, cell) {
         if (this.state.isDown && !this.state.didMove) {
             // selection click
-            this.props.cellSelect(cell)
+            this.props.clickOnCell(cell)
             this.setState({
                 ...this.state,
                 selected: cell,
@@ -215,8 +215,8 @@ export default class Board extends React.Component {
                                     key={cell.id}
                                     cell={cell}
                                     onMouseUp={(e, c) => this.handleClick(e, c)}
-                                    onMouseEnter={(c) => this.props.cellHighlight(c, true)}
-                                    onMouseLeave={(c) => this.props.cellHighlight(c, false)}
+                                    onMouseEnter={(c) => this.props.hoverOnCell(c, true)}
+                                    onMouseLeave={(c) => this.props.hoverOnCell(c, false)}
                                 />
                             )}
                         </g>
