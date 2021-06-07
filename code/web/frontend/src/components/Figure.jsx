@@ -50,7 +50,7 @@ export default class Figure extends React.Component {
             opt2 = { class: 'responded', text: 'R' }
 
         if (f.stat === 'Loaded')
-            opt1 = { class: 'transported', text: f.transported_by }
+            opt1 = { class: 'transported', text: 'T' }
 
         return (
             <div

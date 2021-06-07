@@ -73,14 +73,23 @@ export default class Game extends React.Component {
                 blue: { showButtons: false, text: '', action: '' },
                 // what is current selected on the webapp
                 selection: {
-                    // selected cells
-                    cells: [],
-                    // selected figures
-                    figures: [],
-                    // weapon id selected
-                    weapon_wid: null,
-                    // figure id with weapon selected
-                    weapon_fid: null,
+                    selected: {
+                        // selected figure
+                        figure: null,
+                        // selected cell
+                        cell: null,
+                        // weapon id selected
+                        weapon: null,
+                    },
+                    target: {
+                        // target figure
+                        figure: null,
+                        // target cell
+                        cell: null,
+                        // target weapon on target figure (not used)
+                        weapon: null,
+                    },
+
                     // pass button pressed
                     pass: false,
                     // wait button pressed
@@ -98,7 +107,7 @@ export default class Game extends React.Component {
 
     componentDidUpdate() {
         if (this.state.autoplay) {
-            console.log('timeout')
+            console.debug('timeout')
             // update timeout
             this.state.autoplay = false
             setTimeout(() => this.step(), TIMEOUT)
@@ -330,10 +339,17 @@ export default class Game extends React.Component {
     clearSelection(state) {
         // clear selection
         state.interactive.selection = {
-            cells: [],
-            figures: [],
-            weapon_wid: null,
-            weapon_fid: null,
+            selected: {
+                figure: null,
+                cell: null,
+                weapon: null,
+            },
+            target: {
+                figure: null,
+                cell: null,
+                weapon: null,
+            },
+
             pass: false,
             wait: false,
             team: null,
@@ -443,114 +459,183 @@ export default class Game extends React.Component {
         this.performAction()
     }
 
-    clickOnFigure(figure) {
-        const sel = this.state.interactive.selection
+    _selectFigure(figure) {
+        const sel = this.state.interactive.selection.selected
 
-        if (figure.selected) {
-            // deselect the figure
-            figure.selected = false
-            sel.figures = sel.figures.filter(e => e.id != figure.id)
+        // select the figure
+        figure.selected = true
+        sel.figure = figure
 
-            // if any, deselct the weapon
-            if (!figure.selected && sel.weapon_fid && figure.id === sel.weapon_fid) {
-                figure.weapons[sel.weapon_wid].selected = false
-                sel.weapon_fid = null
-                sel.weapon_wid = null
-            }
+        // select the cell of the figure
+        const cell = this.state.cells[figure.x * this.state.rows + figure.y]
+        cell.selected = true
+        sel.cell = cell
+    }
 
-            // if empty, deselect the cell
-            if (sel.figures.filter(f => f.x == figure.x && f.y == figure.y).length == 0) {
-                this.state.cells[figure.x * this.state.rows + figure.y].selected = false
-                sel.cells = sel.cells.filter(c => c.x != figure.x && c.y != figure.y)
-            }
+    _deselectFigure(figure) {
+        const sel = this.state.interactive.selection.selected
 
+        // deselect the figure
+        figure.selected = false
+        sel.figure = null
+
+        // if any, deselect the weapon
+        if (sel.weapon !== null) {
+            figure.weapons[sel.weapon].selected = false
+        }
+
+        // deselect the cell
+        if (sel.cell !== null) {
+            sel.cell.selected = false
+            sel.cell = null
+        }
+    }
+
+    _targetFigure(figure) {
+        const tar = this.state.interactive.selection.target
+
+        if (tar.figure !== null && tar.figure.id === figure.id) {
+            // remove target
+            tar.figure = null
+            tar.cell = null
         } else {
-            // select the figure
-            figure.selected = true
-            sel.figures.push(figure)
-            // select the cell of the figure
+            // set target
             const cell = this.state.cells[figure.x * this.state.rows + figure.y]
-            cell.selected = true
-            sel.cells.push(cell)
+
+            tar.figure = figure
+            tar.cell = cell
+        }
+    }
+
+    _targetClear() {
+        const tar = this.state.interactive.selection.target
+        tar.figure = null
+        tar.cell = null
+        tar.weapon = null
+    }
+
+    clickOnFigure(figure) {
+        const sel = this.state.interactive.selection.selected
+
+        if (sel.figure === null) {
+            console.debug('figure select ' + figure.id)
+            this._selectFigure(figure)
+        } else if (sel.figure.id === figure.id) {
+            console.debug('figure deselect ' + figure.id)
+            this._deselectFigure(figure)
+            this._targetClear()
+        } else {
+            console.debug('figure target ' + figure.id)
+            this._targetFigure(figure)
         }
 
         this.performAction()
     }
 
     clickOnWeapon(figure, weapon) {
-        const sel = this.state.interactive.selection
+        const sel = this.state.interactive.selection.selected
 
         if (figure.weapons[weapon].selected) {
+            console.debug('weapon deselect ' + weapon + ' ' + figure.id)
             // deselect
             figure.weapons[weapon].selected = false
-            sel.weapon_wid = null
-            sel.weapon_fid = null
+            sel.weapon = null
             this.setState(this.state)
             return
         }
 
-        Object.values(figure.weapons).forEach(w => w.selected = false)
+        console.debug('weapon select ' + weapon + ' ' + figure.id)
+        // deselect current weapon
+        if (sel.weapon !== null) {
+            figure.weapons[sel.weapon].selected = false
+        }
+
+        // select weapon
         figure.weapons[weapon].selected = true
-        sel.weapon_wid = weapon
-        sel.weapon_fid = figure.id
-        if (!figure.selected)
+        sel.weapon = weapon
+
+        if (!figure.selected) {
             this.clickOnFigure(figure)
-        else
+        } else {
             this.performAction()
+        }
+    }
+
+    _selectCell(cell) {
+        const sel = this.state.interactive.selection.selected
+
+        cell.selected = true
+        sel.cell = cell
+
+        // select figure on cell
+        let figures = this.state.figures.red.concat(this.state.figures.blue).filter(f => f.x == cell.x && f.y == cell.y)
+        if (figures.length > 1) {
+            figures = figures.filter(f => f.kind == 'vehicle')
+        }
+        if (figures.length == 1) {
+            this._selectFigure(figures[0])
+        }
+    }
+
+    _deselectCell(cell) {
+        const sel = this.state.interactive.selection.selected
+
+        // deselect cell
+        cell.selected = false
+        sel.cell = null
+
+        // deselct all units in the cell
+        let figures = this.state.figures.red.concat(this.state.figures.blue).filter(f => f.x == cell.x && f.y == cell.y)
+        figures.forEach(figure => {
+            this._deselectFigure(figure)
+        })
+    }
+
+    _targetCell(cell) {
+        const tar = this.state.interactive.selection.target
+
+        tar.cell = cell
+
+        // select figure on cell
+        let figures = this.state.figures.red.concat(this.state.figures.blue).filter(f => f.x == cell.x && f.y == cell.y)
+        if (figures.length > 1) {
+            figures = figures.filter(f => f.kind == 'vehicle')
+        }
+        if (figures.length == 1) {
+            this._targetFigure(figures[0])
+        }
     }
 
     clickOnCell(cell) {
-        const sel = this.state.interactive.selection
+        const sel = this.state.interactive.selection.selected
+        const scell = sel.cell
 
-        if (cell.selected) {
-            // deselect cell
-            cell.selected = false
-            sel.cells = sel.cells.filter(c => c.x != cell.x && c.y != cell.y)
-
-            // deselct all units in the cell
-            let figures = this.state.figures.red.concat(this.state.figures.blue).filter(f => f.x == cell.x && f.y == cell.y)
-            figures.forEach(figure => {
-                figure.selected = false
-                if (!figure.selected && sel.weapon_fid && figure.id === sel.weapon_fid) {
-                    figure.weapons[sel.weapon_wid].selected = false
-                    sel.weapon_fid = null
-                    sel.weapon_wid = null
-                }
-            })
-
-            // remove units from selection
-            const ids = figures.map(f => f.id)
-            sel.figures = sel.figures.filter(f => !ids.includes(f.id))
-
+        if (scell === null) {
+            console.debug('cell select (' + cell.x + ',' + cell.y + ')')
+            this._selectCell(cell)
+        } else if (scell.x === cell.x && scell.y === cell.y) {
+            console.debug('cell deselect (' + cell.x + ',' + cell.y + ')')
+            this._deselectCell(cell)
+            this._targetClear()
         } else {
-            // select cell
-            cell.selected = true
-            sel.cells.push(cell)
-
-            // select figure on cell
-            let figures = this.state.figures.red.concat(this.state.figures.blue).filter(f => f.x == cell.x && f.y == cell.y)
-            if (figures.length > 1) {
-                figures = figures.filter(f => f.kind == 'vehicle')
-            }
-            if (figures.length == 1) {
-                const figure = figures[0]
-                figure.selected = true
-                sel.figures.push(figure)
-            }
+            console.debug('cell target (' + cell.x + ',' + cell.y + ')')
+            this._targetCell(cell)
         }
 
         this.performAction()
     }
 
     performAction() {
-        console.log('perform action')
+        console.debug('perform action')
+        console.debug(this.state.interactive.selection.selected);
+        console.debug(this.state.interactive.selection.target);
 
         this.setState(this.state)
 
         let execute = false
 
         const sel = this.state.interactive.selection
-        console.log(sel)
+        console.debug(sel)
 
         const data = {
             step: this.state.interactive.step,
@@ -569,61 +654,56 @@ export default class Game extends React.Component {
             // pass
             data.action = 'pass'
             data.team = sel.team
-            const figures = sel.figures.filter(f => f.team === data.team)
 
-            if (figures.length > 0) {
+            if (sel.selected.figure !== null) {
                 // pass unit
-                data.idx = figures[0].idx
-            } else {
-                // pass team
+                data.idx = sel.selected.figure.idx
             }
+
+            // else: pass team
 
             execute = true
 
-        } else if (sel.weapon_fid !== null) {
+        } else if (sel.selected.weapon !== null && (sel.target.figure !== null || sel.target.cell !== null)) {
             console.log('attack');
             // attack
-            const fid = sel.weapon_fid
-            const wid = sel.weapon_wid
-            const attacker = sel.figures.filter(f => f.id === fid)[0]
-            const targets = sel.figures.filter(f => f.id !== fid)
+            const attacker = sel.selected.figure
+            const target = sel.target.figure
 
             data.action = 'attack'
             data.idx = attacker.idx
-            data.weapon = wid
+            data.weapon = sel.selected.weapon
 
-            if (targets.length > 0) {
+            if (target !== null) {
                 // attack unit
                 data.x = attacker.x
                 data.y = attacker.y
 
-                data.targetIdx = targets[0].idx
-                data.targetTeam = targets[0].team
+                data.targetIdx = target.idx
+                data.targetTeam = target.team
             } else {
                 // attack hex
-                const pos = sel.cells.filter(c => c.x != attacker.x && c.y != attacker.y)
-                data.x = pos.x
-                data.y = pos.y
+                data.x = sel.target.cell.x
+                data.y = sel.target.cell.y
             }
 
             execute = true
 
-        } else if (sel.cells.length > 1) {
+        } else if (sel.target.cell !== null) {
             console.log('move');
             // move
-            const dest = sel.cells[1]
+            const dest = sel.target.cell
 
             data.action = 'move'
-            data.idx = sel.figures[0].idx
+            data.idx = sel.selected.figure.idx
             data.x = dest.x
             data.y = dest.y
 
             execute = true
-
         }
 
-        console.log(data)
-        console.log(sel)
+        console.debug(data)
+        console.debug(sel)
 
         if (!execute) {
             console.log('nothing to do')
