@@ -85,7 +85,7 @@ h1.player-choose:hover {
 /* Figures structure */
 
 .panel.unit {
-    margin: 0.1em 0.2em;
+    /* margin: 0.1em 0.2em; */
     padding: 0.2em;
     display: grid;
     grid-template-columns: [img1]2em [img2]2em [stat1]2em [stat2]2em [stat3]2em [weapons]8.2em;
@@ -126,10 +126,11 @@ h1.player-choose:hover {
 }
 
 .unit>div:not(.uKind):not(.uTitle):not(.uWeapons),
-.uWeapons>div {
+div.ammo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background-color: #444444;
-    text-align: center;
-    vertical-align: middle;
 }
 
 .uKind {
@@ -241,9 +242,16 @@ h1.player-choose:hover {
     color: black;
 }
 
-.weapon.disabled {
-    background-color: red !important;
-    color: white;
+.weapon.disabled::before {
+    position: absolute;
+    content: 'X';
+    font-family: sans-serif;
+    z-index: 10;
+    color: red;
+    font-weight: bold;
+    font-size: 2em;
+    text-align: center;
+    width: 1em;
 }
 
 .weapon>.image {

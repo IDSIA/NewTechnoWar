@@ -1,8 +1,9 @@
 import React from 'react'
 import GridHex from './GridHex'
 import Zone from './ZoneHex'
-import '../styles/board.css'
 import Action from './Action'
+import Marker from './Marker';
+import '../styles/board.css'
 
 
 const clickThreshold = 1
@@ -238,6 +239,20 @@ export default class Board extends React.Component {
                                     rows={this.props.rows}
                                     cols={this.props.cols}
                                 />
+                            )}
+                        </g>
+                        <g id='markers'>
+                            {this.props.cells.map(cell =>
+                                cell.figures.map(f =>
+                                    <Marker
+                                        key={`${f.team}-${f.idx}`}
+                                        figure={f}
+                                        cell={cell}
+                                        onMouseUp={(e, c) => this.handleClick(e, c)}
+                                        onMouseEnter={(c) => this.props.hoverOnCell(c, true)}
+                                        onMouseLeave={(c) => this.props.hoverOnCell(c, false)}
+                                    />
+                                )
                             )}
                         </g>
                     </svg>

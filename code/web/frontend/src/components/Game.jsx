@@ -562,11 +562,6 @@ export default class Game extends React.Component {
     }
 
     _selectCell(cell) {
-        const sel = this.state.interactive.selection.selected
-
-        cell.selected = true
-        sel.cell = cell
-
         // select figure on cell
         let figures = this.state.figures.red.concat(this.state.figures.blue).filter(f => f.x == cell.x && f.y == cell.y)
         if (figures.length > 1) {

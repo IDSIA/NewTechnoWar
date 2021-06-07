@@ -17,6 +17,7 @@ export default class Marker extends React.Component {
     }
 
     render() {
+        const cell = this.props.cell
         const team = this.props.figure.team
         const f = this.props.figure
         const x = this.props.cell.center.x
@@ -31,6 +32,9 @@ export default class Marker extends React.Component {
             <g
                 id={this.state.gid}
                 className={`unit mark ${team} ${f.kind} ${f.color} ${highlight} ${hit} ${loaded} ${killed}`}
+                onMouseUp={(event) => this.props.onMouseUp(event, cell)}
+                onMouseEnter={() => this.props.onMouseEnter(cell)}
+                onMouseLeave={() => this.props.onMouseLeave(cell)}
             >
                 <circle className="color" cx={x} cy={y} r={this.state.r}></circle>
                 {/* 

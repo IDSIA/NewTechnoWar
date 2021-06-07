@@ -1,7 +1,6 @@
 import React from 'react';
 import { line, curveLinearClosed } from 'd3-shape';
-import Marker from './Marker';
-import { size, middleHeight } from '../model/CellHex';
+import { middleHeight } from '../model/CellHex';
 
 
 export default class GridHex extends React.Component {
@@ -42,14 +41,6 @@ export default class GridHex extends React.Component {
                     className={`terrain ${cell.terrain.key} ${objective} ${highlight} ${selected}`}
                     d={line().curve(curveLinearClosed)(cell.points)}
                 />
-                {cell.figures.map(f =>
-                    <Marker
-                        key={`${f.team}-${f.idx}`}
-                        figure={f}
-                        cell={cell}
-                    />
-                )}
-                {/* TODO: on hover show text */}
                 {coords}
             </g>
         );
