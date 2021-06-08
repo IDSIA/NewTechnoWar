@@ -1,11 +1,15 @@
-version: '3.3'
-
-
 services:
 
   ntw:
-    image: ntw:latest
+    image: ntw-backend:latest
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: ntw_web_app
+    container_name: ntw_web_backend
+
+  front:
+    image: ntw-frontend:latest
+    build:
+      context: ./frontend
+      docekrfile: Dockerfile
+    container_name: ntw_web_frontend
