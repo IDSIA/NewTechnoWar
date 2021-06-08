@@ -34,8 +34,13 @@ export default class Marker extends React.Component {
         const los = this.props.los
         let lines = []
         if (los.length > 0) {
-            lines = los.map(plos =>
-                <path className={`los ${selected}`} d={line()([plos[0], plos[plos.length - 1]])} fill='none' />
+            lines = los.map((plos, i) =>
+                <path
+                    key={i}
+                    className={`los ${selected}`}
+                    d={line()([plos[0], plos[plos.length - 1]])}
+                    fill='none'
+                />
             )
         }
 
