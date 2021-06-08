@@ -1,5 +1,6 @@
 import React from "react"
-import { size, middleHeight } from "../model/CellHex";
+
+import { size, middleHeight } from "../model/CellHex"
 import imgInf from 'url:../images/infantry.png'
 import imgVeh from 'url:../images/vehicle.png'
 

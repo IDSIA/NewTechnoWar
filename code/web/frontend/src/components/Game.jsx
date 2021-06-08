@@ -54,6 +54,8 @@ export default class Game extends React.Component {
             colors: [],
             // figures states
             figures: { red: [], blue: [] },
+            // figures line-of-sight
+            los: { red: [], blue: [] },
             // actions performed
             actions: [],
             // current turn
@@ -226,8 +228,6 @@ export default class Game extends React.Component {
         state.interactive[meta.next.player] = next
 
         if (meta.next.interactive) {
-            // TODO: implement interactivity
-            // human.step = data.next.step
             next.showButtons = true
             state.autoplay = false
 
@@ -283,6 +283,7 @@ export default class Game extends React.Component {
 
         // update figures
         s.figures = data.state.figures
+        s.los = data.state.los
         this.updateFigurePosition(s.cells, s.figures)
 
         if (!s.initialized && data.state.initialized) {
@@ -771,6 +772,7 @@ export default class Game extends React.Component {
 
                     cells={this.state.cells}
                     figures={this.state.figures}
+                    los={this.state.los}
                     zones={this.state.zones}
                     actions={this.state.actions}
 

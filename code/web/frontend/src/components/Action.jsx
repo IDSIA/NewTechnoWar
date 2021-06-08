@@ -1,5 +1,5 @@
 import React from 'react'
-import { line, curveLinearClosed } from "d3-shape";
+import { line } from "d3-shape"
 
 
 export default class Action extends React.Component {
