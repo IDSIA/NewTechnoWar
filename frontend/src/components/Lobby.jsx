@@ -70,7 +70,7 @@ export default class Lobby extends React.Component {
         let map = '';
         if (this.state.selection.scenario !== this.state.config.scenarios[0]) {
             map = (
-                <img id="map" src={`${API}/config/scenario/${this.state.selection.scenario}`} />
+                <img id="map" src={`${API}/api/config/scenario/${this.state.selection.scenario}`} />
             )
         }
         return (

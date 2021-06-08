@@ -1,10 +1,7 @@
-FROM node:14 AS base
+# build stage
 FROM node:14 AS builder
 
-# build stage
-
-# app work directory
-WORKDIR /usr/src/app
+WORKDIR /app
 
 COPY package*.json ./
 
@@ -14,14 +11,9 @@ COPY . .
 
 RUN npm run build
 
-# deploy stage
-FROM base
+# server stage
+FROM nginx:1.21
 
-WORKDIR /usr/src/app
-
-COPY --from=builder /usr/src/app/package*.json ./
-COPY --from=builder /usr/src/app/dist/* ./
-
-EXPOSE 8080
-
-CMD ["node", "index.js"]
+COPY --from=builder /app/dist/ /usr/share/nginx/html
+COPY --from=builder /app/src/index.html /usr/share/nginx/html/index.html
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf

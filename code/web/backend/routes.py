@@ -119,7 +119,7 @@ def config():
         return redirect('/')
 
 
-@main.route('/config/map/<name>', methods=['GET'])
+@main.route('/api/config/map/<name>', methods=['GET'])
 def configMap(name: str):
     if '/' in name or '\\' in name or '.' in name:
         logger.warning(f'invalid map name! {name}')
@@ -133,7 +133,7 @@ def configMap(name: str):
     return send_file(filename, mimetype='image/png')
 
 
-@main.route('/config/scenario/<name>', methods=['GET'])
+@main.route('/api/config/scenario/<name>', methods=['GET'])
 def configScenario(name: str):
     if '/' in name or '\\' in name or '.' in name:
         logger.warning(f'invalid map name! {name}')

@@ -6,7 +6,7 @@ RUN python -m venv /opt/venv
 
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY ./code/requirements.txt /requirements.txt
+COPY ./requirements.txt /requirements.txt
 
 RUN pip install -r /requirements.txt
 
@@ -17,7 +17,7 @@ COPY --from=builder /opt/venv /opt/venv
 
 RUN useradd --create-home ntw
 
-COPY ./code/ /home/ntw/code/
+COPY ./ /home/ntw/code/
 
 RUN chown -R ntw:ntw /home/ntw/*
 
