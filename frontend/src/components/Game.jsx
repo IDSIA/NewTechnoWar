@@ -468,8 +468,8 @@ export default class Game extends React.Component {
     }
 
     _selectFigure(figure) {
-        if (figure.activated)
-            return
+        // if (figure.activated)
+        //     return
 
         const sel = this.state.interactive.selection.selected
 
