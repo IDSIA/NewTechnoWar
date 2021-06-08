@@ -55,7 +55,7 @@ export default class Figure extends React.Component {
         return (
             <div
                 id={this.state.fid}
-                className={`unit panel ${team} ${f.kind} ${f.color} ${highlight} ${activated} ${killed} ${selected}`}
+                className={`unit ${team} ${f.kind} ${f.color} ${highlight} ${activated} ${killed} ${selected}`}
                 onMouseEnter={() => this.props.hoverOnFigure(f, true)}
                 onMouseLeave={() => this.props.hoverOnFigure(f, false)}
                 onMouseUp={() => this.props.clickOnFigure(f)}

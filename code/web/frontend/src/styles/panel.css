@@ -6,43 +6,53 @@
     background-color: darkorange !important;
 }
 
-.weapon.selected {
-    background-color: orangered !important;
+.panel {
+    display: grid;
+    grid-template-columns: 50% 50%;
+    grid-template-rows: 3em 1.5em 1.5em auto;
+    row-gap: 0.2em;
+    color: #cccccc;
+    overflow: hidden;
+    z-index: 1;
 }
 
-h1.player-title {
+.player-title {
+    grid-column-start: 1;
+    grid-column-end: 3;
     text-align: center;
-    margin: 0.1em;
+    font-size: 2em;
+    font-weight: bold;
 }
 
-h1.player-info {
+.player-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    margin: 0.1em;
     font-size: 1em;
+    font-weight: bold;
 }
 
-h1.player-choose {
+.player-choose {
     text-align: center;
-    margin: 0.1em;
     font-size: 1em;
+    font-weight: bold;
 }
 
-h1.player-choose:hover {
+.player-choose:hover {
     background-color: darkorange;
     cursor: pointer;
 }
 
-.player-buttons {
-    display: grid;
-    grid-template-columns: 50% 50%;
-}
-
 .player-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    margin: 0.1em 0.2em;
-    padding: 0.2em;
     font-size: 1em;
+    font-weight: bold;
     background-color: rgba(255, 255, 255, 0.2);
+    margin: 0.1em;
 }
 
 .player-button:hover {
@@ -59,9 +69,10 @@ h1.player-choose:hover {
 }
 
 .units {
+    grid-column-start: 1;
+    grid-column-end: 3;
     display: flex;
     flex-direction: column;
-    color: #cccccc;
     overflow-y: scroll;
 }
 
@@ -69,22 +80,18 @@ h1.player-choose:hover {
     display: none;
 }
 
-.units {
-    z-index: 1;
-}
-
-.units.red {
+.panel.red {
     background-color: #992222;
 }
 
-.units.blue {
+.panel.blue {
     background-color: #222299;
 }
 
 
 /* Figures structure */
 
-.panel.unit {
+.unit {
     /* margin: 0.1em 0.2em; */
     padding: 0.2em;
     display: grid;
@@ -265,12 +272,22 @@ div.ammo {
     width: 2em;
 }
 
-.weapon:hover,
-.weapon:hover>.image,
-.weapon.highlight {
+.weapon:hover>.image {
     background-color: cyan;
-    color: black;
     cursor: pointer;
+}
+
+.weapon:hover>.ammo {
+    background-color: rgb(0, 110, 110);
+    cursor: pointer;
+}
+
+.weapon.selected>.image {
+    background-color: orangered;
+}
+
+.weapon.selected>.ammo {
+    background-color: rgb(165, 51, 10);
 }
 
 .weapon>.image.wCA {
