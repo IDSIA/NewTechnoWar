@@ -109,7 +109,7 @@ export default class Game extends React.Component {
 
     componentDidUpdate() {
         if (this.state.autoplay) {
-            console.debug('timeout')
+            console.log('timeout')
             // update timeout
             this.state.autoplay = false
             setTimeout(() => this.step(), TIMEOUT)
@@ -212,6 +212,12 @@ export default class Game extends React.Component {
             state.interactive.red = { showButtons: false, text: 'Initialization', action: '' }
             state.interactive.blue = { showButtons: false, text: 'Initialization', action: '' }
             state.log = state.log + '\nInitialization step'
+
+            if (state.colors.length === 0 && state.zones.red.length === 0 && state.zones.blue.length === 0) {
+                console.log('no init required');
+                setTimeout(() => this.step(), TIMEOUT)
+            }
+
             return
         } else {
             state.interactive.red.text = ''
@@ -227,7 +233,7 @@ export default class Game extends React.Component {
         state.interactive.step = meta.next.step
         state.interactive[meta.next.player] = next
 
-        if (meta.next.interactive) {
+        if (meta.interactive) {
             next.showButtons = true
             state.autoplay = false
 
@@ -252,8 +258,9 @@ export default class Game extends React.Component {
     step() {
         this.state.autoplay = false
 
-        if (!this.state.initCompleted)
+        if (!this.state.initCompleted) {
             return
+        }
 
         fetch(`${API}/api/game/step/${this.state.gameId}`, {
             method: "GET",
@@ -461,6 +468,9 @@ export default class Game extends React.Component {
     }
 
     _selectFigure(figure) {
+        if (figure.activated)
+            return
+
         const sel = this.state.interactive.selection.selected
 
         // select the figure
@@ -534,6 +544,9 @@ export default class Game extends React.Component {
     }
 
     clickOnWeapon(figure, weapon) {
+        // if (figure.activated)
+        //     return
+
         const sel = this.state.interactive.selection.selected
 
         if (figure.weapons[weapon].selected) {

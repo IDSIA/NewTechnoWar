@@ -3,7 +3,6 @@ import GridHex from './GridHex'
 import Zone from './ZoneHex'
 import Action from './Action'
 import Marker from './Marker'
-import LOS from './LOS'
 
 import '../styles/board.css'
 
@@ -192,11 +191,31 @@ export default class Board extends React.Component {
 
     }
 
+    buildLos(figure) {
+        if (this.props.los[figure.team].length == 0)
+            return []
+
+        const los_from_figure = this.props.los[figure.team][figure.idx]
+        const loss = []
+
+        Object.values(los_from_figure).forEach(los => {
+            loss.push(
+                los.map(p => {
+                    const [x, y] = p
+                    const cell = this.props.cells[x * this.props.rows + y]
+                    return [cell.center.x, cell.center.y]
+                })
+            )
+        })
+
+        return loss
+    }
+
     render() {
         const zones = this.props.zones.red.concat(this.props.zones.blue)
 
         const loss = []
-        Object.values(this.props.los).forEach(team => Object.values(team).forEach(i => Object.values(i).forEach(j => loss.push({ team: team, los: j }))))
+        // Object.values(this.props.los).forEach(team => Object.values(team).forEach(i => Object.values(i).forEach(j => loss.push({ team: team, los: j }))))
 
         return (
             <div className='board'
@@ -246,7 +265,7 @@ export default class Board extends React.Component {
                                 />
                             )}
                         </g>
-                        <g className="lines">
+                        {/* <g className="lines">
                             {loss.map((data, i) =>
                                 <LOS
                                     key={i}
@@ -257,7 +276,7 @@ export default class Board extends React.Component {
                                     cols={this.props.cols}
                                 />
                             )}
-                        </g>
+                        </g> */}
                         <g id='markers'>
                             {this.props.cells.map(cell =>
                                 cell.figures.map(f =>
@@ -265,7 +284,7 @@ export default class Board extends React.Component {
                                         key={`${f.team}-${f.idx}`}
                                         figure={f}
                                         cell={cell}
-                                        los={this.props.los}
+                                        los={this.buildLos(f)}
 
                                         onMouseUp={(e, c) => this.handleClick(e, c)}
                                         onMouseEnter={(c) => this.props.hoverOnCell(c, true)}

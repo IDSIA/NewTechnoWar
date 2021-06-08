@@ -195,7 +195,7 @@ g.shoot g>text {
     display: none;
 }
 
-.lines>.los>path {
+.lines>path.los {
     stroke: yellow;
     stroke-width: 2;
 }
