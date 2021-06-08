@@ -3,7 +3,7 @@ services:
   ntw:
     image: ntw-backend:latest
     build:
-      context: .
+      context: ./code
       dockerfile: Dockerfile
     container_name: ntw_web_backend
 
@@ -13,3 +13,5 @@ services:
       context: ./frontend
       docekrfile: Dockerfile
     container_name: ntw_web_frontend
+    environment: 
+      API_URL: "ntw_web_backend:5000/"
