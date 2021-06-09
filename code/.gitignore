@@ -6,3 +6,4 @@ tournament/*
 graph*/*
 data*
 *__pycache__*
+cache/*

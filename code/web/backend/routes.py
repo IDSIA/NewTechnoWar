@@ -20,75 +20,8 @@ cors = CORS(main, resources={r'/api/*': {'origins': '*'}})
 
 
 @main.route('/', methods=['GET', 'POST'])
-# TODO: change this to serve the new webapp
 def index():
-    """Serve list of available scenarios."""
-    if request.method == 'POST':
-        try:
-            if app.config['DEBUG']:
-                logger.info('Using debug configuration!')
-                redPlayer = 'GreedyAgent'
-                bluePlayer = 'GreedyAgent'
-                scen = 'Junction'
-                autoplay = True
-                seed = 0
-                replay = ''
-            else:
-                data = request.form
-                seed = int(data['seed'])
-
-                redPlayer = data['redPlayer']
-                bluePlayer = data['bluePlayer']
-
-                autoplay = 'autoplay' in data or redPlayer == 'Human' or bluePlayer == 'Human'
-                scen = data['scenario']
-                replay = data['replay']
-
-            mm = buildMatchManager(
-                str(uuid.uuid4()),
-                scen,
-                redPlayer,
-                bluePlayer,
-                seed if seed > 0 else random.randint(1, 1000000000)
-            )
-            # mm.step() TODO: no more init until humans have chosen the start positions
-
-            app.games[mm.gid] = mm
-            app.params[mm.gid] = {
-                'seed': mm.seed,
-                'scenario': scen,
-                'player': {RED: redPlayer, BLUE: bluePlayer},
-                'autoplay': autoplay,
-                'replay': replay,
-            }
-            app.actions[mm.gid] = None
-
-            logger.info(f'Created game #{mm.gid} with scenario {mm.board.name}')
-
-            response = make_response(
-                redirect(f'/game/')
-            )
-            response.set_cookie('gameId', mm.gid)
-        except Exception as e:
-            logger.exception(e)
-            return redirect('/')
-    else:
-        logger.info(f'New lobby access')
-
-        app.collect_config()
-
-        response = make_response(
-            render_template(
-                'index.html',
-                title='Home | NewTechnoWar',
-                template='game-template',
-                scenarios=app.scenarios,
-                players=app.players,
-            )
-        )
-        response.delete_cookie('gameId')
-
-    return response
+    return jsonify({'message': 'This is just a remote API.'}), 200
 
 
 @main.route('/api/config/template/<name>', methods=['GET'])
