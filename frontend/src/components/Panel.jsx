@@ -24,7 +24,7 @@ export default class Panel extends React.Component {
         return (
             <div
                 id={`${this.props.team}Units`}
-                className={`panel ${this.props.team}`}
+                className={`${this.props.team} panel`}
             >
                 <div id={`${team}Player`} className="player-title">{agent}</div>
                 <div className="player-info">{this.props.interactive.text}</div>

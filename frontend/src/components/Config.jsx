@@ -237,7 +237,7 @@ export default function Config(props) {
                 <a id="armasuisse" href="https://www.ar.admin.ch/en/armasuisse-wissenschaft-und-technologie-w-t/home.html">
                     <img className="logo" src={armasuisse} alt="armasuisse" />
                 </a>
-                <h1>New Techno War</h1>
+                <a id="ntw" href="/" a>New Techno War</a>
             </div>
             <div className="line"></div>
             <div className="config-items">

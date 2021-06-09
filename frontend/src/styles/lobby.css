@@ -19,14 +19,16 @@ body {
     display: flex;
 }
 
-.title>h1 {
+#ntw {
     height: 3.1em;
     font-size: 2em;
+    font-weight: bold;
     color: #75bafd;
     padding: 0 0.1em;
     text-align: center;
     margin: 0.35em 0;
     vertical-align: middle;
+    text-decoration: none;
 }
 
 .logo {
