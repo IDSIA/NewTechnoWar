@@ -39,6 +39,8 @@ def collect_figure(data: dict) -> None:
 def collect_terrain_type(data: dict) -> None:
     """Template collector for terrain types."""
     for name, tData in data['terrain'].items():
+        tData['level'] = len(TMPL_TERRAIN_TYPE)
+        tData['key'] = name
         TMPL_TERRAIN_TYPE[name] = tData
         logger.info(f'collected terrain: {name}')
 

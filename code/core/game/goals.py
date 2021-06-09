@@ -90,7 +90,7 @@ class GoalReachPoint(Goal):
 
         self.values: np.ndarray = np.zeros(shape)
 
-        # self.turns = turns
+        self.turns = turns
         # self.entered: Dict[(Cube, int), int] = {}
 
         for o in objectives:

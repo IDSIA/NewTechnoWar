@@ -1,3 +1,4 @@
+from typing import Tuple
 import numpy as np
 
 from core.const import RED, BLUE
@@ -73,7 +74,7 @@ def addFigure(state: GameState, team: str, fName: str, fData: dict) -> None:
     """
     # setup main figure
     s = stat(fData['status']) if 'status' in fData else stat('NO_EFFECT')
-    figure = buildFigure(fData['type'], fData['position'], team, fName, s)
+    figure: Figure = buildFigure(fData['type'], fData['position'], team, fName, s)
 
     # setup colors
     color = fData.get('color', None)
@@ -104,7 +105,7 @@ def addFigure(state: GameState, team: str, fName: str, fData: dict) -> None:
             figure.transportLoad(lFigure)
 
 
-def buildScenario(name: str) -> (GameBoard, GameState):
+def buildScenario(name: str) -> Tuple[GameBoard, GameState]:
     """Build the scenario associated with the given name from the loaded templates."""
     template = TMPL_SCENARIOS[name]
 
