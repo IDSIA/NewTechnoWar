@@ -11,13 +11,15 @@
         "build": "NODE_ENV=production parcel build ./src/index.js --no-cache --public-url ./"
     },
     "dependencies": {
-        "@emotion/react": "^11.1.5",
+        "@emotion/react": "^11.4.0",
         "@emotion/styled": "^11.3.0",
         "@react-three/fiber": "^6.1.1",
         "d3-shape": "^2.1.0",
         "prop-types": "^15.7.2",
         "react": "^17.0.2",
         "react-dom": "^17.0.2",
+        "react-router": "^5.2.0",
+        "react-router-dom": "^5.2.0",
         "universal-cookie": "^4.0.4"
     },
     "devDependencies": {
@@ -25,7 +27,7 @@
         "@babel/preset-env": "^7.14.0",
         "@babel/preset-react": "^7.13.13",
         "@emotion/babel-preset-css-prop": "^11.2.0",
-        "@parcel/transformer-image": "^2.0.0-beta.2",
+        "@parcel/transformer-image": "^2.0.0-nightly.2335",
         "parcel": "^2.0.0-beta.2",
         "parcel-plugin-custom-dist-structure": "^1.1.17"
     },

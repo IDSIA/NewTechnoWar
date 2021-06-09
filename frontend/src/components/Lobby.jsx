@@ -148,7 +148,9 @@ export default class Lobby extends React.Component {
 
                             <input type="submit" value="Play" onClick={(event) => this.handleSubmit(event)} />
 
-                            <a id="guide" href={`${API}static/ntw-gui.pdf`} target="_blank">Help</a>
+                            <a className="guide" href={`${API}static/ntw-gui.pdf`} target="_blank">Help</a>
+
+                            <a className="guide" href={`/config`} target="_blank">Templates</a>
                         </div>
                     </form>
                 </div>
