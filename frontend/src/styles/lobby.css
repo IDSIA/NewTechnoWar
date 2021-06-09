@@ -66,6 +66,8 @@ body {
 }
 
 .guide,
+.guide:active,
+.guide:visited,
 input[type=submit] {
     grid-column-start: 2;
     background-color: rgb(239, 239, 239);
@@ -73,9 +75,12 @@ input[type=submit] {
     color: black;
     text-decoration: none;
     border: 1px solid gray;
+    border-radius: 0;
+    cursor: pointer;
 }
 
 .guide:hover,
+.guide:active:hover,
 input[type=submit]:hover {
     background-color: rgb(222, 222, 222);
 }
