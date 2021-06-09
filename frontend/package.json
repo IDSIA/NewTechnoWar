@@ -19,27 +19,14 @@
         "react": "^17.0.2",
         "react-dom": "^17.0.2",
         "react-router": "^5.2.0",
-        "react-router-dom": "^5.2.0",
-        "universal-cookie": "^4.0.4"
+        "react-router-dom": "^5.2.0"
     },
     "devDependencies": {
         "@babel/core": "^7.14.0",
         "@babel/preset-env": "^7.14.0",
         "@babel/preset-react": "^7.13.13",
         "@emotion/babel-preset-css-prop": "^11.2.0",
-        "@parcel/transformer-image": "^2.0.0-nightly.2335",
-        "parcel": "^2.0.0-beta.2",
-        "parcel-plugin-custom-dist-structure": "^1.1.17"
-    },
-    "customDistStructure": {
-        "config": {
-            ".css": "css",
-            ".js": "js",
-            "images": [
-                ".jpg",
-                ".svg",
-                ".png"
-            ]
-        }
+        "@parcel/transformer-image": "^2.0.0-beta.2",
+        "parcel": "^2.0.0-beta.2"
     }
 }
