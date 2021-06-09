@@ -1,0 +1,201 @@
+.board {
+    overflow: hidden;
+}
+
+
+/* SVGs */
+
+.coord {
+    fill: black;
+    text-anchor: middle;
+    font-size: 3pt;
+}
+
+
+/* Game colors */
+
+.selected {
+    stroke: orange;
+    stroke-width: 3pt;
+}
+
+.highlight {
+    stroke: yellow;
+    stroke-width: 2pt;
+}
+
+.terrain.objective {
+    stroke: magenta;
+    stroke-width: 2pt;
+}
+
+.terrain.OPEN_GROUND {
+    fill: #92C060;
+}
+
+.terrain.TREE {
+    fill: #457313;
+}
+
+.terrain.FOREST {
+    fill: #00410B;
+}
+
+.terrain.ROAD {
+    fill: #E3854D;
+}
+
+.terrain.URBAN {
+    fill: #676767;
+}
+
+.terrain.BUILDING {
+    fill: #454545;
+}
+
+.terrain.WOODEN_BUILDING {
+    fill: #A76B11;
+}
+
+.terrain.CONCRETE_BUILDING {
+    fill: #999999;
+}
+
+.content {
+    text-anchor: middle;
+    font-size: 4pt;
+}
+
+
+/* figures markers */
+
+g.loaded {
+    display: none;
+}
+
+g.loaded.highlight {
+    display: block;
+}
+
+g.unit.red>circle.color {
+    fill: red;
+}
+
+g.unit.blue>circle.color {
+    fill: dodgerblue;
+}
+
+g.unit.infantry>circle {
+    -webkit-mask: url('../images/infantry.png');
+    mask: url('../images/infantry.png');
+}
+
+g.unit.vehicle>circle {
+    -webkit-mask: url('../images/vehicle.png');
+    mask: url('../images/vehicle.png');
+}
+
+g.killed.red>circle {
+    fill: #555555 !important;
+    stroke: darkred;
+    stroke-width: 1pt;
+}
+
+g.killed.blue>circle {
+    fill: #555555 !important;
+    stroke: dodgerblue;
+    stroke-width: 1pt;
+}
+
+g.hit.red>circle {
+    /* this inversion is done on purpose! */
+    stroke: dodgerblue;
+    stroke-width: 1;
+}
+
+g.hit.blue>circle {
+    /* this inversion is done on purpose! */
+    stroke: darkred;
+    stroke-width: 1;
+}
+
+.pz-red {
+    fill: rgba(255, 0, 0, 0.5);
+}
+
+.pz-blue {
+    fill: rgba(30, 144, 255, 0.5);
+}
+
+.highlight {
+    border: 1px solid yellow !important;
+}
+
+g.unit.highlight>circle {
+    fill: yellow !important;
+}
+
+
+/* Actions */
+
+.move>path {
+    stroke: white;
+    stroke-width: 3;
+}
+
+.shoot.lof.red>path {
+    stroke: red;
+    stroke-opacity: 0.8;
+    stroke-width: 3;
+}
+
+.shoot.lof.blue>path {
+    stroke: dodgerblue;
+    stroke-opacity: 0.8;
+    stroke-width: 3;
+}
+
+.shoot.los.red>path {
+    stroke: darkred;
+    stroke-opacity: 0.6;
+    stroke-width: 6;
+}
+
+.shoot.los.blue>path {
+    stroke: darkblue;
+    stroke-opacity: 0.6;
+    stroke-width: 6;
+}
+
+g.shoot g {
+    display: none;
+    /* TODO: implement console or info on map */
+}
+
+g.shoot g>rect {
+    opacity: 0.8;
+    width: 40px;
+    height: 60px;
+}
+
+g.shoot.blue g>rect {
+    fill: dodgerblue;
+}
+
+g.shoot.red g>rect {
+    fill: red;
+}
+
+g.shoot g>text {
+    fill: white;
+    font-size: 4pt;
+}
+
+.hide {
+    display: none;
+}
+
+.lines>path.los {
+    stroke: yellow;
+    stroke-width: 2;
+}

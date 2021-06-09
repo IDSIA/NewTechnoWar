@@ -117,7 +117,7 @@ class AlphaBetaAgent(Agent):
         """
         nextActions = []
         if step == 'response':
-            nextActions += [self.gm.actionPassResponse(team)]
+            nextActions += [self.gm.actionNoResponse(team)]
             for figure in state.getFiguresCanRespond(team):
                 nextActions += self.gm.buildResponses(board, state, figure)
         else:
@@ -137,7 +137,7 @@ class AlphaBetaAgent(Agent):
         "alphaBeta()".
 
         If you override this method, remember to invoke the "alphaBeta()" method to continue the exploration.
-        
+
         :param board:       board of the game
         :param state:       current state
         :param action:      action to apply to the current state

@@ -6,40 +6,40 @@ scenario:
 
     red:
       figures:
-        - rTank1:
-            type: Tank
-            position: [ 39, 22 ]
-            color: orange
-        - rInf11:
-            type: Infantry
-            position: [ 39, 24 ]
-            color: orange
-        - rInf12:
-            type: Infantry
-            position: [ 38, 26 ]
-            color: orange
+        rTank1:
+          type: Tank
+          position: [ 39, 22 ]
+#          color: orange
+        rInf11:
+          type: Infantry
+          position: [ 39, 24 ]
+#          color: orange
+        rInf12:
+          type: Infantry
+          position: [ 38, 26 ]
+#          color: orange
 
-        - rTank2:
-            type: Tank
-            position: [ 42, 21 ]
-            color: lightred
-            loaded:
-              - rInf21:
-                  type: Infantry
-        - rInf22:
-            type: Infantry
-            position: [ 42, 20 ]
-            color: lightred
+        rTank2:
+          type: Tank
+          position: [ 42, 21 ]
+#          color: lightred
+          loaded:
+            - rInf21:
+                type: Infantry
+        rInf22:
+          type: Infantry
+          position: [ 42, 20 ]
+#          color: lightred
 
-        - rTank3:
-            type: Tank
-            position: [ 37, 21 ]
-            color: darkred
-            loaded:
-              - rInf31:
-                  type: Infantry
-              - rInf32:
-                  type: Infantry
+        rTank3:
+          type: Tank
+          position: [ 37, 21 ]
+#          color: darkred
+          loaded:
+            - rInf31:
+                type: Infantry
+            - rInf32:
+                type: Infantry
 
       objectives:
         reach_point:
@@ -48,14 +48,14 @@ scenario:
 
     blue:
       figures:
-        - bAPC:
-            type: APC
-            position: [ 44, 27 ]
-            status: HIDDEN
-        - bInf:
-            type: Infantry
-            position: [ 43, 30 ]
-            status: HIDDEN
+        bAPC:
+          type: APC
+          position: [ 44, 27 ]
+          status: HIDDEN
+        bInf:
+          type: Infantry
+          position: [ 43, 30 ]
+          status: HIDDEN
 
       placement:
         - region: "42, 25:33"

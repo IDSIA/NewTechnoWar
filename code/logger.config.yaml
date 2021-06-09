@@ -3,7 +3,7 @@ version: 1
 formatters:
   standard:
     datefmt: '%Y-%m-%d %H:%M:%S'
-    format: '%(asctime)s %(name)s %(levelname)s %(message)s'
+    format: '%(asctime)s %(name).20s %(levelname)-5s %(message)s'
 
 handlers:
   console:
@@ -34,18 +34,25 @@ handlers:
     filename: logs/web.log
     encoding: utf8
 
+  web_access_handler:
+    class: logging.FileHandler
+    formatter: standard
+    filename: logs/web.access.log
+    encoding: utf8
+
   tourney_file_handler:
     class: logging.FileHandler
     formatter: standard
     filename: logs/tourney.all.log
     encoding: utf8
 
-#root:
-#  level: NOTSET
-#  handlers: [ console ]
-#  propagate: yes
-
 loggers:
+  core:
+    propagate: false
+    level: INFO
+    handlers:
+      - console
+
   agents:
     propagate: false
     level: INFO
@@ -72,15 +79,24 @@ loggers:
     level: INFO
     handlers:
       - console
+      - agents_file_handler
 
   web:
     level: INFO
     handlers:
+      - console
       - web_file_handler
 
+  werkzeug:
+    propagate: false
+    level: INFO
+    handlers:
+      - console
+      - web_access_handler
+
   tourney:
+    propagate: false
     level: INFO
     handlers:
       - console
       - tourney_file_handler
-    propagate: no

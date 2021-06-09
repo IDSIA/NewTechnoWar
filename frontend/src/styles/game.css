@@ -1,0 +1,64 @@
+body {
+    font: 12pt "Century Gothic", Futura, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #222222;
+}
+
+a,
+a:visited,
+a:active {
+    color: #999999;
+    padding: 0.7em 0;
+    text-decoration: underline;
+}
+
+a:hover {
+    color: #ffffff;
+}
+
+#gameId {
+    display: none;
+}
+
+
+/* layout */
+
+#game {
+    display: grid;
+    grid-template-columns: [redCol]20em [board]auto [blueCol]20em;
+    grid-template-rows: [cockpitRow] 6vh [gameRow] auto;
+    height: 100vh;
+}
+
+.viewport {
+    text-align: start;
+}
+
+span.red {
+    color: red;
+    font-weight: bolder;
+}
+
+span.blue {
+    color: dodgerblue;
+    font-weight: bolder;
+}
+
+#messages {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    top: 6vh;
+    left: 21em;
+}
+
+.message {
+    margin-top: 1em;
+    width: 20em;
+    background-color: rgba(255, 0, 0, 0.7);
+    border: 1px solid red;
+    z-index: 1000;
+    color: white;
+    padding: 0.25em;
+}

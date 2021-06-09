@@ -11,14 +11,16 @@ def parse_figure_status():
 
 def parse_terrain():
     for tName, tData in TMPL_TERRAIN_TYPE.items():
-        level = len(TERRAIN_TYPE)
+        level = tData['level']
         terrain = Terrain(
             level,
+            tName,
             tData['name'],
             tData['protection'],
             tData['move_cost'][FigureType.INFANTRY],
             tData['move_cost'][FigureType.VEHICLE],
-            tData['block_los']
+            tData['block_los'],
+            tData['color']
         )
 
         TERRAIN_TYPE[tName] = terrain

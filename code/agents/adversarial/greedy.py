@@ -145,7 +145,7 @@ class GreedyAgent(Agent):
         baseScore = stateScore(self.team, self.goal_params, board, state)
         scores = []
 
-        responses = [self.gm.actionPassResponse(self.team)] + self.gm.buildResponses(board, state, figure)
+        responses = [self.gm.actionNoResponse(self.team)] + self.gm.buildResponses(board, state, figure)
 
         for action in responses:
             score = self.evaluateState(board, state, action, baseScore)

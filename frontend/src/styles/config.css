@@ -1,0 +1,73 @@
+.red {
+    color: red;
+}
+
+.blue {
+    color: dodgerblue;
+}
+
+.config-items {
+    grid-column: 1 / 4;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.config-items>.item {
+    width: 55ch;
+    padding: 2em;
+    margin: 0.1em;
+    background-color: #efefff;
+    border-radius: 2em;
+    border: 1px solid dodgerblue;
+}
+
+.item {
+    grid-column: auto;
+    padding: 2em;
+    background-color: #efefff;
+    border-radius: 2em;
+    border: 1px solid dodgerblue;
+}
+
+.item>h1 {
+    text-transform: uppercase;
+}
+
+.entry {
+    display: grid;
+    grid-template-columns: 30% auto;
+}
+
+.entry>h2 {
+    margin-bottom: 0;
+    grid-column: 1/3;
+}
+
+.board-image {
+    width: 400px;
+    grid-column: 1/3;
+}
+
+.entry .blue {
+    grid-column: 1/3;
+}
+
+.entry .red {
+    grid-column: 1/3;
+}
+
+.voice {
+    color: #777777;
+}
+
+.value {
+    margin-left: 2em;
+}
+
+.lobby {
+    display: grid;
+    grid-template-columns: auto 27em;
+    grid-template-rows: auto;
+}

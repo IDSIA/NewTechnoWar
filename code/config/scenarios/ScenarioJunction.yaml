@@ -5,40 +5,34 @@ scenario:
 
     red:
       figures:
-        - rTank1:
-            type: Tank
-            position: [ 8, 17 ]
-            color: orange
-            loaded:
-              - rInf11:
-                  type: Infantry
-              - rInf12:
-                  type: Infantry
+        rTank1:
+          type: Tank
+          position: [ 8, 17 ]
+          loaded:
+            - rInf11:
+                type: Infantry
+            - rInf12:
+                type: Infantry
 
-        - rTank2:
-            type: Tank
-            position: [ 7, 28 ]
-            color: lightred
-            loaded:
-              - rInf21:
-                  type: Infantry
-        - rInf22:
-            type: Infantry
-            position: [ 6, 29 ]
-            color: lightred
+        rTank2:
+          type: Tank
+          position: [ 7, 28 ]
+          loaded:
+            - rInf21:
+                type: Infantry
+        rInf22:
+          type: Infantry
+          position: [ 6, 29 ]
 
-        - rTank3:
-            type: Tank
-            position: [ 17, 37 ]
-            color: darkred
-        - rInf31:
-            type: Infantry
-            position: [ 17, 34 ]
-            color: darkred
-        - rInf32:
-            type: Infantry
-            position: [ 25, 39 ]
-            color: darkred
+        rTank3:
+          type: Tank
+          position: [ 17, 37 ]
+        rInf31:
+          type: Infantry
+          position: [ 17, 34 ]
+        rInf32:
+          type: Infantry
+          position: [ 25, 39 ]
 
       objectives:
         reach_point:
@@ -47,18 +41,18 @@ scenario:
 
     blue:
       figures:
-        - bAPC:
-            type: APC
-            position: [ 33, 25 ]
-            status: HIDDEN
-        - bInf1:
-            type: Infantry
-            position: [ 36, 31 ]
-            status: HIDDEN
-        - bInf2:
-            type: Infantry
-            position: [ 37, 33 ]
-            status: HIDDEN
+        bAPC:
+          type: APC
+          position: [ 33, 25 ]
+          status: HIDDEN
+        bInf1:
+          type: Infantry
+          position: [ 36, 31 ]
+          status: HIDDEN
+        bInf2:
+          type: Infantry
+          position: [ 37, 33 ]
+          status: HIDDEN
 
       placement:
         - region: "28, 32:38"
@@ -79,6 +73,6 @@ scenario:
 
       objectives:
         defend_point:
-        - [ 30, 30 ]
+          - [ 30, 30 ]
         eliminate_opponent:
         max_turn: 10

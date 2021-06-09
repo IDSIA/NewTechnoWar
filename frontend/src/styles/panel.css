@@ -1,0 +1,383 @@
+.hide {
+    display: none !important;
+}
+
+.selected {
+    background-color: darkorange !important;
+}
+
+.panel {
+    display: grid;
+    grid-template-columns: 50% 50%;
+    grid-template-rows: 3em 1.5em 1.5em auto;
+    row-gap: 0.2em;
+    color: #cccccc;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.player-title {
+    grid-column-start: 1;
+    grid-column-end: 3;
+    text-align: center;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.player-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 1em;
+    font-weight: bold;
+}
+
+.player-choose {
+    text-align: center;
+    font-size: 1em;
+    font-weight: bold;
+}
+
+.player-choose:hover {
+    background-color: darkorange;
+    cursor: pointer;
+}
+
+.player-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 1em;
+    font-weight: bold;
+    background-color: rgba(255, 255, 255, 0.2);
+    margin: 0.1em;
+}
+
+.player-button:hover {
+    background-color: darkorange;
+    cursor: pointer;
+}
+
+#redPlayer {
+    border: 1px solid red;
+}
+
+#bluePlayer {
+    border: 1px solid dodgerblue;
+}
+
+.units {
+    grid-column-start: 1;
+    grid-column-end: 3;
+    display: flex;
+    flex-direction: column;
+    overflow-y: scroll;
+}
+
+.units::-webkit-scrollbar {
+    display: none;
+}
+
+.panel.red {
+    background-color: #992222;
+}
+
+.panel.blue {
+    background-color: #222299;
+}
+
+
+/* Figures structure */
+
+.unit {
+    /* margin: 0.1em 0.2em; */
+    padding: 0.2em;
+    display: grid;
+    grid-template-columns: [img1]2em [img2]2em [stat1]2em [stat2]2em [stat3]2em [weapons]8.2em;
+    grid-template-rows: [header]6pt [top]2em [mid]2em [bottom]2em;
+    column-gap: 0.2em;
+    row-gap: 0.2em;
+    justify-items: stretch;
+    align-items: stretch;
+}
+
+.unit.red {
+    border: 1px solid #ff6666;
+}
+
+.unit.blue {
+    border: 1px solid #6666ff;
+}
+
+.orange,
+.unit.orange,
+.unit.orange>circle {
+    background-color: orangered;
+    fill: orangered !important;
+}
+
+.darkred,
+.unit.darkred,
+.unit.darkred>circle {
+    background-color: darkred;
+    fill: darkred !important;
+}
+
+.lightred,
+.unit.lightred,
+.unit.lightred>circle {
+    background-color: indianred;
+    fill: indianred !important;
+}
+
+.unit>div:not(.uKind):not(.uTitle):not(.uWeapons),
+div.ammo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #444444;
+}
+
+.uKind {
+    grid-column-start: img1;
+    grid-column-end: span 2;
+    grid-row-start: top;
+    grid-row-end: span 2;
+    background-size: 4em 4em;
+}
+
+.uKind.red {
+    background-color: red;
+}
+
+.uKind.blue {
+    background-color: dodgerblue;
+}
+
+.uKind.infantry {
+    background-image: url('../images/infantry.png');
+}
+
+.uKind.vehicle {
+    background-image: url('../images/vehicle.png');
+}
+
+.uTitle {
+    color: black;
+    font-size: 6pt;
+    font-weight: 900;
+    text-align: center;
+}
+
+.uTitle.HP {
+    grid-column-start: stat1;
+}
+
+.uTitle.Move {
+    grid-column-start: stat2;
+}
+
+.uTitle.Load {
+    grid-column-start: stat3;
+}
+
+.uTitle.Weapons {
+    grid-column-start: weapons;
+}
+
+.uHP {
+    grid-column-start: stat1;
+}
+
+.uLoad {
+    grid-column-start: stat2;
+}
+
+.uMove {
+    grid-column-start: stat3;
+}
+
+.uName {
+    grid-column-start: stat1;
+    grid-column-end: span 3;
+}
+
+.uStat {
+    grid-column-start: stat1;
+    grid-column-end: span 3;
+}
+
+
+/* weapons area */
+
+.uWeapons {
+    display: grid;
+    grid-template-columns: 4em 4em;
+    grid-template-rows: 1fr 1fr 1fr;
+    row-gap: 0.2em;
+    column-gap: 0.2em;
+    grid-column-start: weapons;
+    grid-row-start: top;
+    grid-row-end: span 3;
+}
+
+.weapon {
+    display: flex;
+}
+
+.weapon>div {
+    width: 2em;
+}
+
+.empty {
+    color: red;
+}
+
+.weapon.ammo {
+    margin-right: 0.2em;
+}
+
+.weapon.used.attack {
+    background-color: yellow;
+    color: black;
+}
+
+.weapon.used.respond {
+    background-color: darkorange;
+    color: black;
+}
+
+.weapon.disabled::before {
+    position: absolute;
+    content: 'X';
+    font-family: sans-serif;
+    z-index: 10;
+    color: red;
+    font-weight: bold;
+    font-size: 2em;
+    text-align: center;
+    width: 1em;
+}
+
+.weapon>.image {
+    background-image: url('../images/weapons.png');
+    background-size: auto 85%;
+    background-color: #666666;
+    background-blend-mode: darken;
+    background-repeat: no-repeat;
+    overflow: hidden;
+    display: block;
+    width: 2em;
+}
+
+.weapon:hover>.image {
+    background-color: cyan;
+    cursor: pointer;
+}
+
+.weapon:hover>.ammo {
+    background-color: rgb(0, 110, 110);
+    cursor: pointer;
+}
+
+.weapon.selected>.image {
+    background-color: orangered;
+}
+
+.weapon.selected>.ammo {
+    background-color: rgb(165, 51, 10);
+}
+
+.weapon>.image.wCA {
+    background-position: 1%;
+}
+
+.weapon>.image.wAR {
+    background-position: 18%;
+}
+
+.weapon>.image.wMG {
+    background-position: 35%;
+}
+
+.weapon>.image.wAT {
+    background-position: 48%;
+}
+
+.weapon>.image.wMT {
+    background-position: 62%;
+}
+
+.weapon>.image.wGR {
+    background-position: 76%;
+}
+
+.weapon>.image.wSG {
+    background-position: 94%;
+}
+
+
+/* Figure status */
+
+.activated {
+    background-color: rgba(0, 0, 0, 0.0);
+}
+
+.notActivated {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.uOpt {
+    color: black;
+    font-weight: bold;
+    padding: 5px;
+    grid-row-start: bottom;
+    text-align: center;
+    background-color: transparent !important;
+}
+
+.opt1 {
+    grid-column-start: img1;
+}
+
+.opt2 {
+    grid-column-start: img2;
+}
+
+.moving {
+    background-color: cyan !important;
+}
+
+.attacking {
+    background-color: purple !important;
+}
+
+.responded {
+    background-color: orange !important;
+}
+
+.passed {
+    background-color: green !important;
+}
+
+.transported {
+    background-color: white !important;
+}
+
+div.killed {
+    background-color: #222222;
+    color: black;
+}
+
+div.killed::before {
+    content: 'X';
+    font-family: sans-serif;
+    z-index: 10;
+    color: white;
+    font-weight: bold;
+    font-size: 5em;
+    text-align: center;
+    padding: 0 0.075em;
+}

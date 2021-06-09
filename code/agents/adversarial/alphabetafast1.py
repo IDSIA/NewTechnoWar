@@ -83,7 +83,7 @@ class AlphaBetaFast1Agent(AlphaBetaAgent):
         """
         nextActions = []
         if step == 'response':
-            nextActions += [self.gm.actionPassResponse(team)]
+            nextActions += [self.gm.actionNoResponse(team)]
             for figure in state.getFiguresCanRespond(team):
                 nextActions += self.gm.buildResponses(board, state, figure)
 
@@ -121,7 +121,7 @@ class AlphaBetaFast1Agent(AlphaBetaAgent):
         """
 
         if step == 'response':
-            noEffect = self.mm.gm.actionPassResponse(action.team)
+            noEffect = self.mm.gm.actionNoResponse(action.team)
         else:
             noEffect = self.mm.gm.actionPassTeam(action.team)
 

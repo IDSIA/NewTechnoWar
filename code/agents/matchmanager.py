@@ -7,7 +7,7 @@ import numpy as np
 import agents as players
 from agents import Agent
 from agents.interactive.interactive import Human
-from core.actions import Attack, Move, Action, Response, PassRespond, PassTeam
+from core.actions import Attack, Move, Action, Response, NoResponse, PassTeam
 from core.const import RED, BLUE
 from core.game import GameBoard, GameState, goalAchieved, GameManager
 from core.game.outcome import Outcome
@@ -164,7 +164,7 @@ class MatchManager:
             response = self.second.chooseResponse(self.board, self.state)
         except ValueError as e:
             self.logger.debug(f'{self.seed:10} {self.second.team:5} {"exception":9}: {e}')
-            response = PassRespond(self.second.team)
+            response = NoResponse(self.second.team)
 
         outcome = self.gm.step(self.board, self.state, response)
 
@@ -212,7 +212,7 @@ class MatchManager:
 
     def _goUpdate(self) -> None:
         """Update step."""
-        self.logger.info(f'{self.seed:10} ' + ('=' * 100))
+        self.logger.info(f'{self.seed:10} ' + ('=' * 50))
         self.logger.debug(f'{self.seed:10} step: update')
         self.update = True
 
