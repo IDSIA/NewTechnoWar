@@ -1,6 +1,7 @@
 export const size = 20
 export const middleHeight = size * Math.sqrt(3) / 2
 
+
 function offset(center, size, i) {
     var angle_deg = 60 * i
     var angle_rad = Math.PI / 180 * angle_deg

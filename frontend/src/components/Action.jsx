@@ -6,7 +6,6 @@ export default class Action extends React.Component {
 
     constructor(props) {
         super(props)
-        /* action cells rows cols */
     }
 
     coords(p) {

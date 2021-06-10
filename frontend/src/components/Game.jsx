@@ -10,6 +10,7 @@ import { size, middleHeight } from "../model/CellHex"
 
 import '../styles/game.css'
 
+
 const API = process.env.API_URL
 const TIMEOUT = 1000 // milliseconds
 
@@ -22,8 +23,6 @@ export default class Game extends React.Component {
         this.state = {
             // if true, show the lobby form
             showLobby: true,
-            // if true show the config page (TODO: implement this)
-            showConfig: false,
             // if true, interface initialization completed
             initCompleted: false,
             // if true, game inizialization done
@@ -748,10 +747,6 @@ export default class Game extends React.Component {
     }
 
     render() {
-        if (this.state.showConfig)
-            return (
-                <Config />
-            )
         if (this.state.showLobby)
             return (
                 <Lobby

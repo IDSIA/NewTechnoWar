@@ -11,7 +11,6 @@ import armasuisse from "url:../images/armasuisse.png";
 const API = process.env.API_URL
 
 
-
 function Voice(props) {
 
     if (props.v === null || props.v === undefined) {
