@@ -5,7 +5,7 @@ from flask import Flask
 
 from core.templates import collect, TMPL_SCENARIOS, TMPL_TERRAIN_TYPE
 from web.backend.config import conf
-from web.backend.utils.serializer import GameJSONEncoder
+from web.backend.serializer import GameJSONEncoder
 
 logger = logging.getLogger(__name__)
 
