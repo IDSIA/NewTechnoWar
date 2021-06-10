@@ -1,5 +1,6 @@
 import math
-import os
+import os.path as op
+from typing import List, Tuple
 
 from PIL import Image, ImageColor, ImageDraw
 
@@ -10,19 +11,23 @@ from core.game.terrain import TYPE_TERRAIN
 from core.scenarios.functions import parseBoard, buildScenario
 from core.utils.coordinates import Hex
 
+SIZE = 18
+SQRT3 = math.sqrt(3)
 
-sqrt3 = math.sqrt(3)
+IMAGE_FOLDER: str = op.join(op.dirname(__file__), '..', 'images')
+PATH_INF: str = op.join(IMAGE_FOLDER, 'infantry.png')
+PATH_TANK: str = op.join(IMAGE_FOLDER, 'tank.png')
 
 
-def _evenqOffsetToPixel(i: int, j: int, size):
+def _evenqOffsetToPixel(i: int, j: int, size) -> Tuple[int, int]:
     x = size * 3 / 2 * i
-    y = size * sqrt3 * (j - 0.5 * (i & 1))
+    y = size * SQRT3 * (j - 0.5 * (i & 1))
     return int(x + size), int(y + size * 2)
 
 
-def _hexagonPoints(i, j, size):
+def _hexagonPoints(i: int, j: int, size) -> List:
     w = size / 2
-    h = round(size * sqrt3 / 2)
+    h = round(size * SQRT3 / 2)
     return [
         (i + w, j + -h),
         (i + -w, j + -h),
@@ -34,19 +39,19 @@ def _hexagonPoints(i, j, size):
     ]
 
 
-def _drawHexagon(draw, i, j, size, color='white', alpha=255):
+def _drawHexagon(draw: ImageDraw, i: int, j: int, size, color='white', alpha=255) -> None:
     r, g, b = ImageColor.getrgb(color)
     points = _hexagonPoints(i, j, size)
     draw.polygon(points, fill=(r, g, b, alpha), outline=None)
 
 
-def _drawHexagonBorder(draw, i, j, size, color='white', width=1):
+def _drawHexagonBorder(draw: ImageDraw, i: int, j: int, size, color='white', width=1) -> None:
     r, g, b = ImageColor.getrgb(color)
     points = _hexagonPoints(i, j, size)
     draw.line(points, fill=(r, g, b), width=width)
 
 
-def drawBoard(board: GameBoard, size=10):
+def drawBoard(board: GameBoard, size=SIZE) -> Image:
     x, y = board.shape
     size_x = x * 2 * size
     size_y = y * 2 * size
@@ -75,8 +80,8 @@ def drawBoard(board: GameBoard, size=10):
     return img.crop((0, 0, maxi + 14, maxj + 20))
 
 
-def board2png(filename: str, boardName: str, format: str = 'PNG', size=10) -> None:
-    if os.path.exists(filename):
+def board2png(filename: str, boardName: str, format: str = 'PNG', size=SIZE) -> None:
+    if op.exists(filename):
         return
 
     board = parseBoard(boardName)
@@ -84,13 +89,20 @@ def board2png(filename: str, boardName: str, format: str = 'PNG', size=10) -> No
     img.save(filename, format)
 
 
-def drawState(board: GameBoard, state: GameState, size=10):
-    img = drawBoard(board, size)
+def drawState(board: GameBoard, state: GameState, size=SIZE) -> Image:
+    img: Image = drawBoard(board, size)
     draw = ImageDraw.Draw(img, 'RGBA')
 
     x, y = board.shape
 
-    psize = size * .6
+    psize = int(size * .6)
+
+    img_inf: Image = Image.open(PATH_INF)
+    img_tank: Image = Image.open(PATH_TANK)
+
+    psize2 = 2 * psize
+    img_inf.thumbnail((psize2, psize2), Image.ANTIALIAS)
+    img_tank.thumbnail((psize2, psize2), Image.ANTIALIAS)
 
     for i in range(0, x):
         for j in range(0, y):
@@ -105,24 +117,23 @@ def drawState(board: GameBoard, state: GameState, size=10):
 
             fs = state.getFiguresByPos(RED, pos)
             xy = (pi - psize, pj - psize, pi + psize, pj + psize)
+            dxy = (pi - psize, pj - psize)
             for f in fs:
-                if f.kind == 'vehicle':
-                    draw.ellipse(xy, fill='#ff0000')
-                else:
-                    draw.ellipse(xy, outline='#ff0000', width=2)
+                draw.ellipse(xy, fill='#ff0000')
+                decal = img_tank if f.kind == 'vehicle' else img_inf
+                img.paste(decal, dxy, mask=decal)
 
             fs = state.getFiguresByPos(BLUE, pos)
             for f in fs:
-                if f.kind == 'vehicle':
-                    draw.ellipse(xy, fill='#1e90ff')
-                else:
-                    draw.ellipse(xy, outline='#1e90ff', width=2)
+                draw.ellipse(xy, fill='#1e90ff')
+                decal = img_tank if f.kind == 'vehicle' else img_inf
+                img.paste(decal, dxy, mask=decal)
 
     return img
 
 
-def scenario2png(filename: str, scenario, format: str = 'PNG', size=10) -> None:
-    if os.path.exists(filename):
+def scenario2png(filename: str, scenario, format: str = 'PNG', size=SIZE) -> None:
+    if op.exists(filename):
         return
 
     board, state = buildScenario(scenario)
