@@ -4,14 +4,14 @@ import random
 from typing import Tuple
 import uuid
 
-from flask import Blueprint, render_template, make_response, request, jsonify, redirect, send_file
+from flask import Blueprint, request, jsonify, send_file
 from flask import current_app as app
 from flask_cors import CORS
 
 from agents import Agent, Human, MatchManager, buildMatchManager
 from core.const import BLUE, RED
 from core.templates import *
-from web.backend.images import board2png, scenario2png
+from utils.images import board2png, scenario2png
 
 logger = logging.getLogger(__name__)
 
