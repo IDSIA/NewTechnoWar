@@ -148,6 +148,8 @@ export default class Lobby extends React.Component {
 
                             <input type="submit" value="Play" onClick={(event) => this.handleSubmit(event)} />
 
+                            <a className="guide" href="https://github.com/IDSIA/NewTechnoWar/wiki/Game-Rules">Game Rules</a>
+
                             <a className="guide" href="/config">Templates</a>
 
                             <a className="guide" href="https://github.com/IDSIA/NewTechnoWar">Code repository</a>

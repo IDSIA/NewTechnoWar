@@ -1,0 +1,18 @@
+body {
+    font: 12pt "Century Gothic", Futura, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #222222;
+}
+
+a,
+a:visited,
+a:active {
+    color: #999999;
+    padding: 0 0.7em;
+    text-decoration: underline;
+}
+
+a:hover {
+    color: #ffffff;
+}
