@@ -1,13 +1,14 @@
 import math
-from os import W_OK
 import os.path as op
-from typing import List, Tuple
+
+from typing import Dict, List, Tuple
 
 from PIL import Image, ImageColor, ImageDraw
 from numpy import isin
 
 from core.const import RED, BLUE
 from core.game import GameBoard, GameState, TYPE_TERRAIN
+from core.figures import stat
 from core.actions import Action, Move, Attack
 from core.scenarios.functions import parseBoard, buildScenario
 from core.utils.coordinates import Hex
@@ -17,8 +18,11 @@ ALWAYS_ACTIONS: bool = False
 SQRT3: float = math.sqrt(3)
 
 IMAGE_FOLDER: str = op.join(op.dirname(__file__), '..', 'images')
-PATH_INF: str = op.join(IMAGE_FOLDER, 'infantry.png')
-PATH_TANK: str = op.join(IMAGE_FOLDER, 'tank.png')
+IMAGE_DECALS: dict = {
+    'infantry':  op.join(IMAGE_FOLDER, 'infantry.png'),
+    'vehicle': op.join(IMAGE_FOLDER, 'tank.png'),
+    'hidden': op.join(IMAGE_FOLDER, 'hidden.png'),
+}
 
 COLORS: dict = {
     RED: '#ff0000',
@@ -26,7 +30,23 @@ COLORS: dict = {
 }
 
 
-def _evenqOffsetToPixel(i: int = 0, j: int = 0, size=SIZE, pos: tuple = None) -> Tuple[int, int]:
+def _loadDecals(psize: int) -> Dict[str, Image.Image]:
+    """Load images for decals from the 'IMAGE_DECALS' dictionary and resize them."""
+
+    decals: dict = {}
+    psize2: int = 2 * psize
+
+    for k, v in IMAGE_DECALS.items():
+        decals[k] = Image.open(v)
+        decals[k].thumbnail((psize2, psize2), Image.ANTIALIAS)
+
+    return decals
+
+
+def _evenqOffsetToPixel(i: int = 0, j: int = 0, size: int = None, pos: tuple = None) -> Tuple[int, int]:
+    """Convert the coordinate system to the pixel-space coordinates. Use argument 'pos' to convert a position in pixel-space."""
+    if size is None:
+        size = SIZE
     if pos:
         i, j = pos
     x = size * 3 / 2 * i
@@ -34,7 +54,16 @@ def _evenqOffsetToPixel(i: int = 0, j: int = 0, size=SIZE, pos: tuple = None) ->
     return int(x + size), int(y + size * 2)
 
 
-def _hexagonPoints(i: int = 0, j: int = 0, size=SIZE, pos: tuple = None) -> List:
+def _hexagonPoints(i: int = 0, j: int = 0, size: int = None, pos: tuple = None) -> List:
+    """
+    Produces the points to draw an hexagon.
+    Returned points are in pixel-space since arguments 'i' and 'j' need to be in pixel-space.
+    Use argument 'pos' to have an hexagon centered on the position.
+    """
+
+    if size is None:
+        size = SIZE
+
     if pos:
         i, j = pos
     w = size / 2
@@ -50,23 +79,49 @@ def _hexagonPoints(i: int = 0, j: int = 0, size=SIZE, pos: tuple = None) -> List
     ]
 
 
-def _drawHexagon(img: Image, i: int, j: int, size=SIZE, color: str = 'white', alpha: int = 255) -> None:
+def _drawHexagon(img: Image, i: int, j: int, size: int = None, color: str = 'white', alpha: int = 255) -> None:
+    """Draws an hexagon at the given coordinates already in pixel-space."""
+
+    if size is None:
+        size = SIZE
+
     draw = ImageDraw.Draw(img, 'RGBA')
     r, g, b = ImageColor.getrgb(color)
     points = _hexagonPoints(i, j, size)
     draw.polygon(points, fill=(r, g, b, alpha), outline=None)
 
 
-def _drawHexagonBorder(img: Image, i: int, j: int, size, color: str = 'white', width: int = 1) -> None:
+def _drawHexagonBorder(img: Image, i: int, j: int, size: int = None, color: str = 'white', width: int = 1, alpha: int = 255) -> None:
+    """Draws the border of an hexagon at the given coordinates in pixel-space."""
+
+    if size is None:
+        size = SIZE
+
     width = int(max(1, size * width * .09))
 
     draw = ImageDraw.Draw(img, 'RGBA')
     r, g, b = ImageColor.getrgb(color)
     points = _hexagonPoints(i, j, size)
-    draw.line(points, fill=(r, g, b), width=width)
+    draw.line(points, fill=(r, g, b, alpha), width=width)
 
 
-def drawBoard(board: GameBoard, size=SIZE) -> Image:
+def drawHexagon(img: Image, x: int, y: int, color: str, width: int = 1, fill: str = None, alpha: int = 255, size: int = None) -> None:
+    """Draws an hexagon at the given (x,y) coordinates in hex-space over the given 'img' image."""
+
+    if size is None:
+        size = SIZE
+
+    i, j = _evenqOffsetToPixel(x, y, size)
+    if fill:
+        _drawHexagon(img, i, j, size, color=fill, alpha=alpha)
+    _drawHexagonBorder(img, i, j, size, color, width, alpha=alpha)
+
+
+def drawBoard(board: GameBoard, size: int = None) -> Image:
+    """Returns an Image with only the board drawn on it."""
+    if size is None:
+        size = SIZE
+
     x, y = board.shape
     size_x = x * 2 * size
     size_y = y * 2 * size
@@ -94,36 +149,38 @@ def drawBoard(board: GameBoard, size=SIZE) -> Image:
     return img.crop((0, 0, maxi + size, maxj + size))
 
 
-def board2png(filename: str, boardName: str, format: str = 'PNG', size=SIZE) -> None:
+def board2png(filename: str, boardName: str, format: str = 'PNG', size: int = None) -> None:
+    """Draw a board and save it with a specified filename."""
+
     if op.exists(filename):
         return
+
+    if size is None:
+        size = SIZE
 
     board = parseBoard(boardName)
     img = drawBoard(board, size)
     img.save(filename, format)
 
 
-def drawState(board: GameBoard, state: GameState, last_action: bool = ALWAYS_ACTIONS, size=SIZE) -> Image:
+def drawState(board: GameBoard, state: GameState, last_action: bool = False, size: int = None) -> Image:
+    """
+    Returns an Image with the board and the current state drawn on it.
+    Set 'last_action' or 'utils.images.ALWAYS_ACTIONS' to TRUE to also print the action that generated the state (if any).
+    """
+
+    if size is None:
+        size = SIZE
+
     img: Image = drawBoard(board, size)
 
     x, y = board.shape
 
     psize = int(size * .6)
 
-    img_inf: Image = Image.open(PATH_INF)
-    img_tank: Image = Image.open(PATH_TANK)
+    decals = _loadDecals(psize)
 
-    psize2 = 2 * psize
-
-    img_inf.thumbnail((psize2, psize2), Image.ANTIALIAS)
-    img_tank.thumbnail((psize2, psize2), Image.ANTIALIAS)
-
-    decals = {
-        'vehicle': img_tank,
-        'infantry': img_inf,
-    }
-
-    if last_action and state.lastAction:
+    if (last_action or ALWAYS_ACTIONS) and state.lastAction:
         drawAction(img, state.lastAction, size=size)
 
     for i in range(0, x):
@@ -144,6 +201,7 @@ def drawState(board: GameBoard, state: GameState, last_action: bool = ALWAYS_ACT
 
 
 def _drawFigure(img: Image, pi, pj, psize, figure, decals) -> None:
+    """Draws a figure on the map based on its position in pixel-space (pi, pj)."""
     xy = (pi - psize, pj - psize, pi + psize, pj + psize)
     dxy = (pi - psize, pj - psize)
 
@@ -155,11 +213,21 @@ def _drawFigure(img: Image, pi, pj, psize, figure, decals) -> None:
         xy = (pi - psize, pj - psize, pi + psize, pj + psize)
         draw.ellipse(xy, fill='#555555')
 
-    decal = decals[figure.kind]
+    if figure.stat == stat('HIDDEN'):
+        decal = decals['hidden']
+    else:
+        decal = decals[figure.kind]
     img.paste(decal, dxy, mask=decal)
 
 
-def drawAction(img: Image, action: Action, size=SIZE) -> None:
+def drawAction(img: Image, action: Action, size: int = None) -> None:
+    """
+    Draws an action on the given image.
+    Movements actions are white-ish lines.
+    Attack actions are team-colored lines and consider the LOS/LOF difference.
+    """
+    if size is None:
+        size = SIZE
 
     w = int(max(1, size * .3))
 
@@ -180,9 +248,14 @@ def drawAction(img: Image, action: Action, size=SIZE) -> None:
         draw.line(lof, fill=rgb_lof, width=w)
 
 
-def scenario2png(filename: str, scenario, format: str = 'PNG', size=SIZE) -> None:
+def scenario2png(filename: str, scenario, format: str = 'PNG', size: int = None) -> None:
+    """Draw a scenario and save it with a specified filename."""
+
     if op.exists(filename):
         return
+
+    if size is None:
+        size = SIZE
 
     board, state = buildScenario(scenario)
     img = drawState(board, state, size=size)
