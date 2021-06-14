@@ -198,6 +198,15 @@ class GameState:
         """Get all the lines of sight of all hostile figures of the given target."""
         return self.figuresLOS[target.team][target.index]
 
+    def getLOSGround(self, target: Cube, team: str) -> Dict[int, List[Cube]]:
+        """Get all the lines os sight of the given team to the given target location."""
+        loss: Dict[int, List[Cube]] = dict()
+
+        for figure in self.getFigures(team):
+            loss[figure.index] = target.line(figure.position)
+
+        return loss
+
     def getDistances(self, target: Figure) -> Dict[int, List[Cube]]:
         """Get all the lines of sight of all ally figures of the given target."""
         return self.figuresDistance[target.team][target.index]
@@ -220,11 +229,13 @@ class GameState:
             self.figuresDistance[defenders].setdefault(defender.index, {})[target.index] = list(reversed(los))
 
     def isObstacle(self, pos: Cube) -> bool:
-        """Returns if the position is an obstacle (a VEHICLE) to LOS or not."""
+        """Returns if the position is an obstacle (a VEHICLE or covered by SMOKE) to LOS or not."""
         for team in (RED, BLUE):
             for f in self.getFiguresByPos(team, pos):
                 if f.kind == 'vehicle':
                     return True
+        if self.smoke[pos.tuple()] > 0:
+            return True
         return False
 
     def addSmoke(self, smoke: List[Cube]) -> None:

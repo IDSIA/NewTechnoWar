@@ -15,8 +15,7 @@ from core.figures.defenses import DEFENSE_KEY_LIST
 from core.figures.figure import Figure, vectorFigureInfo
 from core.figures.lists import WEAPON_KEY_LIST
 from core.figures.stats import stat
-from core.figures.status import FigureStatus, HIDDEN, LOADED, NO_EFFECT, IN_MOTION, UPSTAIRS, UNDER_FIRE, CUT_OFF, \
-    STATS_LIST
+from core.figures.status import FigureStatus
 from core.figures.types import FigureType
 from core.figures.weapons import Weapon, AntiTank, AssaultRifle, Cannon, Grenade, MachineGun, Mortar, SmokeGrenade, \
     SniperRifle

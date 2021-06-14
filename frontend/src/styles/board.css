@@ -199,3 +199,11 @@ g.shoot g>text {
     stroke: yellow;
     stroke-width: 2;
 }
+
+circle.smoke1 {
+    fill: rgba(128, 128, 128, 0.75);
+}
+
+circle.smoke2 {
+    fill: rgba(64, 64, 64, 0.75);
+}

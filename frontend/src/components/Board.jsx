@@ -3,6 +3,7 @@ import GridHex from './GridHex'
 import Zone from './ZoneHex'
 import Action from './Action'
 import Marker from './Marker'
+import Smoke from './Smoke'
 
 import '../styles/board.css'
 
@@ -260,6 +261,16 @@ export default class Board extends React.Component {
                                     rows={this.props.rows}
                                     cols={this.props.cols}
                                 />
+                            )}
+                        </g>
+                        <g id='smoke'>
+                            {this.props.smoke.map((s, i) => {
+                                return <Smoke
+                                    key={i}
+                                    value={s.smoke}
+                                    cell={this.props.cells[s.x * this.props.rows + s.y]}
+                                />
+                            }
                             )}
                         </g>
                         <g id='markers'>

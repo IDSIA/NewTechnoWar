@@ -85,7 +85,7 @@ export default class Lobby extends React.Component {
                     <a id="armasuisse" href="https://www.ar.admin.ch/en/armasuisse-wissenschaft-und-technologie-w-t/home.html">
                         <img className="logo" src={armasuisse} alt="armasuisse" />
                     </a>
-                    <a id="ntw" href="/" a>New Techno War</a>
+                    <a id="ntw" href="/">New Techno War</a>
                 </div>
                 <div className="line"></div>
                 <div className="block">
