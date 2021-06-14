@@ -3,18 +3,19 @@ import os.path as op
 
 from typing import Dict, List, Tuple
 
-from PIL import Image, ImageColor, ImageDraw
-from numpy import isin
+from PIL import Image, ImageColor, ImageDraw, ImageFont
 
 from core.const import RED, BLUE
 from core.game import GameBoard, GameState, TYPE_TERRAIN
 from core.figures import stat
-from core.actions import Action, Move, Attack
+from core.actions import Action, Move, Attack, AttackGround
 from core.scenarios.functions import parseBoard, buildScenario
 from core.utils.coordinates import Hex
 
 SIZE: int = 18
 ALWAYS_ACTIONS: bool = False
+ALWAYS_TEXT: bool = False
+
 SQRT3: float = math.sqrt(3)
 
 IMAGE_FOLDER: str = op.join(op.dirname(__file__), '..', 'images')
@@ -22,11 +23,14 @@ IMAGE_DECALS: dict = {
     'infantry':  op.join(IMAGE_FOLDER, 'infantry.png'),
     'vehicle': op.join(IMAGE_FOLDER, 'tank.png'),
     'hidden': op.join(IMAGE_FOLDER, 'hidden.png'),
+    'smoke': op.join(IMAGE_FOLDER, 'smoke.png')
 }
 
 COLORS: dict = {
     RED: '#ff0000',
     BLUE: '#1e90ff',
+    RED + 'dark': '#8b0000',
+    BLUE + 'dark': '#0000ff',
 }
 
 
@@ -34,7 +38,7 @@ def _loadDecals(psize: int) -> Dict[str, Image.Image]:
     """Load images for decals from the 'IMAGE_DECALS' dictionary and resize them."""
 
     decals: dict = {}
-    psize2: int = 2 * psize
+    psize2: int = psize * 2
 
     for k, v in IMAGE_DECALS.items():
         decals[k] = Image.open(v)
@@ -127,6 +131,10 @@ def drawBoard(board: GameBoard, size: int = None) -> Image:
     size_y = y * 2 * size
 
     img = Image.new('RGB', (size_x, size_y), 'white')
+    draw = ImageDraw.Draw(img)
+
+    font = ImageFont.truetype('arial', int(size * .35))
+    font_dh = int(size * SQRT3 * .45)
 
     maxi, maxj = 0, 0
 
@@ -140,6 +148,9 @@ def drawBoard(board: GameBoard, size: int = None) -> Image:
             _drawHexagonBorder(img, pi, pj, size, 'black')
             maxi = max(maxi, pi)
             maxj = max(maxj, pj)
+
+            if ALWAYS_TEXT:
+                draw.text((pi, pj+font_dh), f'{i}-{j}', fill='black', anchor='ms', font=font)
 
     for mark in board.getObjectiveMark():
         a, b = mark.tuple()
@@ -163,7 +174,7 @@ def board2png(filename: str, boardName: str, format: str = 'PNG', size: int = No
     img.save(filename, format)
 
 
-def drawState(board: GameBoard, state: GameState, last_action: bool = False, size: int = None) -> Image:
+def drawState(board: GameBoard, state: GameState, show_last_action: bool = False, size: int = None) -> Image:
     """
     Returns an Image with the board and the current state drawn on it.
     Set 'last_action' or 'utils.images.ALWAYS_ACTIONS' to TRUE to also print the action that generated the state (if any).
@@ -176,11 +187,11 @@ def drawState(board: GameBoard, state: GameState, last_action: bool = False, siz
 
     x, y = board.shape
 
-    psize = int(size * .6)
+    psize = int(size * .5)
 
     decals = _loadDecals(psize)
 
-    if (last_action or ALWAYS_ACTIONS) and state.lastAction:
+    if (show_last_action or ALWAYS_ACTIONS) and state.lastAction:
         drawAction(img, state.lastAction, size=size)
 
     for i in range(0, x):
@@ -188,6 +199,13 @@ def drawState(board: GameBoard, state: GameState, last_action: bool = False, siz
 
             pos = Hex(i, j).cube()
             pi, pj = _evenqOffsetToPixel(i, j, size)
+
+            if state.smoke[i, j] > 0:
+                c = '#666666' if state.smoke[i, j] == 2 else '#aaaaaa'
+                smoke_size = int(size * .8)
+                _drawHexagon(img, pi, pj, smoke_size, c)
+                _drawHexagonBorder(img, pi, pj, smoke_size, '#333333')
+                _drawDecal(img, pi, pj, psize, decals['smoke'])
 
             for team in [RED, BLUE]:
                 if state.has_placement[RED] and state.placement_zone[RED][i, j] > 0:
@@ -202,21 +220,37 @@ def drawState(board: GameBoard, state: GameState, last_action: bool = False, siz
 
 def _drawFigure(img: Image, pi, pj, psize, figure, decals) -> None:
     """Draws a figure on the map based on its position in pixel-space (pi, pj)."""
-    xy = (pi - psize, pj - psize, pi + psize, pj + psize)
-    dxy = (pi - psize, pj - psize)
+    xy_out = (
+        pi - psize,
+        pj - psize,
+        pi + psize,
+        pj + psize,
+    )
+    xy_in = (
+        int(pi - psize * .8),
+        int(pj - psize * .8),
+        int(pi + psize * .8),
+        int(pj + psize * .8),
+    )
 
     draw = ImageDraw.Draw(img, 'RGBA')
-    draw.ellipse(xy, fill=COLORS[figure.team])
+    draw.ellipse(xy_out, fill=COLORS[figure.team + 'dark'])
+    draw.ellipse(xy_in, fill=COLORS[figure.team])
 
     if figure.killed:
-        psize = psize * .81
-        xy = (pi - psize, pj - psize, pi + psize, pj + psize)
-        draw.ellipse(xy, fill='#555555')
+        draw.ellipse(xy_in, fill='#555555')
 
     if figure.stat == stat('HIDDEN'):
         decal = decals['hidden']
     else:
         decal = decals[figure.kind]
+
+    _drawDecal(img, pi, pj, psize, decal)
+
+
+def _drawDecal(img: Image, pi, pj, psize, decal) -> None:
+    """Draws a decal on top of the current image at the given pixel-space coordinates."""
+    dxy = (pi - psize, pj - psize)
     img.paste(decal, dxy, mask=decal)
 
 
@@ -237,7 +271,7 @@ def drawAction(img: Image, action: Action, size: int = None) -> None:
         path = [_evenqOffsetToPixel(pos=p.tuple(), size=size) for p in action.path]
         draw.line(path, fill=(255, 255, 255, 176), width=w)
 
-    if isinstance(action, Attack):
+    if isinstance(action, Attack) or isinstance(action, AttackGround):
         lof = [_evenqOffsetToPixel(pos=p.tuple(), size=size) for p in action.lof]
         los = [_evenqOffsetToPixel(pos=p.tuple(), size=size) for p in action.los]
 

@@ -1,7 +1,7 @@
 __all__ = [
     "Action",
     "ActionFigure",
-    "Attack", "AttackGround",
+    "Attack", "AttackGround", "AttackFigure",
     "Move", "MoveLoadInto",
     "Pass", "PassTeam", "PassFigure",
     "Response", "AttackResponse", "NoResponse",
@@ -9,7 +9,7 @@ __all__ = [
     "ACTION_KEY_LIST",
 ]
 
-from core.actions.attacks import Attack, AttackGround
+from core.actions.attacks import Attack, AttackGround, AttackFigure
 from core.actions.basics import Action, ActionFigure
 from core.actions.movements import MoveLoadInto, Move
 from core.actions.passes import PassFigure, PassTeam, Pass

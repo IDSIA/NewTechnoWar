@@ -1,4 +1,4 @@
-from core.actions.attacks import Attack
+from core.actions.attacks import AttackFigure
 from core.actions.passes import PassTeam
 from core.figures import Figure, Weapon
 
@@ -26,7 +26,7 @@ class NoResponse(PassTeam, Response):
         return f'{PassTeam.__str__(self)} {Response.__str__(self)}'
 
 
-class AttackResponse(Attack, Response):
+class AttackResponse(AttackFigure, Response):
     """Similar to Attack, but created only after a Attack Action."""
 
     def __init__(self, figure: Figure, target: Figure, guard: Figure, weapon: Weapon, los: list, lof: list):
@@ -41,7 +41,7 @@ class AttackResponse(Attack, Response):
         super().__init__(figure, target, guard, weapon, los, lof)
 
     def __repr__(self):
-        return f'{Attack.__repr__(self)} {Response.__repr__(self)}'
+        return f'{AttackFigure.__repr__(self)} {Response.__repr__(self)}'
 
     def __str__(self):
-        return f'{Attack.__str__(self)} {Response.__str__(self)}'
+        return f'{AttackFigure.__str__(self)} {Response.__str__(self)}'

@@ -128,7 +128,7 @@ class GameManager(object):
         """Returns True if the line is valid (has no obstacles), otherwise False."""
         return not any([state.isObstacle(h) or board.isObstacle(h) for h in line[1:-1]])
 
-    def canShoot(self, board: GameBoard, state: GameState, figure: Figure, target: Figure, weapon: Weapon) -> tuple:
+    def canShoot(self, board: GameBoard, state: GameState, figure: Figure, target: Figure or Cube, weapon: Weapon) -> tuple:
         """Check if the given weapon can shoot against the given target."""
 
         if not weapon.isAvailable():
@@ -138,25 +138,26 @@ class GameManager(object):
             raise ValueError(f'{weapon} does not have enough ammo')
 
         if figure.stat == stat('LOADED'):
-            raise ValueError(f'{weapon} cannot hit {target}: unit is LOADED in a vehicle')
+            raise ValueError(f'{weapon} cannot shoot: {figure} is LOADED in a vehicle')
 
-        if target.stat == stat('LOADED'):
-            raise ValueError(f'{weapon} cannot hit {target}: target is LOADED in a vehicle')
+        if isinstance(target, Figure):
+            if target.stat == stat('LOADED'):
+                raise ValueError(f'{weapon} cannot hit {target}: target is LOADED in a vehicle')
 
-        if target.stat == stat('HIDDEN'):
-            raise ValueError(f'{weapon} cannot hit {target}: target is HIDDEN')
+            if target.stat == stat('HIDDEN'):
+                raise ValueError(f'{weapon} cannot hit {target}: target is HIDDEN')
 
-        if weapon.antitank:
-            # can shoot only against vehicles
-            validTarget = target.kind == 'vehicle'
-        else:
-            # can shoot against infantry and others only
-            validTarget = target.kind != 'vehicle'
+            if weapon.antitank:
+                # can shoot only against vehicles
+                validTarget = target.kind == 'vehicle'
+            else:
+                # can shoot against infantry and others only
+                validTarget = target.kind != 'vehicle'
 
-        if not validTarget:
-            raise ValueError(f'{weapon} cannot hit {target}: target is not valid')
+            if not validTarget:
+                raise ValueError(f'{weapon} cannot hit {target}: target is not valid')
 
-        lines = state.getLOS(target)
+        lines = state.getLOS(target) if isinstance(target, Figure) else state.getLOSGround(target, figure.team)
         lof = lines[figure.index]
 
         if weapon.curved:
@@ -198,8 +199,8 @@ class GameManager(object):
 
         args = self.canShoot(board, state, figure, target, weapon)
         if not args:
-            raise ValueError
-        return Attack(*args)
+            raise ValueError('Cannot shoot to the target')
+        return AttackFigure(*args)
 
     def buildAttacks(self, board: GameBoard, state: GameState, figure: Figure) -> List[Attack]:
         """Returns a list of all the possible shooting actions that can be performed."""
@@ -258,9 +259,8 @@ class GameManager(object):
 
         return responses
 
-    @staticmethod
-    def actionAttackGround(figure: Figure, ground: Cube, weapon: Weapon):
-        """Creates an AttackGround action for a figure given the ground location and the weapon to use."""
+    def actionAttackGround(self, board: GameBoard, state: GameState, figure: Figure, ground: Cube, weapon: Weapon):
+        """Creates an AttackGround action for a figure given the ground position and the weapon to use."""
 
         if not weapon.attack_ground:
             raise ValueError(f'weapon {weapon} cannot attack ground')
@@ -268,7 +268,10 @@ class GameManager(object):
         if figure.position.distance(ground) > weapon.max_range:
             raise ValueError(f'weapon {weapon} cannot reach {ground} from {figure.position}')
 
-        return AttackGround(figure, ground, weapon)
+        args = self.canShoot(board, state, figure, ground, weapon)
+        if not args:
+            raise ValueError('Cannot shoot to the target')
+        return AttackGround(*args)
 
     def buildSupportAttacks(self, board: GameBoard, state: GameState, figure: Figure) -> List[AttackGround]:
         """Returns a list of all possible SupportAttack actions that can be performed."""
@@ -445,6 +448,7 @@ class GameManager(object):
 
             if w.smoke:
                 cloud = [
+                    x,
                     x + Cube(0, -1, 1),
                     x + Cube(1, -1, 0),
                     x + Cube(1, 0, -1),
@@ -453,10 +457,11 @@ class GameManager(object):
                     x + Cube(-1, 0, 1),
                 ]
 
-                cloud = [(c.distance(f.position), c) for c in cloud]
-                cloud = sorted(cloud, key=lambda y: -y[0])
+                l = x.distance(f.position)
 
-                state.addSmoke([c[1] for c in cloud[1:3]] + [x])
+                cloud = filter(lambda y: y.distance(f.position) == l, cloud)
+
+                state.addSmoke(cloud)
 
                 comment = f'smoke at {x}'
 
