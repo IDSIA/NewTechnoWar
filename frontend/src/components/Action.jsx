@@ -23,7 +23,7 @@ export default class Action extends React.Component {
                 </g>
             )
         }
-        if (action.action === 'Respond' || action.action === 'Attack') {
+        if (action.action === 'Respond' || action.action === 'Attack' || action.action === 'AttackGround') {
             const lof = action.lof
             const los = action.los
 

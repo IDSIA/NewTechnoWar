@@ -34,7 +34,7 @@ class TestAttackAction(unittest.TestCase):
         )
 
     def testAttack(self):
-        attack = GM.actionAttack(
+        attack = GM.actionAttackFigure(
             self.board, self.state, self.red_tank, self.blue_tank, self.red_tank.weapons['CA']
         )
 
@@ -50,7 +50,7 @@ class TestAttackAction(unittest.TestCase):
         self.assertEqual(weapon.ammo, weapon.ammo_max - 1, 'shell not fired')
 
     def testActivateAttack(self):
-        atk = GM.actionAttack(self.board, self.state, self.red_tank, self.blue_tank, self.red_tank.weapons['CA'])
+        atk = GM.actionAttackFigure(self.board, self.state, self.red_tank, self.blue_tank, self.red_tank.weapons['CA'])
 
         t0 = self.state.getTarget(atk)
         w0 = self.state.getWeapon(atk)
@@ -82,7 +82,7 @@ class TestAttackAction(unittest.TestCase):
         GM.update(self.state)
         self.assertEqual(self.state.smoke.max(), 1, 'cloud decay not working')
 
-        atk = GM.actionAttack(self.board, self.state, self.blue_tank, self.red_tank, self.red_tank.weapons['CA'])
+        atk = GM.actionAttackFigure(self.board, self.state, self.blue_tank, self.red_tank, self.red_tank.weapons['CA'])
         outcome = GM.step(self.board, self.state, atk)
 
         self.assertGreaterEqual(outcome.DEF, 18, 'smoke defense not active')

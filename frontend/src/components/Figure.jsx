@@ -66,8 +66,8 @@ export default class Figure extends React.Component {
                 <div className="uTitle Weapons">WEAPONS</div>
                 <div className={`uKind ${team} ${f.kind}`}></div>
                 <div className="uHP">{f.hp}</div>
-                <div className="uMove">{f.move}</div>
                 <div className="uLoad">{f.load}</div>
+                <div className="uMove">{f.move}</div>
                 <div className="uName">{f.name}</div>
                 <div className="uStat">{f.stat}</div>
                 <div className={`uOpt opt1 ${opt1.class}`}>{opt1.text}</div>

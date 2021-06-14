@@ -190,7 +190,7 @@ class GameManager(object):
 
         return figure, target, guard, weapon, los, lof
 
-    def actionAttack(self, board: GameBoard, state: GameState, figure: Figure, target: Figure,
+    def actionAttackFigure(self, board: GameBoard, state: GameState, figure: Figure, target: Figure,
                      weapon: Weapon) -> Attack:
         """
         Creates an Attack action for a figure given the specified target and weapon. Can raise ValueError if the shot
@@ -215,7 +215,7 @@ class GameManager(object):
 
             for _, weapon in figure.weapons.items():
                 try:
-                    attacks.append(self.actionAttack(board, state, figure, target, weapon))
+                    attacks.append(self.actionAttackFigure(board, state, figure, target, weapon))
                 except ValueError as _:
                     pass
 
