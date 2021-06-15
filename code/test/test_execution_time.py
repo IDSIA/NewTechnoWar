@@ -2,8 +2,12 @@ import time
 import unittest
 
 import numpy as np
+from os.path import join, dirname
 
 from agents import buildMatchManager
+from utils.setup_logging import setup_logging
+
+setup_logging(join(dirname(__file__), 'logger.config.yaml'))
 
 
 class TestAttackAction(unittest.TestCase):

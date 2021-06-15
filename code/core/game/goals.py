@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 
@@ -82,8 +82,9 @@ class GoalReachPoint(Goal):
 
     def __init__(self, team: str, shape: tuple, objectives: List[tuple or Hex or Cube], turns: int = 1):
         """
-        # TODO: this version support 1 turn maximum!
+        This version support 1 turn maximum!
         """
+        # TODO: support multiple turns
         super().__init__(team)
 
         self.objectives: List[Cube] = []
@@ -151,8 +152,9 @@ class GoalDefendPoint(GoalReachPoint):
     The "Defend a position" goal is a subject to another goal like a time limit or mandatory kill.
     It is always false up until another goal is reached.
 
-    # TODO: this version support 1 turn maximum!
+    This version support 1 turn maximum!
     """
+    # TODO: support multiple turns
 
     def __init__(self, team: str, hostiles: str, shape: tuple, objectives: List[tuple], turns: int = 1):
         super().__init__(team, shape, objectives, turns=turns)
@@ -192,7 +194,7 @@ class GoalMaxTurn(Goal):
         return p.wait_for_turn / (self.turn_max - state.turn + 1)
 
 
-def goalAchieved(board, state: GameState) -> (bool, str):
+def goalAchieved(board, state: GameState) -> Tuple[bool, str]:
     """Checks if the goals are achieved or not. If yes, returns the winner team."""
     redObj = [g.check(state) for g in board.objectives[RED].values()]
     blueObj = [g.check(state) for g in board.objectives[BLUE].values()]

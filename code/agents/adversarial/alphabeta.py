@@ -3,7 +3,9 @@ import math
 from time import time
 from typing import Tuple, List, Dict
 
-from agents import Agent, MatchManager, GreedyAgent
+from agents.interface import Agent
+from agents.matchmanager import MatchManager
+from agents.adversarial.greedy import GreedyAgent
 from agents.adversarial.puppets import Puppet
 from agents.commons import stateScore
 from core.actions import Action

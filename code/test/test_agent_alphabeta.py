@@ -1,18 +1,13 @@
-import logging.config
-import os.path as op
 import unittest
 
-import yaml
+from os.path import join, dirname
 
 from agents import MatchManager, AlphaBetaAgent, RandomAgent
 from core.const import BLUE, RED
 from core.scenarios import buildScenario
+from utils.setup_logging import setup_logging
 
-dir_path = op.dirname(op.realpath(__file__))
-
-with open(op.join(dir_path, 'logger.config.yaml'), 'r') as stream:
-    config = yaml.load(stream, Loader=yaml.FullLoader)
-logging.config.dictConfig(config)
+setup_logging(join(dirname(__file__), 'logger.config.yaml'))
 
 
 class TestAgentAlphaBeta(unittest.TestCase):

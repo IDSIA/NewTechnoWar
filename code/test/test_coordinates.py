@@ -1,6 +1,11 @@
 import unittest
 
+from os.path import join, dirname
+
 from core.utils.coordinates import Hex
+from utils.setup_logging import setup_logging
+
+setup_logging(join(dirname(__file__), 'logger.config.yaml'))
 
 
 class TestLOS(unittest.TestCase):

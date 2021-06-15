@@ -1,10 +1,11 @@
+from typing import Tuple
 import numpy as np
 
 from core.game import GameBoard, GameState
 from core.utils.coordinates import Hex
 
 
-def blank(shape) -> (GameBoard, GameState):
+def blank(shape) -> Tuple[GameBoard, GameState]:
     return GameBoard(shape), GameState(shape)
 
 

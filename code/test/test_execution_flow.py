@@ -1,10 +1,15 @@
 import unittest
 
+from os.path import join, dirname
+
 from agents import MatchManager
 from agents.adversarial.alphabeta import Puppet
 from core.const import RED, BLUE
-from core.figures import buildFigure
+from core.templates import buildFigure
 from core.game import GameBoard, GameState, GameManager
+from utils.setup_logging import setup_logging
+
+setup_logging(join(dirname(__file__), 'logger.config.yaml'))
 
 GM: GameManager = GameManager()
 
