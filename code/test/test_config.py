@@ -1,19 +1,22 @@
 import unittest
 
-import os.path as op
+from os.path import join, dirname
 
 from core.const import RED, BLUE
 from core.game import TERRAIN_TYPE
 from core.game.terrain import TYPE_TERRAIN
 from core.scenarios import buildScenario
 from core.templates import collect
+from utils.setup_logging import setup_logging
+
+setup_logging(join(dirname(__file__), 'logger.config.yaml'))
 
 
 @unittest.skip("TODO: need to be fixed")
 class TestConfig(unittest.TestCase):
 
     def setUp(self) -> None:
-        collect(op.join(op.dirname(op.realpath(__file__)), 'config'))
+        collect(join(dirname(__file__), 'config'))
 
     def testScenarioJunction(self):
         _, state = buildScenario('Junction')

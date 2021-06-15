@@ -1,7 +1,12 @@
 import unittest
 
+from os.path import join, dirname
+
 from core.const import RED, BLUE
 from web.backend import create_app
+from utils.setup_logging import setup_logging
+
+setup_logging(join(dirname(__file__), 'logger.config.yaml'))
 
 
 class TestBackend(unittest.TestCase):

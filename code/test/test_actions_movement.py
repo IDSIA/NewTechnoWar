@@ -2,6 +2,8 @@ import unittest
 
 import numpy as np
 
+from os.path import join, dirname
+
 from core.const import RED
 from core.figures.stats import stat
 from core.game import GameManager
@@ -10,6 +12,9 @@ from core.game.state import GameState
 from core.game.terrain import TERRAIN_TYPE
 from core.templates import collect, buildFigure
 from core.utils.coordinates import Cube, Hex
+from utils.setup_logging import setup_logging
+
+setup_logging(join(dirname(__file__), 'logger.config.yaml'))
 
 GM: GameManager = GameManager()
 

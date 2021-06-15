@@ -99,10 +99,21 @@ def collect(config_dir: str = None) -> None:
 
     newItems = set()
 
-    if config_dir is None:
-        config_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'config')
+    config_dirs = [
+        config_dir,
+        os.path.join('.', 'config'),
+        os.path.join('..', 'config'),
+        os.path.join(os.getcwd(), 'config'),
+        os.path.join(os.getcwd(), '..', 'config'),
+        os.path.join(os.path.dirname(__file__), '..', '..', 'config'),
+    ]
 
-    print(config_dir)
+    for dir in config_dirs:
+        if dir and os.path.exists(dir) and os.path.isdir(dir):
+            config_dir = dir
+            break
+
+    logger.info(f'config dir: {config_dir}')
 
     SUB_DIRS = ['terrains', 'maps', 'weapons', 'status', 'figures', 'scenarios', '.']
 

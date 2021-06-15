@@ -1,9 +1,14 @@
 import unittest
 
+from os.path import join, dirname
+
 from core.const import RED, BLUE
 from core.game import GameBoard, GameState, GameManager
 from core.templates import buildFigure
 from core.utils.coordinates import Hex
+from utils.setup_logging import setup_logging
+
+setup_logging(join(dirname(__file__), 'logger.config.yaml'))
 
 GM: GameManager = GameManager()
 
