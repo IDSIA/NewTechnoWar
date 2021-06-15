@@ -1,8 +1,8 @@
 import unittest
 
 from core.const import RED, BLUE
-from core.figures import buildFigure
 from core.game import GameBoard, GameState, GameManager
+from core.templates import buildFigure
 from core.utils.coordinates import Hex
 
 GM: GameManager = GameManager()

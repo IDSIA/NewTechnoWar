@@ -5,7 +5,9 @@ __all__ = [
     "TMPL_TERRAIN_TYPE",
     "TMPL_BOARDS",
     "TMPL_SCENARIOS",
-    'collect'
+    'collect',
+    'buildFigure',
+    'setupWeapons',
 ]
 
 TMPL_WEAPONS = {}
@@ -16,5 +18,6 @@ TMPL_BOARDS = {}
 TMPL_SCENARIOS = {}
 
 from core.templates.collectors import collect
+from core.templates.builders import buildFigure, setupWeapons
 
 collect()

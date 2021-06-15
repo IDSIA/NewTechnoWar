@@ -2,13 +2,13 @@ from typing import Tuple
 import numpy as np
 
 from core.const import RED, BLUE
-from core.figures import Figure, stat, setup_weapons, buildFigure
+from core.figures import Figure, stat
 from core.game.board import GameBoard
 from core.game.goals import GoalEliminateOpponent, GoalReachPoint, GoalDefendPoint, GoalMaxTurn
 from core.game.state import GameState
 from core.game.terrain import TERRAIN_TYPE
 from core.scenarios.utils import fillLine, parse_slice
-from core.templates import TMPL_BOARDS, TMPL_SCENARIOS, TMPL_FIGURES
+from core.templates import TMPL_BOARDS, TMPL_SCENARIOS, TMPL_FIGURES, setupWeapons, buildFigure
 
 
 def parseBoard(name: str) -> GameBoard:
@@ -93,7 +93,7 @@ def addFigure(state: GameState, team: str, fName: str, fData: dict) -> None:
             # add parameters to loaded figure
             for lk, lv in lt.items():
                 if lk == 'weapons':
-                    setup_weapons(lFigure, lv)
+                    setupWeapons(lFigure, lv)
                 else:
                     setattr(lFigure, lk, lv)
 

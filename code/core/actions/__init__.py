@@ -17,7 +17,7 @@ from core.actions.responses import AttackResponse, NoResponse, Response
 from core.actions.waits import Wait
 
 ACTION_KEY_LIST = [
-    Attack.__name__, AttackGround.__name__,
+    AttackFigure.__name__, AttackGround.__name__,
     Move.__name__, MoveLoadInto.__name__,
     Pass.__name__, PassTeam.__name__, PassFigure.__name__,
     AttackResponse.__name__, NoResponse.__name__,

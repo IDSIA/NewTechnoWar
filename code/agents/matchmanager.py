@@ -5,7 +5,7 @@ from typing import Tuple, Dict
 import numpy as np
 
 import agents as players
-from agents import Agent
+from agents.interface import Agent
 from agents.interactive.interactive import Human
 from core.actions import Attack, Move, Action, Response, NoResponse, PassTeam
 from core.const import RED, BLUE

@@ -1,10 +1,10 @@
 import unittest
 
 from core.const import RED, BLUE
-from web.server import create_app
+from web.backend import create_app
 
 
-class TestWebUI(unittest.TestCase):
+class TestBackend(unittest.TestCase):
     def setUp(self) -> None:
         self.app = create_app()
         self.client = self.app.test_client()

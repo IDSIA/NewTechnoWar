@@ -2,7 +2,7 @@ from typing import Dict, List
 
 import numpy as np
 
-from core.actions import Action, Attack, AttackGround
+from core.actions import Action, Attack, AttackFigure, AttackGround
 from core.actions import ActionFigure, MoveLoadInto
 from core.const import RED, BLUE
 from core.figures import Figure, Weapon
@@ -141,9 +141,13 @@ class GameState:
         """Given an action, returns the figure that performs such action."""
         return self.getFigureByIndex(action.team, action.figure_id)
 
-    def getTarget(self, action: Attack) -> Figure:
-        """Given an Attack Action, returns the target figure."""
+    def getTarget(self, action: AttackFigure) -> Figure:
+        """Given an AttackFigure Action, returns the target figure."""
         return self.getFigureByIndex(action.target_team, action.target_id)
+
+    def getGround(self, action: AttackGround) -> Cube:
+        """Giben an AttackGround action, return the target position."""
+        return action.ground
 
     def getWeapon(self, action: Attack or AttackGround) -> Weapon:
         """Given an Attack Action, returns the weapon used."""

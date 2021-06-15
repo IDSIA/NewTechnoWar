@@ -3,7 +3,7 @@ import unittest
 from agents import MatchManager
 from agents.adversarial.alphabeta import Puppet
 from core.const import RED, BLUE
-from core.figures import buildFigure
+from core.templates import buildFigure
 from core.game import GameBoard, GameState, GameManager
 
 GM: GameManager = GameManager()

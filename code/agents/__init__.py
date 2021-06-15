@@ -6,9 +6,9 @@ __all__ = [
 ]
 
 from agents.interface import Agent
-from agents.adversarial.dummy import RandomAgent
 from agents.matchmanager import MatchManager, buildMatchManager
 from agents.interactive.interactive import Human
+from agents.adversarial.dummy import RandomAgent
 from agents.adversarial.greedy import GreedyAgent
 from agents.adversarial.alphabeta import AlphaBetaAgent
 from agents.adversarial.alphabetafast1 import AlphaBetaFast1Agent

@@ -3,12 +3,11 @@ import unittest
 import numpy as np
 
 from core.const import RED, BLUE
-from core.figures import buildFigure
 from core.game import GameManager
 from core.game.board import GameBoard
 from core.game.state import GameState
 from core.game.terrain import TERRAIN_TYPE
-from core.templates import collect
+from core.templates import collect, buildFigure
 from core.utils.coordinates import Hex
 
 GM: GameManager = GameManager()

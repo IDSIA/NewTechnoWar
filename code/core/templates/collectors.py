@@ -1,12 +1,13 @@
 import logging
+from ntpath import join
 import os
 from collections.abc import Mapping
+from posixpath import abspath
 
 import yaml
 
 from core.const import INFINITE
-from core.templates import TMPL_WEAPONS, TMPL_FIGURES_STATUS_TYPE, TMPL_FIGURES, TMPL_TERRAIN_TYPE, TMPL_BOARDS, \
-    TMPL_SCENARIOS
+from core.templates import TMPL_WEAPONS, TMPL_FIGURES_STATUS_TYPE, TMPL_FIGURES, TMPL_TERRAIN_TYPE, TMPL_BOARDS, TMPL_SCENARIOS
 from core.templates.parsers import parse_terrain, parse_figure_status, parse_weapons, parse_figures
 from utils.copy import deepcopy
 
@@ -92,17 +93,23 @@ def template_upgrade(data: dict) -> None:
         logger.info(f'upgraded template: {k}')
 
 
-def collect() -> None:
+def collect(config_dir: str = None) -> None:
     """Main template collector function."""
     global COLLECTED
 
     newItems = set()
 
-    MAIN_DIR = 'config'
+    if config_dir is None:
+        config_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'config')
+
+    print(config_dir)
+
     SUB_DIRS = ['terrains', 'maps', 'weapons', 'status', 'figures', 'scenarios', '.']
 
     for directory in SUB_DIRS:
-        path = os.path.join(MAIN_DIR, directory)
+        path = os.path.join(config_dir, directory)
+        logger.info(f'reading content of {path}')
+
         for name in os.listdir(path):
             filename = os.path.join(path, name)
             editTime = os.path.getmtime(filename)

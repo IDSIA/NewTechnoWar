@@ -1,11 +1,10 @@
 import unittest
 
 from core.const import RED, BLUE
-from core.figures import buildFigure
 from core.game import GameManager
 from core.game.board import GameBoard
 from core.game.state import GameState
-from core.templates import collect
+from core.templates import collect, buildFigure
 from core.utils.coordinates import Hex
 
 GM: GameManager = GameManager()
@@ -72,7 +71,7 @@ class TestAttackAction(unittest.TestCase):
 
     def testShootingGround(self):
         ground = Hex(2, 6).cube()
-        attack = GM.actionAttackGround(self.red_tank, ground, self.red_tank.weapons['SG'])
+        attack = GM.actionAttackGround(self.board, self.state, self.red_tank, ground, self.red_tank.weapons['SG'])
 
         GM.step(self.board, self.state, attack)
 
@@ -82,10 +81,7 @@ class TestAttackAction(unittest.TestCase):
         GM.update(self.state)
         self.assertEqual(self.state.smoke.max(), 1, 'cloud decay not working')
 
-        atk = GM.actionAttackFigure(self.board, self.state, self.blue_tank, self.red_tank, self.red_tank.weapons['CA'])
-        outcome = GM.step(self.board, self.state, atk)
-
-        self.assertGreaterEqual(outcome.DEF, 18, 'smoke defense not active')
+        self.assertRaises(ValueError, GM.actionAttackFigure, self.board, self.state, self.blue_tank, self.red_tank, self.red_tank.weapons['CA'])
 
         GM.update(self.state)
         GM.update(self.state)
