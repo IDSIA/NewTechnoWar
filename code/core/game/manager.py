@@ -43,12 +43,18 @@ class GameManager(object):
 
     def buildWaits(self, board: GameBoard, state: GameState, team: str) -> List[Wait]:
         """Build a wait action if both teams have at least one unit that can be activated."""
-        other: str = RED if team == BLUE else BLUE
+        waits = []
+
+        if team == RED:
+            # RED team cannot wait
+            return waits
+
+        other: str = RED
 
         if any(not f.activated for f in state.figures[other]) and any(not f.activated for f in state.figures[team]):
-            return [self.actionWait(team)]
+            waits.append(self.actionWait(team))
 
-        return []
+        return waits
 
     def actionMove(self, board: GameBoard, state: GameState, figure: Figure, path: List[Cube] = None,
                    destination: Cube = None) -> Move:
@@ -191,7 +197,7 @@ class GameManager(object):
         return figure, target, guard, weapon, los, lof
 
     def actionAttackFigure(self, board: GameBoard, state: GameState, figure: Figure, target: Figure,
-                     weapon: Weapon) -> Attack:
+                           weapon: Weapon) -> Attack:
         """
         Creates an Attack action for a figure given the specified target and weapon. Can raise ValueError if the shot
         is not doable.
@@ -234,28 +240,31 @@ class GameManager(object):
         return AttackResponse(*args)
 
     def buildResponses(self, board: GameBoard, state: GameState, figure: Figure, lastAction=None) -> List[Response]:
-        """Returns a list of all possible response action that can be performed."""
+        """Returns a list of all possible response action that can be performed by the given figure."""
 
         responses = []
 
-        if lastAction:
-            target = state.getFigure(lastAction)
-        else:
-            target = state.getFigure(state.lastAction)
-
-        if target.team == figure.team:
+        if figure.killed or figure.responded:
+            # figure is not valid
             return responses
 
-        if not any([figure.responded, figure.killed, target.killed, target.stat == stat('HIDDEN')]):
+        if lastAction is None:
+            lastAction = state.lastAction
 
-            for _, weapon in figure.weapons.items():
-                if weapon.smoke:
-                    # smoke weapons cannot be used as response since they do no damage
-                    continue
-                try:
-                    responses.append(self.actionRespond(board, state, figure, target, weapon))
-                except ValueError as _:
-                    pass
+        target = state.getFigure(lastAction)
+
+        if target.team == figure.team or target.killed or target.stat == stat('HIDDEN'):
+            # target is not valid
+            return responses
+
+        for _, weapon in figure.weapons.items():
+            if weapon.smoke:
+                # smoke weapons cannot be used as response since they do no damage
+                continue
+            try:
+                responses.append(self.actionRespond(board, state, figure, target, weapon))
+            except ValueError as _:
+                pass
 
         return responses
 
@@ -282,7 +291,10 @@ class GameManager(object):
             if weapon.smoke:
                 grounds = board.getRange(figure.position, weapon.max_range)
                 for ground in grounds:
-                    supports.append(self.actionAttackGround(figure, ground, weapon))
+                    try:
+                        supports.append(self.actionAttackGround(board, state, figure, ground, weapon))
+                    except ValueError as _:
+                        pass
 
         return supports
 
@@ -293,42 +305,27 @@ class GameManager(object):
             self.actionPassFigure(figure),
         ]
 
-        for wait in self.buildWaits(board, state, figure.team):
-            actions.append(wait)
-
-        for movement in self.buildMovements(board, state, figure):
-            actions.append(movement)
-
-        for attack in self.buildAttacks(board, state, figure):
-            actions.append(attack)
-
-        for support in self.buildSupportAttacks(board, state, figure):
-            actions.append(support)
+        actions += self.buildWaits(board, state, figure.team)
+        actions += self.buildMovements(board, state, figure)
+        actions += self.buildAttacks(board, state, figure)
+        actions += self.buildSupportAttacks(board, state, figure)
 
         return actions
 
     def buildResponsesForFigure(self, board: GameBoard, state: GameState, figure: Figure) -> List[Response]:
         """Build all possible responses for the given figure."""
 
-        actions = []
-
-        for response in self.buildResponses(board, state, figure):
-            actions.append(response)
-
-        return actions
+        return self.buildResponses(board, state, figure)
 
     def buildActionsForTeam(self, board: GameBoard, state: GameState, team: str) -> List[Action]:
         """
         Build a list with all the possible actions that can be executed by an team with the current status of the board.
         """
 
-        actions = [
-            self.actionPassTeam(team),
-        ]
-
+        actions = [self.actionPassTeam(team)]
         actions += self.buildWaits(board, state, team)
 
-        for figure in state.figures[team]:
+        for figure in state.getFiguresCanBeActivated(team):
             actions += self.buildActionsForFigure(board, state, figure)
 
         return actions
@@ -338,11 +335,9 @@ class GameManager(object):
         Build a list with all the possible actions that can be executed by an team with the current status of the board.
         """
 
-        responses = [
-            self.actionNoResponse(team)
-        ]
+        responses = [self.actionNoResponse(team)]
 
-        for figure in state.figures[team]:
+        for figure in state.getFiguresCanRespond(team):
             responses += self.buildResponsesForFigure(board, state, figure)
 
         return responses
