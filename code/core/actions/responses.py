@@ -1,3 +1,4 @@
+from core.actions.basics import Action
 from core.actions.attacks import AttackFigure
 from core.actions.passes import PassTeam
 from core.figures import Figure, Weapon
@@ -20,10 +21,10 @@ class NoResponse(PassTeam, Response):
         PassTeam.__init__(self, team)
 
     def __repr__(self):
-        return f'{PassTeam.__repr__(self)} {Response.__repr__(self)}'
+        return f'{Action.__repr__(self)} {"":10}: No response'
 
     def __str__(self):
-        return f'{PassTeam.__str__(self)} {Response.__str__(self)}'
+        return f'{Action.__str__(self)} {"":10}: No response'
 
 
 class AttackResponse(AttackFigure, Response):

@@ -1,7 +1,8 @@
 import numpy as np
 
 from agents import Agent
-from core.actions import Action, PassTeam, PassFigure
+from core.const import BLUE
+from core.actions import Action, PassTeam, PassFigure, Wait
 from core.game import GameBoard, GameState, GoalParams
 from core.utils.coordinates import Hex
 
@@ -65,6 +66,8 @@ class RandomAgent(Agent):
 
         if toa == ACTION_PASS:
             actions = [PassTeam(self.team), PassFigure(f)]
+            if self.team == BLUE:
+                actions.append(Wait(self.team))
 
         if toa == ACTION_MOVE:
             actions = moves
