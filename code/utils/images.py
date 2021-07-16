@@ -109,8 +109,10 @@ def _drawHexagonBorder(img: Image, i: int, j: int, size: int = None, color: str 
     draw.line(points, fill=(r, g, b, alpha), width=width)
 
 
-def drawHexagon(img: Image, x: int, y: int, color: str, width: int = 1, fill: str = None, alpha: int = 255, size: int = None) -> None:
+def drawHexagon(img: Image, pos: Tuple[int, int], color: str, width: int = 1, fill: str = None, alpha: int = 255, size: int = None) -> None:
     """Draws an hexagon at the given (x,y) coordinates in hex-space over the given 'img' image."""
+
+    x, y = pos
 
     if size is None:
         size = SIZE
@@ -280,6 +282,17 @@ def drawAction(img: Image, action: Action, size: int = None) -> None:
 
         draw.line(los, fill=rgb_los, width=w)
         draw.line(lof, fill=rgb_lof, width=w)
+
+
+def drawLine(img: Image, start: Tuple[int, int], end: Tuple[int, int], color: str, width: int = 1, alpha: int = 255, size: int = None):
+    if size is None:
+        size = SIZE
+
+    points = [_evenqOffsetToPixel(pos=start, size=size), _evenqOffsetToPixel(pos=end, size=size)]
+
+    draw = ImageDraw.Draw(img, 'RGBA')
+    r, g, b = ImageColor.getrgb(color)
+    draw.line(points, fill=(r, g, b, alpha), width=width)
 
 
 def scenario2png(filename: str, scenario, format: str = 'PNG', size: int = None) -> None:
