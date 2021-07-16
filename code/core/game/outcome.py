@@ -18,3 +18,9 @@ class Outcome:
         self.INT: int = INT
         self.success = success
         self.hits: int = hits
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __str__(self) -> str:
+        return f'ATK={self.ATK} TER={self.TER} DEF={self.DEF} STAT={self.STAT} END={self.END} INT={self.INT} {self.score}/{self.hitScore} {self.success} [{self.hits}] {self.comment}'
