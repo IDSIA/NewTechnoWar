@@ -49,26 +49,19 @@ class MCTS():
         self.maxMoveNoResponseSize = args.maxMoveNoResponseSize
         self.maxActionSize = args.maxMoveNoResponseSize + args.maxAttackSize
 
+        self.weaponsIndices = {
+            'AT': 0,
+            'AR': 1,
+            'CA': 2,
+            'MT': 3,
+            'GR': 4,
+            'MG': 5,
+            'SG': 6,
+            'SR': 7
+        }
+
     def numMaxActions(self, board, state):
         return self.maxActionSize  # 5851 # TODO: define for each scenario separately
-
-    def weapon_dict(weapon_id):
-        if weapon_id == "AT":
-            return 0
-        elif weapon_id == "AR":
-            return 1
-        elif weapon_id == "CA":
-            return 2
-        elif weapon_id == "MT":
-            return 3
-        elif weapon_id == "GR":
-            return 4
-        elif weapon_id == "MG":
-            return 5
-        elif weapon_id == "SG":
-            return 6
-        elif weapon_id == "SR":
-            return 7
 
     # @staticmethod
     def actionIndexMapping(self, allValidActions):  # TODO: consider Wait actions if needed
@@ -85,22 +78,7 @@ class MCTS():
                     figure_ind = a.figure_id
                     target_ind = a.target_id
 
-                    if a.weapon_id == "AT":
-                        weapon_ind = 0
-                    elif a.weapon_id == "AR":
-                        weapon_ind = 1
-                    elif a.weapon_id == "CA":
-                        weapon_ind = 2
-                    elif a.weapon_id == "MT":
-                        weapon_ind = 3
-                    elif a.weapon_id == "GR":
-                        weapon_ind = 4
-                    elif a.weapon_id == "MG":
-                        weapon_ind = 5
-                    elif a.weapon_id == "SG":
-                        weapon_ind = 6
-                    elif a.weapon_id == "SR":
-                        weapon_ind = 7
+                    weapon_ind = self.weaponsIndices[a.weapon_id]
 
                     validActionIndicesWrtAllActions[self.maxMoveNoResponseSize+weapon_ind+target_ind *
                                                     self.maxWeaponPerFigure+figure_ind*self.maxWeaponPerFigure*self.maxFigurePerScenario] = 1

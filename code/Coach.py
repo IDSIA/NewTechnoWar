@@ -14,7 +14,7 @@ import core
 from core.game import GameManager, goalAchieved
 from MCTS import MCTS
 from core.const import RED, BLUE
-from core.actions import Attack, Move, Action, Response, NoResponse, PassTeam
+from core.actions import Attack, Move, Action, Response, NoResponse, PassTeam, AttackResponse, NoResponse, PassFigure
 
 
 logger = logging.getLogger(__name__)
@@ -51,78 +51,55 @@ class Coach():
         self.maxMoveNoResponseSize = args.maxMoveNoResponseSize
         self.maxActionSize = args.maxMoveNoResponseSize + args.maxAttackSize
 
-    def weapon_dictCoach(weapon_id):
-        if weapon_id == "AT":
-            return 0
-        elif weapon_id == "AR":
-            return 1
-        elif weapon_id == "CA":
-            return 2
-        elif weapon_id == "MT":
-            return 3
-        elif weapon_id == "GR":
-            return 4
-        elif weapon_id == "MG":
-            return 5
-        elif weapon_id == "SG":
-            return 6
-        elif weapon_id == "SR":
-            return 7
+        self.weaponsIndices = {
+            'AT': 0,
+            'AR': 1,
+            'CA': 2,
+            'MT': 3,
+            'GR': 4,
+            'MG': 5,
+            'SG': 6,
+            'SR': 7
+        }
 
-    # @staticmethod
     def actionIndexMappingCoach(self, allValidActions):  # TODO: consider Wait actions if needed
 
-        validActionIndicesWrtAllActions = [0]*self.maxActionSize  # [0]*5851 #self.numMaxActions(board, state)
-        validActionWrtAllActions = [None]*self.maxActionSize  # [None]*5851 #self.numMaxActions(board, state)
+        validActionIndicesWrtAllActions = [0] * self.maxActionSize  # [0]*5851 #self.numMaxActions(board, state)
+        validActionWrtAllActions = [None] * self.maxActionSize  # [None]*5851 #self.numMaxActions(board, state)
 
         if allValidActions != []:
 
             for a in allValidActions:
+                idx = -1
 
-                if type(a) == core.actions.responses.AttackResponse:
+                if type(a) == AttackResponse:
 
                     figure_ind = a.figure_id
                     target_ind = a.target_id
 
-                    if a.weapon_id == "AT":
-                        weapon_ind = 0
-                    elif a.weapon_id == "AR":
-                        weapon_ind = 1
-                    elif a.weapon_id == "CA":
-                        weapon_ind = 2
-                    elif a.weapon_id == "MT":
-                        weapon_ind = 3
-                    elif a.weapon_id == "GR":
-                        weapon_ind = 4
-                    elif a.weapon_id == "MG":
-                        weapon_ind = 5
-                    elif a.weapon_id == "SG":
-                        weapon_ind = 6
-                    elif a.weapon_id == "SR":
-                        weapon_ind = 7
+                    weapon_ind = self.weaponsIndices[a.weapon_id]
 
-                    # weapon_ind = weapon_dictCoach(a.weapon_id)
+                    idx = (
+                        self.maxMoveNoResponseSize +
+                        weapon_ind +
+                        target_ind * self.maxWeaponPerFigure +
+                        figure_ind * self.maxWeaponPerFigure * self.maxFigurePerScenario
+                    )
 
-                    validActionIndicesWrtAllActions[self.maxMoveNoResponseSize+weapon_ind+target_ind *
-                                                    self.maxWeaponPerFigure+figure_ind*self.maxWeaponPerFigure*self.maxFigurePerScenario] = 1
-                    validActionWrtAllActions[self.maxMoveNoResponseSize+weapon_ind+target_ind *
-                                             self.maxWeaponPerFigure+figure_ind*self.maxWeaponPerFigure*self.maxFigurePerScenario] = a
+                elif type(a) == NoResponse:
 
-                elif type(a) == core.actions.responses.NoResponse:
-
-                    validActionIndicesWrtAllActions[self.maxMoveNoResponseSize-1] = 1
-                    validActionWrtAllActions[self.maxMoveNoResponseSize-1] = a
+                    idx = self.maxMoveNoResponseSize - 1
 
                     # validActionIndicesWrtAllActions[5850] = 1
                     # validActionWrtAllActions[5850] = a
 
                 else:
 
-                    if type(a) == core.actions.passes.PassFigure:
+                    if type(a) == PassFigure:
                         x = 0
                         y = 0
 
-                    # elif type(a) == core.actions.attacks.Attack: # TODO: dodaj weapons
+                    # elif type(a) == core.actions.attacks.Attack: # TODO: add weapons
 
                     #     start_pos = a.position.tuple()
                     #     end_pos = a.destination.tuple()
@@ -130,7 +107,7 @@ class Coach():
                     #     x = end_pos[0] - start_pos[0]
                     #     y = end_pos[1] - start_pos[1]
 
-                    # elif type(a) == core.actions.movements.AttackGround: # TODO: dodaj weapons
+                    # elif type(a) == core.actions.movements.AttackGround: # TODO: add weapons
 
                     #     start_pos = a.position.tuple()
                     #     end_pos = a.destination.tuple()
@@ -156,13 +133,15 @@ class Coach():
 
                     figure_index = a.figure_id
 
-                    if x+y <= 0:
-                        index_pomjeraja = ((x+y+14)*(x+y+15))//2+y+7
+                    if x + y <= 0:
+                        index_shift = ((x + y + 14) * (x + y + 15)) // 2 + y + 7
                     else:
-                        index_pomjeraja = 224-(((x+y-14)*(x+y-15))//2-y-7)
+                        index_shift = 224 - (((x + y - 14) * (x + y - 15)) // 2 - y - 7)
 
-                    validActionIndicesWrtAllActions[figure_index*225+index_pomjeraja] = 1
-                    validActionWrtAllActions[figure_index*225+index_pomjeraja] = a
+                    idx = figure_index * 225 + index_shift
+
+                validActionIndicesWrtAllActions[idx] = 1
+                validActionWrtAllActions[idx] = a
 
         return validActionIndicesWrtAllActions, validActionWrtAllActions
 
@@ -229,7 +208,7 @@ class Coach():
 
             temp = int(episodeStep < self.args.tempThreshold)
 
-            print('stanje iz coach PRIJE poziva getActionProb', self.state)
+            print('condition from coach BEFORE call getActionProb', self.state)
 
             allValidActions = self.calculateValidMoves(self.board, self.state, self.team, self.moveType)
 
@@ -256,6 +235,8 @@ class Coach():
 
             if allValidActions == [] and action_index == self.maxMoveNoResponseSize:
                 validActions[self.maxMoveNoResponseSize] = PassTeam(self.team)
+
+            # TODO: what follows there is what the MatchManager already does. How to use it in this context?
 
             if self.team == RED and self.moveType == "Action" and action_index != self.maxMoveNoResponseSize:
                 self.team = BLUE
@@ -387,7 +368,7 @@ class Coach():
                 trainExamples_BLUE_Res.extend(e)
             shuffle(trainExamples_BLUE_Res)
 
-            # # training new networks
+            # training new networks
 
             self.nnet_RED_Act.train(trainExamples_RED_Act)
             self.nnet_RED_Act.save_checkpoint(folder=self.args.checkpoint, filename='new_RED_Act.pth.tar')
