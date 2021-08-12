@@ -12,6 +12,8 @@ from core.const import RED, BLUE
 from core.vectors import vectorBoard
 from core.figures import Figure
 
+from agents.reinforced.utils import calculateValidMoves, WEAPONS_INDICES
+
 EPS = 1e-8
 
 logger = logging.getLogger(__name__)
@@ -27,6 +29,8 @@ class MCTS():
         self.state = state
         self.team = team
         self.moveType = moveType
+
+        self.gm = GameManager()
 
         self.nnet_RED_Act = nnet_RED_Act
         self.nnet_RED_Res = nnet_RED_Res
@@ -49,46 +53,36 @@ class MCTS():
         self.maxMoveNoResponseSize = args.maxMoveNoResponseSize
         self.maxActionSize = args.maxMoveNoResponseSize + args.maxAttackSize
 
-        self.weaponsIndices = {
-            'AT': 0,
-            'AR': 1,
-            'CA': 2,
-            'MT': 3,
-            'GR': 4,
-            'MG': 5,
-            'SG': 6,
-            'SR': 7
-        }
-
     def numMaxActions(self, board, state):
         return self.maxActionSize  # 5851 # TODO: define for each scenario separately
 
     # @staticmethod
     def actionIndexMapping(self, allValidActions):  # TODO: consider Wait actions if needed
 
-        validActionIndicesWrtAllActions = [0]*self.maxActionSize
-        validActionWrtAllActions = [None]*self.maxActionSize
+        validActionIndicesWrtAllActions = [0] * self.maxActionSize
+        validActionWrtAllActions = [None] * self.maxActionSize
 
         if allValidActions != []:
 
             for a in allValidActions:
+                idx = -1
 
                 if type(a) == core.actions.responses.AttackResponse or type(a) == core.actions.attacks.Attack:
 
                     figure_ind = a.figure_id
                     target_ind = a.target_id
 
-                    weapon_ind = self.weaponsIndices[a.weapon_id]
+                    weapon_ind = WEAPONS_INDICES[a.weapon_id]
 
-                    validActionIndicesWrtAllActions[self.maxMoveNoResponseSize+weapon_ind+target_ind *
-                                                    self.maxWeaponPerFigure+figure_ind*self.maxWeaponPerFigure*self.maxFigurePerScenario] = 1
-                    validActionWrtAllActions[self.maxMoveNoResponseSize+weapon_ind+target_ind *
-                                             self.maxWeaponPerFigure+figure_ind*self.maxWeaponPerFigure*self.maxFigurePerScenario] = a
-
+                    idx = (
+                        self.maxMoveNoResponseSize +
+                        weapon_ind +
+                        target_ind * self.maxWeaponPerFigure +
+                        figure_ind * self.maxWeaponPerFigure * self.maxFigurePerScenario
+                    )
                 elif type(a) == core.actions.responses.NoResponse:
 
-                    validActionIndicesWrtAllActions[self.maxMoveNoResponseSize-1] = 1
-                    validActionWrtAllActions[self.maxMoveNoResponseSize-1] = a
+                    idx = self.maxMoveNoResponseSize - 1
 
                 else:
 
@@ -131,12 +125,14 @@ class MCTS():
                     figure_index = a.figure_id
 
                     if x+y <= 0:
-                        index_pomjeraja = ((x+y+(7+7))*(x+y+(7+7+1)))//2+y+7
+                        index_shift = ((x+y+(7+7))*(x+y+(7+7+1)))//2+y+7
                     else:
-                        index_pomjeraja = 224-(((x+y-(7+7))*(x+y-(7+7+1)))//2-y-7)
+                        index_shift = 224-(((x+y-(7+7))*(x+y-(7+7+1)))//2-y-7)
 
-                    validActionIndicesWrtAllActions[figure_index*225+index_pomjeraja] = 1
-                    validActionWrtAllActions[figure_index*225+index_pomjeraja] = a
+                    idx = figure_index * 225 + index_shift
+
+                validActionIndicesWrtAllActions[idx] = 1
+                validActionWrtAllActions[idx] = a
 
         return validActionIndicesWrtAllActions, validActionWrtAllActions
 
@@ -209,33 +205,6 @@ class MCTS():
         probs = [x / counts_sum for x in counts]
         return probs, s
 
-    def calculateValidMoves(self, board, state, team, moveType):
-
-        gm = GameManager()
-
-        allValidActions = []
-
-        if moveType == "Action":
-
-            for figure in state.getFiguresCanBeActivated(team):
-
-                actions = [gm.actionPassFigure(figure)] + \
-                    gm.buildAttacks(board, state, figure) + \
-                    gm.buildMovements(board, state, figure)
-
-                allValidActions += actions
-
-        elif moveType == "Response":
-
-            for figure in state.getFiguresCanBeActivated(team):
-
-                actions = gm.buildResponses(board, state, figure)
-                allValidActions += actions
-
-            allValidActions += [gm.actionNoResponse(team)]
-
-        return allValidActions
-
     def search(self, board, state, team, moveType, lastAction, old_s):
         """
         This function performs one iteration of MCTS. It is recursively called
@@ -255,8 +224,6 @@ class MCTS():
         Returns:
             v: the negative of the value of the current canonicalBoard
         """
-
-        gm = GameManager()
 
         wholeStatDynBoard = self.generateBoard(state)
 
@@ -305,7 +272,7 @@ class MCTS():
             elif team == BLUE and moveType == "Response":
                 self.Ps[s], v = self.nnet_BLUE_Res.predict(wholeStatDynBoard)
 
-            allValidActions = self.calculateValidMoves(board, state, team, moveType)
+            allValidActions = calculateValidMoves(board, state, team, moveType)
 
             if allValidActions == []:
                 # does the opponent have valid moves?
@@ -315,7 +282,7 @@ class MCTS():
                     otherTeam = RED
 
                 figToBeActivatedForOtherTeam = self.state.getFiguresCanBeActivated(otherTeam)
-                allValidActionsOtherTeam = self.calculateValidMoves(board, state, otherTeam, "Action")
+                allValidActionsOtherTeam = calculateValidMoves(board, state, otherTeam, "Action")
 
                 if allValidActionsOtherTeam:
                     valids[self.maxMoveNoResponseSize] = 1
@@ -385,11 +352,11 @@ class MCTS():
 
         old_s = s
         if a == -1:
-            gm.update(state)
+            self.gm.update(state)
             v = self.search(board, state, RED, "Action", None, old_s)
 
         else:
-            next_s, _ = gm.activate(board, state, validActions[a])
+            next_s, _ = self.gm.activate(board, state, validActions[a])
             lastAction = validActions[a]
             v = self.search(board, next_s, next_team, next_moveType, lastAction, old_s)
 

@@ -433,3 +433,4 @@ docs/__latexindent_temp.tex
 *.gz
 *.tar
 *.joblib
+*temp

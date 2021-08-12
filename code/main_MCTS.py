@@ -6,9 +6,7 @@ from core.scenarios import buildScenario
 from utils.setup_logging import setup_logging
 
 # from NNet import NNetWrapper as nn
-from pytorch.NNet import NNetWrapper as nn
-from Coach import Coach
-from MCTS import MCTS
+from agents.reinforced import NNetWrapper as nn, Coach, MCTS
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 

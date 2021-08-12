@@ -12,9 +12,11 @@ from tqdm import tqdm
 
 import core
 from core.game import GameManager, goalAchieved
-from MCTS import MCTS
 from core.const import RED, BLUE
 from core.actions import Attack, Move, Action, Response, NoResponse, PassTeam, AttackResponse, NoResponse, PassFigure
+
+from agents.reinforced.MCTS import MCTS
+from agents.reinforced.utils import calculateValidMoves, WEAPONS_INDICES
 
 
 logger = logging.getLogger(__name__)
@@ -31,6 +33,8 @@ class Coach():
         self.state = state
         self.team = team
         self.moveType = moveType
+
+        self.gm = GameManager()
 
         self.nnet_RED_Act = nnet_RED_Act
         self.nnet_RED_Res = nnet_RED_Res
@@ -51,17 +55,6 @@ class Coach():
         self.maxMoveNoResponseSize = args.maxMoveNoResponseSize
         self.maxActionSize = args.maxMoveNoResponseSize + args.maxAttackSize
 
-        self.weaponsIndices = {
-            'AT': 0,
-            'AR': 1,
-            'CA': 2,
-            'MT': 3,
-            'GR': 4,
-            'MG': 5,
-            'SG': 6,
-            'SR': 7
-        }
-
     def actionIndexMappingCoach(self, allValidActions):  # TODO: consider Wait actions if needed
 
         validActionIndicesWrtAllActions = [0] * self.maxActionSize  # [0]*5851 #self.numMaxActions(board, state)
@@ -77,7 +70,7 @@ class Coach():
                     figure_ind = a.figure_id
                     target_ind = a.target_id
 
-                    weapon_ind = self.weaponsIndices[a.weapon_id]
+                    weapon_ind = WEAPONS_INDICES[a.weapon_id]
 
                     idx = (
                         self.maxMoveNoResponseSize +
@@ -145,37 +138,6 @@ class Coach():
 
         return validActionIndicesWrtAllActions, validActionWrtAllActions
 
-    def calculateValidMoves(self, board, state, team, moveType):
-
-        gm = GameManager()
-
-        allValidActions = []
-
-        if moveType == "Action":
-
-            print('moving', team, 'move: A;')  # , 'last action:', state.lastAction, "|", lastAction)
-
-            for figure in state.getFiguresCanBeActivated(team):  # TODO: team
-
-                actions = [gm.actionPassFigure(figure)] + \
-                    gm.buildAttacks(board, state, figure) + \
-                    gm.buildMovements(board, state, figure)
-
-                allValidActions += actions
-
-        elif moveType == "Response":
-
-            print('moving', team, 'move: R;')  # , 'last action:', state.lastAction, "|", lastAction)
-
-            for figure in state.getFiguresCanBeActivated(team):  # TODO: team
-
-                actions = gm.buildResponses(board, state, figure)
-                allValidActions += actions
-
-            allValidActions += [gm.actionNoResponse(team)]
-
-        return allValidActions
-
     def executeEpisode(self):
         """
         This function executes one episode of self-play, starting with RED player.
@@ -210,7 +172,7 @@ class Coach():
 
             print('condition from coach BEFORE call getActionProb', self.state)
 
-            allValidActions = self.calculateValidMoves(self.board, self.state, self.team, self.moveType)
+            allValidActions = calculateValidMoves(self.board, self.state, self.team, self.moveType)
 
             pi, s_ret = self.mcts.getActionProb(self.board, self.state, self.team, self.moveType, temp=temp)
 
@@ -227,9 +189,7 @@ class Coach():
 
             action_index = np.random.choice(len(pi), p=pi)
 
-            gm = GameManager()
-
-            allValidActions = self.calculateValidMoves(self.board, self.state, self.team, self.moveType)
+            allValidActions = calculateValidMoves(self.board, self.state, self.team, self.moveType)
 
             _, validActions = self.actionIndexMappingCoach(allValidActions)
 
@@ -247,8 +207,8 @@ class Coach():
             elif self.team == RED and self.moveType == "Response":
                 # if validActions == []:
                 #     # if we are at the end of a turn, need to update and then go to next ....
-                #     gm.update(state)
-                #     allValidActions = self.calculateValidMoves(self.board, self.state, self.team, self.moveType)
+                #     self.gm.update(state)
+                #     allValidActions = calculateValidMoves(self.board, self.state, self.team, self.moveType)
                 #     valids, validActions = self.actionIndexMapping(allValidActions)
 
                 self.team = RED
@@ -265,12 +225,12 @@ class Coach():
                 self.moveType = "Action"
 
             if allValidActions == [] and action_index != self.maxMoveNoResponseSize:
-                gm.update(self.state)
+                self.gm.update(self.state)
                 self.team = RED
                 self.moveType = "Action"
             else:
                 action = validActions[action_index]
-                next_s, _ = gm.activate(self.board, self.state, action)
+                next_s, _ = self.gm.activate(self.board, self.state, action)
                 self.state = next_s
 
             isEnd, winner = goalAchieved(self.board, self.state)
