@@ -33,7 +33,7 @@ if __name__ == '__main__':
         'maxlenOfQueue': 10,  # 200000,   # Number of game examples to train the neural networks.
         'numMCTSSims': 30,  # 30, #25,    # Number of games moves for MCTS to simulate.
         'cpuct': 1,
-        'checkpoint': './temp/',
+        'checkpoint': './temp_reduced/',  # TODO: remove reduced
         'load_model': False,
         'load_folder_file': '/models',
         'numItersForTrainExamplesHistory': 1,  # 20
