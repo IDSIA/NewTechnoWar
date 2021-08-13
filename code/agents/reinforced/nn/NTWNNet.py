@@ -1,23 +1,25 @@
+from typing import Tuple
+from torch.autograd import Variable
+from torchvision import datasets, transforms
+import torch.optim as optim
+import torch.nn.functional as F
+import torch.nn as nn
+import torch
+import argparse
+from utils import *
 import sys
 sys.path.append('..')
-from utils import *
 
-import argparse
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torchvision import datasets, transforms
-from torch.autograd import Variable
 
 class NTWNNet(nn.Module):
-    def __init__(self, args):
-        self.board_x, self.board_y = 16, 16 # TODO: replace this value ;;;; game.getBoardSize()
-        self.action_size = args.maxMoveNoResponseSize + args.maxAttackSize 
+    def __init__(self, args, shape: Tuple[int]):
+        super(NTWNNet, self).__init__()
 
         self.args = args
 
-        super(NTWNNet, self).__init__()
+        self.board_x, self.board_y = shape  # TODO: replace this value ;;;; game.getBoardSize()
+        self.action_size = args.maxMoveNoResponseSize + args.maxAttackSize
+
         self.conv1 = nn.Conv2d(1, args.num_channels, 3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(args.num_channels, args.num_channels, 3, stride=1, padding=1)
         self.conv3 = nn.Conv2d(args.num_channels, args.num_channels, 3, stride=1)

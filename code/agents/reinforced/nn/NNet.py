@@ -1,3 +1,7 @@
+from typing import Tuple
+from .NTWNNet import NTWNNet as ntwnet
+import torch.optim as optim
+import torch
 import os
 import sys
 import time
@@ -7,10 +11,6 @@ from tqdm import tqdm
 
 sys.path.append('../../')
 
-import torch
-import torch.optim as optim
-
-from .NTWNNet import NTWNNet as ntwnet
 
 class dotdict(dict):
     def __getattr__(self, name):
@@ -20,7 +20,7 @@ class dotdict(dict):
 args = dotdict({
     'lr': 0.001,
     'dropout': 0.3,
-    'epochs': 2, #10,
+    'epochs': 2,  # 10,
     'batch_size': 64,
     'cuda': torch.cuda.is_available(),
     'num_channels': 512,
@@ -49,11 +49,11 @@ class AverageMeter(object):
 
 
 class NNetWrapper():
-    def __init__(self):
-        self.nnet = ntwnet(args)
-        self.board_x, self.board_y = 16, 16 #TODO: replace with correct values ;;;;; game.getBoardSize()
-        self.action_size = args.maxMoveNoResponseSize + args.maxAttackSize #5851 #game.getActionSize()    
-        
+    def __init__(self, shape: Tuple[int]):
+        self.nnet = ntwnet(args, shape)
+        self.board_x, self.board_y = shape  # TODO: replace with correct values ;;;;; game.getBoardSize()
+        self.action_size = args.maxMoveNoResponseSize + args.maxAttackSize  # 5851 #game.getActionSize()
+
         if args.cuda:
             self.nnet.cuda()
 
@@ -108,7 +108,8 @@ class NNetWrapper():
 
         # preparing input
         board = torch.FloatTensor(board.astype(np.float64))
-        if args.cuda: board = board.contiguous().cuda()
+        if args.cuda:
+            board = board.contiguous().cuda()
         board = board.view(1, self.board_x, self.board_y)
         self.nnet.eval()
         with torch.no_grad():

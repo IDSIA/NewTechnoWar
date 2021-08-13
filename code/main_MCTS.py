@@ -1,8 +1,15 @@
 import os
 import logging
 
+from datetime import datetime
+
+import numpy as np
+
 from core.const import RED, BLUE
 from core.scenarios import buildScenario
+from core.templates import buildFigure
+from core.game import GameBoard, GameState, GoalReachPoint, GoalDefendPoint, GoalMaxTurn
+from core.utils.coordinates import Hex
 from utils.setup_logging import setup_logging
 
 # from NNet import NNetWrapper as nn
@@ -22,9 +29,33 @@ class dotdict(dict):
 if __name__ == '__main__':
     # random seed for repeatability
     seed = 151775519
+    np.random.seed(seed)
 
     # the available maps depend on the current config files
-    board, state = buildScenario('TestBench')
+    # board, state = buildScenario('TestBench')
+
+    # this is a small dummy scenario for testing purposes
+    shape = (5, 5)
+    board = GameBoard(shape)
+    state = GameState(shape)
+
+    terrain = np.zeros(shape, 'uint8')
+    terrain[:, 2] = 3  # forest
+    board.addTerrain(terrain)
+
+    goal = [Hex(4, 4)]
+    board.addObjectives(
+        GoalReachPoint(RED, shape, goal),
+        GoalDefendPoint(BLUE, RED, shape, goal),
+        GoalMaxTurn(BLUE, 4),
+    )
+
+    state.addFigure(
+        buildFigure('Infantry', (0, 0), RED, 'r_inf_1'),
+        buildFigure('Infantry', (0, 4), BLUE, 'b_inf_1'),
+    )
+
+    now = datetime.now().strftime('%Y%d%m.%H%M%S')
 
     args = dotdict({
         'numIters': 1,  # 1000,
@@ -33,14 +64,14 @@ if __name__ == '__main__':
         'maxlenOfQueue': 10,  # 200000,   # Number of game examples to train the neural networks.
         'numMCTSSims': 30,  # 30, #25,    # Number of games moves for MCTS to simulate.
         'cpuct': 1,
-        'checkpoint': './temp_reduced/',  # TODO: remove reduced
+        'checkpoint': f'./temp.{now}/',
         'load_model': False,
         'load_folder_file': '/models',
         'numItersForTrainExamplesHistory': 1,  # 20
         'maxMoveNoResponseSize': 1351,
         'maxAttackSize': 288,
         'maxWeaponPerFigure': 8,
-        'maxFigurePerScenario': 6
+        'maxFigurePerScenario': 6,
     })
 
     if args.load_model:
@@ -53,10 +84,10 @@ if __name__ == '__main__':
         # pi = mcts.getActionProb(board, state, RED, temp=1)
         # print(len(pi), len(np.where(np.array(pi)>0)[0]), np.where(np.array(pi)>0)[0], [pi[x] for x in np.where(np.array(pi)>0)[0]])
 
-        nnet_RED_Act = nn()
-        nnet_RED_Res = nn()
-        nnet_BLUE_Act = nn()
-        nnet_BLUE_Res = nn()
+        nnet_RED_Act = nn(board.shape)
+        nnet_RED_Res = nn(board.shape)
+        nnet_BLUE_Act = nn(board.shape)
+        nnet_BLUE_Res = nn(board.shape)
 
         team = RED
         moveType = "Action"

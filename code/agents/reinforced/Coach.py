@@ -187,7 +187,14 @@ class Coach():
             if self.team == BLUE and self.moveType == "Response":
                 trainExamples_BLUE_Response.append(example)
 
-            action_index = np.random.choice(len(pi), p=pi)
+            if max(pi) == 1:
+                action_index = np.argmax(pi)
+                logger.warn(f'Unexpected single choice! Index: {action_index}')
+            else:
+                action_index = np.random.choice(len(pi), p=pi)
+
+            print(pi)
+            print(action_index)
 
             allValidActions = calculateValidMoves(self.board, self.state, self.team, self.moveType)
 

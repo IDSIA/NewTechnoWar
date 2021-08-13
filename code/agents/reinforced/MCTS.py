@@ -36,7 +36,7 @@ class MCTS():
         self.nnet_RED_Res = nnet_RED_Res
         self.nnet_BLUE_Act = nnet_BLUE_Act
         self.nnet_BLUE_Res = nnet_BLUE_Res
-        #
+
         self.args = args
         self.Qsa = {}  # stores Q values for s, a
         self.Nsa = {}  # stores #times edge s, a was visited
@@ -90,7 +90,7 @@ class MCTS():
                         x = 0
                         y = 0
 
-                    # elif type(a) == core.actions.attacks.Attack: # TODO: dodaj weapons
+                    # elif type(a) == core.actions.attacks.Attack: # TODO: add weapons
 
                     #     start_pos = a.position.tuple()
                     #     end_pos = a.destination.tuple()
@@ -98,7 +98,7 @@ class MCTS():
                     #     x = end_pos[0] - start_pos[0]
                     #     y = end_pos[1] - start_pos[1]
 
-                    # elif type(a) == core.actions.movements.AttackGround: # TODO: dodaj weapons
+                    # elif type(a) == core.actions.movements.AttackGround: # TODO: add weapons
 
                     #     start_pos = a.position.tuple()
                     #     end_pos = a.destination.tuple()
@@ -138,7 +138,7 @@ class MCTS():
 
     def generateBoard(self, state):
 
-        board = np.zeros((16, 16))  # TODO: change size
+        board = np.zeros(self.board.shape)  # (16,16)  # TODO: change size
 
         cube_coords = list(state.posToFigure['red'].keys())
         for i in range(len(cube_coords)):
@@ -302,7 +302,7 @@ class MCTS():
                 # NB! All valid moves may be masked if either your NNet architecture is insufficient or you've get overfitting or something else.
                 # If you have got dozens or hundreds of these messages you should pay attention to your NNet and/or training process.
                 logger.error("All valid moves were masked, doing a workaround.")
-                print("All valid moves were masked, doing a workaround.")
+
                 self.Ps[s] = self.Ps[s] + valids
                 self.Ps[s] /= np.sum(self.Ps[s])
 
