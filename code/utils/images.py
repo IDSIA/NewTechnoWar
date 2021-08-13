@@ -256,7 +256,7 @@ def _drawDecal(img: Image, pi, pj, psize, decal) -> None:
     img.paste(decal, dxy, mask=decal)
 
 
-def drawAction(img: Image, action: Action, size: int = None) -> None:
+def drawAction(img: Image, action: Action, size: int = None, direct: bool = True) -> None:
     """
     Draws an action on the given image.
     Movements actions are white-ish lines.
@@ -265,7 +265,7 @@ def drawAction(img: Image, action: Action, size: int = None) -> None:
     if size is None:
         size = SIZE
 
-    w = int(max(1, size * .3))
+    w = int(max(1, size * .2))
 
     draw = ImageDraw.Draw(img, 'RGBA')
 
@@ -276,6 +276,10 @@ def drawAction(img: Image, action: Action, size: int = None) -> None:
     if isinstance(action, Attack) or isinstance(action, AttackGround):
         lof = [_evenqOffsetToPixel(pos=p.tuple(), size=size) for p in action.lof]
         los = [_evenqOffsetToPixel(pos=p.tuple(), size=size) for p in action.los]
+
+        if direct:
+            lof = [lof[0], lof[-1]]
+            los = [los[0], los[-1]]
 
         rgb_los = (255, 0, 0, 128) if action.team == RED else (0, 0, 255, 128)
         rgb_lof = (255, 0, 0, 255) if action.team == RED else (0, 0, 255, 255)
