@@ -1,20 +1,19 @@
-from typing import Tuple
-from .NTWNNet import NTWNNet as ntwnet
-import torch.optim as optim
-import torch
 import os
 import sys
 import time
 
+from typing import Tuple
+
 import numpy as np
+
+import torch
+import torch.optim as optim
 from tqdm import tqdm
 
+from .NTWNNet import NTWNNet as ntwnet
+from utils import dotdict
+
 sys.path.append('../../')
-
-
-class dotdict(dict):
-    def __getattr__(self, name):
-        return self[name]
 
 
 args = dotdict({
@@ -49,10 +48,12 @@ class AverageMeter(object):
 
 
 class NNetWrapper():
-    def __init__(self, shape: Tuple[int]):
+    def __init__(self, shape: Tuple[int], seed: int = 0):
         self.nnet = ntwnet(args, shape)
         self.board_x, self.board_y = shape  # TODO: replace with correct values ;;;;; game.getBoardSize()
         self.action_size = args.maxMoveNoResponseSize + args.maxAttackSize  # 5851 #game.getActionSize()
+
+        self.random = np.random.default_rng(seed)
 
         if args.cuda:
             self.nnet.cuda()
@@ -73,7 +74,7 @@ class NNetWrapper():
 
             t = tqdm(range(batch_count), desc='Training Net')
             for _ in t:
-                sample_ids = np.random.randint(len(examples), size=args.batch_size)
+                sample_ids = self.random.randint(len(examples), size=args.batch_size)
                 boards, pis, vs = list(zip(*[examples[i] for i in sample_ids]))
                 boards = torch.FloatTensor(np.array(boards).astype(np.float64))
                 target_pis = torch.FloatTensor(np.array(pis))

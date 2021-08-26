@@ -6,11 +6,13 @@ from datetime import datetime
 import numpy as np
 
 from core.const import RED, BLUE
+from core.game.manager import GameManager
 from core.scenarios import buildScenario
 from core.templates import buildFigure
 from core.game import GameBoard, GameState, GoalReachPoint, GoalDefendPoint, GoalMaxTurn
 from core.utils.coordinates import Hex
 from utils.setup_logging import setup_logging
+from utils import dotdict
 
 # from NNet import NNetWrapper as nn
 from agents.reinforced import NNetWrapper as nn, Coach, MCTS
@@ -21,15 +23,9 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 
-class dotdict(dict):
-    def __getattr__(self, name):
-        return self[name]
-
-
 if __name__ == '__main__':
     # random seed for repeatability
     seed = 151775519
-    np.random.seed(seed)
 
     # the available maps depend on the current config files
     # board, state = buildScenario('TestBench')
@@ -55,7 +51,11 @@ if __name__ == '__main__':
         buildFigure('Infantry', (0, 4), BLUE, 'b_inf_1'),
     )
 
-    now = datetime.now().strftime('%Y%d%m.%H%M%S')
+    # this is to avoid initialization step
+    gm = GameManager(seed)
+    gm.update(state)
+
+    now = datetime.now().strftime('%Y%m%d.%H%M%S')
 
     args = dotdict({
         'numIters': 1,  # 1000,
@@ -72,6 +72,7 @@ if __name__ == '__main__':
         'maxAttackSize': 288,
         'maxWeaponPerFigure': 8,
         'maxFigurePerScenario': 6,
+        'seed': seed,
     })
 
     if args.load_model:
@@ -84,10 +85,10 @@ if __name__ == '__main__':
         # pi = mcts.getActionProb(board, state, RED, temp=1)
         # print(len(pi), len(np.where(np.array(pi)>0)[0]), np.where(np.array(pi)>0)[0], [pi[x] for x in np.where(np.array(pi)>0)[0]])
 
-        nnet_RED_Act = nn(board.shape)
-        nnet_RED_Res = nn(board.shape)
-        nnet_BLUE_Act = nn(board.shape)
-        nnet_BLUE_Res = nn(board.shape)
+        nnet_RED_Act = nn(board.shape, seed)
+        nnet_RED_Res = nn(board.shape, seed)
+        nnet_BLUE_Act = nn(board.shape, seed)
+        nnet_BLUE_Res = nn(board.shape, seed)
 
         team = RED
         moveType = "Action"

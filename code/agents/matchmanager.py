@@ -2,8 +2,6 @@ import logging
 from typing import List
 from typing import Tuple, Dict
 
-import numpy as np
-
 import agents as players
 from agents.interface import Agent
 from agents.interactive.interactive import Human
@@ -73,7 +71,7 @@ class MatchManager:
         self.state: GameState = state
         self.origin: GameState = deepcopy(state)
 
-        self.gm: GameManager = GameManager()
+        self.gm: GameManager = GameManager(self.seed)
 
         self.red: Agent = red
         self.blue: Agent = blue
@@ -87,6 +85,7 @@ class MatchManager:
     def reset(self) -> None:
         """Restore the match to its original (before initialization) stage."""
         self.state: GameState = deepcopy(self.origin)
+        self.gm: GameManager = GameManager(self.seed)
 
         self.actions_history = []
         self.outcome = []
@@ -114,8 +113,6 @@ class MatchManager:
         self.logger.debug('step: init')
         self.logger.info(f'{self.seed:10} SCENARIO: {self.board.name}')
         self.logger.info(f'{self.seed:10} SEED:     {self.seed}')
-
-        np.random.seed(self.seed)
 
         self.end = False
 

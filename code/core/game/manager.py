@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 class GameManager(object):
     """Utility class that helps in manage the states of the game and build actions."""
 
-    def __init__(self):
-        pass
+    def __init__(self, seed: int = 42):
+        self.random = np.random.default_rng(seed)
 
     def actionPassTeam(self, team: str) -> PassTeam:
         """Creates a PassTeam action where the whole team will do nothing in this step."""
@@ -251,6 +251,9 @@ class GameManager(object):
         if lastAction is None:
             lastAction = state.lastAction
 
+        if isinstance(lastAction, Pass):
+            return responses
+
         target = state.getFigure(lastAction)
 
         if target.team == figure.team or target.killed or target.stat == stat('HIDDEN'):
@@ -348,8 +351,7 @@ class GameManager(object):
         outcome = self.step(board, s1, action, forceHit)
         return s1, outcome
 
-    @staticmethod
-    def applyDamage(state: GameState, action: Attack, hitScore: int, score: int, success: int, target: Figure,
+    def applyDamage(self, state: GameState, action: Attack, hitScore: int, score: int, success: int, target: Figure,
                     weapon: Weapon) -> None:
         """Applies the damage of a weapon to the target, if succeeded."""
 
@@ -371,7 +373,7 @@ class GameManager(object):
             logger.debug(f'{action}: ({success} {score}/{hitScore}): HIT!  ({target.hp}/{target.hp_max})')
             # disable a random weapon
             weapons = [x for x in target.weapons if not weapon.disabled]
-            to_disable = np.random.choice(weapons, weapon.damage * success, replace=False)
+            to_disable = self.random.choice(weapons, weapon.damage * success, replace=False)
             for x in to_disable:
                 target.weapons[x].disable()
 
@@ -479,7 +481,7 @@ class GameManager(object):
             if forceHit:
                 score = [0] * w.dices
             else:
-                score = np.random.choice(range(1, 21), size=w.dices)
+                score = self.random.choice(range(1, 21), size=w.dices)
 
             # attack/response
             if isinstance(action, Response):
@@ -523,7 +525,7 @@ class GameManager(object):
 
             elif w.curved:
                 # missing with curved weapons
-                v = np.random.choice(range(1, 21), size=1)
+                v = self.random.choice(range(1, 21), size=1)
                 hitLocation = MISS_MATRIX[team](v)
                 missed = state.getFiguresByPos(t.team, hitLocation)
                 missed = [m for m in missed if not m.killed]

@@ -15,13 +15,13 @@ class TestAttackAction(unittest.TestCase):
     @unittest.skip('Used only for profiling')
     def testJunction100(self):
         seed = 42
-        np.random.seed(seed)
+        r = np.random.default_rng(seed)
 
         timings = []
 
         for _ in range(100):
 
-            seed = np.random.randint(1, 1000000000)
+            seed = r.randint(1, 1000000000)
             mm = buildMatchManager('', 'Junction', 'PlayerDummy', 'PlayerDummy', seed=seed)
 
             start = time.time()

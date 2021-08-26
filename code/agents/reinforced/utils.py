@@ -1,6 +1,5 @@
-from core.actions.movements import MoveLoadInto
-from core.game.manager import GameManager
-
+from core.actions import Attack, Move, Action, Response, NoResponse, PassTeam, AttackResponse, PassFigure, AttackGround, MoveLoadInto
+from core.const import RED, BLUE
 
 WEAPONS_INDICES: dict = {
     'AT': 0,
@@ -14,39 +13,127 @@ WEAPONS_INDICES: dict = {
 }
 
 
-def calculateValidMoves(board, state, team, moveType, reduced=False):  # TODO: set the reduced parameters to True to reduce the number of movements actions
-    allValidActions = []
+def calculateValidMoves(gm, board, state, team, move_type, reduced=False):  # TODO: set the reduced parameters to True to reduce the number of movements actions
+    all_valid_actions = []
 
-    gm = GameManager()
-
-    if moveType == "Action":
+    if move_type == "Action":
 
         print('moving', team, 'move: A;')  # , 'last action:', state.lastAction, "|", lastAction)
 
-        for figure in state.getFiguresCanBeActivated(team):  # TODO: team
+        all_valid_actions = gm.buildActionsForTeam(board, state, team)
 
-            actions = [gm.actionPassFigure(figure)] + \
-                gm.buildAttacks(board, state, figure)
+        # for figure in state.getFiguresCanBeActivated(team):  # TODO: team
 
-            if reduced:
-                actions += limitMovements(board, state, gm.buildMovements(board, state, figure))
-            else:
-                actions += gm.buildMovements(board, state, figure)
+        #     actions = [gm.actionPassFigure(figure)] + \
+        #         gm.buildAttacks(board, state, figure)
 
-            allValidActions += actions
+        #     if reduced:
+        #         actions += limitMovements(board, state, gm.buildMovements(board, state, figure))
+        #     else:
+        #         actions += gm.buildMovements(board, state, figure)
 
-    elif moveType == "Response":
+        #     all_valid_actions += actions
+
+    elif move_type == "Response":
 
         print('moving', team, 'move: R;')  # , 'last action:', state.lastAction, "|", lastAction)
 
-        for figure in state.getFiguresCanBeActivated(team):  # TODO: team
+        all_valid_actions = gm.buildResponsesForTeam(board, state, team)
 
-            actions = gm.buildResponses(board, state, figure)
-            allValidActions += actions
+        # for figure in state.getFiguresCanBeActivated(team):  # TODO: team
 
-        allValidActions += [gm.actionNoResponse(team)]
+        #     actions = gm.buildResponses(board, state, figure)
+        #     all_valid_actions += actions
 
-    return allValidActions
+        # all_valid_actions += [gm.actionNoResponse(team)]
+
+    return all_valid_actions
+
+
+def actionIndexMapping(allValidActions, maxActionSize, maxMoveNoResponseSize, maxWeaponPerFigure, maxFigurePerScenario):
+    # TODO: consider Wait actions if needed
+
+    valid_indices = [0] * maxActionSize
+    valid_actions = [None] * maxActionSize
+
+    if allValidActions != []:
+
+        for a in allValidActions:
+            idx = -1
+
+            if type(a) == AttackResponse or type(a) == Attack:
+
+                figure_ind = a.figure_id
+                target_ind = a.target_id
+
+                weapon_ind = WEAPONS_INDICES[a.weapon_id]
+
+                idx = (
+                    maxMoveNoResponseSize +
+                    weapon_ind +
+                    target_ind * maxWeaponPerFigure +
+                    figure_ind * maxWeaponPerFigure * maxFigurePerScenario
+                )
+
+            elif type(a) == NoResponse:
+
+                idx = maxMoveNoResponseSize - 1
+
+            elif type(a) == PassTeam:
+
+                idx = maxMoveNoResponseSize
+
+            else:
+
+                if type(a) == PassFigure:
+                    x = 0
+                    y = 0
+
+                # elif type(a) == Attack: # TODO: add weapons
+
+                #     start_pos = a.position.tuple()
+                #     end_pos = a.destination.tuple()
+
+                #     x = end_pos[0] - start_pos[0]
+                #     y = end_pos[1] - start_pos[1]
+
+                # elif type(a) == AttackGround: # TODO: add weapons
+
+                #     start_pos = a.position.tuple()
+                #     end_pos = a.destination.tuple()
+
+                #     x = end_pos[0] - start_pos[0]
+                #     y = end_pos[1] - start_pos[1]
+
+                elif type(a) == Move:
+
+                    start_pos = a.position.tuple()
+                    end_pos = a.destination.tuple()
+
+                    x = end_pos[0] - start_pos[0]
+                    y = end_pos[1] - start_pos[1]
+
+                elif type(a) == MoveLoadInto:
+
+                    start_pos = a.position.tuple()
+                    end_pos = a.destination.tuple()
+
+                    x = end_pos[0] - start_pos[0]
+                    y = end_pos[1] - start_pos[1]
+
+                figure_index = a.figure_id
+
+                if x+y <= 0:
+                    index_shift = ((x+y+(7+7))*(x+y+(7+7+1)))//2+y+7
+                else:
+                    index_shift = 224-(((x+y-(7+7))*(x+y-(7+7+1)))//2-y-7)
+
+                idx = figure_index * 225 + index_shift
+
+            valid_indices[idx] = 1
+            valid_actions[idx] = a
+
+    return valid_indices, valid_actions
 
 
 def limitMovements(board, state, moves):
@@ -75,3 +162,14 @@ def limitMovements(board, state, moves):
     actions += sorted(remaining, key=lambda x: min([x.destination.distance(y) for y in board.getObjectiveMark()]))[:top_n]
 
     return actions
+
+
+def mapTeamMoveIntoID(team, moveType):
+    if team == RED and moveType == "Action":
+        return 0
+    elif team == RED and moveType == "Response":
+        return 1
+    elif team == BLUE and moveType == "Action":
+        return 2
+    elif team == BLUE and moveType == "Response":
+        return 3

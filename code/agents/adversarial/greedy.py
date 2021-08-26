@@ -169,7 +169,7 @@ class GreedyAgent(Agent):
         figures = state.getFigures(self.team)
 
         # choose groups of random positions
-        indices = [np.random.choice(len(x), size=len(figures), replace=False) for _ in range(100)]
+        indices = [self.random.choice(len(x), size=len(figures), replace=False) for _ in range(100)]
 
         scores = []
         s = deepcopy(state)

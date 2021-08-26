@@ -42,7 +42,7 @@ class RandomAgent(Agent):
         if not figures:
             raise ValueError(f"no more figures for {self.team}")
 
-        f = np.random.choice(figures)
+        f = self.random.choice(figures)
 
         moves = self.gm.buildMovements(board, state, f)
         attacks = self.gm.buildAttacks(board, state, f)
@@ -60,7 +60,7 @@ class RandomAgent(Agent):
         p = [[1], [0.1, 0.9], [0.1, 0.45, 0.45]]
 
         # agent chooses type of action
-        toa = np.random.choice(whatDo, p=p[len(whatDo) - 1])
+        toa = self.random.choice(whatDo, p=p[len(whatDo) - 1])
 
         actions = []
 
@@ -74,7 +74,7 @@ class RandomAgent(Agent):
 
         if toa == ACTION_ATTACK:
             actions = attacks
-        action = np.random.choice(actions)
+        action = self.random.choice(actions)
         self.store(state, action)
 
         return action
@@ -88,7 +88,7 @@ class RandomAgent(Agent):
         :return: the next response to apply
         """
         # choose to respond or not
-        if not np.random.choice([True, False]):
+        if not self.random.choice([True, False]):
             raise ValueError('no response given')
 
         # choose which figures that can still respond will respond
@@ -96,13 +96,13 @@ class RandomAgent(Agent):
         if not figures:
             raise ValueError('no figure can respond')
 
-        f = np.random.choice(figures)
+        f = self.random.choice(figures)
 
         # build possible response for the chosen unit
         responses = self.gm.buildResponses(board, state, f)
 
         if responses:
-            response = np.random.choice(responses)
+            response = self.random.choice(responses)
             self.store(state, response)
             return response
         else:
@@ -120,7 +120,7 @@ class RandomAgent(Agent):
         figures = state.getFigures(self.team)
 
         # choose random positions
-        indices = np.random.choice(len(x), size=len(figures), replace=False)
+        indices = self.random.choice(len(x), size=len(figures), replace=False)
 
         for i in range(len(figures)):
             # move each unit to its position
@@ -137,6 +137,6 @@ class RandomAgent(Agent):
         """
         # randomly choose a color
         colors = list(state.choices[self.team].keys())
-        color = np.random.choice(colors)
+        color = self.random.choice(colors)
 
         state.choose(self.team, color)

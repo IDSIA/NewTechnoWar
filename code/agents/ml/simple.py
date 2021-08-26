@@ -32,8 +32,6 @@ class MLAgent(Agent):
         self.randomChoice: bool = randomChoice
         self.tops: int = tops
 
-        self.rnd = np.random.default_rng(seed)
-
     def dataFrameInfo(self) -> List[str]:
         """
         The additional columns are:
@@ -131,7 +129,7 @@ class MLAgent(Agent):
         bestScore, bestAction = 0.0, None
         if len(scores) > 0:
             sorted_multi_list = sorted(scores, key=lambda x: x[0])
-            choice = self.rnd.integers(0, min(self.tops, len(scores)))
+            choice = self.random.integers(0, min(self.tops, len(scores)))
             bestScore, bestAction = sorted_multi_list[:self.tops][choice]
         return bestScore, bestAction
 
@@ -230,6 +228,6 @@ class MLAgent(Agent):
         """
         # TODO: find a better idea? now random
         colors = list(state.choices[self.team].keys())
-        color = self.rnd.choice(colors)
+        color = self.random.choice(colors)
 
         state.choose(self.team, color)

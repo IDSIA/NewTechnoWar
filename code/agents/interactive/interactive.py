@@ -52,7 +52,7 @@ class Human(Agent):
     def chooseFigureGroups(self, board: GameBoard, state: GameState) -> None:
         if self.color == '':
             colors = list(state.choices[self.team].keys())
-            self.color = np.random.choice(colors)
+            self.color = self.random.choice(colors)
 
         state.choose(self.team, self.color)
 
