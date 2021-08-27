@@ -58,8 +58,8 @@ if __name__ == '__main__':
     now = datetime.now().strftime('%Y%m%d.%H%M%S')
 
     args = dotdict({
-        'numIters': 1,  # 1000,
-        'numEps': 1,  # 100,              # Number of complete self-play games to simulate during a new iteration.
+        'numIters': 20,  # 1000,
+        'numEps': 10,  # 100,             # Number of complete self-play games to simulate during a new iteration.
         'tempThreshold': 15,
         'maxlenOfQueue': 10,  # 200000,   # Number of game examples to train the neural networks.
         'numMCTSSims': 30,  # 30, #25,    # Number of games moves for MCTS to simulate.

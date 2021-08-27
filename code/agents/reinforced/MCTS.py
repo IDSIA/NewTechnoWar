@@ -14,6 +14,7 @@ from core.figures import Figure
 
 from agents import MatchManager
 from agents.reinforced.utils import actionIndexMapping, calculateValidMoves, mapTeamMoveIntoID, WEAPONS_INDICES
+from utils.copy import deepcopy
 
 EPS = 1e-8
 
@@ -25,26 +26,24 @@ class MCTS():
     This class handles the MCTS tree.
     """
 
-    def __init__(self, board, state, team, moveType, nnet_RED_Act, nnet_RED_Res, nnet_BLUE_Act, nnet_BLUE_Res, args):
-        self.board = board
-        self.state = state
-        self.team = team
-        self.moveType = moveType
+    def __init__(self, nnet_RED_Act, nnet_RED_Res, nnet_BLUE_Act, nnet_BLUE_Res, args):
+        self.args = args
 
-        puppy_red = Puppet(RED)
-        puppy_blue = Puppet(BLUE)
+        self.puppet = {
+            RED: Puppet(RED),
+            BLUE: Puppet(BLUE),
+        }
 
         self.seed = args.seed
         self.random = np.random.default_rng(self.seed)
-        self.gm = GameManager(self.seed)
-        self.mm = MatchManager('', puppy_red, puppy_blue, board, state, useLoggers=False, seed=args.seed)
+        self.gm: GameManager = GameManager(self.seed)
+        self.mm: MatchManager = None
 
         self.nnet_RED_Act = nnet_RED_Act
         self.nnet_RED_Res = nnet_RED_Res
         self.nnet_BLUE_Act = nnet_BLUE_Act
         self.nnet_BLUE_Res = nnet_BLUE_Res
 
-        self.args = args
         self.Qsa = {}  # stores Q values for (s, a)
         self.Nsa = {}  # stores #times edge (s, a) was visited
         self.Ns = {}  # stores #times board (s) was visited
@@ -60,12 +59,9 @@ class MCTS():
         self.maxMoveNoResponseSize = args.maxMoveNoResponseSize
         self.maxActionSize = args.maxMoveNoResponseSize + args.maxAttackSize  # input vector size
 
-    def numMaxActions(self, board, state):
-        return self.maxActionSize  # 5851 # TODO: define for each scenario separately
+    def generateBoard(self, board, state):
 
-    def generateBoard(self, state):
-
-        board = np.zeros(self.board.shape)  # (16,16)  # TODO: change size
+        board = np.zeros(board.shape)
 
         cube_coords = list(state.posToFigure['red'].keys())
         for i in range(len(cube_coords)):
@@ -86,14 +82,17 @@ class MCTS():
                    proportional to Nsa[(s,a)]**(1./temp)
         """
 
-        start_state = state
-        start_team = team  # self.team
-        start_move_type = move_type  # "Action" #self.moveType
-        last_action = None
+        start_state = deepcopy(state)
+        start_team = team
+        start_move_type = move_type
+
+        if not self.mm:
+            self.mm = MatchManager('MCTS', self.puppet[RED], self.puppet[BLUE], board, state, self.seed, False)
+
         old_s = -1
 
         for i in range(self.args.numMCTSSims):
-            print('MCTS SIMULATION', i)
+            logger.debug('MCTS SIMULATION %s', i)
             self.search(board, start_state, old_s)
 
         team_move_id = mapTeamMoveIntoID(start_team, start_move_type)
@@ -107,7 +106,7 @@ class MCTS():
                 break
             else:
                 i += 1
-        print('getActProb S is: ', s, 'and his parent:', old_s)
+        logger.debug('getActProb S is: %s and his parent: %s', s, old_s)
         counts = [self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.maxActionSize)]  # range(5851)]
 
         if temp == 0:
@@ -158,10 +157,9 @@ class MCTS():
                 action_type, team, _ = self.mm.nextPlayer()
 
         action_type = 'Action' if action_type == 'round' else 'Response'
-        other_team = BLUE if team == RED else RED
 
         # generate data vector
-        wholeStatDynBoard = self.generateBoard(state)
+        wholeStatDynBoard = self.generateBoard(board, state)
 
         i = 0
         s = -1
@@ -180,7 +178,7 @@ class MCTS():
             self.states.append((state, team_move_id))
             s = len(self.states)-1
 
-        print('S is: ', s, 'and his parent is:', old_s)
+        logger.debug('S is: %s and his parent is: %s', s, old_s)
 
         # check for end of the game
         if s not in self.Es:
@@ -194,7 +192,7 @@ class MCTS():
 
         if self.Es[s] != 0:
             # terminal node
-            print('end, S= ', s)
+            logger.debug('end, S=%s', s)
             return -self.Es[s]
 
         if s not in self.Ps:

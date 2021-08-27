@@ -74,7 +74,7 @@ class NNetWrapper():
 
             t = tqdm(range(batch_count), desc='Training Net')
             for _ in t:
-                sample_ids = self.random.randint(len(examples), size=args.batch_size)
+                sample_ids = self.random.choice(len(examples), size=args.batch_size)
                 boards, pis, vs = list(zip(*[examples[i] for i in sample_ids]))
                 boards = torch.FloatTensor(np.array(boards).astype(np.float64))
                 target_pis = torch.FloatTensor(np.array(pis))

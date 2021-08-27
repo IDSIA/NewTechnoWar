@@ -1,5 +1,6 @@
 # Coach
 
+from datetime import datetime
 import logging
 import os
 import sys
@@ -43,7 +44,6 @@ class Coach():
         self.nnet_BLUE_Act = nnet_BLUE_Act
         self.nnet_BLUE_Res = nnet_BLUE_Res
         self.args = args
-        self.mcts = MCTS(board, state, team, action_type, nnet_RED_Act, nnet_RED_Res, nnet_BLUE_Act, nnet_BLUE_Res, args)
 
         self.trainExamplesHistory_RED_Act = []
         self.trainExamplesHistory_RED_Res = []
@@ -82,13 +82,15 @@ class Coach():
             RED: Puppet(RED),
             BLUE: Puppet(BLUE),
         }
-        mm = MatchManager('', puppet[RED], puppet[BLUE], self.board, self.state, self.seed, False)
+        mm = MatchManager('', puppet[RED], puppet[BLUE], self.board, deepcopy(self.state), self.seed, False)
+
+        mcts = MCTS(self.nnet_RED_Act, self.nnet_RED_Res, self.nnet_BLUE_Act, self.nnet_BLUE_Res, self.args)
 
         episodeStep = 0
-
         cnt = 0
+        start_time = datetime.now()
 
-        while True:  # testing: cnt < 30:
+        while not mm.end:  # testing: cnt < 30:
             episodeStep += 1
             cnt += 1
 
@@ -98,34 +100,23 @@ class Coach():
             state = deepcopy(mm.state)
             action_type, team, _ = mm.nextPlayer()
 
+            logger.info(f'Episode step: {episodeStep} action: {action_type}')
+
             if action_type in ('update', 'init', 'end'):
                 mm.nextStep()
-
-                isEnd, winner = mm.end, mm.winner
-
-                if not isEnd:
-                    continue
-
-                # assign victory: 1 is winner, -1 is loser
-                r, b = (1, -1) if winner == RED else (-1, 1)
-
-                return (
-                    # board, team, pi, winner
-                    [(x[0], x[2], r) for x in trainExamples_RED_Action],
-                    [(x[0], x[2], r) for x in trainExamples_RED_Response],
-                    [(x[0], x[2], b) for x in trainExamples_BLUE_Action],
-                    [(x[0], x[2], b) for x in trainExamples_BLUE_Response]
-                )
+                continue
 
             action_type = 'Action' if action_type == 'round' else 'Response'
 
-            print('condition from coach BEFORE call getActionProb', state)
+            logger.debug('Condition from coach BEFORE call getActionProb %s', state)
 
             all_valid_actions = calculateValidMoves(mm.gm, board, state, team, action_type)
 
             _, valid_actions = actionIndexMapping(all_valid_actions, self.maxActionSize, self.maxActionNoResponseSize, self.maxWeaponPerFigure, self.maxFigurePerScenario)
 
-            pi, s_ret = self.mcts.getActionProb(board, state, team, action_type, temp=temp)
+            data_vector = mcts.generateBoard(board, state)
+
+            pi, _ = mcts.getActionProb(board, state, team, action_type, temp=temp)
 
             # flag = False
             # for i, (a, p) in enumerate(zip(valid_actions, pi)):
@@ -137,7 +128,7 @@ class Coach():
             #         if x:
             #             print(x)
 
-            example = [board, team, pi, None] # TODO: check if "board" is correct or if we need state... or both
+            example = [data_vector, team, pi, None]
 
             if team == RED and action_type == "Action":
                 trainExamples_RED_Action.append(example)
@@ -161,6 +152,23 @@ class Coach():
             puppet[team].action = action
             puppet[team].response = action
 
+            mm.nextStep()
+
+        # assign victory: 1 is winner, -1 is loser
+        r, b = (1, -1) if mm.winner == RED else (-1, 1)
+
+        end_time = datetime.now()
+
+        logger.info('elapsed time: %s', (end_time - start_time))
+
+        return (
+            # board, team, pi, winner
+            [(x[0], x[2], r) for x in trainExamples_RED_Action],
+            [(x[0], x[2], r) for x in trainExamples_RED_Response],
+            [(x[0], x[2], b) for x in trainExamples_BLUE_Action],
+            [(x[0], x[2], b) for x in trainExamples_BLUE_Response]
+        )
+
     def learn(self):
         """
         Performs numIters iterations with numEps episodes of self-play in each
@@ -182,10 +190,9 @@ class Coach():
 
                 cntC = 0
                 for _ in tqdm(range(self.args.numEps), desc="Self Play"):
-                    self.mcts = MCTS(self.board, self.state, self.team, self.action_type, self.nnet_RED_Act, self.nnet_RED_Res, self.nnet_BLUE_Act, self.nnet_BLUE_Res, self.args)
-                    print('END MCTS', cntC)
-                    (ite_R_A, ite_R_R, ite_B_A, ite_B_R) = self.executeEpisode()
-                    print('END executeEpisode', cntC)
+                    logger.info('START executeEpisode %s', cntC)
+                    ite_R_A, ite_R_R, ite_B_A, ite_B_R = self.executeEpisode()
+                    logger.info('END executeEpisode %s', cntC)
                     cntC += 1
                     iterationTrainExamples_RED_Act += ite_R_A
                     iterationTrainExamples_RED_Res += ite_R_R
@@ -198,7 +205,7 @@ class Coach():
                 self.trainExamplesHistory_BLUE_Act.append(iterationTrainExamples_BLUE_Act)
                 self.trainExamplesHistory_BLUE_Res.append(iterationTrainExamples_BLUE_Res)
 
-                print('END Self Play', len(self.trainExamplesHistory_RED_Act))
+                logger.info('END Self Play %s', len(self.trainExamplesHistory_RED_Act))
 
             if len(self.trainExamplesHistory_RED_Act) > self.args.numItersForTrainExamplesHistory:
                 logger.warning(

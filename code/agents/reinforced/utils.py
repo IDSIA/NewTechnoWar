@@ -18,41 +18,15 @@ def calculateValidMoves(gm, board, state, team, move_type, reduced=False):  # TO
 
     if move_type == "Action":
 
-        print('moving', team, 'move: A;')  # , 'last action:', state.lastAction, "|", lastAction)
-
         all_valid_actions = gm.buildActionsForTeam(board, state, team)
 
-        # for figure in state.getFiguresCanBeActivated(team):  # TODO: team
-
-        #     actions = [gm.actionPassFigure(figure)] + \
-        #         gm.buildAttacks(board, state, figure)
-
-        #     if reduced:
-        #         actions += limitMovements(board, state, gm.buildMovements(board, state, figure))
-        #     else:
-        #         actions += gm.buildMovements(board, state, figure)
-
-        #     all_valid_actions += actions
-
     elif move_type == "Response":
-
-        print('moving', team, 'move: R;')  # , 'last action:', state.lastAction, "|", lastAction)
-
         all_valid_actions = gm.buildResponsesForTeam(board, state, team)
-
-        # for figure in state.getFiguresCanBeActivated(team):  # TODO: team
-
-        #     actions = gm.buildResponses(board, state, figure)
-        #     all_valid_actions += actions
-
-        # all_valid_actions += [gm.actionNoResponse(team)]
 
     return all_valid_actions
 
 
 def actionIndexMapping(allValidActions, maxActionSize, maxMoveNoResponseSize, maxWeaponPerFigure, maxFigurePerScenario):
-    # TODO: consider Wait actions if needed
-
     valid_indices = [0] * maxActionSize
     valid_actions = [None] * maxActionSize
 

@@ -80,7 +80,7 @@ class MatchManager:
         self.first = None
         self.second = None
 
-        self.step = self._goInit
+        self.loadState(board, state)
 
     def reset(self) -> None:
         """Restore the match to its original (before initialization) stage."""
@@ -172,6 +172,13 @@ class MatchManager:
 
     def _goCheck(self) -> None:
         """Check next step to do."""
+
+        # check if state has been initialized
+        if not self.state.initialized:
+            self.step = self._goInit
+            self.logger.info(f'State is not initialized')
+            return
+
         # check if we are at the end of the game
         isEnd, winner = goalAchieved(self.board, self.state)
         if isEnd:
@@ -179,7 +186,6 @@ class MatchManager:
             self.winner = winner
             self.step = self._goEnd
             self.logger.info(f'{self.seed:10} End game! Winner is {winner}')
-
             return
 
         if self.step == self._goRound:
