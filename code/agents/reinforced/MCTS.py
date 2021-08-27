@@ -6,19 +6,27 @@ import math
 import numpy as np
 from agents.adversarial.puppets import Puppet
 
-from core.game import GameManager, goalAchieved
+from core.game import GameManager
 from core.actions import Attack, Move, Action, Response, NoResponse, PassTeam, AttackResponse, PassFigure, AttackGround, MoveLoadInto
 from core.const import RED, BLUE
-from core.vectors import vectorBoard
-from core.figures import Figure
 
 from agents import MatchManager
-from agents.reinforced.utils import actionIndexMapping, calculateValidMoves, mapTeamMoveIntoID, WEAPONS_INDICES
 from utils.copy import deepcopy
+
+logger = logging.getLogger(__name__)
 
 EPS = 1e-8
 
-logger = logging.getLogger(__name__)
+WEAPONS_INDICES: dict = {
+    'AT': 0,
+    'AR': 1,
+    'CA': 2,
+    'MT': 3,
+    'GR': 4,
+    'MG': 5,
+    'SG': 6,
+    'SR': 7
+}
 
 
 class MCTS():
@@ -73,6 +81,113 @@ class MCTS():
 
         return board  # .tostring()
 
+    def calculateValidMoves(self, gm, board, state, team, action_type):
+        all_valid_actions = []
+
+        if action_type == "Action":
+
+            all_valid_actions = gm.buildActionsForTeam(board, state, team)
+
+        elif action_type == "Response":
+            all_valid_actions = gm.buildResponsesForTeam(board, state, team)
+
+        return all_valid_actions
+
+    def actionIndexMapping(self, gm, board, state, team, action_type):
+        all_valid_actions = self.calculateValidMoves(gm, board, state, team, action_type)
+
+        valid_indices = [0] * self.maxActionSize
+        valid_actions = [None] * self.maxActionSize
+
+        if all_valid_actions != []:
+
+            for a in all_valid_actions:
+                idx = -1
+
+                if type(a) == AttackResponse or type(a) == Attack:
+
+                    figure_ind = a.figure_id
+                    target_ind = a.target_id
+
+                    weapon_ind = WEAPONS_INDICES[a.weapon_id]
+
+                    idx = (
+                        self.maxMoveNoResponseSize +
+                        weapon_ind +
+                        target_ind * self.maxWeaponPerFigure +
+                        figure_ind * self.maxWeaponPerFigure * self.maxFigurePerScenario
+                    )
+
+                elif type(a) == NoResponse:
+
+                    idx = self.maxMoveNoResponseSize - 1
+
+                elif type(a) == PassTeam:
+
+                    idx = self.maxMoveNoResponseSize
+
+                else:
+
+                    if type(a) == PassFigure:
+                        x = 0
+                        y = 0
+
+                    # elif type(a) == Attack: # TODO: add weapons
+
+                    #     start_pos = a.position.tuple()
+                    #     end_pos = a.destination.tuple()
+
+                    #     x = end_pos[0] - start_pos[0]
+                    #     y = end_pos[1] - start_pos[1]
+
+                    # elif type(a) == AttackGround: # TODO: add weapons
+
+                    #     start_pos = a.position.tuple()
+                    #     end_pos = a.destination.tuple()
+
+                    #     x = end_pos[0] - start_pos[0]
+                    #     y = end_pos[1] - start_pos[1]
+
+                    elif type(a) == Move:
+
+                        start_pos = a.position.tuple()
+                        end_pos = a.destination.tuple()
+
+                        x = end_pos[0] - start_pos[0]
+                        y = end_pos[1] - start_pos[1]
+
+                    elif type(a) == MoveLoadInto:
+
+                        start_pos = a.position.tuple()
+                        end_pos = a.destination.tuple()
+
+                        x = end_pos[0] - start_pos[0]
+                        y = end_pos[1] - start_pos[1]
+
+                    figure_index = a.figure_id
+
+                    if x+y <= 0:
+                        index_shift = ((x+y+(7+7))*(x+y+(7+7+1)))//2+y+7
+                    else:
+                        index_shift = 224-(((x+y-(7+7))*(x+y-(7+7+1)))//2-y-7)
+
+                    idx = figure_index * 225 + index_shift
+
+                valid_indices[idx] = 1
+                valid_actions[idx] = a
+
+        return valid_indices, valid_actions
+
+    def mapTeamMoveIntoID(self, team, action_type):
+        if team == RED and action_type == "Action":
+            return 0
+        elif team == RED and action_type == "Response":
+            return 1
+        elif team == BLUE and action_type == "Action":
+            return 2
+        elif team == BLUE and action_type == "Response":
+            return 3
+
     def getActionProb(self, board, state, team, move_type, temp=1):
         """
         This function performs numMCTSSims simulations of MCTS 
@@ -95,7 +210,7 @@ class MCTS():
             logger.debug('MCTS SIMULATION %s', i)
             self.search(board, start_state, old_s)
 
-        team_move_id = mapTeamMoveIntoID(start_team, start_move_type)
+        team_move_id = self.mapTeamMoveIntoID(start_team, start_move_type)
 
         s = 0
         i = 0
@@ -165,7 +280,7 @@ class MCTS():
         s = -1
 
         # map move and action type to id
-        team_move_id = mapTeamMoveIntoID(team, action_type)
+        team_move_id = self.mapTeamMoveIntoID(team, action_type)
 
         while i < len(self.states):
             if state == self.states[i][0] and team_move_id == self.states[i][1]:
@@ -210,8 +325,6 @@ class MCTS():
             elif team == BLUE and action_type == "Response":
                 self.Ps[s], v = self.nnet_BLUE_Res.predict(wholeStatDynBoard)
 
-            all_valid_actions = calculateValidMoves(self.gm, board, state, team, action_type)
-
             # if all_valid_actions == []:
             #     # does the opponent have valid moves?
 
@@ -223,7 +336,7 @@ class MCTS():
             #         valid_actions[self.maxMoveNoResponseSize] = PassTeam(team)
 
             # else:
-            valid_s, valid_actions = actionIndexMapping(all_valid_actions, self.maxActionSize, self.maxMoveNoResponseSize, self.maxWeaponPerFigure, self.maxFigurePerScenario)
+            valid_s, valid_actions = self.actionIndexMapping(self.gm, board, state, team, action_type)
 
             self.Ps[s] = self.Ps[s] * valid_s  # masking invalid moves
             sum_Ps_s = np.sum(self.Ps[s])

@@ -4,6 +4,7 @@ import logging
 from datetime import datetime
 
 import numpy as np
+import ray
 
 from core.const import RED, BLUE
 from core.game.manager import GameManager
@@ -24,6 +25,11 @@ logger = logging.getLogger(__name__)
 
 
 if __name__ == '__main__':
+    os.environ['RAY_DISABLE_IMPORT_WARNING'] = '1'
+
+    num_cores = os.cpu_count() - 1
+    ray.init(num_cpus=num_cores)
+
     # random seed for repeatability
     seed = 151775519
 
@@ -58,21 +64,22 @@ if __name__ == '__main__':
     now = datetime.now().strftime('%Y%m%d.%H%M%S')
 
     args = dotdict({
-        'numIters': 20,  # 1000,
-        'numEps': 10,  # 100,             # Number of complete self-play games to simulate during a new iteration.
+        'numIters': 1000,  # 1000,
+        'numEps': 100,  # 100,            # Number of complete self-play games to simulate during a new iteration.
         'tempThreshold': 15,
         'maxlenOfQueue': 10,  # 200000,   # Number of game examples to train the neural networks.
         'numMCTSSims': 30,  # 30, #25,    # Number of games moves for MCTS to simulate.
         'cpuct': 1,
         'checkpoint': f'./temp.{now}/',
         'load_model': False,
-        'load_folder_file': '/models',
-        'numItersForTrainExamplesHistory': 1,  # 20
+        'load_folder_file': './models',
+        'numItersForTrainExamplesHistory': 20,  # 1  # 20
         'maxMoveNoResponseSize': 1351,
         'maxAttackSize': 288,
         'maxWeaponPerFigure': 8,
         'maxFigurePerScenario': 6,
         'seed': seed,
+        'parallel': True,  # put true to use ray and parallel execution of episodes
     })
 
     if args.load_model:

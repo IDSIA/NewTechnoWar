@@ -1,27 +1,130 @@
 # Coach
-
-from datetime import datetime
 import logging
 import os
 import sys
-from collections import deque
-from pickle import Pickler, Unpickler
-from random import shuffle
 
 import numpy as np
+import ray
+
+from collections import deque
+from datetime import datetime
+from pickle import Pickler, Unpickler
 from tqdm import tqdm
-from agents.adversarial.puppets import Puppet
-from agents.matchmanager import MatchManager
 
 from core.const import RED, BLUE
-from core.actions import Attack, Move, Action, Response, NoResponse, PassTeam, AttackResponse, NoResponse, PassFigure, MoveLoadInto
-
+from agents.adversarial.puppets import Puppet
+from agents.matchmanager import MatchManager
 from agents.reinforced.MCTS import MCTS
-from agents.reinforced.utils import calculateValidMoves, actionIndexMapping, WEAPONS_INDICES
 from utils.copy import deepcopy
 
-
 logger = logging.getLogger(__name__)
+
+
+@ray.remote
+def executeEpisodeWrapper(board, state, seed: int, mcts: MCTS, tempThreshold):
+    """This is a wrapper for the parallel execution."""
+    return executeEpisode(board, state, seed, mcts, tempThreshold)
+
+
+def executeEpisode(board, state, seed: int, mcts: MCTS, tempThreshold):
+    """
+    This function executes one episode of self-play, starting with RED player.
+    As the game is played, each turn is added as a training example to
+    trainExamples. The game is played till the game ends. After the game
+    ends, the outcome of the game is used to assign values to each example
+    in trainExamples.
+
+    It uses a temp=1 if episodeStep < tempThreshold, and thereafter
+    uses temp=0.
+
+    Returns:
+        trainExamples: a list of examples of the form (board, current player, pi, v)
+                        pi is the MCTS informed policy vector, v is +1 if
+                        the player eventually won the game, else -1.
+    """
+    trainExamples_RED_Action = []
+    trainExamples_RED_Response = []
+    trainExamples_BLUE_Action = []
+    trainExamples_BLUE_Response = []
+
+    random = np.random.default_rng(seed)
+
+    puppet = {
+        RED: Puppet(RED),
+        BLUE: Puppet(BLUE),
+    }
+    mm = MatchManager('', puppet[RED], puppet[BLUE], board, deepcopy(state), seed, False)
+
+    episodeStep = 0
+    cnt = 0
+    start_time = datetime.now()
+
+    while not mm.end:  # testing: cnt < 30:
+        episodeStep += 1
+        cnt += 1
+
+        temp = int(episodeStep < tempThreshold)
+
+        board = mm.board
+        state = deepcopy(mm.state)
+        action_type, team, _ = mm.nextPlayer()
+
+        logger.info(f'Episode step: {episodeStep} action: {action_type}')
+
+        if action_type in ('update', 'init', 'end'):
+            mm.nextStep()
+            continue
+
+        action_type = 'Action' if action_type == 'round' else 'Response'
+
+        logger.debug('Condition from coach BEFORE call getActionProb %s', state)
+
+        _, valid_actions = mcts.actionIndexMapping(mm.gm, board, state, team, action_type)
+
+        data_vector = mcts.generateBoard(board, state)
+
+        pi, _ = mcts.getActionProb(board, state, team, action_type, temp=temp)
+
+        example = [data_vector, team, pi, None]
+
+        if team == RED and action_type == "Action":
+            trainExamples_RED_Action.append(example)
+        if team == RED and action_type == "Response":
+            trainExamples_RED_Response.append(example)
+        if team == BLUE and action_type == "Action":
+            trainExamples_BLUE_Action.append(example)
+        if team == BLUE and action_type == "Response":
+            trainExamples_BLUE_Response.append(example)
+
+        if max(pi) == 1:
+            action_index = np.argmax(pi)
+            logger.debug(f'Unexpected single choice! Index: {action_index}')
+        else:
+            action_index = random.choice(len(pi), p=pi)
+
+        # choose next action and load in correct puppet
+        action = valid_actions[action_index]
+
+        # assuming action/response are selected correctly
+        puppet[team].action = action
+        puppet[team].response = action
+
+        mm.nextStep()
+
+    # assign victory: 1 is winner, -1 is loser
+    r, b = (1, -1) if mm.winner == RED else (-1, 1)
+
+    end_time = datetime.now()
+
+    logger.info('elapsed time: %s', (end_time - start_time))
+
+    return (
+        # board, team, pi, winner
+        [(x[0], x[2], r) for x in trainExamples_RED_Action],
+        [(x[0], x[2], r) for x in trainExamples_RED_Response],
+        [(x[0], x[2], b) for x in trainExamples_BLUE_Action],
+        [(x[0], x[2], b) for x in trainExamples_BLUE_Response]
+    )
 
 
 class Coach():
@@ -43,6 +146,7 @@ class Coach():
         self.nnet_RED_Res = nnet_RED_Res
         self.nnet_BLUE_Act = nnet_BLUE_Act
         self.nnet_BLUE_Res = nnet_BLUE_Res
+
         self.args = args
 
         self.trainExamplesHistory_RED_Act = []
@@ -51,123 +155,6 @@ class Coach():
         self.trainExamplesHistory_BLUE_Res = []
 
         self.skipFirstSelfPlay = False  # can be overriden in loadTrainExamples()
-
-        self.maxWeaponPerFigure = args.maxWeaponPerFigure
-        self.maxFigurePerScenario = args.maxFigurePerScenario
-        self.maxActionNoResponseSize = args.maxMoveNoResponseSize
-        self.maxActionSize = args.maxMoveNoResponseSize + args.maxAttackSize  # input vector
-
-    def executeEpisode(self):
-        """
-        This function executes one episode of self-play, starting with RED player.
-        As the game is played, each turn is added as a training example to
-        trainExamples. The game is played till the game ends. After the game
-        ends, the outcome of the game is used to assign values to each example
-        in trainExamples.
-
-        It uses a temp=1 if episodeStep < tempThreshold, and thereafter
-        uses temp=0.
-
-        Returns:
-            trainExamples: a list of examples of the form (board, current player, pi, v)
-                           pi is the MCTS informed policy vector, v is +1 if
-                           the player eventually won the game, else -1.
-        """
-        trainExamples_RED_Action = []
-        trainExamples_RED_Response = []
-        trainExamples_BLUE_Action = []
-        trainExamples_BLUE_Response = []
-
-        puppet = {
-            RED: Puppet(RED),
-            BLUE: Puppet(BLUE),
-        }
-        mm = MatchManager('', puppet[RED], puppet[BLUE], self.board, deepcopy(self.state), self.seed, False)
-
-        mcts = MCTS(self.nnet_RED_Act, self.nnet_RED_Res, self.nnet_BLUE_Act, self.nnet_BLUE_Res, self.args)
-
-        episodeStep = 0
-        cnt = 0
-        start_time = datetime.now()
-
-        while not mm.end:  # testing: cnt < 30:
-            episodeStep += 1
-            cnt += 1
-
-            temp = int(episodeStep < self.args.tempThreshold)
-
-            board = mm.board
-            state = deepcopy(mm.state)
-            action_type, team, _ = mm.nextPlayer()
-
-            logger.info(f'Episode step: {episodeStep} action: {action_type}')
-
-            if action_type in ('update', 'init', 'end'):
-                mm.nextStep()
-                continue
-
-            action_type = 'Action' if action_type == 'round' else 'Response'
-
-            logger.debug('Condition from coach BEFORE call getActionProb %s', state)
-
-            all_valid_actions = calculateValidMoves(mm.gm, board, state, team, action_type)
-
-            _, valid_actions = actionIndexMapping(all_valid_actions, self.maxActionSize, self.maxActionNoResponseSize, self.maxWeaponPerFigure, self.maxFigurePerScenario)
-
-            data_vector = mcts.generateBoard(board, state)
-
-            pi, _ = mcts.getActionProb(board, state, team, action_type, temp=temp)
-
-            # flag = False
-            # for i, (a, p) in enumerate(zip(valid_actions, pi)):
-            #     if not a and p > 0:
-            #         flag = True
-            #         print('-------->', a, i, p)
-            # if flag:
-            #     for x in all_valid_actions:
-            #         if x:
-            #             print(x)
-
-            example = [data_vector, team, pi, None]
-
-            if team == RED and action_type == "Action":
-                trainExamples_RED_Action.append(example)
-            if team == RED and action_type == "Response":
-                trainExamples_RED_Response.append(example)
-            if team == BLUE and action_type == "Action":
-                trainExamples_BLUE_Action.append(example)
-            if team == BLUE and action_type == "Response":
-                trainExamples_BLUE_Response.append(example)
-
-            if max(pi) == 1:
-                action_index = np.argmax(pi)
-                logger.warn(f'Unexpected single choice! Index: {action_index}')
-            else:
-                action_index = self.random.choice(len(pi), p=pi)
-
-            # choose next action and load in correct puppet
-            action = valid_actions[action_index]
-
-            # assuming action/response are selected correctly
-            puppet[team].action = action
-            puppet[team].response = action
-
-            mm.nextStep()
-
-        # assign victory: 1 is winner, -1 is loser
-        r, b = (1, -1) if mm.winner == RED else (-1, 1)
-
-        end_time = datetime.now()
-
-        logger.info('elapsed time: %s', (end_time - start_time))
-
-        return (
-            # board, team, pi, winner
-            [(x[0], x[2], r) for x in trainExamples_RED_Action],
-            [(x[0], x[2], r) for x in trainExamples_RED_Response],
-            [(x[0], x[2], b) for x in trainExamples_BLUE_Action],
-            [(x[0], x[2], b) for x in trainExamples_BLUE_Response]
-        )
 
     def learn(self):
         """
@@ -188,12 +175,31 @@ class Coach():
             if not self.skipFirstSelfPlay or i > 1:
                 iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
 
-                cntC = 0
-                for _ in tqdm(range(self.args.numEps), desc="Self Play"):
-                    logger.info('START executeEpisode %s', cntC)
-                    ite_R_A, ite_R_R, ite_B_A, ite_B_R = self.executeEpisode()
-                    logger.info('END executeEpisode %s', cntC)
-                    cntC += 1
+                mcts = MCTS(self.nnet_RED_Act, self.nnet_RED_Res, self.nnet_BLUE_Act, self.nnet_BLUE_Res, self.args)
+
+                board = self.board
+                state = self.state
+                seed = self.seed
+                tempThreshold = self.args.tempThreshold
+
+                results = []
+
+                if self.args.parallel:
+                    # this uses ray's parallelism
+                    tasks = []
+
+                    for c in range(self.args.numEps):
+                        task = executeEpisodeWrapper.remote(board, state, seed + c, mcts, tempThreshold)
+                        tasks.append(task)
+
+                    for task in tqdm(tasks, desc="Self Play"):
+                        results.append(ray.get(task))
+                else:
+                    # this uses single thread
+                    for c in range(self.args.numEps):
+                        ite_R_A, ite_R_R, ite_B_A, ite_B_R = executeEpisode(board, state, seed + c, mcts, tempThreshold)
+
+                for ite_R_A, ite_R_R, ite_B_A, ite_B_R in results:
                     iterationTrainExamples_RED_Act += ite_R_A
                     iterationTrainExamples_RED_Res += ite_R_R
                     iterationTrainExamples_BLUE_Act += ite_B_A
@@ -231,39 +237,43 @@ class Coach():
             trainExamples_RED_Act = []
             for e in self.trainExamplesHistory_RED_Act:
                 trainExamples_RED_Act.extend(e)
-            shuffle(trainExamples_RED_Act)
+            self.random.shuffle(trainExamples_RED_Act)
 
             # shuffle RED Response examples before training
             trainExamples_RED_Res = []
             for e in self.trainExamplesHistory_RED_Res:
                 trainExamples_RED_Res.extend(e)
-            shuffle(trainExamples_RED_Res)
+            self.random.shuffle(trainExamples_RED_Res)
 
             # shuffle BLUE Action examples before training
             trainExamples_BLUE_Act = []
             for e in self.trainExamplesHistory_BLUE_Act:
                 trainExamples_BLUE_Act.extend(e)
-            shuffle(trainExamples_BLUE_Act)
+            self.random.shuffle(trainExamples_BLUE_Act)
 
             # shuffle BLUE Action examples before training
             trainExamples_BLUE_Res = []
             for e in self.trainExamplesHistory_BLUE_Res:
                 trainExamples_BLUE_Res.extend(e)
-            shuffle(trainExamples_BLUE_Res)
+            self.random.shuffle(trainExamples_BLUE_Res)
 
             # training new networks
 
             self.nnet_RED_Act.train(trainExamples_RED_Act)
             self.nnet_RED_Act.save_checkpoint(folder=self.args.checkpoint, filename='new_RED_Act.pth.tar')
+            logger.info('RED  Action   Losses Average %s', self.nnet_RED_Act.history[-1])
 
             self.nnet_RED_Res.train(trainExamples_RED_Res)
             self.nnet_RED_Res.save_checkpoint(folder=self.args.checkpoint, filename='new_RED_Res.pth.tar')
+            logger.info('RED  Response Losses Average %s', self.nnet_RED_Res.history[-1])
 
             self.nnet_BLUE_Act.train(trainExamples_BLUE_Act)
             self.nnet_BLUE_Act.save_checkpoint(folder=self.args.checkpoint, filename='new_BLUE_Act.pth.tar')
+            logger.info('BLUE Action   Losses Average %s', self.nnet_BLUE_Act.history[-1])
 
             self.nnet_BLUE_Res.train(trainExamples_BLUE_Res)
             self.nnet_BLUE_Res.save_checkpoint(folder=self.args.checkpoint, filename='new_BLUE_Res.pth.tar')
+            logger.info('BLUE Response Losses Average %s', self.nnet_BLUE_Res.history[-1])
 
     def getCheckpointFile(self, iteration):
         return 'checkpoint_' + str(iteration) + '.pth.tar'
