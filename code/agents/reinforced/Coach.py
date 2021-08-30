@@ -49,6 +49,7 @@ def executeEpisode(board, state, seed: int, mcts: MCTS, tempThreshold):
 
     random = np.random.default_rng(seed)
 
+    # puppets agents are used to train a MTCS both for RED and BLUE point of view
     puppet = {
         RED: Puppet(RED),
         BLUE: Puppet(BLUE),
@@ -133,11 +134,9 @@ class Coach():
     in Game and NeuralNet. args are specified in main.py.
     """
 
-    def __init__(self, board, state, team, action_type, nnet_RED_Act, nnet_RED_Res, nnet_BLUE_Act, nnet_BLUE_Res, args):
+    def __init__(self, board, state, nnet_RED_Act, nnet_RED_Res, nnet_BLUE_Act, nnet_BLUE_Res, args):
         self.board = board
         self.state = state
-        self.team = team
-        self.action_type = action_type
 
         self.seed = args.seed
         self.random = np.random.default_rng(self.seed)

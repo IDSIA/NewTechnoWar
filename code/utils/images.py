@@ -135,7 +135,11 @@ def drawBoard(board: GameBoard, size: int = None) -> Image:
     img = Image.new('RGB', (size_x, size_y), 'white')
     draw = ImageDraw.Draw(img)
 
-    font = ImageFont.truetype('arial', int(size * .35))
+    try:
+        font = ImageFont.truetype('arial', int(size * .35))
+    except OSError:
+        font = ImageFont.load_default()
+
     font_dh = int(size * SQRT3 * .45)
 
     maxi, maxj = 0, 0
@@ -217,6 +221,10 @@ def drawState(board: GameBoard, state: GameState, show_last_action: bool = False
                 for f in fs:
                     _drawFigure(img, pi, pj, psize, f, decals)
 
+    font_dh = int(size // 4)
+    font_dw = int(size // 4)
+    _drawText(img, font_dw, font_dh, f'T:{state.turn}')
+
     return img
 
 
@@ -254,6 +262,17 @@ def _drawDecal(img: Image, pi, pj, psize, decal) -> None:
     """Draws a decal on top of the current image at the given pixel-space coordinates."""
     dxy = (pi - psize, pj - psize)
     img.paste(decal, dxy, mask=decal)
+
+
+def _drawText(img: Image, pi, pj, text, size: int = None) -> None:
+    if size is None:
+        size = SIZE
+    try:
+        font = ImageFont.truetype('arial', int(size * .35))
+    except OSError:
+        font = ImageFont.load_default()
+    draw = ImageDraw.Draw(img, 'RGBA')
+    draw.text((pi, pj), text, fill='black', anchor='ms', font=font)
 
 
 def drawAction(img: Image, action: Action, size: int = None, direct: bool = True) -> None:

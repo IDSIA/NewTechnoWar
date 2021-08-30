@@ -7,7 +7,6 @@ import numpy as np
 import ray
 
 from core.const import RED, BLUE
-from core.game.manager import GameManager
 from core.scenarios import buildScenario
 from core.templates import buildFigure
 from core.game import GameBoard, GameState, GoalReachPoint, GoalDefendPoint, GoalMaxTurn
@@ -16,7 +15,7 @@ from utils.setup_logging import setup_logging
 from utils import dotdict
 
 # from NNet import NNetWrapper as nn
-from agents.reinforced import NNetWrapper as nn, Coach, MCTS
+from agents.reinforced import NNetWrapper as nn, Coach
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
@@ -57,10 +56,7 @@ if __name__ == '__main__':
         buildFigure('Infantry', (0, 4), BLUE, 'b_inf_1'),
     )
 
-    # this is to avoid initialization step
-    gm = GameManager(seed)
-    gm.update(state)
-
+    # training arguments setup
     now = datetime.now().strftime('%Y%m%d.%H%M%S')
 
     args = dotdict({
@@ -82,31 +78,18 @@ if __name__ == '__main__':
         'parallel': True,  # put true to use ray and parallel execution of episodes
     })
 
+    nnet_RED_Act = nn(board.shape, seed)
+    nnet_RED_Res = nn(board.shape, seed)
+    nnet_BLUE_Act = nn(board.shape, seed)
+    nnet_BLUE_Res = nn(board.shape, seed)
+
+    logger.info('Loading the Coach...')
+
+    c = Coach(board, state, nnet_RED_Act, nnet_RED_Res, nnet_BLUE_Act, nnet_BLUE_Res, args)
+
     if args.load_model:
-        logger.info('Loading checkpoint "%s/%s"...', args.load_folder_file)
-        # nnet.load_checkpoint(args.load_folder_file[0], args.load_folder_file[1])
-        nn.load_checkpoint(args.load_folder_file)
+        logger.info("Loading 'trainExamples' from file...")
+        c.loadTrainExamples()
 
-    else:
-        # mcts = MCTS(board, state, RED, args)
-        # pi = mcts.getActionProb(board, state, RED, temp=1)
-        # print(len(pi), len(np.where(np.array(pi)>0)[0]), np.where(np.array(pi)>0)[0], [pi[x] for x in np.where(np.array(pi)>0)[0]])
-
-        nnet_RED_Act = nn(board.shape, seed)
-        nnet_RED_Res = nn(board.shape, seed)
-        nnet_BLUE_Act = nn(board.shape, seed)
-        nnet_BLUE_Res = nn(board.shape, seed)
-
-        team = RED
-        moveType = "Action"
-
-        logger.info('Loading the Coach...')
-
-        c = Coach(board, state, team, moveType, nnet_RED_Act, nnet_RED_Res, nnet_BLUE_Act, nnet_BLUE_Res, args)
-
-        if args.load_model:
-            logger.info("Loading 'trainExamples' from file...")
-            c.loadTrainExamples()
-
-        logger.info('Starting the learning process')
-        c.learn()
+    logger.info('Starting the learning process')
+    c.learn()
