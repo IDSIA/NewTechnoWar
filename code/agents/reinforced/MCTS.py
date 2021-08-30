@@ -11,6 +11,8 @@ from core.actions import Attack, Move, Action, Response, NoResponse, PassTeam, A
 from core.const import RED, BLUE
 
 from agents import MatchManager
+from core.game.board import GameBoard
+from core.game.state import GameState
 from utils.copy import deepcopy
 
 logger = logging.getLogger(__name__)
@@ -34,15 +36,16 @@ class MCTS():
     This class handles the MCTS tree.
     """
 
-    def __init__(self, nnet_RED_Act, nnet_RED_Res, nnet_BLUE_Act, nnet_BLUE_Res, args):
-        self.args = args
+    def __init__(self, nnet_RED_Act, nnet_RED_Res, nnet_BLUE_Act, nnet_BLUE_Res, seed: int, max_weapon_per_figure, max_figure_per_scenario, max_move_no_response_size,
+                 max_attack_size, num_MCTS_sims, cpuct
+                 ):
 
         self.puppet = {
             RED: Puppet(RED),
             BLUE: Puppet(BLUE),
         }
 
-        self.seed = args.seed
+        self.seed = seed
         self.random = np.random.default_rng(self.seed)
         self.gm: GameManager = GameManager(self.seed)
         self.mm: MatchManager = None
@@ -62,24 +65,24 @@ class MCTS():
         self.VAs = {}  # stores actions themselves for (s)
         self.states = []  # stores states
 
-        self.maxWeaponPerFigure = args.maxWeaponPerFigure
-        self.maxFigurePerScenario = args.maxFigurePerScenario
-        self.maxMoveNoResponseSize = args.maxMoveNoResponseSize
-        self.maxActionSize = args.maxMoveNoResponseSize + args.maxAttackSize  # input vector size
+        self.num_MCTS_sims = num_MCTS_sims
+        self.cpuct = cpuct
+        self.max_weapon_per_figure = max_weapon_per_figure
+        self.max_figure_per_scenario = max_figure_per_scenario
+        self.max_move_no_response_size = max_move_no_response_size
+        self.max_action_size = max_move_no_response_size + max_attack_size  # input vector size
 
-    def generateBoard(self, board, state):
+    def generateBoard(self, board: GameBoard, state: GameState):
 
         board = np.zeros(board.shape)
 
-        cube_coords = list(state.posToFigure['red'].keys())
-        for i in range(len(cube_coords)):
-            board[cube_coords[i].tuple()] = int(state.figures['red'][i].index+1)
+        for f in state.figures[RED]:
+            board[f.position.tuple()] = int(f.index + 1)
 
-        cube_coords = list(state.posToFigure['blue'].keys())
-        for i in range(len(cube_coords)):
-            board[cube_coords[i].tuple()] = -int(state.figures['blue'][i].index+1)
+        for f in state.figures[BLUE]:
+            board[f.position.tuple()] = -int(f.index - 1)
 
-        return board  # .tostring()
+        return board
 
     def calculateValidMoves(self, gm, board, state, team, action_type):
         all_valid_actions = []
@@ -96,8 +99,8 @@ class MCTS():
     def actionIndexMapping(self, gm, board, state, team, action_type):
         all_valid_actions = self.calculateValidMoves(gm, board, state, team, action_type)
 
-        valid_indices = [0] * self.maxActionSize
-        valid_actions = [None] * self.maxActionSize
+        valid_indices = [0] * self.max_action_size
+        valid_actions = [None] * self.max_action_size
 
         if all_valid_actions != []:
 
@@ -112,19 +115,19 @@ class MCTS():
                     weapon_ind = WEAPONS_INDICES[a.weapon_id]
 
                     idx = (
-                        self.maxMoveNoResponseSize +
+                        self.max_move_no_response_size +
                         weapon_ind +
-                        target_ind * self.maxWeaponPerFigure +
-                        figure_ind * self.maxWeaponPerFigure * self.maxFigurePerScenario
+                        target_ind * self.max_weapon_per_figure +
+                        figure_ind * self.max_weapon_per_figure * self.max_figure_per_scenario
                     )
 
                 elif type(a) == NoResponse:
 
-                    idx = self.maxMoveNoResponseSize - 1
+                    idx = self.max_move_no_response_size - 1
 
                 elif type(a) == PassTeam:
 
-                    idx = self.maxMoveNoResponseSize
+                    idx = self.max_move_no_response_size
 
                 else:
 
@@ -206,7 +209,7 @@ class MCTS():
 
         old_s = -1
 
-        for i in range(self.args.numMCTSSims):
+        for i in range(self.num_MCTS_sims):
             logger.debug('MCTS SIMULATION %s', i)
             self.search(board, start_state, old_s)
 
@@ -222,7 +225,7 @@ class MCTS():
             else:
                 i += 1
         logger.debug('getActProb S is: %s and his parent: %s', s, old_s)
-        counts = [self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.maxActionSize)]  # range(5851)]
+        counts = [self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.max_action_size)]  # range(5851)]
 
         if temp == 0:
             bestAs = np.array(np.argwhere(counts == np.max(counts))).flatten()
@@ -313,8 +316,8 @@ class MCTS():
         if s not in self.Ps:
             # leaf node, no probabilities assigned yet
 
-            valid_s = [0] * self.maxActionSize  # [0]*5851 #self.numMaxActions(board, state)
-            valid_actions = [None] * self.maxActionSize
+            valid_s = [0] * self.max_action_size  # [0]*5851 #self.numMaxActions(board, state)
+            valid_actions = [None] * self.max_action_size
 
             if team == RED and action_type == "Action":
                 self.Ps[s], v = self.nnet_RED_Act.predict(wholeStatDynBoard)
@@ -364,13 +367,13 @@ class MCTS():
         best_act = -1
 
         # pick the action with the highest upper confidence bound
-        for a in range(self.maxActionSize):  # range(5851):
+        for a in range(self.max_action_size):  # range(5851):
             if valid_s[a]:
                 if (s, a) in self.Qsa:
-                    u = self.Qsa[(s, a)] + self.args.cpuct * self.Ps[s][a] * math.sqrt(self.Ns[s]) / (
+                    u = self.Qsa[(s, a)] + self.cpuct * self.Ps[s][a] * math.sqrt(self.Ns[s]) / (
                         1 + self.Nsa[(s, a)])
                 else:
-                    u = self.args.cpuct * self.Ps[s][a] * math.sqrt(self.Ns[s] + EPS)  # Q = 0 ?
+                    u = self.cpuct * self.Ps[s][a] * math.sqrt(self.Ns[s] + EPS)  # Q = 0 ?
 
                 if u > cur_best:
                     cur_best = u

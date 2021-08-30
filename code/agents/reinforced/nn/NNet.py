@@ -1,6 +1,4 @@
 import os
-import sys
-import time
 import logging
 
 from typing import Tuple
@@ -12,23 +10,8 @@ import torch.optim as optim
 from tqdm import tqdm
 
 from .NTWNNet import NTWNNet as ntwnet
-from utils import dotdict
-
-sys.path.append('../../')
 
 logger = logging.getLogger(__name__)
-
-
-args = dotdict({
-    'lr': 0.001,
-    'dropout': 0.3,
-    'epochs': 2,  # 10,
-    'batch_size': 64,
-    'cuda': torch.cuda.is_available(),
-    'num_channels': 512,
-    'maxMoveNoResponseSize': 1351,
-    'maxAttackSize': 288
-})
 
 
 class AverageMeter(object):
@@ -51,15 +34,22 @@ class AverageMeter(object):
 
 
 class NNetWrapper():
-    def __init__(self, shape: Tuple[int], seed: int = 0):
-        self.nnet = ntwnet(args, shape)
+    def __init__(self, shape: Tuple[int], seed: int = 0, lr: float = 0.001, dropout: float = 0.3, epochs: int = 2, batch_size: int = 64,
+                 num_channels: int = 512, max_move_no_response_size: int = 1351, max_attack_size: int = 288
+                 ):
+        self.nnet = ntwnet(shape, lr, dropout, epochs, batch_size, num_channels, max_move_no_response_size, max_attack_size)
         self.board_x, self.board_y = shape  # TODO: replace with correct values ;;;;; game.getBoardSize()
-        self.action_size = args.maxMoveNoResponseSize + args.maxAttackSize  # 5851 #game.getActionSize()
+        self.action_size = max_move_no_response_size + max_attack_size  # 5851 #game.getActionSize()
+
+        self.epochs: int = epochs
+        self.batch_size: int = batch_size
 
         self.random = np.random.default_rng(seed)
         self.history = []
 
-        if args.cuda:
+        self.cuda: bool = torch.cuda.is_available()
+
+        if self.cuda:
             self.nnet.cuda()
 
     def train(self, examples):
@@ -69,24 +59,24 @@ class NNetWrapper():
         optimizer = optim.Adam(self.nnet.parameters())
         n = len(examples)
 
-        for epoch in range(args.epochs):
-            logger.info('EPOCH ::: ' + str(epoch + 1))
+        for epoch in range(self.epochs):
+            logger.info('EPOCH :: ' + str(epoch + 1))
             self.nnet.train()
             pi_losses = AverageMeter()
             v_losses = AverageMeter()
 
-            batch_count = int(n / args.batch_size) + 1
+            batch_count = int(n / self.batch_size) + 1
 
             t = tqdm(range(batch_count), desc='Training Net')
             for _ in t:
-                sample_ids = self.random.choice(n, size=min(n, args.batch_size))
+                sample_ids = self.random.choice(n, size=min(n, self.batch_size))
                 boards, pis, vs = list(zip(*[examples[i] for i in sample_ids]))
                 boards = torch.FloatTensor(np.array(boards).astype(np.float64))
                 target_pis = torch.FloatTensor(np.array(pis))
                 target_vs = torch.FloatTensor(np.array(vs).astype(np.float64))
 
                 # predict
-                if args.cuda:
+                if self.cuda:
                     boards, target_pis, target_vs = boards.contiguous().cuda(), target_pis.contiguous().cuda(), target_vs.contiguous().cuda()
 
                 # compute output
@@ -111,19 +101,17 @@ class NNetWrapper():
         """
         board: np array with board
         """
-        # timing
-        start = time.time()
-
         # preparing input
         board = torch.FloatTensor(board.astype(np.float64))
-        if args.cuda:
+
+        if self.cuda:
             board = board.contiguous().cuda()
         board = board.view(1, self.board_x, self.board_y)
         self.nnet.eval()
+
         with torch.no_grad():
             pi, v = self.nnet(board)
 
-        # print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
         return torch.exp(pi).data.cpu().numpy()[0], v.data.cpu().numpy()[0]
 
     def loss_pi(self, targets, outputs):
@@ -147,6 +135,6 @@ class NNetWrapper():
         filepath = os.path.join(folder, filename)
         if not os.path.exists(filepath):
             raise ("No model in path {}".format(filepath))
-        map_location = None if args.cuda else 'cpu'
+        map_location = None if self.cuda else 'cpu'
         checkpoint = torch.load(filepath, map_location=map_location)
         self.nnet.load_state_dict(checkpoint['state_dict'])
