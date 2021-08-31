@@ -9,7 +9,9 @@ from collections import deque
 from datetime import datetime
 from pickle import Pickler, Unpickler
 from tqdm import tqdm
+
 from agents.reinforced.nn.NNet import NNetWrapper
+from agents.reinforced.consts import FRAC_GPUS
 
 from core.const import RED, BLUE
 from agents.adversarial.puppets import Puppet
@@ -22,7 +24,7 @@ from utils.copy import deepcopy
 logger = logging.getLogger(__name__)
 
 
-@ray.remote
+@ray.remote(num_gpus=FRAC_GPUS)
 def executeEpisodeWrapper(board, state, seed: int, mcts: MCTS, temp_threshold):
     """This is a wrapper for the parallel execution."""
     return executeEpisode(board, state, seed, mcts, temp_threshold)

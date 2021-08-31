@@ -1,5 +1,4 @@
-from core.actions import Attack, Move, Action, Response, NoResponse, PassTeam, AttackResponse, PassFigure, AttackGround, MoveLoadInto
-from core.const import RED, BLUE
+from core.actions import MoveLoadInto
 
 
 def limitMovements(board, state, moves):

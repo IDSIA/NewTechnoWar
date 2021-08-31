@@ -8,4 +8,4 @@ data*
 *__pycache__*
 cache/*
 
-.*gif
+*.gif

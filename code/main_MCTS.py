@@ -18,6 +18,7 @@ from utils.setup_logging import setup_logging
 
 # from NNet import NNetWrapper as nn
 from agents.reinforced import NNetWrapper as nn, Coach
+from agents.reinforced.consts import NUM_GPUS, NUM_CORES
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
@@ -27,14 +28,11 @@ logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':
     os.environ['RAY_DISABLE_IMPORT_WARNING'] = '1'
-    num_cores = os.cpu_count() - 1
 
-    p = argparse.ArgumentParser()
-    p.add_argument('cores', help="max num of cores to use", type=int, default=num_cores)
-    args = p.parse_args()
+    logger.info("Using %s cores", NUM_CORES)
+    logger.info("Using %s gpus", NUM_GPUS)
 
-    logger.info("Using %s cores", args.cores)
-    ray.init(num_cpus=args.cores)
+    ray.init(num_cpus=NUM_CORES, num_gpus=NUM_GPUS)
 
     # random seed for repeatability
     seed = 151775519
