@@ -7,10 +7,11 @@ import numpy as np
 from agents.adversarial.puppets import Puppet
 
 from core.game import GameManager
-from core.actions import Attack, Move, Action, Response, NoResponse, PassTeam, AttackResponse, PassFigure, AttackGround, MoveLoadInto
+from core.actions import Attack, Move, Action, Response, NoResponse, PassTeam, AttackResponse, PassFigure, Wait, MoveLoadInto
 from core.const import RED, BLUE
 
 from agents import MatchManager
+from agents.reinforced.nn.NNet import NNetWrapper
 from core.game.board import GameBoard
 from core.game.state import GameState
 from utils.copy import deepcopy
@@ -36,8 +37,9 @@ class MCTS():
     This class handles the MCTS tree.
     """
 
-    def __init__(self, nnet_RED_Act, nnet_RED_Res, nnet_BLUE_Act, nnet_BLUE_Res, seed: int, max_weapon_per_figure, max_figure_per_scenario, max_move_no_response_size,
-                 max_attack_size, num_MCTS_sims, cpuct
+    def __init__(self, nnet_RED_Act: NNetWrapper, nnet_RED_Res: NNetWrapper, nnet_BLUE_Act: NNetWrapper, nnet_BLUE_Res: NNetWrapper,
+                 seed: int, max_weapon_per_figure: int, max_figure_per_scenario: int, max_move_no_response_size: int, max_attack_size: int,
+                 num_MCTS_sims: int, cpuct: float
                  ):
 
         self.puppet = {
@@ -45,15 +47,15 @@ class MCTS():
             BLUE: Puppet(BLUE),
         }
 
-        self.seed = seed
+        self.seed: int = seed
         self.random = np.random.default_rng(self.seed)
         self.gm: GameManager = GameManager(self.seed)
         self.mm: MatchManager = None
 
-        self.nnet_RED_Act = nnet_RED_Act
-        self.nnet_RED_Res = nnet_RED_Res
-        self.nnet_BLUE_Act = nnet_BLUE_Act
-        self.nnet_BLUE_Res = nnet_BLUE_Res
+        self.nnet_RED_Act: NNetWrapper = nnet_RED_Act
+        self.nnet_RED_Res: NNetWrapper = nnet_RED_Res
+        self.nnet_BLUE_Act: NNetWrapper = nnet_BLUE_Act
+        self.nnet_BLUE_Res: NNetWrapper = nnet_BLUE_Res
 
         self.Qsa = {}  # stores Q values for (s, a)
         self.Nsa = {}  # stores #times edge (s, a) was visited
@@ -63,16 +65,18 @@ class MCTS():
         self.Es = {}  # is this the end or not?
         self.Vs = {}  # stores action indices for (s)
         self.VAs = {}  # stores actions themselves for (s)
-        self.states = []  # stores states
 
-        self.num_MCTS_sims = num_MCTS_sims
-        self.cpuct = cpuct
-        self.max_weapon_per_figure = max_weapon_per_figure
-        self.max_figure_per_scenario = max_figure_per_scenario
-        self.max_move_no_response_size = max_move_no_response_size
-        self.max_action_size = max_move_no_response_size + max_attack_size  # input vector size
+        self.states: list = []  # stores hash states
 
-    def generateBoard(self, board: GameBoard, state: GameState):
+        self.num_MCTS_sims: int = num_MCTS_sims
+        self.cpuct: float = cpuct
+
+        self.max_weapon_per_figure: int = max_weapon_per_figure
+        self.max_figure_per_scenario: int = max_figure_per_scenario
+        self.max_move_no_response_size: int = max_move_no_response_size
+        self.max_action_size: int = max_move_no_response_size + max_attack_size + 1  # input vector size
+
+    def generateFeatures(self, board: GameBoard, state: GameState) -> np.ndarray:
 
         board = np.zeros(board.shape)
 
@@ -88,7 +92,6 @@ class MCTS():
         all_valid_actions = []
 
         if action_type == "Action":
-
             all_valid_actions = gm.buildActionsForTeam(board, state, team)
 
         elif action_type == "Response":
@@ -121,6 +124,10 @@ class MCTS():
                         figure_ind * self.max_weapon_per_figure * self.max_figure_per_scenario
                     )
 
+                elif type(a) == Wait:
+
+                    idx = self.max_move_no_response_size - 2
+
                 elif type(a) == NoResponse:
 
                     idx = self.max_move_no_response_size - 1
@@ -134,22 +141,6 @@ class MCTS():
                     if type(a) == PassFigure:
                         x = 0
                         y = 0
-
-                    # elif type(a) == Attack: # TODO: add weapons
-
-                    #     start_pos = a.position.tuple()
-                    #     end_pos = a.destination.tuple()
-
-                    #     x = end_pos[0] - start_pos[0]
-                    #     y = end_pos[1] - start_pos[1]
-
-                    # elif type(a) == AttackGround: # TODO: add weapons
-
-                    #     start_pos = a.position.tuple()
-                    #     end_pos = a.destination.tuple()
-
-                    #     x = end_pos[0] - start_pos[0]
-                    #     y = end_pos[1] - start_pos[1]
 
                     elif type(a) == Move:
 
@@ -218,14 +209,16 @@ class MCTS():
         s = 0
         i = 0
 
+        start_state_hash = hash(start_state)
         while i < len(self.states):
-            if start_state.__eq__(self.states[i][0]) and team_move_id == self.states[i][1]:
+            if start_state_hash == self.states[i][0] and team_move_id == self.states[i][1]:
                 s = i
                 break
             else:
                 i += 1
+
         logger.debug('getActProb S is: %s and his parent: %s', s, old_s)
-        counts = [self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.max_action_size)]  # range(5851)]
+        counts = [self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.max_action_size)]
 
         if temp == 0:
             bestAs = np.array(np.argwhere(counts == np.max(counts))).flatten()
@@ -264,20 +257,20 @@ class MCTS():
         action_type, team, _ = self.mm.nextPlayer()
 
         if action_type in ('update', 'init', 'end'):
-            self.mm.nextStep()  # this will update the values in the 'state' variable!
+            self.mm.nextStep()
             state = self.mm.state
             action_type, team, _ = self.mm.nextPlayer()
 
             # this is to avoid 'update -> end' stuck
             if action_type == 'end':
-                self.mm.nextStep()  # this will update the values in the 'state' variable!
+                self.mm.nextStep()
                 state = self.mm.state
                 action_type, team, _ = self.mm.nextPlayer()
 
         action_type = 'Action' if action_type == 'round' else 'Response'
 
         # generate data vector
-        wholeStatDynBoard = self.generateBoard(board, state)
+        features = self.generateFeatures(board, state)
 
         i = 0
         s = -1
@@ -285,15 +278,16 @@ class MCTS():
         # map move and action type to id
         team_move_id = self.mapTeamMoveIntoID(team, action_type)
 
+        state_hash = hash(state)
         while i < len(self.states):
-            if state == self.states[i][0] and team_move_id == self.states[i][1]:
+            if state_hash == self.states[i][0] and team_move_id == self.states[i][1]:
                 s = i
                 break
             else:
                 i += 1
 
         if s == -1:
-            self.states.append((state, team_move_id))
+            self.states.append((state_hash, team_move_id))
             s = len(self.states)-1
 
         logger.debug('S is: %s and his parent is: %s', s, old_s)
@@ -320,13 +314,13 @@ class MCTS():
             valid_actions = [None] * self.max_action_size
 
             if team == RED and action_type == "Action":
-                self.Ps[s], v = self.nnet_RED_Act.predict(wholeStatDynBoard)
+                self.Ps[s], v = self.nnet_RED_Act.predict(features)
             elif team == RED and action_type == "Response":
-                self.Ps[s], v = self.nnet_RED_Res.predict(wholeStatDynBoard)
+                self.Ps[s], v = self.nnet_RED_Res.predict(features)
             elif team == BLUE and action_type == "Action":
-                self.Ps[s], v = self.nnet_BLUE_Act.predict(wholeStatDynBoard)
+                self.Ps[s], v = self.nnet_BLUE_Act.predict(features)
             elif team == BLUE and action_type == "Response":
-                self.Ps[s], v = self.nnet_BLUE_Res.predict(wholeStatDynBoard)
+                self.Ps[s], v = self.nnet_BLUE_Res.predict(features)
 
             # if all_valid_actions == []:
             #     # does the opponent have valid moves?

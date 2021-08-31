@@ -8,10 +8,10 @@ import ray
 from collections import deque
 from datetime import datetime
 from pickle import Pickler, Unpickler
+import torch
 from tqdm import tqdm
 
 from agents.reinforced.nn.NNet import NNetWrapper
-from agents.reinforced.consts import FRAC_GPUS
 
 from core.const import RED, BLUE
 from agents.adversarial.puppets import Puppet
@@ -24,7 +24,10 @@ from utils.copy import deepcopy
 logger = logging.getLogger(__name__)
 
 
-@ray.remote(num_gpus=FRAC_GPUS)
+num_gpus = 0.5 if torch.cuda.is_available() else 0.0
+
+
+@ray.remote(num_cpus=1, num_gpus=num_gpus)
 def executeEpisodeWrapper(board, state, seed: int, mcts: MCTS, temp_threshold):
     """This is a wrapper for the parallel execution."""
     return executeEpisode(board, state, seed, mcts, temp_threshold)
@@ -86,7 +89,7 @@ def executeEpisode(board, state, seed: int, mcts: MCTS, temp_threshold):
 
         _, valid_actions = mcts.actionIndexMapping(mm.gm, board, state, team, action_type)
 
-        data_vector = mcts.generateBoard(board, state)
+        data_vector = mcts.generateFeatures(board, state)
 
         pi, _ = mcts.getActionProb(board, state, team, action_type, temp=temp)
 

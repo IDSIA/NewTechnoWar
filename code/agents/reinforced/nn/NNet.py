@@ -39,7 +39,7 @@ class NNetWrapper():
                  ):
         self.nnet = ntwnet(shape, lr, dropout, epochs, batch_size, num_channels, max_move_no_response_size, max_attack_size)
         self.board_x, self.board_y = shape  # TODO: replace with correct values ;;;;; game.getBoardSize()
-        self.action_size = max_move_no_response_size + max_attack_size  # 5851 #game.getActionSize()
+        self.action_size = max_move_no_response_size + max_attack_size + 1  # 5851 #game.getActionSize()
 
         self.epochs: int = epochs
         self.batch_size: int = batch_size

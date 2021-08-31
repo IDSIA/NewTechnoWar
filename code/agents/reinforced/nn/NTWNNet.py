@@ -17,7 +17,7 @@ class NTWNNet(nn.Module):
         super(NTWNNet, self).__init__()
 
         self.board_x, self.board_y = shape  # TODO: replace this value ;;;; game.getBoardSize()
-        self.action_size = max_move_no_response_size + max_attack_size
+        self.action_size = max_move_no_response_size + max_attack_size + 1
 
         self.lr: float = lr
         self.dropout: float = dropout
