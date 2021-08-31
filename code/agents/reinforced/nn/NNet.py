@@ -95,7 +95,7 @@ class NNetWrapper():
                 total_loss.backward()
                 optimizer.step()
 
-                self.history.append(v_losses.avg)
+                self.history.append((pi_losses, v_losses))
 
     def predict(self, board):
         """

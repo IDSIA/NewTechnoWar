@@ -26,6 +26,8 @@ logger = logging.getLogger(__name__)
 
 num_gpus = 0.5 if torch.cuda.is_available() else 0.0
 
+# note: wrapper functions are used to let the non-parallel option work without ray implementation
+
 
 @ray.remote(num_cpus=1, num_gpus=num_gpus)
 def executeEpisodeWrapper(board, state, seed: int, mcts: MCTS, temp_threshold):
@@ -133,6 +135,53 @@ def executeEpisode(board, state, seed: int, mcts: MCTS, temp_threshold):
         [(x[0], x[2], b) for x in trainExamples_BLUE_Action],
         [(x[0], x[2], b) for x in trainExamples_BLUE_Response]
     )
+
+
+@ray.remote(num_gpus=num_gpus)
+def trainModelWrapper(model: NNetWrapper, tr_examples_history: list, num_it_tr_examples_history: int, seed: int, folder_ceckpoint: str, i: int, team: str, action_type: str):
+    trainModel(model, tr_examples_history, num_it_tr_examples_history, seed, folder_ceckpoint, i, team, action_type)
+
+
+def trainModel(model: NNetWrapper, tr_examples_history: list, num_it_tr_examples_history: int, seed: int, folder_ceckpoint: str, i: int, team: str, action_type: str):
+
+    if len(tr_examples_history) > num_it_tr_examples_history:
+        logger.warning(f"Removing the oldest entry in trainExamples. len(tr_examples_history) = {len(tr_examples_history)}")
+        tr_examples_history.pop(0)
+
+    r = np.random.default_rng(seed)
+
+    # backup history to a file
+    # NB! the examples were collected using the model from the previous iteration, so (i-1)
+    iteration = i - 1
+
+    checkpoint_file = 'checkpoint_' + str(iteration) + '.pth.tar'
+
+    if not os.path.exists(folder_ceckpoint):
+        os.makedirs(folder_ceckpoint)
+
+    filename = os.path.join(folder_ceckpoint, f"{checkpoint_file}_{team}_{action_type}.examples")
+    with open(filename, "wb+") as f:
+        Pickler(f).dump(tr_examples_history)
+
+    # shuffle examples before training
+    train_examples = []
+    for e in tr_examples_history:
+        train_examples.extend(e)
+    r.shuffle(train_examples)
+
+    # training new network
+    model.train(train_examples)
+    model.save_checkpoint(folder=folder_ceckpoint, filename=f'new_{team}_{action_type}.pth.tar')
+    logger.info('RED  Action   Losses Average %s', model.history[-1])
+
+    filename = os.path.join(folder_ceckpoint, checkpoint_file + f"{checkpoint_file}_{team}_{action_type}.losses.tsv")
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write('\t'.join(['i', 'l_pi_avg', 'l_pi_count', 'l_pi_sum', 'l_pi_val', 'l_v_avg', 'l_v_count', 'l_v_sum', 'l_v_val']))
+        f.write('\n')
+        for x in range(len(model.history)):
+            l_pi, l_v = model.history[x]
+            f.write('\t'.join([str(a) for a in [x, l_pi.avg, l_pi.count, l_pi.sum, l_pi.val, l_v.avg, l_v.count, l_v.sum, l_v.val]]))
+            f.write('\n')
 
 
 class Coach():
@@ -245,6 +294,7 @@ class Coach():
                     # this uses single thread
                     for c in range(self.num_eps):
                         ite_R_A, ite_R_R, ite_B_A, ite_B_R = executeEpisode(board, state, seed + c, mcts, tempThreshold)
+                        results.append((ite_R_A, ite_R_R, ite_B_A, ite_B_R))
 
                 for ite_R_A, ite_R_R, ite_B_A, ite_B_R in results:
                     it_tr_examples_RED_Act += ite_R_A
@@ -260,85 +310,20 @@ class Coach():
 
                 logger.info('END Self Play %s', len(self.tr_examples_history_RED_Act))
 
-            if len(self.tr_examples_history_RED_Act) > self.num_it_tr_examples_history:
-                logger.warning(f"Removing the oldest entry in trainExamples. len(tr_examples_history) = {len(self.tr_examples_history_RED_Act)}")
-                self.tr_examples_history_RED_Act.pop(0)
-            if len(self.tr_examples_history_RED_Res) > self.num_it_tr_examples_history:
-                logger.warning(f"Removing the oldest entry in trainExamples. len(tr_examples_history) = {len(self.tr_examples_history_RED_Res)}")
-                self.tr_examples_history_RED_Res.pop(0)
-            if len(self.tr_examples_history_BLUE_Act) > self.num_it_tr_examples_history:
-                logger.warning(f"Removing the oldest entry in trainExamples. len(tr_examples_history) = {len(self.tr_examples_history_BLUE_Act)}")
-                self.tr_examples_history_BLUE_Act.pop(0)
-            if len(self.tr_examples_history_BLUE_Res) > self.num_it_tr_examples_history:
-                logger.warning(f"Removing the oldest entry in trainExamples. len(tr_examples_history) = {len(self.tr_examples_history_BLUE_Res)}")
-                self.tr_examples_history_BLUE_Res.pop(0)
-
-            # backup history to a file
-            # NB! the examples were collected using the model from the previous iteration, so (i-1)
-            self.saveTrainExamples(i - 1)
-
-            # shuffle RED Action examples before training
-            trainExamples_RED_Act = []
-            for e in self.tr_examples_history_RED_Act:
-                trainExamples_RED_Act.extend(e)
-            self.random.shuffle(trainExamples_RED_Act)
-
-            # shuffle RED Response examples before training
-            trainExamples_RED_Res = []
-            for e in self.tr_examples_history_RED_Res:
-                trainExamples_RED_Res.extend(e)
-            self.random.shuffle(trainExamples_RED_Res)
-
-            # shuffle BLUE Action examples before training
-            trainExamples_BLUE_Act = []
-            for e in self.tr_examples_history_BLUE_Act:
-                trainExamples_BLUE_Act.extend(e)
-            self.random.shuffle(trainExamples_BLUE_Act)
-
-            # shuffle BLUE Action examples before training
-            trainExamples_BLUE_Res = []
-            for e in self.tr_examples_history_BLUE_Res:
-                trainExamples_BLUE_Res.extend(e)
-            self.random.shuffle(trainExamples_BLUE_Res)
-
-            # training new networks
-
-            self.red_act.train(trainExamples_RED_Act)
-            self.red_act.save_checkpoint(folder=self.folder_ceckpoint, filename='new_RED_Act.pth.tar')
-            logger.info('RED  Action   Losses Average %s', self.red_act.history[-1])
-
-            self.red_res.train(trainExamples_RED_Res)
-            self.red_res.save_checkpoint(folder=self.folder_ceckpoint, filename='new_RED_Res.pth.tar')
-            logger.info('RED  Response Losses Average %s', self.red_res.history[-1])
-
-            self.blue_act.train(trainExamples_BLUE_Act)
-            self.blue_act.save_checkpoint(folder=self.folder_ceckpoint, filename='new_BLUE_Act.pth.tar')
-            logger.info('BLUE Action   Losses Average %s', self.blue_act.history[-1])
-
-            self.blue_res.train(trainExamples_BLUE_Res)
-            self.blue_res.save_checkpoint(folder=self.folder_ceckpoint, filename='new_BLUE_Res.pth.tar')
-            logger.info('BLUE Response Losses Average %s', self.blue_res.history[-1])
-
-    def getCheckpointFile(self, iteration):
-        return 'checkpoint_' + str(iteration) + '.pth.tar'
-
-    def saveTrainExamples(self, iteration):
-        folder = self.folder_ceckpoint
-        if not os.path.exists(folder):
-            os.makedirs(folder)
-        filename = os.path.join(folder, self.getCheckpointFile(iteration) + "_RED_Act.examples")
-        with open(filename, "wb+") as f:
-            Pickler(f).dump(self.tr_examples_history_RED_Act)
-        filename = os.path.join(folder, self.getCheckpointFile(iteration) + "_RED_Res.examples")
-        with open(filename, "wb+") as f:
-            Pickler(f).dump(self.tr_examples_history_RED_Res)
-        filename = os.path.join(folder, self.getCheckpointFile(iteration) + "_BLUE_Act.examples")
-        with open(filename, "wb+") as f:
-            Pickler(f).dump(self.tr_examples_history_BLUE_Act)
-        filename = os.path.join(folder, self.getCheckpointFile(iteration) + "_BLUE_Res.examples")
-        with open(filename, "wb+") as f:
-            Pickler(f).dump(self.tr_examples_history_BLUE_Res)
-        f.closed
+            if self.parallel:
+                tasks = [
+                    trainModelWrapper.remote(self.red_act, self.tr_examples_history_RED_Act, self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, RED, 'Act'),
+                    trainModelWrapper.remote(self.red_res, self.tr_examples_history_RED_Res, self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, RED, 'Res'),
+                    trainModelWrapper.remote(self.blue_act, self.tr_examples_history_BLUE_Act, self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, BLUE, 'Act'),
+                    trainModelWrapper.remote(self.blue_res, self.tr_examples_history_BLUE_Res, self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, BLUE, 'Res')
+                ]
+                for task in tqdm(tasks, desc="Training"):
+                    ray.get(task)
+            else:
+                trainModel(self.red_act, self.tr_examples_history_RED_Act, self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, RED, 'Act'),
+                trainModel(self.red_res, self.tr_examples_history_RED_Res, self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, RED, 'Res'),
+                trainModel(self.blue_act, self.tr_examples_history_BLUE_Act, self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, BLUE, 'Act'),
+                trainModel(self.blue_res, self.tr_examples_history_BLUE_Res, self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, BLUE, 'Res')
 
     def loadTrainExamples(self):
         modelFile = os.path.join(self.load_folder_file)
