@@ -22,6 +22,7 @@ if __name__ == '__main__':
     # the available maps depend on the current config files
     board, state = buildScenario('Junction')
 
+    ''' 
     # to use Agents based on ML, it is mandatory to load the required models
     red = RegressionMultiAgent(RED,
                                'models/Junction_red_attack.joblib',
@@ -40,14 +41,17 @@ if __name__ == '__main__':
 
     red = RegressionAgent(RED, 'models/Junction_reg_red.joblib', seed=seed)
     blue = RegressionAgent(BLUE, 'models/Junction_reg_blue.joblib', seed=seed)
+    '''
 
     # greedy agents instead don't require models
     red = GreedyAgent(RED, seed=seed)
     blue = GreedyAgent(BLUE, seed=seed)
+    '''
 
     # different agents can have different set of parameters
     red = AlphaBetaFast1Agent(RED, maxDepth=3)
     blue = AlphaBetaFast1Agent(BLUE, maxDepth=3)
+    '''
 
     # the MatchManager is the object that is in charge of control the evolution of a game
     mm = MatchManager('', red, blue, board, state, seed=seed)
