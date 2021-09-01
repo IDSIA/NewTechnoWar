@@ -32,12 +32,12 @@ num_gpus = 1 if torch.cuda.is_available() else 0.0
 
 
 @ray.remote
-def executeEpisodeWrapper(board, state, seed: int, mcts: MCTS, temp_threshold):
+def executeEpisodeWrapper(board, state, seed: int, args: tuple, temp_threshold):
     """This is a wrapper for the parallel execution."""
-    return executeEpisode(board, state, seed, mcts, temp_threshold)
+    return executeEpisode(board, state, seed, args, temp_threshold)
 
 
-def executeEpisode(board, state, seed: int, mcts: MCTS, temp_threshold):
+def executeEpisode(board, state, seed: int, args: tuple, temp_threshold):
     """
     This function executes one episode of self-play, starting with RED player.
     As the game is played, each turn is added as a training example to
@@ -66,6 +66,10 @@ def executeEpisode(board, state, seed: int, mcts: MCTS, temp_threshold):
         BLUE: Puppet(BLUE),
     }
     mm = MatchManager('', puppet[RED], puppet[BLUE], board, deepcopy(state), seed, False)
+
+    red_act, red_res, blue_act, blue_res, max_weapon_per_figure, max_figure_per_scenario, max_move_no_response_size, max_attack_size, num_MCTS_sims, cpuct = args
+
+    mcts = MCTS(red_act, red_res, blue_act, blue_res, seed, max_weapon_per_figure, max_figure_per_scenario, max_move_no_response_size, max_attack_size, num_MCTS_sims, cpuct)
 
     episodeStep = 0
     cnt = 0
@@ -280,12 +284,6 @@ class Coach():
             if not self.skip_first_self_play or i > 1:
                 it_tr_examples = deque([], maxlen=self.max_queue_len)
 
-                mcts = MCTS(
-                    self.red_act, self.red_res, self.blue_act, self.blue_res,
-                    self.seed, self.max_weapon_per_figure, self.max_figure_per_scenario, self.max_move_no_response_size,
-                    self.max_attack_size, self. num_MCTS_sims, self.cpuct
-                )
-
                 board = self.board
                 state = self.state
                 seed = self.seed
@@ -295,11 +293,14 @@ class Coach():
 
                 logger.info('Sart Self Play #%s Iter #%s', len(self.tr_examples_history_RED_Act), i)
 
+                mcts = (self.red_act, self.red_res, self.blue_act, self.blue_res, self.max_weapon_per_figure, self.max_figure_per_scenario, self.max_move_no_response_size,
+                        self.max_attack_size, self. num_MCTS_sims, self.cpuct)
+
                 if self.parallel:
                     # this uses ray's parallelism
                     tasks = []
 
-                    for c in range(self.num_eps):
+                    for c in tqdm(range(self.num_eps), desc="Preparing"):
                         task = executeEpisodeWrapper.remote(board, state, seed + c, mcts, tempThreshold)
                         tasks.append(task)
 
@@ -328,6 +329,7 @@ class Coach():
             logger.info('Start training Iter #%s ...', i)
 
             if torch.cuda.is_available():
+                logging.info('Using cuda as devices')
                 devices = cycle(f'cuda:{n}' for n in range(torch.cuda.device_count()))
 
                 self.red_act.to(next(devices))

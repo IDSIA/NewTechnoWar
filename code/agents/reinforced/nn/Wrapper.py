@@ -139,6 +139,6 @@ class ModelWrapper():
         filepath = os.path.join(folder, filename)
         if not os.path.exists(filepath):
             raise ("No model in path {}".format(filepath))
-        map_location = None if self.device != 'cpu' else 'cpu'
+        map_location = torch.device('cpu') if self.device == 'cpu' else None
         checkpoint = torch.load(filepath, map_location=map_location)
         self.nn.load_state_dict(checkpoint['state_dict'])
