@@ -1,23 +1,18 @@
 from typing import Tuple
-from torch.autograd import Variable
-from torchvision import datasets, transforms
-import torch.optim as optim
+
 import torch.nn.functional as F
 import torch.nn as nn
 import torch
-from utils import *
-import sys
-sys.path.append('..')
 
 
-class NTWNNet(nn.Module):
+class NTWModel(nn.Module):
 
     def __init__(self, shape: Tuple[int], lr: float = 0.001, dropout: float = 0.3, epochs: int = 2, batch_size: int = 64,
-                 num_channels: int = 512, max_move_no_response_size: int = 1351, max_attack_size: int = 288):
-        super(NTWNNet, self).__init__()
+                 num_channels: int = 512, action_size: int = 1640):
+        super(NTWModel, self).__init__()
 
-        self.board_x, self.board_y = shape  # TODO: replace this value ;;;; game.getBoardSize()
-        self.action_size = max_move_no_response_size + max_attack_size + 1
+        self.board_x, self.board_y = shape
+        self.action_size: int = action_size
 
         self.lr: float = lr
         self.dropout: float = dropout

@@ -11,7 +11,7 @@ from core.actions import Attack, Move, Action, Response, NoResponse, PassTeam, A
 from core.const import RED, BLUE
 
 from agents import MatchManager
-from agents.reinforced.nn.NNet import NNetWrapper
+from agents.reinforced.nn import ModelWrapper
 from core.game.board import GameBoard
 from core.game.state import GameState
 from utils.copy import deepcopy
@@ -37,7 +37,7 @@ class MCTS():
     This class handles the MCTS tree.
     """
 
-    def __init__(self, nnet_RED_Act: NNetWrapper, nnet_RED_Res: NNetWrapper, nnet_BLUE_Act: NNetWrapper, nnet_BLUE_Res: NNetWrapper,
+    def __init__(self, nnet_RED_Act: ModelWrapper, nnet_RED_Res: ModelWrapper, nnet_BLUE_Act: ModelWrapper, nnet_BLUE_Res: ModelWrapper,
                  seed: int, max_weapon_per_figure: int, max_figure_per_scenario: int, max_move_no_response_size: int, max_attack_size: int,
                  num_MCTS_sims: int, cpuct: float
                  ):
@@ -52,10 +52,10 @@ class MCTS():
         self.gm: GameManager = GameManager(self.seed)
         self.mm: MatchManager = None
 
-        self.nnet_RED_Act: NNetWrapper = nnet_RED_Act
-        self.nnet_RED_Res: NNetWrapper = nnet_RED_Res
-        self.nnet_BLUE_Act: NNetWrapper = nnet_BLUE_Act
-        self.nnet_BLUE_Res: NNetWrapper = nnet_BLUE_Res
+        self.nnet_RED_Act: ModelWrapper = nnet_RED_Act
+        self.nnet_RED_Res: ModelWrapper = nnet_RED_Res
+        self.nnet_BLUE_Act: ModelWrapper = nnet_BLUE_Act
+        self.nnet_BLUE_Res: ModelWrapper = nnet_BLUE_Res
 
         self.Qsa = {}  # stores Q values for (s, a)
         self.Nsa = {}  # stores #times edge (s, a) was visited

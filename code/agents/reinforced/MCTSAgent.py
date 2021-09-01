@@ -3,9 +3,8 @@ import logging
 import numpy as np
 
 from agents import Agent, GreedyAgent
-from agents.reinforced import MCTS, NNetWrapper as nn
-from core.actions import NoResponse, Wait
-from core.actions import Action
+from agents.reinforced import MCTS, ModelWrapper
+from core.actions import Action, NoResponse, Wait
 from core.game import GameBoard, GameState
 
 logger = logging.getLogger(__name__)
@@ -13,22 +12,23 @@ logger = logging.getLogger(__name__)
 
 class MCTSAgent(Agent):
 
-    def __init__(self, team: str, board: GameBoard, args):
-        super().__init__('MCTSAgent', team, seed=args.seed)
+    def __init__(self, team: str, board: GameBoard, checkpoint: str = '.', seed: int = 0, max_weapon_per_figure: int = 8, max_figure_per_scenario: int = 6,
+                 max_move_no_response_size: int = 1351, max_attack_size: int = 288, num_MCTS_sims: int = 30, cpuct: float = 1
+                 ):
+        super().__init__('MCTSAgent', team, seed=seed)
 
-        self.args = args
+        self.RED_Act = ModelWrapper(board.shape, seed)
+        self.RED_Res = ModelWrapper(board.shape, seed)
+        self.BLUE_Act = ModelWrapper(board.shape, seed)
+        self.BLUE_Res = ModelWrapper(board.shape, seed)
 
-        self.RED_Act = nn(board.shape, args.seed)
-        self.RED_Res = nn(board.shape, args.seed)
-        self.BLUE_Act = nn(board.shape, args.seed)
-        self.BLUE_Res = nn(board.shape, args.seed)
+        self.RED_Act.load_checkpoint(checkpoint, 'new_red_Act.pth.tar')
+        self.RED_Res.load_checkpoint(checkpoint, 'new_red_Res.pth.tar')
+        self.BLUE_Act.load_checkpoint(checkpoint, 'new_blue_Act.pth.tar')
+        self.BLUE_Res.load_checkpoint(checkpoint, 'new_blue_Res.pth.tar')
 
-        self.RED_Act.load_checkpoint(args.checkpoint, 'new_RED_Act.pth.tar')
-        self.RED_Res.load_checkpoint(args.checkpoint, 'new_RED_Res.pth.tar')
-        self.BLUE_Act.load_checkpoint(args.checkpoint, 'new_BLUE_Act.pth.tar')
-        self.BLUE_Res.load_checkpoint(args.checkpoint, 'new_BLUE_Res.pth.tar')
-
-        self.mcts = MCTS(self.RED_Act, self.RED_Res, self.BLUE_Act, self.BLUE_Res, self.args)
+        self.mcts = MCTS(self.RED_Act, self.RED_Res, self.BLUE_Act, self.BLUE_Res, seed, max_weapon_per_figure, max_figure_per_scenario,
+                         max_move_no_response_size, max_attack_size, num_MCTS_sims, cpuct)
 
     def predict(self, board: GameBoard, state: GameState, action_type):
         _, valid_actions = self.mcts.actionIndexMapping(self.gm, board, state, self.team, action_type)

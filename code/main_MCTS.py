@@ -19,7 +19,7 @@ from core.utils.coordinates import Hex
 from utils.setup_logging import setup_logging
 
 # from NNet import NNetWrapper as nn
-from agents.reinforced import NNetWrapper as nn, Coach
+from agents.reinforced import ModelWrapper, Coach
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
@@ -170,10 +170,10 @@ if __name__ == '__main__':
             'checkpoint': checkpoint,
         }, f)
 
-    red_act = nn(board.shape, seed, epochs=epochs)
-    red_res = nn(board.shape, seed, epochs=epochs)
-    blue_act = nn(board.shape, seed, epochs=epochs)
-    blue_res = nn(board.shape, seed, epochs=epochs)
+    red_act = ModelWrapper(board.shape, seed, epochs=epochs)
+    red_res = ModelWrapper(board.shape, seed, epochs=epochs)
+    blue_act = ModelWrapper(board.shape, seed, epochs=epochs)
+    blue_res = ModelWrapper(board.shape, seed, epochs=epochs)
 
     logger.info('Loading the Coach...')
 

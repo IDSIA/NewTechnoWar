@@ -6,12 +6,14 @@ import numpy as np
 import ray
 
 from collections import deque
+from itertools import cycle
 from datetime import datetime
 from pickle import Pickler, Unpickler
+
 import torch
 from tqdm import tqdm
 
-from agents.reinforced.nn.NNet import NNetWrapper
+from agents.reinforced.nn import ModelWrapper
 
 from core.const import RED, BLUE
 from agents.adversarial.puppets import Puppet
@@ -24,12 +26,12 @@ from utils.copy import deepcopy
 logger = logging.getLogger(__name__)
 
 
-num_gpus = 0.5 if torch.cuda.is_available() else 0.0
+num_gpus = 1 if torch.cuda.is_available() else 0.0
 
 # note: wrapper functions are used to let the non-parallel option work without ray implementation
 
 
-@ray.remote(num_cpus=1, num_gpus=num_gpus)
+@ray.remote
 def executeEpisodeWrapper(board, state, seed: int, mcts: MCTS, temp_threshold):
     """This is a wrapper for the parallel execution."""
     return executeEpisode(board, state, seed, mcts, temp_threshold)
@@ -138,15 +140,17 @@ def executeEpisode(board, state, seed: int, mcts: MCTS, temp_threshold):
 
 
 @ray.remote(num_gpus=num_gpus)
-def trainModelWrapper(model: NNetWrapper, tr_examples_history: list, num_it_tr_examples_history: int, seed: int, folder_ceckpoint: str, i: int, team: str, action_type: str):
+def trainModelWrapper(model: ModelWrapper, tr_examples_history: list, num_it_tr_examples_history: int, seed: int, folder_ceckpoint: str, i: int, team: str, action_type: str):
     trainModel(model, tr_examples_history, num_it_tr_examples_history, seed, folder_ceckpoint, i, team, action_type)
 
 
-def trainModel(model: NNetWrapper, tr_examples_history: list, num_it_tr_examples_history: int, seed: int, folder_ceckpoint: str, i: int, team: str, action_type: str):
+def trainModel(model: ModelWrapper, tr_examples_history: list, num_it_tr_examples_history: int, seed: int, folder_ceckpoint: str, i: int, team: str, action_type: str):
 
     if len(tr_examples_history) > num_it_tr_examples_history:
         logger.warning(f"Removing the oldest entry in trainExamples. len(tr_examples_history) = {len(tr_examples_history)}")
         tr_examples_history.pop(0)
+
+    os.makedirs(folder_ceckpoint, exist_ok=True)
 
     r = np.random.default_rng(seed)
 
@@ -154,12 +158,11 @@ def trainModel(model: NNetWrapper, tr_examples_history: list, num_it_tr_examples
     # NB! the examples were collected using the model from the previous iteration, so (i-1)
     iteration = i - 1
 
-    checkpoint_file = 'checkpoint_' + str(iteration) + '.pth.tar'
+    # save previous model (current model before training)
+    model.save_checkpoint(folder=folder_ceckpoint, filename=f'checkpoint_{iteration}_{team}_{action_type}.pth.tar')
 
-    if not os.path.exists(folder_ceckpoint):
-        os.makedirs(folder_ceckpoint)
-
-    filename = os.path.join(folder_ceckpoint, f"{checkpoint_file}_{team}_{action_type}.examples")
+    # save traing examples
+    filename = os.path.join(folder_ceckpoint, f"checkpoint_{iteration}_{team}_{action_type}.examples")
     with open(filename, "wb+") as f:
         Pickler(f).dump(tr_examples_history)
 
@@ -171,10 +174,14 @@ def trainModel(model: NNetWrapper, tr_examples_history: list, num_it_tr_examples
 
     # training new network
     model.train(train_examples)
+
+    # save new model
     model.save_checkpoint(folder=folder_ceckpoint, filename=f'new_{team}_{action_type}.pth.tar')
+
     logger.info('RED  Action   Losses Average %s', model.history[-1])
 
-    filename = os.path.join(folder_ceckpoint, checkpoint_file + f"{checkpoint_file}_{team}_{action_type}.losses.tsv")
+    # save losses history
+    filename = os.path.join(folder_ceckpoint, f"checkpoint_{iteration}_{team}_{action_type}.losses.tsv")
     with open(filename, 'w', encoding='utf-8') as f:
         f.write('\t'.join(['i', 'l_pi_avg', 'l_pi_count', 'l_pi_sum', 'l_pi_val', 'l_v_avg', 'l_v_count', 'l_v_sum', 'l_v_val']))
         f.write('\n')
@@ -192,10 +199,10 @@ class Coach():
     def __init__(self,
                  board: GameBoard,
                  state: GameState,
-                 red_act: NNetWrapper,
-                 red_res: NNetWrapper,
-                 blue_act: NNetWrapper,
-                 blue_res: NNetWrapper,
+                 red_act: ModelWrapper,
+                 red_res: ModelWrapper,
+                 blue_act: ModelWrapper,
+                 blue_res: ModelWrapper,
                  seed: int = 0,
                  epochs: int = 2,
                  num_iters: int = 1000,
@@ -236,10 +243,10 @@ class Coach():
         self.cpuct = cpuct
         self.temp_threshold = temp_threshold
 
-        self.red_act: NNetWrapper = red_act
-        self.red_res: NNetWrapper = red_res
-        self.blue_act: NNetWrapper = blue_act
-        self.blue_res: NNetWrapper = blue_res
+        self.red_act: ModelWrapper = red_act
+        self.red_res: ModelWrapper = red_res
+        self.blue_act: ModelWrapper = blue_act
+        self.blue_res: ModelWrapper = blue_res
 
         self.tr_examples_history_RED_Act = []
         self.tr_examples_history_RED_Res = []
@@ -263,6 +270,12 @@ class Coach():
         for i in range(1, self.num_iters + 1):
             # bookkeeping
             logger.info(f'Starting Iter #{i} ...')
+
+            self.red_act.to('cpu')
+            self.red_res.to('cpu')
+            self.blue_act.to('cpu')
+            self.blue_res.to('cpu')
+
             # examples of the iteration
             if not self.skip_first_self_play or i > 1:
                 it_tr_examples = deque([], maxlen=self.max_queue_len)
@@ -279,6 +292,8 @@ class Coach():
                 tempThreshold = self.temp_threshold
 
                 results = []
+
+                logger.info('Sart Self Play #%s Iter #%s', len(self.tr_examples_history_RED_Act), i)
 
                 if self.parallel:
                     # this uses ray's parallelism
@@ -308,7 +323,17 @@ class Coach():
                 self.tr_examples_history_BLUE_Act.append(it_tr_examples_BLUE_Act)
                 self.tr_examples_history_BLUE_Res.append(it_tr_examples_BLUE_Res)
 
-                logger.info('END Self Play %s', len(self.tr_examples_history_RED_Act))
+                logger.info('End Self Play #%s Iter #%s', len(self.tr_examples_history_RED_Act), i)
+
+            logger.info('Start training Iter #%s ...', i)
+
+            if torch.cuda.is_available():
+                devices = cycle(f'cuda:{n}' for n in range(torch.cuda.device_count()))
+
+                self.red_act.to(next(devices))
+                self.red_res.to(next(devices))
+                self.blue_act.to(next(devices))
+                self.blue_res.to(next(devices))
 
             if self.parallel:
                 tasks = [

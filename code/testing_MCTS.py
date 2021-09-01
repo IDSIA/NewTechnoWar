@@ -10,7 +10,6 @@ from core.game import GameBoard, GameState, GoalReachPoint, GoalDefendPoint, Goa
 from core.game.goals import GoalEliminateOpponent
 from core.templates import buildFigure
 from core.utils.coordinates import Hex
-from utils import dotdict
 
 from utils.setup_logging import setup_logging
 
@@ -23,43 +22,38 @@ logger = logging.getLogger(__name__)
 seed = 151775519
 
 # %% scenario setup: this is a small dummy scenario for testing purposes
-shape = (5, 5)
+shape = (10, 10)
 board = GameBoard(shape)
 state = GameState(shape)
 
 terrain = np.zeros(shape, 'uint8')
 terrain[:, 2] = 3  # forest
+terrain[:, 7] = 3  # forest
+terrain[5, :] = 1  # road
 board.addTerrain(terrain)
 
-goal = [Hex(4, 4)]
+goal = [Hex(5, 5)]
 board.addObjectives(
     GoalReachPoint(RED, shape, goal),
     GoalDefendPoint(BLUE, RED, shape, goal),
+    GoalMaxTurn(BLUE, 6),
     GoalEliminateOpponent(RED, BLUE),
     GoalEliminateOpponent(BLUE, RED),
-    GoalMaxTurn(BLUE, 6),
 )
 
 state.addFigure(
-    buildFigure('Infantry', (0, 0), RED, 'r_inf_1'),
-    buildFigure('Infantry', (0, 4), BLUE, 'b_inf_1'),
+    buildFigure('Infantry', (4, 0), RED, 'r_inf_1'),
+    buildFigure('Infantry', (6, 0), RED, 'r_inf_2'),
+    buildFigure('Infantry', (4, 9), BLUE, 'b_inf_1'),
+    buildFigure('Infantry', (6, 9), BLUE, 'b_inf_2'),
 )
 
 # %% agents setup
 
-args = dotdict({
-    'numMCTSSims': 30,
-    'cpuct': 1,
-    'checkpoint': './temp.20210827.194547/',
-    'maxMoveNoResponseSize': 1351,
-    'maxAttackSize': 288,
-    'maxWeaponPerFigure': 8,
-    'maxFigurePerScenario': 6,
-    'seed': seed,
-})
+checkpoint = './temp.20210827.194547/',
 
-agent_red = MCTSAgent(RED, board, args)
-agent_blue = MCTSAgent(BLUE, board, args)
+agent_red = MCTSAgent(RED, board, checkpoint, seed)
+agent_blue = MCTSAgent(BLUE, board, checkpoint, seed)
 
 # %% setup match manager
 mm = MatchManager('', agent_red, agent_blue, board, state, seed)
