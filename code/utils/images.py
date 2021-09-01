@@ -135,7 +135,8 @@ def drawBoard(board: GameBoard, size: int = None) -> Image:
     img = Image.new('RGB', (size_x, size_y), 'white')
     draw = ImageDraw.Draw(img)
 
-    font = ImageFont.truetype('arial', int(size * .35))
+    font = ImageFont.load_default()
+    #font = ImageFont.truetype('arial', int(size * .35))
     font_dh = int(size * SQRT3 * .45)
 
     maxi, maxj = 0, 0
