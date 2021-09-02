@@ -75,72 +75,77 @@ def executeEpisode(board, state, seed: int, args: tuple, temp_threshold):
     cnt = 0
     start_time = datetime.now()
 
-    while not mm.end:  # testing: cnt < 30:
-        episodeStep += 1
-        cnt += 1
+    try:
+        while not mm.end:  # testing: cnt < 30:
+            episodeStep += 1
+            cnt += 1
 
-        temp = int(episodeStep < temp_threshold)
+            temp = int(episodeStep < temp_threshold)
 
-        board = mm.board
-        state = deepcopy(mm.state)
-        action_type, team, _ = mm.nextPlayer()
+            board = mm.board
+            state = deepcopy(mm.state)
+            action_type, team, _ = mm.nextPlayer()
 
-        logger.info(f'Episode step: {episodeStep} action: {action_type}')
+            logger.info(f'Episode step: {episodeStep} action: {action_type}')
 
-        if action_type in ('update', 'init', 'end'):
+            if action_type in ('update', 'init', 'end'):
+                mm.nextStep()
+                continue
+
+            action_type = 'Action' if action_type == 'round' else 'Response'
+
+            logger.debug('Condition from coach BEFORE call getActionProb %s', state)
+
+            _, valid_actions = mcts.actionIndexMapping(mm.gm, board, state, team, action_type)
+
+            data_vector = mcts.generateFeatures(board, state)
+
+            pi, _ = mcts.getActionProb(board, state, team, action_type, temp=temp)
+
+            example = [data_vector, team, pi, None]
+
+            if team == RED and action_type == "Action":
+                trainExamples_RED_Action.append(example)
+            if team == RED and action_type == "Response":
+                trainExamples_RED_Response.append(example)
+            if team == BLUE and action_type == "Action":
+                trainExamples_BLUE_Action.append(example)
+            if team == BLUE and action_type == "Response":
+                trainExamples_BLUE_Response.append(example)
+
+            if max(pi) == 1:
+                action_index = np.argmax(pi)
+                logger.debug(f'Unexpected single choice! Index: {action_index}')
+            else:
+                action_index = random.choice(len(pi), p=pi)
+
+            # choose next action and load in correct puppet
+            action = valid_actions[action_index]
+
+            # assuming action/response are selected correctly
+            puppet[team].action = action
+            puppet[team].response = action
+
             mm.nextStep()
-            continue
 
-        action_type = 'Action' if action_type == 'round' else 'Response'
+        # assign victory: 1 is winner, -1 is loser
+        r, b = (1, -1) if mm.winner == RED else (-1, 1)
 
-        logger.debug('Condition from coach BEFORE call getActionProb %s', state)
+        end_time = datetime.now()
 
-        _, valid_actions = mcts.actionIndexMapping(mm.gm, board, state, team, action_type)
+        logger.info('elapsed time: %s', (end_time - start_time))
 
-        data_vector = mcts.generateFeatures(board, state)
-
-        pi, _ = mcts.getActionProb(board, state, team, action_type, temp=temp)
-
-        example = [data_vector, team, pi, None]
-
-        if team == RED and action_type == "Action":
-            trainExamples_RED_Action.append(example)
-        if team == RED and action_type == "Response":
-            trainExamples_RED_Response.append(example)
-        if team == BLUE and action_type == "Action":
-            trainExamples_BLUE_Action.append(example)
-        if team == BLUE and action_type == "Response":
-            trainExamples_BLUE_Response.append(example)
-
-        if max(pi) == 1:
-            action_index = np.argmax(pi)
-            logger.debug(f'Unexpected single choice! Index: {action_index}')
-        else:
-            action_index = random.choice(len(pi), p=pi)
-
-        # choose next action and load in correct puppet
-        action = valid_actions[action_index]
-
-        # assuming action/response are selected correctly
-        puppet[team].action = action
-        puppet[team].response = action
-
-        mm.nextStep()
-
-    # assign victory: 1 is winner, -1 is loser
-    r, b = (1, -1) if mm.winner == RED else (-1, 1)
-
-    end_time = datetime.now()
-
-    logger.info('elapsed time: %s', (end_time - start_time))
-
-    return (
-        # board, team, pi, winner
-        [(x[0], x[2], r) for x in trainExamples_RED_Action],
-        [(x[0], x[2], r) for x in trainExamples_RED_Response],
-        [(x[0], x[2], b) for x in trainExamples_BLUE_Action],
-        [(x[0], x[2], b) for x in trainExamples_BLUE_Response]
-    )
+        return (
+            # board, team, pi, winner
+            [(x[0], x[2], r) for x in trainExamples_RED_Action],
+            [(x[0], x[2], r) for x in trainExamples_RED_Response],
+            [(x[0], x[2], b) for x in trainExamples_BLUE_Action],
+            [(x[0], x[2], b) for x in trainExamples_BLUE_Response]
+        )
+    except Exception as e:
+        logger.error(f'Failed computation, reason {e}')
+        logger.exception(e)
+        return ([], [], [], [])
 
 
 @ray.remote(num_gpus=num_gpus)
