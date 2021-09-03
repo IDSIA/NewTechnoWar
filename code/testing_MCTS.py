@@ -50,7 +50,7 @@ state.addFigure(
 
 # %% agents setup
 
-checkpoint = './temp.20210827.194547/',
+checkpoint = './temp.20210903.081951/'
 
 agent_red = MCTSAgent(RED, board, checkpoint, seed)
 agent_blue = MCTSAgent(BLUE, board, checkpoint, seed)

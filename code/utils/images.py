@@ -223,7 +223,7 @@ def drawState(board: GameBoard, state: GameState, show_last_action: bool = False
 
     font_dh = int(size // 4)
     font_dw = int(size // 4)
-    _drawText(img, font_dw, font_dh, f'T:{state.turn}')
+    _drawText(img, font_dw, font_dh, f' T:{state.turn}')
 
     return img
 
