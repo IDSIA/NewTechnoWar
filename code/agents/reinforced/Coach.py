@@ -334,13 +334,20 @@ class Coach():
             logger.info('Start training Iter #%s ...', i)
 
             if torch.cuda.is_available():
-                logging.info('Using cuda as devices')
+                logger.info('Using cuda as devices for training')
                 devices = cycle(f'cuda:{n}' for n in range(torch.cuda.device_count()))
 
                 self.red_act.to(next(devices))
                 self.red_res.to(next(devices))
                 self.blue_act.to(next(devices))
                 self.blue_res.to(next(devices))
+            else:
+                logger.info('Using CPU as devices for training')
+
+                self.red_act.to('cpu')
+                self.red_res.to('cpu')
+                self.blue_act.to('cpu')
+                self.blue_res.to('cpu')
 
             if self.parallel:
                 tasks = [

@@ -2,6 +2,7 @@
 
 import logging
 import math
+from typing import Tuple
 
 import numpy as np
 from agents.adversarial.puppets import Puppet
@@ -39,7 +40,7 @@ class MCTS():
 
     def __init__(self, nnet_RED_Act: ModelWrapper, nnet_RED_Res: ModelWrapper, nnet_BLUE_Act: ModelWrapper, nnet_BLUE_Res: ModelWrapper,
                  seed: int, max_weapon_per_figure: int, max_figure_per_scenario: int, max_move_no_response_size: int, max_attack_size: int,
-                 num_MCTS_sims: int, cpuct: float
+                 num_MCTS_sims: int, cpuct: float, max_depth: int = 100
                  ):
 
         self.puppet = {
@@ -52,10 +53,12 @@ class MCTS():
         self.gm: GameManager = GameManager(self.seed)
         self.mm: MatchManager = None
 
-        self.nnet_RED_Act: ModelWrapper = nnet_RED_Act
-        self.nnet_RED_Res: ModelWrapper = nnet_RED_Res
-        self.nnet_BLUE_Act: ModelWrapper = nnet_BLUE_Act
-        self.nnet_BLUE_Res: ModelWrapper = nnet_BLUE_Res
+        self.nnet: dict[Tuple(str, str), ModelWrapper] = {
+            (RED, 'Act'): nnet_RED_Act,
+            (RED, 'Res'): nnet_RED_Res,
+            (BLUE, 'Act'): nnet_BLUE_Act,
+            (BLUE, 'Res'): nnet_BLUE_Res,
+        }
 
         self.Qsa = {}  # stores Q values for (s, a)
         self.Nsa = {}  # stores #times edge (s, a) was visited
@@ -70,6 +73,7 @@ class MCTS():
 
         self.num_MCTS_sims: int = num_MCTS_sims
         self.cpuct: float = cpuct
+        self.max_depth: int = max_depth
 
         self.max_weapon_per_figure: int = max_weapon_per_figure
         self.max_figure_per_scenario: int = max_figure_per_scenario
@@ -202,7 +206,7 @@ class MCTS():
 
         for i in range(self.num_MCTS_sims):
             logger.debug('MCTS SIMULATION %s', i)
-            self.search(board, start_state, old_s)
+            self.search(board, start_state, old_s, self.max_depth)
 
         team_move_id = self.mapTeamMoveIntoID(start_team, start_move_type)
 
@@ -232,7 +236,7 @@ class MCTS():
         probs = [x / counts_sum for x in counts]
         return probs, s
 
-    def search(self, board, state, old_s):
+    def search(self, board, state, old_s, depth):
         """
         This function performs one iteration of MCTS. It is recursively called
         till a leaf node is found. The action chosen at each node is one that
@@ -313,26 +317,8 @@ class MCTS():
             valid_s = [0] * self.max_action_size  # [0]*5851 #self.numMaxActions(board, state)
             valid_actions = [None] * self.max_action_size
 
-            if team == RED and action_type == "Action":
-                self.Ps[s], v = self.nnet_RED_Act.predict(features)
-            elif team == RED and action_type == "Response":
-                self.Ps[s], v = self.nnet_RED_Res.predict(features)
-            elif team == BLUE and action_type == "Action":
-                self.Ps[s], v = self.nnet_BLUE_Act.predict(features)
-            elif team == BLUE and action_type == "Response":
-                self.Ps[s], v = self.nnet_BLUE_Res.predict(features)
+            self.Ps[s], v = self.nnet[(team, action_type)].predict(features)
 
-            # if all_valid_actions == []:
-            #     # does the opponent have valid moves?
-
-            #     figToBeActivatedForOtherTeam = self.state.getFiguresCanBeActivated(other_team)
-            #     allValidActionsOtherTeam = calculateValidMoves(self.gm, board, state, other_team, "Action")
-
-            #     if allValidActionsOtherTeam:
-            #         valid_s[self.maxMoveNoResponseSize] = 1
-            #         valid_actions[self.maxMoveNoResponseSize] = PassTeam(team)
-
-            # else:
             valid_s, valid_actions = self.actionIndexMapping(self.gm, board, state, team, action_type)
 
             self.Ps[s] = self.Ps[s] * valid_s  # masking invalid moves
@@ -361,7 +347,7 @@ class MCTS():
         best_act = -1
 
         # pick the action with the highest upper confidence bound
-        for a in range(self.max_action_size):  # range(5851):
+        for a in range(self.max_action_size):
             if valid_s[a]:
                 if (s, a) in self.Qsa:
                     u = self.Qsa[(s, a)] + self.cpuct * self.Ps[s][a] * math.sqrt(self.Ns[s]) / (
@@ -381,7 +367,10 @@ class MCTS():
 
         state, _ = self.gm.activate(board, state, action)
 
-        v = self.search(board, state, old_s)
+        if depth == 0:
+            return 0
+
+        v = self.search(board, state, old_s, depth-1)
 
         if (s, a) in self.Qsa:
             self.Qsa[(s, a)] = (self.Nsa[(s, a)] * self.Qsa[(s, a)] + v) / (self.Nsa[(s, a)] + 1)
