@@ -51,7 +51,8 @@ def scenario5x5() -> Tuple[GameBoard, GameState]:
         buildFigure('Infantry', (0, 4), BLUE, 'b_inf_1'),
     )
 
-    return board, state
+    while True:
+        yield board, state
 
 
 def scenario10x10() -> Tuple[GameBoard, GameState]:
@@ -81,7 +82,115 @@ def scenario10x10() -> Tuple[GameBoard, GameState]:
         buildFigure('Infantry', (6, 9), BLUE, 'b_inf_2'),
     )
 
-    return board, state
+    while True:
+        yield board, state
+
+
+def scenarioRandom10x10(seed: int = 0, s: int = -1) -> Tuple[GameBoard, GameState]:
+    seed_gen = np.random.default_rng(seed)
+
+    shape = (10, 10)
+
+    generate_s = s == -1
+
+    while True:
+        if generate_s:
+            s = seed_gen.integers(low=100000000, high=1000000000)
+        logger.info('random seed=%s s=%s', seed, s)
+
+        r = np.random.default_rng(s)
+
+        board = GameBoard(shape, gen_seed=s)
+        state = GameState(shape)
+
+        terrain = np.zeros(shape, 'uint8')
+
+        # trees
+        if r.random() > .8:
+            terrain[:, 2] = 2  # tree
+        if r.random() > .5:
+            terrain[:, 3] = 2  # tree
+        if r.random() > .5:
+            terrain[:, 5] = 2  # tree
+        if r.random() > .8:
+            terrain[:, 7] = 2  # tree
+
+        # buildings
+        if r.random() > .3:
+            for _ in range(r.integers(low=1, high=5)):
+                x, y = r.integers(low=0, high=10, size=2)
+                terrain[x, y] = 5
+
+        # forests
+        if r.random() > .4:
+            for _ in range(r.integers(low=1, high=5)):
+                x, y = r.integers(low=1, high=9, size=2)
+                terrain[x, y] = 3
+                terrain[x+1, +1] = 3
+                terrain[x+1, y] = 3
+                terrain[x, y+1] = 3
+                if r.random() > .5:
+                    terrain[x, y-1] = 3
+                if r.random() > .5:
+                    terrain[x-1, y-1] = 3
+                if r.random() > .5:
+                    terrain[x-1, y] = 3
+
+        if r.random() > .6:
+            terrain[2, :] = 1  # road vertical
+        if r.random() > .4:
+            terrain[5, :] = 1  # road vertical
+        if r.random() > .6:
+            terrain[8, :] = 1  # road vertical
+        if r.random() > .5:
+            terrain[:, 5] = 1  # road horizontal
+        if r.random() > .6:
+            terrain[:, 3] = 1  # road horizontal
+        if r.random() > .6:
+            terrain[:, 8] = 1  # road horizontal
+
+        board.addTerrain(terrain)
+
+        x, y = r.integers(low=3, high=8, size=2)
+        max_turns = r.integers(low=5, high=12)
+
+        goal = [Hex(x, y)]
+        board.addObjectives(
+            GoalReachPoint(RED, shape, goal),
+            GoalDefendPoint(BLUE, RED, shape, goal),
+            GoalMaxTurn(BLUE, max_turns),
+            GoalEliminateOpponent(RED, BLUE),
+            GoalEliminateOpponent(BLUE, RED),
+        )
+
+        pos_red_x = r.choice(range(0, 10), 4)
+        pos_red_y = r.choice(range(0, 3), 4)
+        pos_blue_x = r.choice(range(0, 10), 4)
+        pos_blue_y = r.choice(range(7, 10), 4)
+
+        figures_red = [
+            buildFigure('Infantry', (pos_red_x[0],  pos_red_y[0]),  RED,  'r_inf_1'),
+            buildFigure('Infantry', (pos_red_x[1],  pos_red_y[1]),  RED,  'r_inf_2'),
+            buildFigure('Tank',     (pos_red_x[2],  pos_red_y[2]),  RED,  'r_tank_1'),
+            buildFigure('Tank',     (pos_red_x[3],  pos_red_y[3]),  RED,  'r_tank_2'),
+        ]
+        figures_blue = [
+            buildFigure('Infantry', (pos_blue_x[0], pos_blue_y[0]), BLUE, 'b_inf_1'),
+            buildFigure('Infantry', (pos_blue_x[1], pos_blue_y[1]), BLUE, 'b_inf_2'),
+            buildFigure('Tank',     (pos_blue_x[2], pos_blue_y[2]), BLUE, 'b_tank_1'),
+            buildFigure('Tank',     (pos_blue_x[3], pos_blue_y[3]), BLUE, 'b_tank_2'),
+        ]
+
+        n_red = r.choice(range(1, len(figures_red)))
+        n_blue = r.choice(range(1, len(figures_blue)))
+
+        choosen_red = r.choice(figures_red, n_red, replace=False)
+        choosen_blue = r.choice(figures_blue, n_blue, replace=False)
+
+        state.addFigure(*choosen_red)
+        state.addFigure(*choosen_blue)
+
+        yield board, state
 
 
 if __name__ == '__main__':
@@ -114,6 +223,7 @@ if __name__ == '__main__':
     p.add_argument('-l', '--load', default=False, action='store_true', help=f'{""}\tif set, continue with already trained models in --dir folder')
     p.add_argument('-s5', '--scenario-5x5', default=False, dest='s5', action='store_true', help=f'{""}\tuse 5x5 scenario')
     p.add_argument('-s10', '--scenario-10x10', default=False, dest='s10', action='store_true', help=f'{""}\tuse 10x10 scenario')
+    p.add_argument('-r10', '--scenario-random-10x10', default=False, dest='r10', action='store_true', help=f'{""}\tuse 10x10 scenario with random init')
     args = p.parse_args()
 
     logger.info("Using %s cores", args.cpus)
@@ -130,13 +240,19 @@ if __name__ == '__main__':
     # board, state = buildScenario('TestBench')
 
     # this is a small dummy scenario for testing purposes
-    board, state = None, None
+    gen = None
+    shape = None
     if args.s5:
-        board, state = scenario5x5()
+        gen = scenario5x5()
+        shape = (5, 5)
     if args.s10:
-        board, state = scenario10x10()
+        gen = scenario10x10()
+        shape = (10, 10)
+    if args.r10:
+        gen = scenarioRandom10x10(seed)
+        shape = (10, 10)
 
-    if not board or not state:
+    if not gen:
         logger.error("no scenario selected")
         exit(1)
 
@@ -158,6 +274,7 @@ if __name__ == '__main__':
             'start': now,
             '5x5': args.s5,
             '10x10': args.s10,
+            'random10x10': args.r10,
             'cpus': args.cpus,
             'gpus': args.gpus,
             'seed': seed,
@@ -171,14 +288,14 @@ if __name__ == '__main__':
             'checkpoint': checkpoint,
         }, f)
 
-    red_act = ModelWrapper(board.shape, seed, epochs=epochs)
-    red_res = ModelWrapper(board.shape, seed, epochs=epochs)
-    blue_act = ModelWrapper(board.shape, seed, epochs=epochs)
-    blue_res = ModelWrapper(board.shape, seed, epochs=epochs)
+    red_act = ModelWrapper(shape, seed, epochs=epochs)
+    red_res = ModelWrapper(shape, seed, epochs=epochs)
+    blue_act = ModelWrapper(shape, seed, epochs=epochs)
+    blue_res = ModelWrapper(shape, seed, epochs=epochs)
 
     logger.info('Loading the Coach...')
 
-    c = Coach(board, state, red_act, red_res, blue_act, blue_res, seed=seed, num_iters=num_iters, num_eps=num_eps, max_queue_len=max_queue_len,
+    c = Coach(gen, red_act, red_res, blue_act, blue_res, seed=seed, num_iters=num_iters, num_eps=num_eps, max_queue_len=max_queue_len,
               num_MCTS_sims=num_MCTS_sims, folder_checkpoint=checkpoint, num_it_tr_examples_history=n_it_tr_examples_history, parallel=parallel)
 
     if load_model:

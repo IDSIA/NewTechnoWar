@@ -18,10 +18,11 @@ class GameState:
 
     __slots__ = [
         'name', 'seed', 'turn', 'figures', 'posToFigure', 'smoke', 'figuresLOS', 'figuresDistance', 'lastAction',
-        'has_choice', 'choices', 'has_placement', 'placement_zone', 'initialized'
+        'has_choice', 'choices', 'has_placement', 'placement_zone', 'initialized', 'shape'
     ]
 
     def __init__(self, shape: tuple, name: str = '', seed=0):
+        self.shape: tuple = shape
         self.name: str = name
         self.seed: int = seed
         self.turn: int = -1
@@ -244,8 +245,11 @@ class GameState:
 
     def addSmoke(self, smoke: List[Cube]) -> None:
         """Add a cloud of smoke to the status. This cloud is defined by a list of Cubes."""
+        max_x, max_y = self.shape
         for c in smoke:
-            self.smoke[c.tuple()] = MAX_SMOKE
+            x, y = c.tuple()
+            if x >= 0 and x < max_x and y >= 0 and y < max_y:
+                self.smoke[x, y] = MAX_SMOKE
 
     def hasSmoke(self, lof: List[Cube]) -> bool:
         """

@@ -17,7 +17,6 @@ from core.const import RED, BLUE
 from agents import Puppet, MatchManager
 from agents.reinforced import MCTS
 from agents.reinforced.nn import ModelWrapper
-from core.game import GameBoard, GameState
 from utils.copy import deepcopy
 
 logger = logging.getLogger(__name__)
@@ -205,8 +204,7 @@ class Coach():
     """
 
     def __init__(self,
-                 board: GameBoard,
-                 state: GameState,
+                 game_generator,
                  red_act: ModelWrapper,
                  red_res: ModelWrapper,
                  blue_act: ModelWrapper,
@@ -227,11 +225,10 @@ class Coach():
                  folder_checkpoint: str = '.',
                  load_folder_file: str = './models'
                  ):
-        self.board: GameBoard = board
-        self.state: GameState = state
-
         self.seed: int = seed
         self.random = np.random.default_rng(self.seed)
+
+        self.game_generator = game_generator
 
         self.parallel: bool = parallel
         self.num_eps: int = num_eps
@@ -287,8 +284,6 @@ class Coach():
             if not self.skip_first_self_play or i > 1:
                 it_tr_examples = deque([], maxlen=self.max_queue_len)
 
-                board = self.board
-                state = self.state
                 seed = self.seed
                 tempThreshold = self.temp_threshold
 
@@ -304,6 +299,7 @@ class Coach():
                     tasks = []
 
                     for c in tqdm(range(self.num_eps), desc="Preparing"):
+                        board, state = next(self.game_generator)
                         task = executeEpisodeWrapper.remote(board, state, seed + c, mcts, tempThreshold)
                         tasks.append(task)
 
@@ -312,6 +308,7 @@ class Coach():
                 else:
                     # this uses single thread
                     for c in range(self.num_eps):
+                        board, state = next(self.game_generator)
                         ite_R_A, ite_R_R, ite_B_A, ite_B_R = executeEpisode(board, state, seed + c, mcts, tempThreshold)
                         results.append((ite_R_A, ite_R_R, ite_B_A, ite_B_R))
 
