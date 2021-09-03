@@ -21,6 +21,9 @@ logger = logging.getLogger(__name__)
 
 EPS = 1e-8
 
+ACT: str = 'Action'
+RES: str = 'Response'
+
 WEAPONS_INDICES: dict = {
     'AT': 0,
     'AR': 1,
@@ -54,10 +57,10 @@ class MCTS():
         self.mm: MatchManager = None
 
         self.nnet: dict[Tuple(str, str), ModelWrapper] = {
-            (RED, 'Act'): nnet_RED_Act,
-            (RED, 'Res'): nnet_RED_Res,
-            (BLUE, 'Act'): nnet_BLUE_Act,
-            (BLUE, 'Res'): nnet_BLUE_Res,
+            (RED, ACT): nnet_RED_Act,
+            (RED, RES): nnet_RED_Res,
+            (BLUE, ACT): nnet_BLUE_Act,
+            (BLUE, RES): nnet_BLUE_Res,
         }
 
         self.Qsa = {}  # stores Q values for (s, a)
@@ -271,7 +274,7 @@ class MCTS():
                 state = self.mm.state
                 action_type, team, _ = self.mm.nextPlayer()
 
-        action_type = 'Action' if action_type == 'round' else 'Response'
+        action_type = ACT if action_type == 'round' else RES
 
         # generate data vector
         features = self.generateFeatures(board, state)
