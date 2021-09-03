@@ -13,20 +13,18 @@ from pickle import Pickler, Unpickler
 import torch
 from tqdm import tqdm
 
-from agents.reinforced.nn import ModelWrapper
-
 from core.const import RED, BLUE
-from agents.adversarial.puppets import Puppet
-from agents.matchmanager import MatchManager
-from agents.reinforced.MCTS import MCTS
-from core.game.board import GameBoard
-from core.game.state import GameState
+from agents import Puppet, MatchManager
+from agents.reinforced import MCTS, ModelWrapper
+from core.game import GameBoard, GameState
 from utils.copy import deepcopy
 
 logger = logging.getLogger(__name__)
 
 
 num_gpus = 1 if torch.cuda.is_available() else 0.0
+logger.info('GPUs used by RAY: %s', num_gpus)
+
 
 # note: wrapper functions are used to let the non-parallel option work without ray implementation
 

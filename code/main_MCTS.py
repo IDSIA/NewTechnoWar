@@ -1,7 +1,10 @@
+import logging
+from utils.setup_logging import setup_logging
+setup_logging()
+
 import argparse
 import os
 import json
-import logging
 
 from datetime import datetime
 from typing import Tuple
@@ -16,14 +19,12 @@ from core.scenarios import buildScenario
 from core.templates import buildFigure
 from core.game import GameBoard, GameState, GoalReachPoint, GoalDefendPoint, GoalMaxTurn
 from core.utils.coordinates import Hex
-from utils.setup_logging import setup_logging
 
 # from NNet import NNetWrapper as nn
 from agents.reinforced import ModelWrapper, Coach
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
-setup_logging()
 logger = logging.getLogger('agents')
 
 
