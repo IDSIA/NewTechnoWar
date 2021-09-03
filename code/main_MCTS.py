@@ -178,7 +178,7 @@ if __name__ == '__main__':
 
     logger.info('Loading the Coach...')
 
-    c = Coach(board, state, red_act, red_res, blue_act, blue_res, seed=seed, num_iters=num_iters, num_eps=num_eps, max_queue_len=max_queue_len, epochs=epochs,
+    c = Coach(board, state, red_act, red_res, blue_act, blue_res, seed=seed, num_iters=num_iters, num_eps=num_eps, max_queue_len=max_queue_len,
               num_MCTS_sims=num_MCTS_sims, folder_checkpoint=checkpoint, num_it_tr_examples_history=n_it_tr_examples_history, parallel=parallel)
 
     if load_model:

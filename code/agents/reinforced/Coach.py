@@ -15,7 +15,8 @@ from tqdm import tqdm
 
 from core.const import RED, BLUE
 from agents import Puppet, MatchManager
-from agents.reinforced import MCTS, ModelWrapper
+from agents.reinforced import MCTS
+from agents.reinforced.nn import ModelWrapper
 from core.game import GameBoard, GameState
 from utils.copy import deepcopy
 
@@ -211,7 +212,6 @@ class Coach():
                  blue_act: ModelWrapper,
                  blue_res: ModelWrapper,
                  seed: int = 0,
-                 epochs: int = 2,
                  num_iters: int = 1000,
                  num_eps: int = 100,
                  max_queue_len: int = 10,
