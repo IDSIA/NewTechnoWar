@@ -148,6 +148,13 @@ def trainModelWrapper(model: ModelWrapper, tr_examples_history: list, num_it_tr_
 
 def trainModel(model: ModelWrapper, tr_examples_history: list, num_it_tr_examples_history: int, seed: int, folder_ceckpoint: str, i: int, team: str, action_type: str):
 
+    if torch.cuda.is_available():
+        logger.info('Using cuda as devices for training')
+        model.to('cuda')
+    else:
+        logger.info('Using CPU as devices for training')
+        model.to('cpu')
+
     if len(tr_examples_history) > num_it_tr_examples_history:
         logger.warning(f"Removing the oldest entry in trainExamples. len(tr_examples_history) = {len(tr_examples_history)}")
         tr_examples_history.pop(0)
@@ -176,6 +183,9 @@ def trainModel(model: ModelWrapper, tr_examples_history: list, num_it_tr_example
 
     # training new network
     model.train(train_examples, team, action_type)
+
+    # sending model back to cpu
+    model.to('cpu')
 
     # save new model
     model.save_checkpoint(folder=folder_ceckpoint, filename=f'new_{team}_{action_type}.pth.tar')
@@ -273,11 +283,6 @@ class Coach():
             # bookkeeping
             logger.info(f'Starting Iter #{i} ...')
 
-            self.red_act.to('cpu')
-            self.red_res.to('cpu')
-            self.blue_act.to('cpu')
-            self.blue_res.to('cpu')
-
             # examples of the iteration
             if not self.skip_first_self_play or i > 1:
                 _ = deque([], maxlen=self.max_queue_len)
@@ -325,22 +330,6 @@ class Coach():
                 logger.info('End Self Play #%s Iter #%s', len(self.tr_examples_history[(RED, ACT)]), i)
 
             logger.info('Start training Iter #%s ...', i)
-
-            if torch.cuda.is_available():
-                logger.info('Using cuda as devices for training')
-                devices = cycle(f'cuda:{n}' for n in range(torch.cuda.device_count()))
-
-                self.red_act.to(next(devices))
-                self.red_res.to(next(devices))
-                self.blue_act.to(next(devices))
-                self.blue_res.to(next(devices))
-            else:
-                logger.info('Using CPU as devices for training')
-
-                self.red_act.to('cpu')
-                self.red_res.to('cpu')
-                self.blue_act.to('cpu')
-                self.blue_res.to('cpu')
 
             if self.parallel:
                 tasks = [

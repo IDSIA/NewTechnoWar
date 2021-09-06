@@ -24,6 +24,7 @@ from core.utils.coordinates import Hex
 from agents.reinforced import ModelWrapper, Coach
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+os.environ['RAY_DISABLE_IMPORT_WARNING'] = '1'
 
 logger = logging.getLogger('agents')
 
@@ -87,8 +88,6 @@ def scenario10x10() -> Tuple[GameBoard, GameState]:
 
 
 if __name__ == '__main__':
-    os.environ['RAY_DISABLE_IMPORT_WARNING'] = '1'
-
     NUM_CORES: int = max(1, os.environ.get('NUM_CORES', os.cpu_count() - 1))
     NUM_GPUS: int = os.environ.get('NUM_GPUS', torch.cuda.device_count())
     SEED = 151775519
@@ -122,7 +121,8 @@ if __name__ == '__main__':
     logger.info("Using %s cores", args.cpus)
     logger.info("Using %s gpus", args.gpus)
 
-    ray.init(num_cpus=args.cpus, num_gpus=args.gpus)
+    # ray.init(num_cpus=args.cpus, num_gpus=args.gpus)
+    ray.init()
 
     # if true,use ray and parallel execution of episodes
     parallel = args.cpus > 1

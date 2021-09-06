@@ -35,7 +35,7 @@ class AverageMeter(object):
 class ModelWrapper():
 
     def __init__(self, shape: Tuple[int], seed: int = 0, lr: float = 0.001, dropout: float = 0.3, epochs: int = 2, batch_size: int = 64,
-                 num_channels: int = 512, max_move_no_response_size: int = 1351, max_attack_size: int = 288, device=None
+                 num_channels: int = 512, max_move_no_response_size: int = 1351, max_attack_size: int = 288, device='cpu'
                  ):
         self.board_x, self.board_y = shape
         self.action_size = max_move_no_response_size + max_attack_size + 1
@@ -53,12 +53,14 @@ class ModelWrapper():
 
     def to(self, device=None):
         self.device = device if device else 'cpu'
-        self.nn = self.nn.to(device)
+        self.nn = self.nn.to(self.device)
 
     def train(self, examples, team=None, action_type=None):
         """
-        examples: list of examples, each example is of form (board, pi, v)
+        examples: list of examples, each example is of form (features, pi, v)
         """
+        self.nn = self.nn.to(self.device)
+
         optimizer = optim.Adam(self.nn.parameters())
         n = len(examples)
 
@@ -76,25 +78,25 @@ class ModelWrapper():
             t = tqdm(range(batch_count), desc=f'Training Net {team:4} {action_type:3}')
             for _ in t:
                 sample_ids = self.random.choice(n, size=min(n, self.batch_size))
-                boards, pis, vs = list(zip(*[examples[i] for i in sample_ids]))
-                boards = torch.FloatTensor(np.array(boards).astype(np.float64))
+                features, pis, vs = list(zip(*[examples[i] for i in sample_ids]))
+                features = torch.FloatTensor(np.array(features).astype(np.float64))
                 target_pis = torch.FloatTensor(np.array(pis))
                 target_vs = torch.FloatTensor(np.array(vs).astype(np.float64))
 
                 # predict inputs
-                boards = boards.contiguous().to(self.device)
+                features = features.contiguous().to(self.device)
                 target_pis = target_pis.contiguous().to(self.device)
                 target_vs = target_vs.contiguous().to(self.device)
 
                 # compute output
-                out_pi, out_v = self.nn(boards)
+                out_pi, out_v = self.nn(features)
                 l_pi = self.loss_pi(target_pis, out_pi)
                 l_v = self.loss_v(target_vs, out_v)
                 total_loss = l_pi + l_v
 
                 # record loss
-                pi_losses.update(l_pi.item(), boards.size(0))
-                v_losses.update(l_v.item(), boards.size(0))
+                pi_losses.update(l_pi.item(), features.size(0))
+                v_losses.update(l_v.item(), features.size(0))
                 t.set_postfix(Loss_pi=pi_losses, Loss_v=v_losses)
 
                 # compute gradient and do SGD step
@@ -104,20 +106,19 @@ class ModelWrapper():
 
                 self.history.append((pi_losses, v_losses))
 
-    def predict(self, board):
+    def predict(self, features):
         """
         board: np array with board
         """
         # preparing input
-        board = torch.FloatTensor(board.astype(np.float64))
+        data = torch.FloatTensor(features.astype(np.float64)).contiguous().to(self.device)
 
-        board = board.contiguous().to(self.device)
-
-        board = board.view(3, self.board_x, self.board_y)
+        data = data.view(3, self.board_x, self.board_y)
+        self.nn = self.nn.to(self.device)
         self.nn.eval()
 
         with torch.no_grad():
-            pi, v = self.nn(board)
+            pi, v = self.nn(data)
 
         return torch.exp(pi).data.cpu().numpy()[0], v.data.cpu().numpy()[0]
 
