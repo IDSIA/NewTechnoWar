@@ -55,12 +55,15 @@ class ModelWrapper():
         self.device = device if device else 'cpu'
         self.nn = self.nn.to(device)
 
-    def train(self, examples):
+    def train(self, examples, team=None, action_type=None):
         """
         examples: list of examples, each example is of form (board, pi, v)
         """
         optimizer = optim.Adam(self.nn.parameters())
         n = len(examples)
+
+        team = team if team else ''
+        action_type = action_type if action_type else ''
 
         for epoch in range(self.epochs):
             logger.info('EPOCH :: ' + str(epoch + 1))
@@ -70,7 +73,7 @@ class ModelWrapper():
 
             batch_count = int(n / self.batch_size) + 1
 
-            t = tqdm(range(batch_count), desc='Training Net')
+            t = tqdm(range(batch_count), desc=f'Training Net {team:4} {action_type:3}')
             for _ in t:
                 sample_ids = self.random.choice(n, size=min(n, self.batch_size))
                 boards, pis, vs = list(zip(*[examples[i] for i in sample_ids]))
@@ -110,7 +113,7 @@ class ModelWrapper():
 
         board = board.contiguous().to(self.device)
 
-        board = board.view(1, self.board_x, self.board_y)
+        board = board.view(3, self.board_x, self.board_y)
         self.nn.eval()
 
         with torch.no_grad():

@@ -24,7 +24,6 @@ logger = logging.getLogger(__name__)
 
 
 num_gpus = 1 if torch.cuda.is_available() else 0.0
-logger.info('GPUs used by RAY: %s', num_gpus)
 
 
 # note: wrapper functions are used to let the non-parallel option work without ray implementation
@@ -87,7 +86,7 @@ def executeEpisode(board, state, seed: int, args: tuple, temp_threshold):
             state = deepcopy(mm.state)
             action_type, team, _ = mm.nextPlayer()
 
-            logger.info(f'Episode step: {episodeStep} action: {action_type}')
+            logger.debug(f'Episode step: {episodeStep} action: {action_type}')
 
             if action_type in ('update', 'init', 'end'):
                 mm.nextStep()
@@ -97,7 +96,7 @@ def executeEpisode(board, state, seed: int, args: tuple, temp_threshold):
 
             logger.debug('Condition from coach BEFORE call getActionProb %s', state)
 
-            _, valid_actions = mcts.actionIndexMapping(mm.gm, board, state, team, action_type)
+            _, valid_actions = mcts.actionIndexMapping(board, state, team, action_type)
 
             data_vector = mcts.generateFeatures(board, state)
 
@@ -176,7 +175,7 @@ def trainModel(model: ModelWrapper, tr_examples_history: list, num_it_tr_example
     r.shuffle(train_examples)
 
     # training new network
-    model.train(train_examples)
+    model.train(train_examples, team, action_type)
 
     # save new model
     model.save_checkpoint(folder=folder_ceckpoint, filename=f'new_{team}_{action_type}.pth.tar')
@@ -248,10 +247,12 @@ class Coach():
         self.blue_act: ModelWrapper = blue_act
         self.blue_res: ModelWrapper = blue_res
 
-        self.tr_examples_history_RED_Act = []
-        self.tr_examples_history_RED_Res = []
-        self.tr_examples_history_BLUE_Act = []
-        self.tr_examples_history_BLUE_Res = []
+        self.tr_examples_history = {
+            (RED, ACT): [],
+            (RED, RES): [],
+            (BLUE, ACT): [],
+            (BLUE, RES): [],
+        }
 
         self.skip_first_self_play: bool = False  # can be overriden in loadTrainExamples()
 
@@ -261,11 +262,12 @@ class Coach():
         iteration. After every iteration, it retrains neural network with
         examples in trainExamples (which has a maximum length of max_queue_len).
         """
-
-        it_tr_examples_RED_Act = []
-        it_tr_examples_RED_Res = []
-        it_tr_examples_BLUE_Act = []
-        it_tr_examples_BLUE_Res = []
+        it_tr_examples = {
+            (RED, ACT): [],
+            (RED, RES): [],
+            (BLUE, ACT): [],
+            (BLUE, RES): [],
+        }
 
         for i in range(1, self.num_iters + 1):
             # bookkeeping
@@ -278,14 +280,14 @@ class Coach():
 
             # examples of the iteration
             if not self.skip_first_self_play or i > 1:
-                it_tr_examples = deque([], maxlen=self.max_queue_len)
+                _ = deque([], maxlen=self.max_queue_len)
 
                 seed = self.seed
                 tempThreshold = self.temp_threshold
 
                 results = []
 
-                logger.info('Sart Self Play #%s Iter #%s', len(self.tr_examples_history_RED_Act), i)
+                logger.info('Sart Self Play #%s Iter #%s', len(self.tr_examples_history[(RED, ACT)]), i)
 
                 mcts = (self.red_act, self.red_res, self.blue_act, self.blue_res, self.max_weapon_per_figure, self.max_figure_per_scenario, self.max_move_no_response_size,
                         self.max_attack_size, self. num_MCTS_sims, self.cpuct)
@@ -309,18 +311,18 @@ class Coach():
                         results.append((ite_R_A, ite_R_R, ite_B_A, ite_B_R))
 
                 for ite_R_A, ite_R_R, ite_B_A, ite_B_R in results:
-                    it_tr_examples_RED_Act += ite_R_A
-                    it_tr_examples_RED_Res += ite_R_R
-                    it_tr_examples_BLUE_Act += ite_B_A
-                    it_tr_examples_BLUE_Res += ite_B_R
+                    it_tr_examples[(RED, ACT)] += ite_R_A
+                    it_tr_examples[(RED, RES)] += ite_R_R
+                    it_tr_examples[(BLUE, ACT)] += ite_B_A
+                    it_tr_examples[(BLUE, RES)] += ite_B_R
 
                 # save the iteration examples to the history
-                self.tr_examples_history_RED_Act.append(it_tr_examples_RED_Act)
-                self.tr_examples_history_RED_Res.append(it_tr_examples_RED_Res)
-                self.tr_examples_history_BLUE_Act.append(it_tr_examples_BLUE_Act)
-                self.tr_examples_history_BLUE_Res.append(it_tr_examples_BLUE_Res)
+                self.tr_examples_history[(RED, ACT)].append(it_tr_examples[(RED, ACT)])
+                self.tr_examples_history[(RED, RES)].append(it_tr_examples[(RED, RES)])
+                self.tr_examples_history[(BLUE, ACT)].append(it_tr_examples[(BLUE, ACT)])
+                self.tr_examples_history[(BLUE, RES)].append(it_tr_examples[(BLUE, RES)])
 
-                logger.info('End Self Play #%s Iter #%s', len(self.tr_examples_history_RED_Act), i)
+                logger.info('End Self Play #%s Iter #%s', len(self.tr_examples_history[(RED, ACT)]), i)
 
             logger.info('Start training Iter #%s ...', i)
 
@@ -342,18 +344,18 @@ class Coach():
 
             if self.parallel:
                 tasks = [
-                    trainModelWrapper.remote(self.red_act, self.tr_examples_history_RED_Act, self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, RED, 'Act'),
-                    trainModelWrapper.remote(self.red_res, self.tr_examples_history_RED_Res, self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, RED, 'Res'),
-                    trainModelWrapper.remote(self.blue_act, self.tr_examples_history_BLUE_Act, self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, BLUE, 'Act'),
-                    trainModelWrapper.remote(self.blue_res, self.tr_examples_history_BLUE_Res, self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, BLUE, 'Res')
+                    trainModelWrapper.remote(self.red_act, self.tr_examples_history[(RED, ACT)], self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, RED, ACT),
+                    trainModelWrapper.remote(self.red_res, self.tr_examples_history[(RED, RES)], self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, RED, RES),
+                    trainModelWrapper.remote(self.blue_act, self.tr_examples_history[(BLUE, ACT)], self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, BLUE, ACT),
+                    trainModelWrapper.remote(self.blue_res, self.tr_examples_history[(BLUE, RES)], self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, BLUE, RES),
                 ]
                 for task in tqdm(tasks, desc="Training"):
                     ray.get(task)
             else:
-                trainModel(self.red_act, self.tr_examples_history_RED_Act, self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, RED, 'Act'),
-                trainModel(self.red_res, self.tr_examples_history_RED_Res, self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, RED, 'Res'),
-                trainModel(self.blue_act, self.tr_examples_history_BLUE_Act, self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, BLUE, 'Act'),
-                trainModel(self.blue_res, self.tr_examples_history_BLUE_Res, self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, BLUE, 'Res')
+                trainModel(self.red_act, self.tr_examples_history[(RED, ACT)], self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, RED, ACT),
+                trainModel(self.red_res, self.tr_examples_history[(RED, RES)], self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, RED, RES),
+                trainModel(self.blue_act, self.tr_examples_history[(BLUE, ACT)], self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, BLUE, ACT),
+                trainModel(self.blue_res, self.tr_examples_history[(BLUE, RES)], self.num_it_tr_examples_history, self.seed, self.folder_ceckpoint, i, BLUE, RES),
 
     def loadTrainExamples(self):
         modelFile = os.path.join(self.load_folder_file)
@@ -366,16 +368,16 @@ class Coach():
         else:
             logger.info("File with trainExamples found. Loading it...")
             with open(examplesFile, "rb") as f:
-                self.tr_examples_history_RED_Act = Unpickler(f).load()
+                self.tr_examples_history[(RED, ACT)] = Unpickler(f).load()
             logger.info('Loading done!')
             with open(examplesFile, "rb") as f:
-                self.tr_examples_history_RED_Res = Unpickler(f).load()
+                self.tr_examples_history[(RED, RES)] = Unpickler(f).load()
             logger.info('Loading done!')
             with open(examplesFile, "rb") as f:
-                self.tr_examples_history_BLUE_Act = Unpickler(f).load()
+                self.tr_examples_history[(BLUE, ACT)] = Unpickler(f).load()
             logger.info('Loading done!')
             with open(examplesFile, "rb") as f:
-                self.tr_examples_history_BLUE_Res = Unpickler(f).load()
+                self.tr_examples_history[(BLUE, RES)] = Unpickler(f).load()
             logger.info('Loading done!')
 
             # examples based on the model were already collected (loaded)

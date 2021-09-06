@@ -83,20 +83,20 @@ class MCTS():
 
     def generateFeatures(self, board: GameBoard, state: GameState) -> np.ndarray:
 
-        board = np.zeros(board.shape)
-        goals = np.zeros(board.shape)
         terrain = board.terrain.copy()
+        goals = np.zeros(board.shape)
+        figures = np.zeros(board.shape)
 
         for mark in board.getObjectiveMark():
             goals[mark.tuple()] = 1
 
         for f in state.figures[RED]:
-            board[f.position.tuple()] = int(f.index + 1)
+            figures[f.position.tuple()] = int(f.index + 1)
 
         for f in state.figures[BLUE]:
-            board[f.position.tuple()] = -int(f.index - 1)
+            figures[f.position.tuple()] = -int(f.index - 1)
 
-        return np.stack((board, goals, terrain))
+        return np.stack((figures, goals, terrain))
 
     def calculateValidMoves(self, board, state, team, action_type):
         all_valid_actions = []
@@ -317,7 +317,7 @@ class MCTS():
 
         if s not in self.Ps:
             # leaf node, no probabilities assigned yet
-            valid_s, valid_actions = self.actionIndexMapping(self.gm, board, state, team, action_type)
+            valid_s, valid_actions = self.actionIndexMapping(board, state, team, action_type)
 
             features = self.generateFeatures(board, state)
 
