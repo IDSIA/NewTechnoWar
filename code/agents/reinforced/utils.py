@@ -1,6 +1,10 @@
 from core.actions import MoveLoadInto
 
 
+ACT: str = 'Action'
+RES: str = 'Response'
+
+
 def limitMovements(board, state, moves):
     # TODO: filter the actions to just some more useful actions
     min_neigh_sum = 2  # if greater than 0, consider all terrain that are not OPEN

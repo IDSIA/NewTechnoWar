@@ -2,7 +2,7 @@
 
 import logging
 import math
-from typing import Tuple
+from typing import Dict, Tuple
 
 import numpy as np
 from agents.adversarial.puppets import Puppet
@@ -13,18 +13,16 @@ from core.const import RED, BLUE
 
 from agents import MatchManager
 from agents.reinforced.nn import ModelWrapper
+from agents.reinforced.utils import ACT, RES
 from core.game.board import GameBoard
 from core.game.state import GameState
 from utils.copy import deepcopy
 
 logger = logging.getLogger(__name__)
 
-EPS = 1e-8
+EPS: float = 1e-8
 
-ACT: str = 'Action'
-RES: str = 'Response'
-
-WEAPONS_INDICES: dict = {
+WEAPONS_INDICES: Dict[str, int] = {
     'AT': 0,
     'AR': 1,
     'CA': 2,
@@ -86,6 +84,11 @@ class MCTS():
     def generateFeatures(self, board: GameBoard, state: GameState) -> np.ndarray:
 
         board = np.zeros(board.shape)
+        goals = np.zeros(board.shape)
+        terrain = board.terrain.copy()
+
+        for mark in board.getObjectiveMark():
+            goals[mark.tuple()] = 1
 
         for f in state.figures[RED]:
             board[f.position.tuple()] = int(f.index + 1)
@@ -93,21 +96,21 @@ class MCTS():
         for f in state.figures[BLUE]:
             board[f.position.tuple()] = -int(f.index - 1)
 
-        return board
+        return np.stack((board, goals, terrain))
 
-    def calculateValidMoves(self, gm, board, state, team, action_type):
+    def calculateValidMoves(self, board, state, team, action_type):
         all_valid_actions = []
 
         if action_type == "Action":
-            all_valid_actions = gm.buildActionsForTeam(board, state, team)
+            all_valid_actions = self.gm.buildActionsForTeam(board, state, team)
 
         elif action_type == "Response":
-            all_valid_actions = gm.buildResponsesForTeam(board, state, team)
+            all_valid_actions = self.gm.buildResponsesForTeam(board, state, team)
 
         return all_valid_actions
 
-    def actionIndexMapping(self, gm, board, state, team, action_type):
-        all_valid_actions = self.calculateValidMoves(gm, board, state, team, action_type)
+    def actionIndexMapping(self, board, state, team, action_type):
+        all_valid_actions = self.calculateValidMoves(board, state, team, action_type)
 
         valid_indices = [0] * self.max_action_size
         valid_actions = [None] * self.max_action_size
@@ -218,7 +221,8 @@ class MCTS():
 
         start_state_hash = hash(start_state)
         while i < len(self.states):
-            if start_state_hash == self.states[i][0] and team_move_id == self.states[i][1]:
+            state_hash, move_id = self.states[i]
+            if start_state_hash == state_hash and team_move_id == move_id:
                 s = i
                 break
             else:
@@ -276,9 +280,6 @@ class MCTS():
 
         action_type = ACT if action_type == 'round' else RES
 
-        # generate data vector
-        features = self.generateFeatures(board, state)
-
         i = 0
         s = -1
 
@@ -309,21 +310,18 @@ class MCTS():
             else:
                 self.Es[s] = -1
 
-        if self.Es[s] != 0:
+        if self.Es[s] != 0 or depth == 0:
             # terminal node
             logger.debug('end, S=%s', s)
             return -self.Es[s]
 
         if s not in self.Ps:
             # leaf node, no probabilities assigned yet
-
-            valid_s = [0] * self.max_action_size  # [0]*5851 #self.numMaxActions(board, state)
-            valid_actions = [None] * self.max_action_size
-
-            self.Ps[s], v = self.nnet[(team, action_type)].predict(features)
-
             valid_s, valid_actions = self.actionIndexMapping(self.gm, board, state, team, action_type)
 
+            features = self.generateFeatures(board, state)
+
+            self.Ps[s], v = self.nnet[(team, action_type)].predict(features)
             self.Ps[s] = self.Ps[s] * valid_s  # masking invalid moves
             sum_Ps_s = np.sum(self.Ps[s])
 
@@ -353,8 +351,7 @@ class MCTS():
         for a in range(self.max_action_size):
             if valid_s[a]:
                 if (s, a) in self.Qsa:
-                    u = self.Qsa[(s, a)] + self.cpuct * self.Ps[s][a] * math.sqrt(self.Ns[s]) / (
-                        1 + self.Nsa[(s, a)])
+                    u = self.Qsa[(s, a)] + self.cpuct * self.Ps[s][a] * math.sqrt(self.Ns[s]) / (1 + self.Nsa[(s, a)])
                 else:
                     u = self.cpuct * self.Ps[s][a] * math.sqrt(self.Ns[s] + EPS)  # Q = 0 ?
 
@@ -370,10 +367,7 @@ class MCTS():
 
         state, _ = self.gm.activate(board, state, action)
 
-        if depth == 0:
-            return 0
-
-        v = self.search(board, state, old_s, depth-1)
+        v = self.search(board, state, old_s, depth - 1)
 
         if (s, a) in self.Qsa:
             self.Qsa[(s, a)] = (self.Nsa[(s, a)] * self.Qsa[(s, a)] + v) / (self.Nsa[(s, a)] + 1)

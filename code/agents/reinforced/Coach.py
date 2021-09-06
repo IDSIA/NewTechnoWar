@@ -17,6 +17,7 @@ from core.const import RED, BLUE
 from agents import Puppet, MatchManager
 from agents.reinforced import MCTS
 from agents.reinforced.nn import ModelWrapper
+from agents.reinforced.utils import ACT, RES
 from utils.copy import deepcopy
 
 logger = logging.getLogger(__name__)
@@ -51,10 +52,12 @@ def executeEpisode(board, state, seed: int, args: tuple, temp_threshold):
                         pi is the MCTS informed policy vector, v is +1 if
                         the player eventually won the game, else -1.
     """
-    trainExamples_RED_Action = []
-    trainExamples_RED_Response = []
-    trainExamples_BLUE_Action = []
-    trainExamples_BLUE_Response = []
+    train_examples = {
+        (RED, ACT): [],
+        (RED, RES): [],
+        (BLUE, ACT): [],
+        (BLUE, RES): [],
+    }
 
     random = np.random.default_rng(seed)
 
@@ -102,14 +105,7 @@ def executeEpisode(board, state, seed: int, args: tuple, temp_threshold):
 
             example = [data_vector, team, pi, None]
 
-            if team == RED and action_type == "Action":
-                trainExamples_RED_Action.append(example)
-            if team == RED and action_type == "Response":
-                trainExamples_RED_Response.append(example)
-            if team == BLUE and action_type == "Action":
-                trainExamples_BLUE_Action.append(example)
-            if team == BLUE and action_type == "Response":
-                trainExamples_BLUE_Response.append(example)
+            train_examples[(team, action_type)].append(example)
 
             if max(pi) == 1:
                 action_index = np.argmax(pi)
@@ -135,10 +131,10 @@ def executeEpisode(board, state, seed: int, args: tuple, temp_threshold):
 
         return (
             # board, team, pi, winner
-            [(x[0], x[2], r) for x in trainExamples_RED_Action],
-            [(x[0], x[2], r) for x in trainExamples_RED_Response],
-            [(x[0], x[2], b) for x in trainExamples_BLUE_Action],
-            [(x[0], x[2], b) for x in trainExamples_BLUE_Response]
+            [(x[0], x[2], r) for x in train_examples[(RED, ACT)]],
+            [(x[0], x[2], r) for x in train_examples[(RED, RES)]],
+            [(x[0], x[2], b) for x in train_examples[(BLUE, ACT)]],
+            [(x[0], x[2], b) for x in train_examples[(BLUE, RES)]]
         )
     except Exception as e:
         logger.error(f'Failed computation, reason {e}')
