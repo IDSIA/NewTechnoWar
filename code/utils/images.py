@@ -242,13 +242,26 @@ def _drawFigure(img: Image, pi, pj, psize, figure, decals) -> None:
         int(pi + psize * .8),
         int(pj + psize * .8),
     )
+    xy_act = (
+        int(.90 * psize + pi - psize * .2),
+        int(.75 * psize + pj - psize * .2),
+        int(.90 * psize + pi + psize * .2),
+        int(.75 * psize + pj + psize * .2),
+    )
+    xy_res = (
+        int(.40 * psize + pi - psize * .2),
+        int(.75 * psize + pj - psize * .2),
+        int(.40 * psize + pi + psize * .2),
+        int(.75 * psize + pj + psize * .2),
+    )
 
     draw = ImageDraw.Draw(img, 'RGBA')
     draw.ellipse(xy_out, fill=COLORS[figure.team + 'dark'])
-    draw.ellipse(xy_in, fill=COLORS[figure.team])
 
     if figure.killed:
         draw.ellipse(xy_in, fill='#555555')
+    else:
+        draw.ellipse(xy_in, fill=COLORS[figure.team])
 
     if figure.stat == stat('HIDDEN'):
         decal = decals['hidden']
@@ -256,6 +269,11 @@ def _drawFigure(img: Image, pi, pj, psize, figure, decals) -> None:
         decal = decals[figure.kind]
 
     _drawDecal(img, pi, pj, psize, decal)
+
+    if not figure.activated:
+        draw.ellipse(xy_act, fill='#FFFF00')
+    if not figure.responded:
+        draw.ellipse(xy_res, fill='#00FF00')
 
 
 def _drawDecal(img: Image, pi, pj, psize, decal) -> None:

@@ -7,8 +7,7 @@ from agents.interface import Agent
 from agents.interactive.interactive import Human
 from core.actions import Attack, Move, Action, Response, NoResponse, PassTeam
 from core.const import RED, BLUE
-from core.game import GameBoard, GameState, goalAchieved, GameManager
-from core.game.outcome import Outcome
+from core.game import GameBoard, GameState, goalAchieved, goalScore, GameManager, GoalParams, Outcome
 from core.scenarios import buildScenario
 from utils.copy import deepcopy
 
@@ -35,11 +34,11 @@ def buildMatchManager(gid: str, scenario: str, red: str, blue: str, seed: int = 
 class MatchManager:
     __slots__ = [
         'gid', 'seed', 'states_history', 'actions_history', 'outcome', 'end', 'board', 'state', 'origin', 'gm',
-        'scenario', 'red', 'blue', 'first', 'second', 'step', 'update', 'winner', 'humans', 'logger'
+        'scenario', 'red', 'blue', 'first', 'second', 'step', 'update', 'winner', 'humans', 'logger', 'score', 'p'
     ]
 
     def __init__(self, gid: str, red: Agent, blue: Agent, board: GameBoard = None, state: GameState = None,
-                 seed: int = 42, useLoggers: bool = True):
+                 seed: int = 42, useLoggers: bool = True, p_red: GoalParams = GoalParams(), p_blue: GoalParams = GoalParams()):
         """
         Initialize the state-machine.
 
@@ -80,7 +79,18 @@ class MatchManager:
         self.first = None
         self.second = None
 
-        self.loadState(board, state)
+        self.score: dict[str, float] = {
+            RED: 0,
+            BLUE: 0,
+        }
+
+        self.p: dict[str, GoalParams] = {
+            RED: p_red,
+            BLUE: p_blue,
+        }
+
+        if board and state:
+            self.loadState(board, state)
 
     def reset(self) -> None:
         """Restore the match to its original (before initialization) stage."""
@@ -148,7 +158,7 @@ class MatchManager:
         outcome = self.gm.step(self.board, self.state, action)
 
         self._store(state0, action, outcome)
-        self.logger.info(f'{self.seed:10} {self.first.team:5} {"action":9}: {action} {outcome.comment}')
+        self.logger.info(f'{self.seed:10} {self.first.team:5} {self.score[self.first.team]:6.2f} {"action":9}: {action} {outcome.comment}')
 
         self._goCheck()
 
@@ -166,7 +176,7 @@ class MatchManager:
         outcome = self.gm.step(self.board, self.state, response)
 
         self._store(state0, response, outcome)
-        self.logger.info(f'{self.seed:10} {self.second.team:5} {"response":9}: {response} {outcome.comment}')
+        self.logger.info(f'{self.seed:10} {self.second.team:5} {self.score[self.second.team]:6.2f} {"response":9}: {response} {outcome.comment}')
 
         self._goCheck()
 
@@ -181,6 +191,10 @@ class MatchManager:
 
         # check if we are at the end of the game
         isEnd, winner = goalAchieved(self.board, self.state)
+
+        self.score[RED] = goalScore(self.board, self.state, RED, self.p[RED])
+        self.score[BLUE] = goalScore(self.board, self.state, BLUE, self.p[BLUE])
+
         if isEnd:
             # if we achieved a goal, end
             self.winner = winner

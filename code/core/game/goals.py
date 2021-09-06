@@ -208,3 +208,8 @@ def goalAchieved(board, state: GameState) -> Tuple[bool, str]:
         return True, BLUE
 
     return False, None
+
+
+def goalScore(board, state: GameState, team: str, p: GoalParams) -> float:
+    """Calculates the sum of all the scores for a team."""
+    return sum(g.score(state, p) for g in board.objectives[team].values())

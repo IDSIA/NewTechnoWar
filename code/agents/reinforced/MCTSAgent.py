@@ -1,4 +1,5 @@
 import logging
+from typing import Tuple
 
 import numpy as np
 
@@ -12,15 +13,15 @@ logger = logging.getLogger(__name__)
 
 class MCTSAgent(Agent):
 
-    def __init__(self, team: str, board: GameBoard, checkpoint: str = '.', seed: int = 0, max_weapon_per_figure: int = 8, max_figure_per_scenario: int = 6,
+    def __init__(self, team: str, board_shape: Tuple[int, int], checkpoint: str = '.', seed: int = 0, max_weapon_per_figure: int = 8, max_figure_per_scenario: int = 6,
                  max_move_no_response_size: int = 1351, max_attack_size: int = 288, num_MCTS_sims: int = 30, cpuct: float = 1
                  ):
         super().__init__('MCTSAgent', team, seed=seed)
 
-        self.RED_Act = ModelWrapper(board.shape, seed)
-        self.RED_Res = ModelWrapper(board.shape, seed)
-        self.BLUE_Act = ModelWrapper(board.shape, seed)
-        self.BLUE_Res = ModelWrapper(board.shape, seed)
+        self.RED_Act = ModelWrapper(board_shape, seed)
+        self.RED_Res = ModelWrapper(board_shape, seed)
+        self.BLUE_Act = ModelWrapper(board_shape, seed)
+        self.BLUE_Res = ModelWrapper(board_shape, seed)
 
         self.RED_Act.load_checkpoint(checkpoint, 'new_red_Act.pth.tar')
         self.RED_Res.load_checkpoint(checkpoint, 'new_red_Res.pth.tar')
