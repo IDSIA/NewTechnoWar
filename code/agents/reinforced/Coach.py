@@ -141,7 +141,7 @@ def executeEpisode(board, state, seed: int, args: tuple, temp_threshold):
         return ([], [], [], [])
 
 
-@ray.remote(num_gpus=num_gpus)
+@ray.remote(num_gpus=num_gpus, max_calls=1)
 def trainModelWrapper(model: ModelWrapper, tr_examples_history: list, num_it_tr_examples_history: int, seed: int, folder_ceckpoint: str, i: int, team: str, action_type: str):
     trainModel(model, tr_examples_history, num_it_tr_examples_history, seed, folder_ceckpoint, i, team, action_type)
 
@@ -149,8 +149,8 @@ def trainModelWrapper(model: ModelWrapper, tr_examples_history: list, num_it_tr_
 def trainModel(model: ModelWrapper, tr_examples_history: list, num_it_tr_examples_history: int, seed: int, folder_ceckpoint: str, i: int, team: str, action_type: str):
 
     if torch.cuda.is_available():
-        logger.info('Using cuda as devices for training')
-        model.to('cuda')
+        logger.info('Using cuda as devices for training %s %s', os.environ["CUDA_VISIBLE_DEVICES"], ",".join(map(str, ray.get_gpu_ids())))
+        model.to(f'cuda:{ray.get_gpu_ids()[0]}')
     else:
         logger.info('Using CPU as devices for training')
         model.to('cpu')
