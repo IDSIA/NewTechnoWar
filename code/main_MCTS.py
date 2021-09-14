@@ -15,7 +15,7 @@ import torch
 
 from core.const import RED, BLUE
 from core.game.goals import GoalEliminateOpponent
-from core.scenarios.generators import scenarioRandom10x10
+from core.scenarios.generators import scenarioRandom10x10, scenarioRandom5x5
 from core.templates import buildFigure
 from core.game import GameBoard, GameState, GoalReachPoint, GoalDefendPoint, GoalMaxTurn
 from core.utils.coordinates import Hex
@@ -114,6 +114,7 @@ if __name__ == '__main__':
     p.add_argument('-d', '--dir', type=str, default=CHECKPOINT_DIR, help=f'default: {CHECKPOINT_DIR}\tcheckpoint directory')
     p.add_argument('-l', '--load', default=False, action='store_true', help=f'{""}\tif set, continue with already trained models in --dir folder')
     p.add_argument('-s5', '--scenario-5x5', default=False, dest='s5', action='store_true', help=f'{""}\tuse 5x5 scenario')
+    p.add_argument('-r5', '--scenario-random-5x5', default=False, dest='r5', action='store_true', help=f'{""}\tuse 5x5 scenario with random init')
     p.add_argument('-s10', '--scenario-10x10', default=False, dest='s10', action='store_true', help=f'{""}\tuse 10x10 scenario')
     p.add_argument('-r10', '--scenario-random-10x10', default=False, dest='r10', action='store_true', help=f'{""}\tuse 10x10 scenario with random init')
     args = p.parse_args()

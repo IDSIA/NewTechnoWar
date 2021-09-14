@@ -8,7 +8,7 @@ import torch
 class NTWModel(nn.Module):
 
     def __init__(self, shape: Tuple[int, int], lr: float = 0.001, dropout: float = 0.3, epochs: int = 2, batch_size: int = 64,
-                 num_channels: int = 512, action_size: int = 1640):
+                 num_channels: int = 512, action_size: int = 1640, board_levels: int = 3):
         super(NTWModel, self).__init__()
 
         self.board_x, self.board_y = shape
@@ -20,8 +20,9 @@ class NTWModel(nn.Module):
         self.epochs: int = epochs
         self.batch_size: int = batch_size
         self.num_channels: int = num_channels
+        self.board_levels: int = board_levels
 
-        self.conv1 = nn.Conv2d(3, num_channels, 3, stride=1, padding=1)
+        self.conv1 = nn.Conv2d(board_levels, num_channels, 3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(num_channels, num_channels, 3, stride=1, padding=1)
         self.conv3 = nn.Conv2d(num_channels, num_channels, 3, stride=1)
         self.conv4 = nn.Conv2d(num_channels, num_channels, 3, stride=1)
@@ -43,7 +44,7 @@ class NTWModel(nn.Module):
 
     def forward(self, s):
         #                                                           s: batch_size x board_x x board_y
-        s = s.view(-1, 3, self.board_x, self.board_y)                # batch_size x 1 x board_x x board_y
+        s = s.view(-1, self.board_levels, self.board_x, self.board_y)                # batch_size x 1 x board_x x board_y
         s = F.relu(self.bn1(self.conv1(s)))                          # batch_size x num_channels x board_x x board_y
         s = F.relu(self.bn2(self.conv2(s)))                          # batch_size x num_channels x board_x x board_y
         s = F.relu(self.bn3(self.conv3(s)))                          # batch_size x num_channels x (board_x-2) x (board_y-2)
