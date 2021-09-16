@@ -224,7 +224,7 @@ class MCTS():
                 i += 1
 
         logger.debug('getActProb S is: %s and his parent: %s', s, old_s)
-        counts = np.array([self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.max_action_size)])
+        counts = np.nan_to_num(np.array([self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.max_action_size)]))
 
         if temp == 0:
             bestAs = (np.argwhere(counts == np.max(counts))).flatten()
@@ -234,7 +234,7 @@ class MCTS():
             return probs, s
 
         counts = np.power(counts, (1. / temp))
-        probs = counts / counts.sum()
+        probs = np.nan_to_num(counts / counts.sum())
         return probs, s
 
     def search(self, board, state, old_s, depth) -> float:
