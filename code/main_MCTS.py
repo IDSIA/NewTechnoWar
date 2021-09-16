@@ -145,7 +145,7 @@ if __name__ == '__main__':
     # support assistants
     p.add_argument('-sar', '--support-red', default=SUPPORT_RED, dest='sar', help=f'\tUse a support agent (greedy or alphabeta) for red during episodes generation')
     p.add_argument('-sab', '--support-blue', default=SUPPORT_BLUE, dest='sab', help=f'\tUse a support agent (greedy or alphabeta) for blue during episodes generation')
-    p.add_argument('-sh', '--support-help', default=SUPPORT_HELP, dest='shelp', help=f'default: {SUPPORT_HELP}\tpercentage of iterations with help (starting from first)')
+    p.add_argument('-sh', '--support-help', type=float, default=SUPPORT_HELP, dest='shelp', help=f'default: {SUPPORT_HELP}\tpercentage of iterations with help (starting from first)')
     p.add_argument('-b', '--support-boost', type=float, default=SUPPORT_BOOST_PROB, dest='boost', help=f'default: {SUPPORT_BOOST_PROB}\tboost probability for support chosen actions')
     args = p.parse_args()
 
