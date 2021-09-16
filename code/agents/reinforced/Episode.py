@@ -33,7 +33,6 @@ class Episode:
                  num_MCTS_sims: int = 30,
                  max_depth: int = 100,
                  cpuct: float = 1,
-                 temp_threshold: int = 15,
                  ) -> None:
 
         self.support = {
@@ -50,7 +49,6 @@ class Episode:
         self.num_MCTS_sims = num_MCTS_sims
         self.cpuct = cpuct
         self.max_depth = max_depth
-        self.temp_threshold = temp_threshold
 
     def get_support(self, team, seed, enabled):
         if not enabled:
@@ -115,6 +113,7 @@ class Episode:
 
         steps: int = 0
         start_time = datetime.now()
+        winner = None
 
         try:
             while not mm.end:
@@ -177,11 +176,6 @@ class Episode:
 
             winner = mm.winner
 
-            end_time = datetime.now()
-            duration = end_time - start_time
-
-            logger.debug('elapsed time: %s', duration)
-
             # assign victory: 1 is winner, -1 is loser
             r, b = (1, -1) if winner == RED else (-1, 1)
 
@@ -199,6 +193,11 @@ class Episode:
             examples[RED] = []
             examples[BLUE] = []
 
+        end_time = datetime.now()
+        duration = end_time - start_time
+
+        logger.debug('elapsed time: %s', duration)
+
         meta = {
             'support_boost_prob': self.support_boost_prob,
             'max_weapon_per_figure': self.max_weapon_per_figure,
@@ -208,7 +207,7 @@ class Episode:
             'num_MCTS_sims': self.num_MCTS_sims,
             'cpuct': self.cpuct,
             'max_depth': self.max_depth,
-            'temp_threshold': self.temp_threshold,
+            'temp_threshold': temp_threshold,
             'seed': seed,
             'start_time': start_time,
             'end_time': end_time,
