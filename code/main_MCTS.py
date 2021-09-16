@@ -268,6 +268,8 @@ if __name__ == '__main__':
                 board, state = next(game_generator)
                 tasks.append(w.execute.remote(board, state, seed+i, temp_threshold, it > 0, support_enabled))
                 i += 1
+                if i >= num_eps:
+                    break
 
         for task in tqdm(tasks, desc="Self Play"):
             tr_ex_red, tr_ex_blue, tr_ex_meta = ray.get(task)
