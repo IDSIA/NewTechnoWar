@@ -55,7 +55,7 @@ class ModelWrapper():
         self.device = device if device else 'cpu'
         self.nn = self.nn.to(self.device)
 
-    def train(self, examples, team=None, action_type=None):
+    def train(self, examples, team=None):
         """
         examples: list of examples, each example is of form (features, pi, v)
         """
@@ -65,7 +65,6 @@ class ModelWrapper():
         n = len(examples)
 
         team = team if team else ''
-        action_type = action_type if action_type else ''
 
         for epoch in range(self.epochs):
             logger.info('EPOCH :: ' + str(epoch + 1))
@@ -75,7 +74,7 @@ class ModelWrapper():
 
             batch_count = int(n / self.batch_size) + 1
 
-            t = tqdm(range(batch_count), desc=f'Training Net {team:4} {action_type:3}')
+            t = tqdm(range(batch_count), desc=f'Training Net {team:4}')
             for _ in t:
                 sample_ids = self.random.choice(n, size=min(n, self.batch_size))
                 features, pis, vs = list(zip(*[examples[i] for i in sample_ids]))
@@ -139,6 +138,8 @@ class ModelWrapper():
         }, filepath)
 
     def load_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
+        logger.info('loading model from folder=%s file=%s', folder, filename)
+
         # https://github.com/pytorch/examples/blob/master/imagenet/main.py#L98
         filepath = os.path.join(folder, filename)
         if not os.path.exists(filepath):

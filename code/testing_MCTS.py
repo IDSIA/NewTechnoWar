@@ -7,7 +7,7 @@ from agents import MatchManager, MCTSAgent
 from core.const import RED, BLUE
 from core.game import GameBoard, GameState, GoalReachPoint, GoalDefendPoint, GoalMaxTurn, GoalEliminateOpponent
 from core.templates import buildFigure
-from core.scenarios import scenarioRandom10x10
+from core.scenarios import scenarioRandom10x10, scenarioRandom5x5
 from core.utils.coordinates import Hex
 
 from utils.setup_logging import setup_logging
@@ -49,10 +49,10 @@ state.addFigure(
 
 # %% agents setup
 
-checkpoint = './temp.20210903.151408/'
+checkpoint = './temp.20210906.181122/'
 
-agent_red = MCTSAgent(RED, board, checkpoint, seed)
-agent_blue = MCTSAgent(BLUE, board, checkpoint, seed)
+agent_red = MCTSAgent(RED, board.shape, checkpoint, seed)
+agent_blue = MCTSAgent(BLUE, board.shape, checkpoint, seed)
 
 # %% setup match manager
 mm = MatchManager('', agent_red, agent_blue, board, state, seed)
@@ -67,7 +67,7 @@ while not mm.end:
 # %%
 
 imgs[0].save(
-    'mcts_5x5.gif',
+    'mcts_10x10_1.gif',
     save_all=True,
     append_images=imgs[1:],
     optimize=False,
@@ -113,6 +113,21 @@ def agent_mcts_rb(team, seed):
     return MCTSAgent(team, (10, 10), './temp.20210903.172304', seed=seed)
 
 
+def agent_mcts_rb_2(team, seed):
+    """This agent learned from random 5x5 boards"""
+    return MCTSAgent(team, (5, 5), './temp.20210906.150015', seed=seed)
+
+
+def agent_mcts_rb_3(team, seed):
+    """This agent learned from random 5x5 boards"""
+    return MCTSAgent(team, (5, 5), './temp.20210906.153157', seed=seed)
+
+
+def agent_mcts_rb_4(team, seed):
+    """This agent learned from random 10x10 boards"""
+    return MCTSAgent(team, (10, 10), './temp.20210906.181122', seed=seed)
+
+
 # %%
 seed = 4242424
 scenario_seed = 123456789
@@ -126,10 +141,6 @@ board, state = next(scen_gen)
 mm = MatchManager('', red, blue, board, state, seed, True)
 
 # %%
-mm.nextStep()
-drawState(mm.board, mm.state, True)
-
-# %%
 imgs = []
 while not mm.end:
     mm.nextStep()
@@ -139,12 +150,20 @@ while not mm.end:
 # %%
 
 imgs[0].save(
-    'mcts_trainedOnRandom.gif',
+    'mcts_trainedOnRandom_rb.gif',
     save_all=True,
     append_images=imgs[1:],
     optimize=False,
     loop=0,
     duration=200
 )
+
+# %%
+
+gen = scenarioRandom5x5(1)
+
+# %%
+board, state = next(gen)
+drawState(board, state)
 
 # %%

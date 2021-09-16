@@ -1,4 +1,3 @@
-import os
 import logging
 from typing import Tuple
 
@@ -19,24 +18,13 @@ class MCTSAgent(Agent):
                  ):
         super().__init__('MCTSAgent', team, seed=seed)
 
-        self.RED_Act = ModelWrapper(board_shape, seed)
-        self.RED_Res = ModelWrapper(board_shape, seed)
-        self.BLUE_Act = ModelWrapper(board_shape, seed)
-        self.BLUE_Res = ModelWrapper(board_shape, seed)
+        self.RED = ModelWrapper(board_shape, seed)
+        self.BLUE = ModelWrapper(board_shape, seed)
 
-        # this is for retro-compatibility
-        if os.path.exists(os.path.join(checkpoint, 'new_red_Action.pth.tar')):
-            self.RED_Act.load_checkpoint(checkpoint, 'new_red_Action.pth.tar')
-            self.RED_Res.load_checkpoint(checkpoint, 'new_red_Response.pth.tar')
-            self.BLUE_Act.load_checkpoint(checkpoint, 'new_blue_Action.pth.tar')
-            self.BLUE_Res.load_checkpoint(checkpoint, 'new_blue_Response.pth.tar')
-        else:
-            self.RED_Act.load_checkpoint(checkpoint, 'new_red_Act.pth.tar')
-            self.RED_Res.load_checkpoint(checkpoint, 'new_red_Res.pth.tar')
-            self.BLUE_Act.load_checkpoint(checkpoint, 'new_blue_Act.pth.tar')
-            self.BLUE_Res.load_checkpoint(checkpoint, 'new_blue_Res.pth.tar')
+        self.RED.load_checkpoint(checkpoint, 'new_red.pth.tar')
+        self.BLUE.load_checkpoint(checkpoint, 'new_blue.pth.tar')
 
-        self.mcts = MCTS(self.RED_Act, self.RED_Res, self.BLUE_Act, self.BLUE_Res, seed, max_weapon_per_figure, max_figure_per_scenario,
+        self.mcts = MCTS(self.RED, self.BLUE, seed, max_weapon_per_figure, max_figure_per_scenario,
                          max_move_no_response_size, max_attack_size, num_MCTS_sims, cpuct)
 
     def predict(self, board: GameBoard, state: GameState, action_type):

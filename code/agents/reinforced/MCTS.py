@@ -39,7 +39,7 @@ class MCTS():
     This class handles the MCTS tree.
     """
 
-    def __init__(self, nnet_RED_Act: ModelWrapper, nnet_RED_Res: ModelWrapper, nnet_BLUE_Act: ModelWrapper, nnet_BLUE_Res: ModelWrapper,
+    def __init__(self, model_red: ModelWrapper, model_blue: ModelWrapper,
                  seed: int, max_weapon_per_figure: int, max_figure_per_scenario: int, max_move_no_response_size: int, max_attack_size: int,
                  num_MCTS_sims: int, cpuct: float, max_depth: int = 100
                  ):
@@ -54,11 +54,9 @@ class MCTS():
         self.gm: GameManager = GameManager(self.seed)
         self.mm: MatchManager = None
 
-        self.nnet: dict[Tuple(str, str), ModelWrapper] = {
-            (RED, ACT): nnet_RED_Act,
-            (RED, RES): nnet_RED_Res,
-            (BLUE, ACT): nnet_BLUE_Act,
-            (BLUE, RES): nnet_BLUE_Res,
+        self.nnet: Dict[Tuple(str, str), ModelWrapper] = {
+            RED: model_red,
+            BLUE: model_blue,
         }
 
         self.Qsa = {}  # stores Q values for (s, a)
@@ -98,18 +96,18 @@ class MCTS():
 
         return np.stack((figures, goals, terrain))
 
-    def calculateValidMoves(self, board, state, team, action_type):
+    def calculateValidMoves(self, board, state, team, action_type) -> list:
         all_valid_actions = []
 
-        if action_type == "Action":
+        if action_type == ACT:
             all_valid_actions = self.gm.buildActionsForTeam(board, state, team)
 
-        elif action_type == "Response":
+        elif action_type == RES:
             all_valid_actions = self.gm.buildResponsesForTeam(board, state, team)
 
         return all_valid_actions
 
-    def actionIndexMapping(self, board, state, team, action_type):
+    def actionIndexMapping(self, board, state, team, action_type) -> Tuple[list, list]:
         all_valid_actions = self.calculateValidMoves(board, state, team, action_type)
 
         valid_indices = [0] * self.max_action_size
@@ -182,7 +180,7 @@ class MCTS():
 
         return valid_indices, valid_actions
 
-    def mapTeamMoveIntoID(self, team, action_type):
+    def mapTeamMoveIntoID(self, team, action_type) -> int:
         if team == RED and action_type == "Action":
             return 0
         elif team == RED and action_type == "Response":
@@ -192,7 +190,7 @@ class MCTS():
         elif team == BLUE and action_type == "Response":
             return 3
 
-    def getActionProb(self, board, state, team, move_type, temp=1):
+    def getActionProb(self, board, state, team, move_type, temp=1) -> Tuple[np.ndarray, int]:
         """
         This function performs numMCTSSims simulations of MCTS 
 
@@ -229,21 +227,20 @@ class MCTS():
                 i += 1
 
         logger.debug('getActProb S is: %s and his parent: %s', s, old_s)
-        counts = [self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.max_action_size)]
+        counts = np.array([self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.max_action_size)])
 
         if temp == 0:
-            bestAs = np.array(np.argwhere(counts == np.max(counts))).flatten()
+            bestAs = (np.argwhere(counts == np.max(counts))).flatten()
             bestA = self.random.choice(bestAs)
-            probs = [0] * len(counts)
+            probs = np.zeros(counts.shape)
             probs[bestA] = 1
             return probs, s
 
-        counts = [x ** (1. / temp) for x in counts]
-        counts_sum = float(sum(counts))
-        probs = [x / counts_sum for x in counts]
+        counts = np.power(counts, (1. / temp))
+        probs = counts / counts.sum()
         return probs, s
 
-    def search(self, board, state, old_s, depth):
+    def search(self, board, state, old_s, depth) -> float:
         """
         This function performs one iteration of MCTS. It is recursively called
         till a leaf node is found. The action chosen at each node is one that
@@ -321,7 +318,7 @@ class MCTS():
 
             features = self.generateFeatures(board, state)
 
-            self.Ps[s], v = self.nnet[(team, action_type)].predict(features)
+            self.Ps[s], v = self.nnet[team].predict(features)
             self.Ps[s] = self.Ps[s] * valid_s  # masking invalid moves
             sum_Ps_s = np.sum(self.Ps[s])
 
