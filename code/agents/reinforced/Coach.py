@@ -1,16 +1,15 @@
 import logging
-import os
-import pickle
 
 import numpy as np
 import ray
 
 from tqdm import tqdm
-from agents.interface import Agent
+
+from agents import Agent
 from agents.reinforced.Episode import Episode
+from agents.reinforced.nn import ModelWrapper
 
 from core.const import RED, BLUE
-from agents.reinforced.nn import ModelWrapper
 
 logger = logging.getLogger(__name__)
 
@@ -28,9 +27,6 @@ class Coach():
                  support_blue: Agent or None = None,
                  support_boast_prob: float = 1.0,
                  seed: int = 0,
-                 num_iters: int = 1000,
-                 num_eps: int = 100,
-                 max_queue_len: int = 10,
                  max_weapon_per_figure: int = 8,
                  max_figure_per_scenario: int = 6,
                  max_move_no_response_size: int = 1351,
@@ -40,9 +36,7 @@ class Coach():
                  max_depth: int = 100,
                  temp_threshold: int = 15,
                  parallel: bool = True,
-                 num_it_tr_examples_history: int = 20,
                  folder_checkpoint: str = '.',
-                 load_folder_file: str = './models'
                  ):
         self.seed: int = seed
         self.random = np.random.default_rng(self.seed)
@@ -50,13 +44,8 @@ class Coach():
         self.game_generator = game_generator
 
         self.parallel: bool = parallel
-        self.num_eps: int = num_eps
-        self.num_iters: int = num_iters
-        self.max_queue_len: int = max_queue_len
-        self.num_it_tr_examples_history: int = num_it_tr_examples_history
 
         self.folder_ceckpoint: str = folder_checkpoint
-        self.load_folder_file: str = load_folder_file
 
         self.max_weapon_per_figure: int = max_weapon_per_figure
         self.max_figure_per_scenario: int = max_figure_per_scenario
@@ -73,19 +62,25 @@ class Coach():
         self.support_red: Agent or None = support_red
         self.support_blue: Agent or None = support_blue
         self.support_boast_prob: float = support_boast_prob
+        self.support_enabled: bool = True
 
-    def generate(self, it: int):
+    def generate(self, num_eps: int, it: int):
         tr_examples_red = []
         tr_examples_blue = []
         tr_meta = []
 
         logger.info('Sart Self Play Iter #%s', it)
 
+        support_red, support_blue = None, None
+        if self.support_enabled:
+            support_red = self.support_red
+            support_blue = self.support_blue
+
         if self.parallel:
             episodes = [Episode.remote(
-                self.red, self.blue, self.support_red, self.support_blue, self.support_boast_prob, self.seed + c, self.max_weapon_per_figure,
+                self.red, self.blue, support_red, support_blue, self.support_boast_prob, self.seed + c, self.max_weapon_per_figure,
                 self.max_figure_per_scenario, self.max_move_no_response_size, self.max_attack_size, self.num_MCTS_sims, self.cpuct, self.max_depth
-            ) for c in range(self.num_eps)]
+            ) for c in range(num_eps)]
 
             # this uses ray's parallelism
             tasks = []
@@ -107,7 +102,7 @@ class Coach():
             episodes = [Episode(
                 self.red, self.blue, self.support_red, self.support_blue, self.support_boast_prob, self.seed + c, self.max_weapon_per_figure,
                 self.max_figure_per_scenario, self.max_move_no_response_size, self.max_attack_size, self.num_MCTS_sims, self.cpuct, self.max_depth
-            ) for c in range(self.num_eps)]
+            ) for c in range(num_eps)]
 
             for c, episode in enumerate(episodes):
                 board, state = next(self.game_generator)

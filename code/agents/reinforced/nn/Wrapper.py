@@ -66,16 +66,15 @@ class ModelWrapper():
 
         team = team if team else ''
 
+        batch_count = int(n / self.batch_size) + 1
+
+        t = tqdm(range(batch_count * self.epochs), desc=f'Training {team:4}')
         for epoch in range(self.epochs):
-            logger.info('EPOCH :: ' + str(epoch + 1))
             self.nn.train()
             pi_losses = AverageMeter()
             v_losses = AverageMeter()
 
-            batch_count = int(n / self.batch_size) + 1
-
-            t = tqdm(range(batch_count), desc=f'Training Net {team:4}')
-            for _ in t:
+            for batch in range(batch_count):
                 sample_ids = self.random.choice(n, size=min(n, self.batch_size))
                 features, pis, vs = list(zip(*[examples[i] for i in sample_ids]))
                 features = torch.FloatTensor(np.array(features).astype(np.float64))
@@ -96,7 +95,9 @@ class ModelWrapper():
                 # record loss
                 pi_losses.update(l_pi.item(), features.size(0))
                 v_losses.update(l_v.item(), features.size(0))
-                t.set_postfix(Loss_pi=pi_losses, Loss_v=v_losses)
+
+                t.set_postfix(Loss_pi=pi_losses, Loss_v=v_losses, Epoch=epoch, Batch=batch)
+                t.update()
 
                 # compute gradient and do SGD step
                 optimizer.zero_grad()

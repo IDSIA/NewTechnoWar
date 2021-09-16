@@ -5,17 +5,14 @@ import math
 from typing import Dict, Tuple
 
 import numpy as np
-from agents.adversarial.puppets import Puppet
 
-from core.game import GameManager
+from core.game import GameManager, GameBoard, GameState
 from core.actions import Attack, Move, Action, Response, NoResponse, PassTeam, AttackResponse, PassFigure, Wait, MoveLoadInto
 from core.const import RED, BLUE
 
-from agents import MatchManager
+from agents import MatchManager, Puppet
 from agents.reinforced.nn import ModelWrapper
 from agents.reinforced.utils import ACT, RES
-from core.game.board import GameBoard
-from core.game.state import GameState
 from utils.copy import deepcopy
 
 logger = logging.getLogger(__name__)

@@ -6,6 +6,7 @@ import numpy as np
 from agents import Agent, GreedyAgent
 from agents.reinforced import MCTS, ModelWrapper
 from core.actions import Action, NoResponse, Wait
+from core.const import BLUE, RED
 from core.game import GameBoard, GameState
 
 logger = logging.getLogger(__name__)
@@ -21,8 +22,8 @@ class MCTSAgent(Agent):
         self.RED = ModelWrapper(board_shape, seed)
         self.BLUE = ModelWrapper(board_shape, seed)
 
-        self.RED.load_checkpoint(checkpoint, 'new_red.pth.tar')
-        self.BLUE.load_checkpoint(checkpoint, 'new_blue.pth.tar')
+        self.RED.load_checkpoint(checkpoint, f'model_{RED}.pth.tar')
+        self.BLUE.load_checkpoint(checkpoint, f'model_{BLUE}.pth.tar')
 
         self.mcts = MCTS(self.RED, self.BLUE, seed, max_weapon_per_figure, max_figure_per_scenario,
                          max_move_no_response_size, max_attack_size, num_MCTS_sims, cpuct)

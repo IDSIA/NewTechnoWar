@@ -11,8 +11,7 @@ from agents.reinforced.nn.Wrapper import ModelWrapper
 from agents.reinforced.utils import ACT, RES
 
 from core.const import BLUE, RED
-from core.game.board import GameBoard
-from core.game.state import GameState
+from core.game import GameBoard, GameState
 
 from utils.copy import deepcopy
 

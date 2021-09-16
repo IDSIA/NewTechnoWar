@@ -36,8 +36,6 @@ class Trainer:
         self.model.to(self.device)
         self.model.train(train_examples, self.team)
 
-        logger.info('Losses Average %s', self.model.history[-1])
-
         # save new model
         self.model.save_checkpoint(folder=os.path.join(workdir, 'models'), filename=f'checkpoint_model_{iteration}_{self.team}.pth.tar')
         self.model.save_checkpoint(folder=workdir, filename=f'model_{self.team}.pth.tar')
