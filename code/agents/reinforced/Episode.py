@@ -1,11 +1,11 @@
 import logging
-from typing import Any, Dict
-from datetime import datetime, timedelta
+from typing import Dict
+from datetime import datetime
 
 import numpy as np
 import ray
 
-from agents import Agent, Puppet, MatchManager
+from agents import Puppet, MatchManager, AlphaBetaAgent, GreedyAgent
 from agents.reinforced.MCTS import MCTS
 from agents.reinforced.nn.Wrapper import ModelWrapper
 from agents.reinforced.utils import ACT, RES
@@ -21,72 +21,47 @@ logger = logging.getLogger(__name__)
 @ray.remote
 class Episode:
 
-    seed: int
-    scenario_seed: int
-    completed: bool
-
-    start_time: datetime
-    end_time: datetime
-    duration: timedelta
-
-    winner: str or None
-    steps: int
-
-    mcts: MCTS
-    examples: Dict[str, list]
-
-    support: Dict[str, Agent or None]
-    support_boost_prob: float
-
     def __init__(self,
-                 model_red: ModelWrapper,
-                 model_blue: ModelWrapper,
-                 support_red: Agent = None,
-                 support_blue: Agent = None,
+                 checkpoint: str = '.',
+                 support_red: str = None,
+                 support_blue: str = None,
                  support_boost_prob: float = 1.0,
-                 seed: int = 0,
                  max_weapon_per_figure: int = 8,
                  max_figure_per_scenario: int = 6,
                  max_move_no_response_size: int = 1351,
                  max_attack_size: int = 288,
                  num_MCTS_sims: int = 30,
-                 cpuct: float = 1,
                  max_depth: int = 100,
+                 cpuct: float = 1,
+                 temp_threshold: int = 15,
                  ) -> None:
-
-        self.seed = seed
-
-        self.winner = None
-        self.steps = 0
 
         self.support = {
             RED: support_red,
             BLUE: support_blue,
         }
 
+        self.checkpoint = checkpoint
         self.support_boost_prob = support_boost_prob
+        self.max_weapon_per_figure = max_weapon_per_figure
+        self.max_figure_per_scenario = max_figure_per_scenario
+        self.max_move_no_response_size = max_move_no_response_size
+        self.max_attack_size = max_attack_size
+        self.num_MCTS_sims = num_MCTS_sims
+        self.cpuct = cpuct
+        self.max_depth = max_depth
+        self.temp_threshold = temp_threshold
 
-        self.mcts = MCTS(model_red, model_blue, seed, max_weapon_per_figure, max_figure_per_scenario, max_move_no_response_size, max_attack_size, num_MCTS_sims, cpuct, max_depth)
-        self.examples = {
-            RED: [],
-            BLUE: [],
-        }
+    def get_support(self, team, seed, enabled):
+        if not enabled:
+            return None
+        if self.support[team] == 'greedy':
+            return GreedyAgent(RED, seed=seed)
+        if self.support[team] == 'alphabeta':
+            return AlphaBetaAgent(RED, seed=seed)
+        return None
 
-    def meta(self) -> Dict[str, Any]:
-        return {
-            'seed': self.seed,
-            'scenario_seed': self.scenario_seed,
-            'start_time': self.start_time,
-            'end_time': self.end_time,
-            'duration': self.duration,
-            'winner': self.winner,
-            'steps': self.steps,
-            'completed': self.completed,
-            'num_episodes_red': len(self.examples[RED]),
-            'num_episodes_blue': len(self.examples[BLUE]),
-        }
-
-    def execute(self, board: GameBoard, state: GameState, seed: int = 0, temp_threshold: int = 1):
+    def execute(self, board: GameBoard, state: GameState, seed: int = 0, temp_threshold: int = 1, load_models: bool = True, support_enabled: bool = True):
         """
         This function executes one episode of self-play, starting with RED player.
         As the game is played, each turn is added as a training example to
@@ -102,12 +77,30 @@ class Episode:
                             pi is the MCTS informed policy vector, v is +1 if
                             the player eventually won the game, else -1.
         """
-        self.scenario_seed = seed
-        self.completed = False
 
-        train_examples: Dict[str, list] = {
+        completed = False
+
+        # train examples generated
+        examples: Dict[str, list] = {
             RED: [],
             BLUE: [],
+        }
+
+        # setup models
+        red = ModelWrapper(board.shape, seed)
+        blue = ModelWrapper(board.shape, seed)
+
+        if load_models:
+            red.load_checkpoint(self.checkpoint, 'model_red.pth.tar')
+            blue.load_checkpoint(self.checkpoint, 'model_blue.pth.tar')
+
+        # setup MCTS
+        mcts = MCTS(red, blue, seed, self.max_weapon_per_figure, self.max_figure_per_scenario,
+                    self.max_move_no_response_size, self.max_attack_size, self.num_MCTS_sims, self.cpuct, self.max_depth)
+
+        support = {
+            RED: self.get_support(RED, seed, support_enabled),
+            BLUE: self.get_support(BLUE, seed, support_enabled),
         }
 
         # puppets agents are used to train a MTCS both for RED and BLUE point of view
@@ -120,20 +113,20 @@ class Episode:
 
         mm: MatchManager = MatchManager('', puppet[RED], puppet[BLUE], board, deepcopy(state), seed, False)
 
-        self.steps: int = 0
-        self.start_time = datetime.now()
+        steps: int = 0
+        start_time = datetime.now()
 
         try:
             while not mm.end:
-                self.steps += 1
+                steps += 1
 
-                temp = int(self.steps < temp_threshold)
+                temp = int(steps < temp_threshold)
 
                 board = mm.board
                 state = deepcopy(mm.state)
                 action_type, team, _ = mm.nextPlayer()
 
-                logger.debug(f'Episode step: {self.steps} action: {action_type}')
+                logger.debug(f'Episode step: {steps} action: {action_type}')
 
                 if action_type in ('update', 'init', 'end'):
                     mm.nextStep()
@@ -143,15 +136,15 @@ class Episode:
 
                 logger.debug('Condition from coach BEFORE call getActionProb %s', state)
 
-                _, valid_actions = self.mcts.actionIndexMapping(board, state, team, action_type)
+                _, valid_actions = mcts.actionIndexMapping(board, state, team, action_type)
 
-                features: np.ndarray = self. mcts.generateFeatures(board, state)
+                features: np.ndarray = mcts.generateFeatures(board, state)
 
-                pi, _ = self. mcts.getActionProb(board, state, team, action_type, temp=temp)
+                pi, _ = mcts.getActionProb(board, state, team, action_type, temp=temp)
 
                 # change the probabilities pi based on action choosed by support agent (if given)
-                if self.support[team]:
-                    agent = self.support[team]
+                if support[team]:
+                    agent = support[team]
                     if action_type == ACT:
                         action = agent.chooseAction(board, state)
                     else:
@@ -165,7 +158,7 @@ class Episode:
 
                 example = [features, pi]
 
-                train_examples[team].append(example)
+                examples[team].append(example)
 
                 if max(pi) == 1:
                     action_index = np.argmax(pi)
@@ -182,28 +175,49 @@ class Episode:
 
                 mm.nextStep()
 
-            self.winner = mm.winner
+            winner = mm.winner
 
-            self.end_time = datetime.now()
-            self.duration = self.end_time - self.start_time
+            end_time = datetime.now()
+            duration = end_time - start_time
 
-            logger.debug('elapsed time: %s', self.duration)
+            logger.debug('elapsed time: %s', duration)
 
             # assign victory: 1 is winner, -1 is loser
-            r, b = (1, -1) if self.winner == RED else (-1, 1)
+            r, b = (1, -1) if winner == RED else (-1, 1)
 
             # board, team, pi, winner
-            self.examples[RED] = [(features, pi, r) for features, pi in train_examples[RED]]
-            self.examples[BLUE] = [(features, pi, b) for features, pi in train_examples[BLUE]]
+            examples[RED] = [(features, pi, r) for features, pi in examples[RED]]
+            examples[BLUE] = [(features, pi, b) for features, pi in examples[BLUE]]
 
-            self.completed = True
+            completed = True
 
         except Exception as e:
             # clear
             logger.error(f'Episode failed: {e}')
             logger.exception(e)
 
-            self.examples[RED] = []
-            self.examples[BLUE] = []
+            examples[RED] = []
+            examples[BLUE] = []
 
-        return self
+        meta = {
+            'support_boost_prob': self.support_boost_prob,
+            'max_weapon_per_figure': self.max_weapon_per_figure,
+            'max_figure_per_scenario': self.max_figure_per_scenario,
+            'max_move_no_response_size': self.max_move_no_response_size,
+            'max_attack_size': self.max_attack_size,
+            'num_MCTS_sims': self.num_MCTS_sims,
+            'cpuct': self.cpuct,
+            'max_depth': self.max_depth,
+            'temp_threshold': self.temp_threshold,
+            'seed': seed,
+            'start_time': start_time,
+            'end_time': end_time,
+            'duration': duration,
+            'winner': winner,
+            'steps': steps,
+            'completed': completed,
+            'num_episodes_red': len(examples[RED]),
+            'num_episodes_blue': len(examples[BLUE]),
+        }
+
+        return examples[RED], examples[BLUE], meta

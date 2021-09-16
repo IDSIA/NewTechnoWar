@@ -34,8 +34,9 @@ class AverageMeter(object):
 
 class ModelWrapper():
 
-    def __init__(self, shape: Tuple[int], seed: int = 0, lr: float = 0.001, dropout: float = 0.3, epochs: int = 2, batch_size: int = 64,
-                 num_channels: int = 512, max_move_no_response_size: int = 1351, max_attack_size: int = 288, device='cpu'
+    def __init__(self, shape: Tuple[int], seed: int = 0, epochs: int = 2, batch_size: int = 64, num_channels: int = 512,
+                 max_move_no_response_size: int = 1351, max_attack_size: int = 288, device='cpu',
+                 lr: float = 0.001, dropout: float = 0.3,
                  ):
         self.board_x, self.board_y = shape
         self.action_size = max_move_no_response_size + max_attack_size + 1
@@ -139,7 +140,7 @@ class ModelWrapper():
         }, filepath)
 
     def load_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
-        logger.info('loading model from folder=%s file=%s', folder, filename)
+        logger.debug('loading model from folder=%s file=%s', folder, filename)
 
         # https://github.com/pytorch/examples/blob/master/imagenet/main.py#L98
         filepath = os.path.join(folder, filename)

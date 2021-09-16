@@ -1,6 +1,4 @@
 import logging
-from utils.setup_logging import setup_logging
-setup_logging()
 
 import argparse
 import os
@@ -14,6 +12,8 @@ import numpy as np
 import ray
 import torch
 
+from tqdm import tqdm
+
 from core.const import RED, BLUE
 from core.game.goals import GoalEliminateOpponent
 from core.scenarios.generators import scenarioRandom10x10, scenarioRandom5x5
@@ -21,8 +21,11 @@ from core.templates import buildFigure
 from core.game import GameBoard, GameState, GoalReachPoint, GoalDefendPoint, GoalMaxTurn
 from core.utils.coordinates import Hex
 
-from agents import AlphaBetaAgent, GreedyAgent
-from agents.reinforced import ModelWrapper, Coach, Trainer
+from agents.reinforced import ModelWrapper, Trainer
+from agents.reinforced.Episode import Episode
+
+from utils.setup_logging import setup_logging
+setup_logging()
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 os.environ['RAY_DISABLE_IMPORT_WARNING'] = '1'
@@ -123,8 +126,8 @@ if __name__ == '__main__':
 
     p = argparse.ArgumentParser()
     # resources
-    p.add_argument('-c', '--cpus', type=int, default=NUM_CORES, help=f'default: {NUM_CORES}\tmax num of cores to use')
-    p.add_argument('-g', '--gpus', type=int, default=NUM_GPUS, help=f'default: {NUM_GPUS}\tmax num of gpus to use')
+    p.add_argument('-c', '--cpus', type=int, default=NUM_CORES, help=f'default: {NUM_CORES}\tmax num of cores to use (workers)')
+    p.add_argument('-g', '--gpus', type=int, default=NUM_GPUS, help=f'default: {NUM_GPUS}\tmax num of gpus to use for training')
     p.add_argument('-s', '--seed', type=int, default=SEED, help=f'default: {SEED}\trandom seed to use')
     # train parameters
     p.add_argument('-e', '--epochs', type=int, default=EPOCHS, help=f'default: {EPOCHS}\ttraining epochs for nn')
@@ -145,8 +148,10 @@ if __name__ == '__main__':
     # support assistants
     p.add_argument('-sar', '--support-red', default=SUPPORT_RED, dest='sar', help=f'\tUse a support agent (greedy or alphabeta) for red during episodes generation')
     p.add_argument('-sab', '--support-blue', default=SUPPORT_BLUE, dest='sab', help=f'\tUse a support agent (greedy or alphabeta) for blue during episodes generation')
-    p.add_argument('-sh', '--support-help', type=float, default=SUPPORT_HELP, dest='shelp', help=f'default: {SUPPORT_HELP}\tpercentage of iterations with help (starting from first)')
-    p.add_argument('-b', '--support-boost', type=float, default=SUPPORT_BOOST_PROB, dest='boost', help=f'default: {SUPPORT_BOOST_PROB}\tboost probability for support chosen actions')
+    p.add_argument('-sh', '--support-help', type=float, default=SUPPORT_HELP, dest='shelp',
+                   help=f'default: {SUPPORT_HELP}\tpercentage of iterations with help (starting from first)')
+    p.add_argument('-b', '--support-boost', type=float, default=SUPPORT_BOOST_PROB, dest='boost',
+                   help=f'default: {SUPPORT_BOOST_PROB}\tboost probability for support chosen actions')
     args = p.parse_args()
 
     logger.info("Using %s cores", args.cpus)
@@ -162,22 +167,22 @@ if __name__ == '__main__':
     seed = args.seed
 
     # this is a small dummy scenario for testing purposes
-    gen = None
+    game_generator = None
     shape = None
     if args.s5:
-        gen = scenario5x5()
+        game_generator = scenario5x5()
         shape = (5, 5)
     if args.r5:
-        gen = scenarioRandom5x5(seed)
+        game_generator = scenarioRandom5x5(seed)
         shape = (5, 5)
     if args.s10:
-        gen = scenario10x10()
+        game_generator = scenario10x10()
         shape = (10, 10)
     if args.r10:
-        gen = scenarioRandom10x10(seed)
+        game_generator = scenarioRandom10x10(seed)
         shape = (10, 10)
 
-    if not gen:
+    if not game_generator:
         logger.error("no scenario selected")
         exit(1)
 
@@ -192,14 +197,22 @@ if __name__ == '__main__':
     load_models = args.load
     boost = args.boost
     max_depth = args.depth
+
+    support_red = args.sar
+    support_blue = args.sab
     support_help = args.shelp
+    support_boost = args.boost
 
-    os.makedirs(checkpoint, exist_ok=True)
-    os.makedirs(os.path.join(checkpoint, 'models'), exist_ok=True)
-    os.makedirs(os.path.join(checkpoint, 'episodes'), exist_ok=True)
-    os.makedirs(os.path.join(checkpoint, 'metrics'), exist_ok=True)
+    DIR_CHECKPOINT = checkpoint
+    DIR_MODELS = os.path.join(DIR_CHECKPOINT, 'models')
+    DIR_EPISODES = os.path.join(DIR_CHECKPOINT, 'episodes')
+    DIR_METRICS = os.path.join(DIR_CHECKPOINT, 'metrics')
 
-    with open(os.path.join(checkpoint, f'config.{NOW}.json'), 'w') as f:
+    os.makedirs(DIR_MODELS, exist_ok=True)
+    os.makedirs(DIR_EPISODES, exist_ok=True)
+    os.makedirs(DIR_METRICS, exist_ok=True)
+
+    with open(os.path.join(DIR_CHECKPOINT, f'config.{NOW}.json'), 'w') as f:
         json.dump({
             'start': NOW,
             '5x5': args.s5,
@@ -222,77 +235,95 @@ if __name__ == '__main__':
             'max_move_no_response_size': max_move_no_response_size,
             'max_attack_size': max_attack_size,
             'checkpoint': checkpoint,
-            'support_red': args.sar,
-            'support_blue': args.sab,
-            'boost_probability': args.boost,
+            'support_red': support_red,
+            'support_blue': support_blue,
+            'boost_probability': support_boost,
             'support_help': support_help,
             'accumulate': args.accumulate,
         }, f)
 
-    # train models
-    red_model = ModelWrapper(shape, seed, epochs=epochs)
-    blue_model = ModelWrapper(shape, seed, epochs=epochs)
+    # workers definition:
 
-    # support agents
-    support_red = None
-    support_blue = None
+    workers = [Episode.remote(
+        checkpoint, support_red, support_blue, support_boost, max_weapon_per_figure, max_figure_per_scenario,
+        max_move_no_response_size, max_attack_size, num_MCTS_sims, max_depth, cpuct, temp_threshold
+    ) for _ in range(args.cpus)]
 
-    if args.sar == 'greedy':
-        support_red = GreedyAgent(RED, seed=seed)
-    if args.sar == 'alphabeta':
-        support_red = AlphaBetaAgent(RED, seed=seed)
-    if args.sab == 'greedy':
-        support_blue = GreedyAgent(BLUE, seed=seed)
-    if args.sab == 'alphabeta':
-        support_blue = AlphaBetaAgent(RED, seed=seed)
-
-    # this is for continuous training
-    if load_models:
-        red_model.load_checkpoint(checkpoint, 'new_red.pth.tar')
-        blue_model.load_checkpoint(checkpoint, 'new_blue.pth.tar')
-
-    c = Coach(gen, red_model, blue_model, support_red, support_blue, boost, seed, max_weapon_per_figure, max_figure_per_scenario,
-              max_move_no_response_size, max_attack_size, num_MCTS_sims, cpuct, max_depth, temp_threshold, parallel, checkpoint)
-    t_red = Trainer(red_model, RED)
-    t_blue = Trainer(blue_model, BLUE)
-
-    history_red = []
-    history_blue = []
+    train_examples = {
+        RED: [],
+        BLUE: []
+    }
 
     for it in range(num_iters):
-        logger.info('Start training Iter #%s ...', it)
+        logger.info('Start Iter #%s ...', it)
 
-        if it > num_iters * support_help:
-            c.support_enabled = False
-            logger.info('support agents for training disabled')
+        support_enabled = it < num_iters * support_help
+        logger.info('support agents for training %s', 'enabled' if support_enabled else 'disabled')
+
+        logger.info('start self-play iter #%s', it)
 
         # collect episodes
-        tr_red, tr_blue, tr_meta = c.generate(num_eps, it)
+        tasks, tr_red, tr_blue, tr_meta = [], [], [], []
+        i = 0
+        while i < num_eps:
+            for w in workers:
+                board, state = next(game_generator)
+                tasks.append(w.execute.remote(board, state, seed+i, temp_threshold, it > 0, support_enabled))
+                i += 1
+
+        for task in tqdm(tasks, desc="Self Play"):
+            tr_ex_red, tr_ex_blue, tr_ex_meta = ray.get(task)
+            tr_red += tr_ex_red
+            tr_blue += tr_ex_blue
+            tr_meta += tr_ex_meta
 
         # save meta information and training examples
-        with open(os.path.join(checkpoint, 'episodes', f'checkpoint_{it}.json'), 'w') as f:
+        with open(os.path.join(DIR_EPISODES, f'checkpoint_{it}.json'), 'w') as f:
             json.dump(tr_meta, f, indent=4, sort_keys=True, default=str)
-        with open(os.path.join(checkpoint, 'episodes', f'checkpoint_{it}_{RED}.examples.pkl'), 'wb') as f:
+        with open(os.path.join(DIR_EPISODES, f'checkpoint_{it}_{RED}.examples.pkl'), 'wb') as f:
             pickle.dump(tr_red, f)
-        with open(os.path.join(checkpoint, 'episodes', f'checkpoint_{it}_{BLUE}.examples.pkl'), 'wb') as f:
+        with open(os.path.join(DIR_EPISODES, f'checkpoint_{it}_{BLUE}.examples.pkl'), 'wb') as f:
             pickle.dump(tr_blue, f)
 
+        logger.info('end self-play iter #%s', it)
+
         if args.accumulate:
-            history_red += tr_red
-            history_blue += tr_blue
+            train_examples[RED] += tr_red
+            train_examples[BLUE] += tr_blue
             logging.info('accumulating %s new episodes for red and %s for blue', len(tr_red), len(tr_blue))
         else:
-            history_red = tr_red
-            history_blue = tr_blue
+            train_examples[RED] = tr_red
+            train_examples[BLUE] = tr_blue
 
-        if len(history_red) > max_tr_examples:
-            history_red = history_red[-max_tr_examples:]
-        if len(history_blue) > max_tr_examples:
-            history_blue = history_blue[-max_tr_examples:]
+        if len(train_examples[RED]) > max_tr_examples:
+            train_examples[RED] = train_examples[RED][-max_tr_examples:]
+        if len(train_examples[BLUE]) > max_tr_examples:
+            train_examples[BLUE] = train_examples[BLUE][-max_tr_examples:]
 
         # train models
-        t_red.train(tr_red, checkpoint, it)
-        t_blue.train(tr_blue, checkpoint, it)
+        for team in [RED, BLUE]:
+            tr_examples = train_examples[team]
+
+            logger.info('using %s examples for training %s model', len(tr_examples), team)
+
+            device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+            model = ModelWrapper(shape, seed, epochs, device=device, max_move_no_response_size=max_move_no_response_size, max_attack_size=max_attack_size)
+            model.train(tr_examples, team)
+
+            # save new model
+            model.save_checkpoint(folder=DIR_MODELS, filename=f'checkpoint_model_{it}_{team}.pth.tar')
+            model.save_checkpoint(folder=DIR_CHECKPOINT, filename=f'model_{team}.pth.tar')
+
+            # save metrics history
+            filename = os.path.join(DIR_METRICS, f'checkpoint_losses_{it}_{team}.tsv')
+            with open(filename, 'w', encoding='utf-8') as f:
+                f.write('\t'.join(['i', 'l_pi_avg', 'l_pi_count', 'l_pi_sum', 'l_pi_val', 'l_v_avg', 'l_v_count', 'l_v_sum', 'l_v_val']))
+                f.write('\n')
+                for x in range(len(model.history)):
+                    l_pi, l_v = model.history[x]
+                    f.write('\t'.join([str(a) for a in [x, l_pi.avg, l_pi.count, l_pi.sum, l_pi.val, l_v.avg, l_v.count, l_v.sum, l_v.val]]))
+                    f.write('\n')
 
         # evaluate new models
 
