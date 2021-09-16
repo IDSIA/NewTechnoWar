@@ -15,14 +15,12 @@ import torch
 from tqdm import tqdm
 
 from core.const import RED, BLUE
-from core.game.goals import GoalEliminateOpponent
 from core.scenarios.generators import scenarioRandom10x10, scenarioRandom5x5
 from core.templates import buildFigure
-from core.game import GameBoard, GameState, GoalReachPoint, GoalDefendPoint, GoalMaxTurn
+from core.game import GameBoard, GameState, GoalReachPoint, GoalDefendPoint, GoalMaxTurn, GoalEliminateOpponent
 from core.utils.coordinates import Hex
 
-from agents.reinforced import ModelWrapper, Trainer
-from agents.reinforced.Episode import Episode
+from agents.reinforced import ModelWrapper, Episode
 
 from utils.setup_logging import setup_logging
 setup_logging()
