@@ -13,6 +13,7 @@ import ray
 import torch
 
 from tqdm import tqdm
+from ray.exceptions import GetTimeoutError
 
 from core.const import RED, BLUE
 from core.scenarios.generators import scenarioRandom10x10, scenarioRandom5x5
@@ -94,6 +95,7 @@ if __name__ == '__main__':
 
     NUM_CORES: int = max(1, os.environ.get('NUM_CORES', os.cpu_count() - 1))
     NUM_GPUS: int = os.environ.get('NUM_GPUS', torch.cuda.device_count())
+    TIMEOUT: int = 240
 
     # parameters for coach and MCTS
     SEED: int = 151775519
@@ -127,6 +129,7 @@ if __name__ == '__main__':
     p.add_argument('-c', '--cpus', type=int, default=NUM_CORES, help=f'default: {NUM_CORES}\tmax num of cores to use (workers)')
     p.add_argument('-g', '--gpus', type=int, default=NUM_GPUS, help=f'default: {NUM_GPUS}\tmax num of gpus to use for training')
     p.add_argument('-s', '--seed', type=int, default=SEED, help=f'default: {SEED}\trandom seed to use')
+    p.add_argument('-t', '--timeout', type=int, default=TIMEOUT, help=f'default: {TIMEOUT}\tset timeout for episode generation in seconds')
     # train parameters
     p.add_argument('-e', '--epochs', type=int, default=EPOCHS, help=f'default: {EPOCHS}\ttraining epochs for nn')
     p.add_argument('-i', '--iters', type=int, default=NUM_ITERS, help=f'default: {NUM_ITERS}\tmax num of iterations')
@@ -163,6 +166,7 @@ if __name__ == '__main__':
 
     # random seed for repeatability
     seed = args.seed
+    timeout = args.timeout
 
     # this is a small dummy scenario for testing purposes
     game_generator = None
@@ -185,7 +189,6 @@ if __name__ == '__main__':
         exit(1)
 
     # training arguments setup
-
     epochs = args.epochs
     num_iters = args.iters
     num_eps = args.episodes
@@ -272,10 +275,13 @@ if __name__ == '__main__':
                     break
 
         for task in tqdm(tasks, desc="Self Play"):
-            tr_ex_red, tr_ex_blue, tr_ex_meta = ray.get(task)
-            tr_red += tr_ex_red
-            tr_blue += tr_ex_blue
-            tr_meta += tr_ex_meta
+            try:
+                tr_ex_red, tr_ex_blue, tr_ex_meta = ray.get(task, timeout=timeout)
+                tr_red += tr_ex_red
+                tr_blue += tr_ex_blue
+                tr_meta += tr_ex_meta
+            except GetTimeoutError:
+                pass
 
         # save meta information and training examples
         with open(os.path.join(DIR_EPISODES, f'checkpoint_{it}.json'), 'w') as f:
