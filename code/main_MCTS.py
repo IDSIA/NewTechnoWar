@@ -244,7 +244,7 @@ if __name__ == '__main__':
 
     workers = [Episode.remote(
         checkpoint, support_red, support_blue, support_boost, max_weapon_per_figure, max_figure_per_scenario,
-        max_move_no_response_size, max_attack_size, num_MCTS_sims, max_depth, cpuct, temp_threshold
+        max_move_no_response_size, max_attack_size, num_MCTS_sims, max_depth, cpuct
     ) for _ in range(args.cpus)]
 
     train_examples = {
