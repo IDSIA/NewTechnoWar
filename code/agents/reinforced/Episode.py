@@ -54,9 +54,9 @@ class Episode:
         if not enabled:
             return None
         if self.support[team] == 'greedy':
-            return GreedyAgent(RED, seed=seed)
+            return GreedyAgent(team, seed=seed)
         if self.support[team] == 'alphabeta':
-            return AlphaBetaAgent(RED, seed=seed)
+            return AlphaBetaAgent(team, seed=seed)
         return None
 
     def execute(self, board: GameBoard, state: GameState, seed: int = 0, temp_threshold: int = 1, load_models: bool = True, support_enabled: bool = True):
@@ -113,7 +113,7 @@ class Episode:
 
         steps: int = 0
         start_time = datetime.now()
-        winner = None
+        winner: str = None
 
         try:
             while not mm.end:
@@ -135,9 +135,10 @@ class Episode:
 
                 logger.debug('Condition from coach BEFORE call getActionProb %s', state)
 
-                _, valid_actions = mcts.actionIndexMapping(board, state, team, action_type)
+                valid_indices, valid_actions = mcts.actionIndexMapping(board, state, team, action_type)
+                actions = valid_actions[valid_indices]
 
-                features: np.ndarray = mcts.generateFeatures(board, state)
+                features = mcts.generateFeatures(board, state)
 
                 pi, _ = mcts.getActionProb(board, state, team, action_type, temp=temp)
 
@@ -150,23 +151,29 @@ class Episode:
                         action = agent.chooseResponse(board, state)
 
                     for i, va in enumerate(valid_actions):
-                        if str(va) == str(action):
+                        if va and str(va) == str(action):
                             pi[i] += self.support_boost_prob
-                            pi = pi/pi.sum()
+                            pi /= pi.sum()
                             break
 
                 example = [features, pi]
 
                 examples[team].append(example)
 
-                if max(pi) == 1:
-                    action_index = np.argmax(pi)
-                    logger.debug(f'Unexpected single choice! Index: {action_index}')
+                pi: np.ndarray = pi[valid_indices]
+                pi_sum = pi.sum()
+                if pi_sum > 0:
+                    pi /= pi.sum()
                 else:
-                    action_index = random.choice(len(pi), p=pi)
+                    logger.warn(f'Unexpected no probability vector!')
+                    pi = np.ones(pi.shape)
+                    pi /= pi.sum()
+
+                if max(pi) == 1:
+                    logger.debug(f'Unexpected single choice! Index: {np.argmax(pi)}')
 
                 # choose next action and load in correct puppet
-                action = valid_actions[action_index]
+                action = random.choice(actions, p=pi)
 
                 # assuming action/response are selected correctly
                 puppet[team].action = action
@@ -187,7 +194,7 @@ class Episode:
 
         except Exception as e:
             # clear
-            logger.error(f'Episode failed: {e}')
+            logger.error(f'Episode failed, reason: {e}')
             logger.exception(e)
 
             examples[RED] = []
@@ -209,6 +216,7 @@ class Episode:
             'max_depth': self.max_depth,
             'temp_threshold': temp_threshold,
             'seed': seed,
+            'scenario_seed': board.gen_seed,
             'start_time': start_time,
             'end_time': end_time,
             'duration': duration,
@@ -217,6 +225,12 @@ class Episode:
             'completed': completed,
             'num_episodes_red': len(examples[RED]),
             'num_episodes_blue': len(examples[BLUE]),
+            'support_enabled': support_enabled,
+            'support_red': support[RED],
+            'support_blue': support[BLUE],
         }
+
+        if not completed:
+            logger.error('meta data of failed episode:\n%s', meta)
 
         return examples[RED], examples[BLUE], meta

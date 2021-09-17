@@ -207,11 +207,9 @@ if __name__ == '__main__':
     DIR_CHECKPOINT = checkpoint
     DIR_MODELS = os.path.join(DIR_CHECKPOINT, 'models')
     DIR_EPISODES = os.path.join(DIR_CHECKPOINT, 'episodes')
-    DIR_METRICS = os.path.join(DIR_CHECKPOINT, 'metrics')
 
     os.makedirs(DIR_MODELS, exist_ok=True)
     os.makedirs(DIR_EPISODES, exist_ok=True)
-    os.makedirs(DIR_METRICS, exist_ok=True)
 
     with open(os.path.join(DIR_CHECKPOINT, f'config.{NOW}.json'), 'w') as f:
         json.dump({
@@ -258,6 +256,9 @@ if __name__ == '__main__':
     for it in range(num_iters):
         logger.info('Start Iter #%s ...', it)
 
+        DIR_IT = os.path.join(DIR_MODELS, str(it))
+        os.makedirs(DIR_IT)
+
         support_enabled = it < num_iters * support_help
         logger.info('support agents for training %s', 'enabled' if support_enabled else 'disabled')
 
@@ -274,21 +275,31 @@ if __name__ == '__main__':
                 if i >= num_eps:
                     break
 
-        for task in tqdm(tasks, desc="Self Play"):
+        task_timed_out = 0
+        task_failed = 0
+        t = tqdm(tasks, desc="Self Play")
+        for task in t:
             try:
                 tr_ex_red, tr_ex_blue, tr_ex_meta = ray.get(task, timeout=timeout)
                 tr_red += tr_ex_red
                 tr_blue += tr_ex_blue
                 tr_meta += tr_ex_meta
-            except GetTimeoutError:
-                pass
+
+                if not tr_ex_meta['completed']:
+                    task_failed += 1
+
+            except GetTimeoutError as _:
+                task_timed_out += 1
+
+            t.set_postfix(Timedout=task_timed_out, Failed=task_failed, tr_blue=len(tr_blue), tr_red=len(tr_red))
+            t.update()
 
         # save meta information and training examples
-        with open(os.path.join(DIR_EPISODES, f'checkpoint_{it}.json'), 'w') as f:
+        with open(os.path.join(DIR_EPISODES, f'checkpoint_{it}_meta.json'), 'w') as f:
             json.dump(tr_meta, f, indent=4, sort_keys=True, default=str)
-        with open(os.path.join(DIR_EPISODES, f'checkpoint_{it}_{RED}.examples.pkl'), 'wb') as f:
+        with open(os.path.join(DIR_EPISODES, f'checkpoint_{it}_{RED}_examples.pkl'), 'wb') as f:
             pickle.dump(tr_red, f)
-        with open(os.path.join(DIR_EPISODES, f'checkpoint_{it}_{BLUE}.examples.pkl'), 'wb') as f:
+        with open(os.path.join(DIR_EPISODES, f'checkpoint_{it}_{BLUE}_examples.pkl'), 'wb') as f:
             pickle.dump(tr_blue, f)
 
         logger.info('end self-play iter #%s', it)
@@ -310,7 +321,10 @@ if __name__ == '__main__':
         for team in [RED, BLUE]:
             tr_examples = train_examples[team]
 
-            logger.info('using %s examples for training %s model', len(tr_examples), team)
+            n_ex = len(tr_examples)
+            p_win = sum(1 for e in tr_examples if e[2] > 0)/n_ex
+
+            logger.info('using %s examples (wins: %s) for training %s model', n_ex, p_win, team)
 
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -318,11 +332,11 @@ if __name__ == '__main__':
             model.train(tr_examples, team)
 
             # save new model
-            model.save_checkpoint(folder=DIR_MODELS, filename=f'checkpoint_model_{it}_{team}.pth.tar')
+            model.save_checkpoint(folder=DIR_IT, filename=f'model_{team}.pth.tar')
             model.save_checkpoint(folder=DIR_CHECKPOINT, filename=f'model_{team}.pth.tar')
 
             # save metrics history
-            filename = os.path.join(DIR_METRICS, f'checkpoint_losses_{it}_{team}.tsv')
+            filename = os.path.join(DIR_IT, f'checkpoint_metrics_{it}_{team}.tsv')
             with open(filename, 'w', encoding='utf-8') as f:
                 f.write('\t'.join(['i', 'l_pi_avg', 'l_pi_count', 'l_pi_sum', 'l_pi_val', 'l_v_avg', 'l_v_count', 'l_v_sum', 'l_v_val']))
                 f.write('\n')

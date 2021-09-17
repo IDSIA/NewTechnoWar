@@ -93,7 +93,7 @@ class MCTS():
 
         return np.stack((figures, goals, terrain))
 
-    def calculateValidMoves(self, board, state, team, action_type) -> list:
+    def calculateValidMoves(self, board, state, team, action_type) -> np.ndarray:
         all_valid_actions = []
 
         if action_type == ACT:
@@ -102,89 +102,87 @@ class MCTS():
         elif action_type == RES:
             all_valid_actions = self.gm.buildResponsesForTeam(board, state, team)
 
-        return all_valid_actions
+        return np.array(all_valid_actions)
 
-    def actionIndexMapping(self, board, state, team, action_type) -> Tuple[list, list]:
+    def actionIndexMapping(self, board, state, team, action_type) -> Tuple[np.ndarray, np.ndarray]:
         all_valid_actions = self.calculateValidMoves(board, state, team, action_type)
 
-        valid_indices = [0] * self.max_action_size
-        valid_actions = [None] * self.max_action_size
+        valid_indices = np.array([False] * self.max_action_size)
+        valid_actions = np.array([None] * self.max_action_size)
 
-        if all_valid_actions != []:
+        for a in all_valid_actions:
+            idx = -1
 
-            for a in all_valid_actions:
-                idx = -1
+            if type(a) == AttackResponse or type(a) == Attack:
 
-                if type(a) == AttackResponse or type(a) == Attack:
+                figure_ind = a.figure_id
+                target_ind = a.target_id
 
-                    figure_ind = a.figure_id
-                    target_ind = a.target_id
+                weapon_ind = WEAPONS_INDICES[a.weapon_id]
 
-                    weapon_ind = WEAPONS_INDICES[a.weapon_id]
+                idx = (
+                    self.max_move_no_response_size +
+                    weapon_ind +
+                    target_ind * self.max_weapon_per_figure +
+                    figure_ind * self.max_weapon_per_figure * self.max_figure_per_scenario
+                )
 
-                    idx = (
-                        self.max_move_no_response_size +
-                        weapon_ind +
-                        target_ind * self.max_weapon_per_figure +
-                        figure_ind * self.max_weapon_per_figure * self.max_figure_per_scenario
-                    )
+            elif type(a) == Wait:
 
-                elif type(a) == Wait:
+                idx = self.max_move_no_response_size - 2
 
-                    idx = self.max_move_no_response_size - 2
+            elif type(a) == NoResponse:
 
-                elif type(a) == NoResponse:
+                idx = self.max_move_no_response_size - 1
 
-                    idx = self.max_move_no_response_size - 1
+            elif type(a) == PassTeam:
 
-                elif type(a) == PassTeam:
+                idx = self.max_move_no_response_size
 
-                    idx = self.max_move_no_response_size
+            else:
 
+                if type(a) == PassFigure:
+                    x = 0
+                    y = 0
+
+                elif type(a) == Move:
+
+                    start_pos = a.position.tuple()
+                    end_pos = a.destination.tuple()
+
+                    x = end_pos[0] - start_pos[0]
+                    y = end_pos[1] - start_pos[1]
+
+                elif type(a) == MoveLoadInto:
+
+                    start_pos = a.position.tuple()
+                    end_pos = a.destination.tuple()
+
+                    x = end_pos[0] - start_pos[0]
+                    y = end_pos[1] - start_pos[1]
+
+                figure_index = a.figure_id
+
+                if x+y <= 0:
+                    index_shift = ((x+y+(7+7))*(x+y+(7+7+1)))//2+y+7
                 else:
+                    index_shift = 224-(((x+y-(7+7))*(x+y-(7+7+1)))//2-y-7)
 
-                    if type(a) == PassFigure:
-                        x = 0
-                        y = 0
+                idx = figure_index * 225 + index_shift
 
-                    elif type(a) == Move:
-
-                        start_pos = a.position.tuple()
-                        end_pos = a.destination.tuple()
-
-                        x = end_pos[0] - start_pos[0]
-                        y = end_pos[1] - start_pos[1]
-
-                    elif type(a) == MoveLoadInto:
-
-                        start_pos = a.position.tuple()
-                        end_pos = a.destination.tuple()
-
-                        x = end_pos[0] - start_pos[0]
-                        y = end_pos[1] - start_pos[1]
-
-                    figure_index = a.figure_id
-
-                    if x+y <= 0:
-                        index_shift = ((x+y+(7+7))*(x+y+(7+7+1)))//2+y+7
-                    else:
-                        index_shift = 224-(((x+y-(7+7))*(x+y-(7+7+1)))//2-y-7)
-
-                    idx = figure_index * 225 + index_shift
-
-                valid_indices[idx] = 1
-                valid_actions[idx] = a
+            valid_indices[idx] = True
+            valid_actions[idx] = a
 
         return valid_indices, valid_actions
 
     def mapTeamMoveIntoID(self, team, action_type) -> int:
-        if team == RED and action_type == "Action":
+        if team == RED and action_type == ACT:
             return 0
-        elif team == RED and action_type == "Response":
+        elif team == RED and action_type == RES:
             return 1
-        elif team == BLUE and action_type == "Action":
+        elif team == BLUE and action_type == ACT:
             return 2
-        elif team == BLUE and action_type == "Response":
+        elif team == BLUE and action_type == RES:
             return 3
 
     def getActionProb(self, board, state, team, move_type, temp=1) -> Tuple[np.ndarray, int]:
@@ -224,7 +222,7 @@ class MCTS():
                 i += 1
 
         logger.debug('getActProb S is: %s and his parent: %s', s, old_s)
-        counts = np.nan_to_num(np.array([self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.max_action_size)]))
+        counts = np.nan_to_num(np.array([self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.max_action_size)])).astype(np.float64)
 
         if temp == 0:
             bestAs = (np.argwhere(counts == np.max(counts))).flatten()
@@ -233,8 +231,8 @@ class MCTS():
             probs[bestA] = 1
             return probs, s
 
-        counts = np.power(counts, (1. / temp))
-        probs = np.nan_to_num(counts / counts.sum())
+        counts = np.nan_to_num(np.power(counts, (1. / temp)))
+        probs = counts / counts.sum()
         return probs, s
 
     def search(self, board, state, old_s, depth) -> float:

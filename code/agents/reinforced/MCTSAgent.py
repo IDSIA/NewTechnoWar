@@ -5,6 +5,7 @@ import numpy as np
 
 from agents import Agent, GreedyAgent
 from agents.reinforced import MCTS, ModelWrapper
+from agents.reinforced.utils import ACT, RES
 from core.actions import Action, NoResponse, Wait
 from core.const import BLUE, RED
 from core.game import GameBoard, GameState
@@ -29,26 +30,28 @@ class MCTSAgent(Agent):
                          max_move_no_response_size, max_attack_size, num_MCTS_sims, cpuct)
 
     def predict(self, board: GameBoard, state: GameState, action_type):
-        _, valid_actions = self.mcts.actionIndexMapping(board, state, self.team, action_type)
+        valid_indices, valid_actions = self.mcts.actionIndexMapping(board, state, self.team, action_type)
+        actions = valid_actions[valid_indices]
 
         pi, _ = self.mcts.getActionProb(board, state, self.team, action_type)
 
-        if max(pi) == 1:
-            action_index = np.argmax(pi)
-            logger.debug(f'Unexpected single choice! Index: {action_index}')
-        else:
-            action_index = self.random.choice(len(pi), p=pi)
+        pi: np.ndarray = pi[valid_indices]
+        pi /= pi.sum()
 
-        action = valid_actions[action_index]
+        if max(pi) == 1:
+            logger.debug(f'Unexpected single choice! Index: {np.argmax(pi)}')
+
+        # choose next action and load in correct puppet
+        action = self.random.choice(actions, p=pi)
 
         return action
 
     def chooseAction(self, board: GameBoard, state: GameState) -> Action:
-        a = self.predict(board, state, 'Action')
+        a = self.predict(board, state, ACT)
         return a if a else Wait(self.team)
 
     def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
-        r = self.predict(board, state, 'Response')
+        r = self.predict(board, state, RES)
         return r if r else NoResponse(self.team)
 
     def placeFigures(self, board: GameBoard, state: GameState) -> None:
