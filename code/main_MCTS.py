@@ -93,8 +93,11 @@ def scenario10x10() -> Tuple[GameBoard, GameState]:
 if __name__ == '__main__':
     NOW = datetime.now().strftime('%Y%m%d.%H%M%S')
 
+    # number of workers to use
     NUM_CORES: int = max(1, os.environ.get('NUM_CORES', os.cpu_count() - 1))
+    # GPU to use
     NUM_GPUS: int = os.environ.get('NUM_GPUS', torch.cuda.device_count())
+    GPU: int = 0
     TIMEOUT: int = 240
 
     # parameters for coach and MCTS
@@ -114,7 +117,7 @@ if __name__ == '__main__':
     SUPPORT_HELP: float = 1.0
     SUPPORT_BOOST_PROB: float = 1.0
 
-    # game parameters: TODO: drive by game files
+    # game parameters: TODO: derive by game files
     max_weapon_per_figure: int = 8
     max_figure_per_scenario: int = 6
     max_move_no_response_size: int = 1351
@@ -126,8 +129,8 @@ if __name__ == '__main__':
 
     p = argparse.ArgumentParser()
     # resources
-    p.add_argument('-c', '--cpus', type=int, default=NUM_CORES, help=f'default: {NUM_CORES}\tmax num of cores to use (workers)')
-    p.add_argument('-g', '--gpus', type=int, default=NUM_GPUS, help=f'default: {NUM_GPUS}\tmax num of gpus to use for training')
+    p.add_argument('-c', '--cpus', type=int, default=NUM_CORES, help=f'default: {NUM_CORES}\tnumber of cores to use (worker)')
+    p.add_argument('-g', '--gpus', type=int, default=GPU, help=f'default: {GPU}\tGPU id to use (from 0 to {NUM_GPUS-1})')
     p.add_argument('-s', '--seed', type=int, default=SEED, help=f'default: {SEED}\trandom seed to use')
     p.add_argument('-t', '--timeout', type=int, default=TIMEOUT, help=f'default: {TIMEOUT}\tset timeout for episode generation in seconds')
     # train parameters
@@ -155,8 +158,12 @@ if __name__ == '__main__':
                    help=f'default: {SUPPORT_BOOST_PROB}\tboost probability for support chosen actions')
     args = p.parse_args()
 
-    logger.info("Using %s cores", args.cpus)
-    logger.info("Using %s gpus", args.gpus)
+    logger.info("Using %s workers", args.cpus)
+    if torch.cuda.is_available():
+        device: str = f'cuda:{args.gpu}'
+    else:
+        device: str = 'cpu'
+    logger.info("Using device %s for training", device)
 
     # if true,use ray and parallel execution of episodes
     parallel = args.cpus > 1
@@ -194,7 +201,6 @@ if __name__ == '__main__':
     num_eps = args.episodes
     max_tr_examples = args.qlen
     num_MCTS_sims = args.sims
-    checkpoint = args.dir
     load_models = args.load
     boost = args.boost
     max_depth = args.depth
@@ -204,7 +210,7 @@ if __name__ == '__main__':
     support_help = args.shelp
     support_boost = args.boost
 
-    DIR_CHECKPOINT = checkpoint
+    DIR_CHECKPOINT = args.dir
     DIR_MODELS = os.path.join(DIR_CHECKPOINT, 'models')
     DIR_EPISODES = os.path.join(DIR_CHECKPOINT, 'episodes')
 
@@ -220,6 +226,7 @@ if __name__ == '__main__':
             'random10x10': args.r10,
             'cpus': args.cpus,
             'gpus': args.gpus,
+            'device': device,
             'seed': seed,
             'parallel': parallel,
             'num_iters': num_iters,
@@ -233,7 +240,7 @@ if __name__ == '__main__':
             'max_figure_per_scenario': max_figure_per_scenario,
             'max_move_no_response_size': max_move_no_response_size,
             'max_attack_size': max_attack_size,
-            'checkpoint': checkpoint,
+            'checkpoint': DIR_CHECKPOINT,
             'support_red': support_red,
             'support_blue': support_blue,
             'boost_probability': support_boost,
@@ -244,7 +251,7 @@ if __name__ == '__main__':
     # workers definition:
 
     workers = [Episode.remote(
-        checkpoint, support_red, support_blue, support_boost, max_weapon_per_figure, max_figure_per_scenario,
+        DIR_CHECKPOINT, support_red, support_blue, support_boost, max_weapon_per_figure, max_figure_per_scenario,
         max_move_no_response_size, max_attack_size, num_MCTS_sims, max_depth, cpuct
     ) for _ in range(args.cpus)]
 
@@ -325,8 +332,6 @@ if __name__ == '__main__':
             p_win = sum(1 for e in tr_examples if e[2] > 0)/n_ex
 
             logger.info('using %s examples (wins: %s) for training %s model', n_ex, p_win, team)
-
-            device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
             model = ModelWrapper(shape, seed, epochs, device=device, max_move_no_response_size=max_move_no_response_size, max_attack_size=max_attack_size)
             model.train(tr_examples, team)

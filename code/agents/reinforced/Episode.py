@@ -89,8 +89,8 @@ class Episode:
         blue = ModelWrapper(board.shape, seed)
 
         if load_models:
-            red.load_checkpoint(self.checkpoint, 'model_red.pth.tar')
-            blue.load_checkpoint(self.checkpoint, 'model_blue.pth.tar')
+            red.load_checkpoint(self.checkpoint, f'model_{RED}.pth.tar')
+            blue.load_checkpoint(self.checkpoint, f'model_{BLUE}.pth.tar')
 
         # setup MCTS
         mcts = MCTS(red, blue, seed, self.max_weapon_per_figure, self.max_figure_per_scenario,

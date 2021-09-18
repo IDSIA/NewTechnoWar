@@ -270,10 +270,11 @@ def _drawFigure(img: Image, pi, pj, psize, figure, decals) -> None:
 
     _drawDecal(img, pi, pj, psize, decal)
 
-    if not figure.activated:
-        draw.ellipse(xy_act, fill='#FFFF00')
-    if not figure.responded:
-        draw.ellipse(xy_res, fill='#00FF00')
+    act_color = '#555555' if figure.activated else '#FFFF00'
+    res_color = '#555555' if figure.responded else '#00FF00'
+
+    draw.ellipse(xy_act, fill=act_color)
+    draw.ellipse(xy_res, fill=res_color)
 
 
 def _drawDecal(img: Image, pi, pj, psize, decal) -> None:

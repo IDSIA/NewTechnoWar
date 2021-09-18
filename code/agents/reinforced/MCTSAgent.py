@@ -16,9 +16,9 @@ logger = logging.getLogger(__name__)
 class MCTSAgent(Agent):
 
     def __init__(self, team: str, board_shape: Tuple[int, int], checkpoint: str = '.', seed: int = 0, max_weapon_per_figure: int = 8, max_figure_per_scenario: int = 6,
-                 max_move_no_response_size: int = 1351, max_attack_size: int = 288, num_MCTS_sims: int = 30, cpuct: float = 1
+                 max_move_no_response_size: int = 1351, max_attack_size: int = 288, num_MCTS_sims: int = 30, cpuct: float = 1, name: str = 'MCTSAgent'
                  ):
-        super().__init__('MCTSAgent', team, seed=seed)
+        super().__init__(name, team, seed=seed)
 
         self.RED = ModelWrapper(board_shape, seed)
         self.BLUE = ModelWrapper(board_shape, seed)
