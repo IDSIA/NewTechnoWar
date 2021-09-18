@@ -130,7 +130,7 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser()
     # resources
     p.add_argument('-c', '--cpus', type=int, default=NUM_CORES, help=f'default: {NUM_CORES}\tnumber of cores to use (worker)')
-    p.add_argument('-g', '--gpus', type=int, default=GPU, help=f'default: {GPU}\tGPU id to use (from 0 to {NUM_GPUS-1})')
+    p.add_argument('-g', '--gpu', type=int, default=GPU, help=f'default: {GPU}\tGPU id to use (from 0 to {NUM_GPUS-1})')
     p.add_argument('-s', '--seed', type=int, default=SEED, help=f'default: {SEED}\trandom seed to use')
     p.add_argument('-t', '--timeout', type=int, default=TIMEOUT, help=f'default: {TIMEOUT}\tset timeout for episode generation in seconds')
     # train parameters
@@ -158,11 +158,11 @@ if __name__ == '__main__':
                    help=f'default: {SUPPORT_BOOST_PROB}\tboost probability for support chosen actions')
     args = p.parse_args()
 
-    logger.info("Using %s workers", args.cpus)
+    device: str = 'cpu'
     if torch.cuda.is_available():
         device: str = f'cuda:{args.gpu}'
-    else:
-        device: str = 'cpu'
+
+    logger.info("Using %s workers", args.cpus)
     logger.info("Using device %s for training", device)
 
     # if true,use ray and parallel execution of episodes
@@ -225,7 +225,7 @@ if __name__ == '__main__':
             'random5x5': args.r5,
             'random10x10': args.r10,
             'cpus': args.cpus,
-            'gpus': args.gpus,
+            'gpus': args.gpu,
             'device': device,
             'seed': seed,
             'parallel': parallel,
