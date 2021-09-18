@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import torch.optim as optim
 
-from torch.nn import CrossEntropyLoss, MSELoss
+from torch.nn import L1Loss, MSELoss
 
 from agents.reinforced.nn.NTWModel import NTWModel
 
@@ -71,7 +71,7 @@ class ModelWrapper():
 
         batch_count = int(n / self.batch_size) + 1
 
-        criterion_pi = CrossEntropyLoss()
+        criterion_pi = L1Loss()
         criterion_v = MSELoss()
 
         t = tqdm(range(batch_count * self.epochs), desc=f'Training {team:4}')
@@ -80,10 +80,10 @@ class ModelWrapper():
 
             for batch in range(batch_count):
                 sample_ids = self.random.choice(n, size=min(n, self.batch_size))
-                features, pis, vs = list(zip(*[examples[i] for i in sample_ids]))
+                features, pi, v = list(zip(*[examples[i] for i in sample_ids]))
                 features = torch.FloatTensor(np.array(features).astype(np.float64))
-                target_pi = torch.FloatTensor(np.array(pis))
-                target_v = torch.FloatTensor(np.array(vs).astype(np.float64))
+                target_pi = torch.FloatTensor(np.array(pi).astype(np.float64))
+                target_v = torch.FloatTensor(np.array(v).astype(np.float64))
 
                 # predict inputs
                 features = features.contiguous().to(self.device)
@@ -93,13 +93,13 @@ class ModelWrapper():
                 # compute output
                 out_pi, out_v = self.nn(features)
 
-                loss_pi = criterion_pi(target_pi, out_pi)
-                loss_v = criterion_v(target_v, out_v)
+                loss_pi = criterion_pi(out_pi, target_pi)
+                loss_v = criterion_v(out_v, target_v)
 
                 total_loss = loss_pi + loss_v
 
                 # record loss
-                t.set_postfix(Loss_pi=loss_pi.item(), Loss_v=loss_v.item(), Epoch=epoch, Batch=batch)
+                t.set_postfix(Loss_pi=f'{loss_pi.item():.4}', Loss_v=f'{loss_v.item():.4}', Epoch=f'{epoch:3}', Batch=f'{batch:3}')
                 t.update()
 
                 # compute gradient and do SGD step

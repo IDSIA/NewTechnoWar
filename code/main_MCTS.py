@@ -298,7 +298,7 @@ if __name__ == '__main__':
             except GetTimeoutError as _:
                 task_timed_out += 1
 
-            t.set_postfix(Timedout=task_timed_out, Failed=task_failed, tr_blue=len(tr_blue), tr_red=len(tr_red))
+            t.set_postfix(Timedout=f'{task_timed_out:3}', Failed=f'{task_failed:3}', tr_blue=len(tr_blue), tr_red=len(tr_red))
             t.update()
 
         # save meta information and training examples
@@ -343,11 +343,11 @@ if __name__ == '__main__':
             # save metrics history
             filename = os.path.join(DIR_IT, f'checkpoint_metrics_{it}_{team}.tsv')
             with open(filename, 'w', encoding='utf-8') as f:
-                f.write('\t'.join(['i', 'l_pi_avg', 'l_pi_count', 'l_pi_sum', 'l_pi_val', 'l_v_avg', 'l_v_count', 'l_v_sum', 'l_v_val']))
+                f.write('\t'.join(['i', 'l_pi', 'l_v']))
                 f.write('\n')
                 for x in range(len(model.history)):
                     l_pi, l_v = model.history[x]
-                    f.write('\t'.join([str(a) for a in [x, l_pi.avg, l_pi.count, l_pi.sum, l_pi.val, l_v.avg, l_v.count, l_v.sum, l_v.val]]))
+                    f.write('\t'.join([str(a) for a in [x, l_pi, l_v]]))
                     f.write('\n')
 
         # evaluate new models
