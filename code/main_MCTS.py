@@ -331,7 +331,7 @@ if __name__ == '__main__':
                 tr_ex_red, tr_ex_blue, meta = ray.get(r)
                 tr_red += tr_ex_red
                 tr_blue += tr_ex_blue
-                tr_meta += meta
+                tr_meta.append(meta)
 
                 if not meta['completed']:
                     task_failed += 1
