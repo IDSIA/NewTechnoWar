@@ -156,6 +156,7 @@ if __name__ == '__main__':
     p.add_argument('-w', '--dir', type=str, default=CHECKPOINT_DIR, help=f'default: {CHECKPOINT_DIR}\tcheckpoint directory')
     p.add_argument('-l', '--load', default=False, action='store_true', help=f'\tif set, continue with already trained models in --dir folder')
     p.add_argument('-a', '--accumulate', default=False, action='store_true', help=f'\tif set, accumulate training episodes')
+    p.add_argument('-o', '--generate-only', default=False, action='store_true', dest='train_only', help=f'\tif set, do not perform any training')
     # MCTS parameters
     p.add_argument('-m', '--sims', type=int, default=NUM_MCTS_SIMS, help=f'default: {NUM_MCTS_SIMS}\tmax num of move for MCTS simulations')
     p.add_argument('-d', '--depth', type=int, default=MAX_DEPTH, help=f'{MAX_DEPTH}\tmax depth for MCTS tree exploration.')
@@ -226,6 +227,7 @@ if __name__ == '__main__':
     load_models = args.load
     boost = args.boost
     max_depth = args.depth
+    train_only = args.train_only
 
     support_red = args.sar
     support_blue = args.sab
@@ -354,6 +356,11 @@ if __name__ == '__main__':
 
         logger.info('end self-play iter #%s', it)
 
+        # if true, generate the next iteration
+        if train_only:
+            continue
+
+        # accumulate training data
         if args.accumulate:
             train_examples[RED] += tr_red
             train_examples[BLUE] += tr_blue
