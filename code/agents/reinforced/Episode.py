@@ -1,11 +1,13 @@
 import logging
+
 from typing import Dict
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import numpy as np
 import ray
 
-from agents import Puppet, MatchManager, AlphaBetaAgent, GreedyAgent
+from agents import Puppet, MatchManager, AlphaBetaAgent, GreedyAgent, Agent
+from agents.elo import ELO
 from agents.reinforced.MCTS import MCTS
 from agents.reinforced.nn.Wrapper import ModelWrapper
 from agents.reinforced.utils import ACT, RES
@@ -33,6 +35,7 @@ class Episode:
                  num_MCTS_sims: int = 30,
                  max_depth: int = 100,
                  cpuct: float = 1,
+                 timeout: int = 60,
                  ) -> None:
 
         self.support = {
@@ -49,6 +52,7 @@ class Episode:
         self.num_MCTS_sims = num_MCTS_sims
         self.cpuct = cpuct
         self.max_depth = max_depth
+        self.timeout = timeout
 
     def get_support(self, team, seed, enabled):
         if not enabled:
@@ -59,7 +63,7 @@ class Episode:
             return AlphaBetaAgent(team, seed=seed)
         return None
 
-    def execute(self, board: GameBoard, state: GameState, seed: int = 0, temp_threshold: int = 1, load_models: bool = True, support_enabled: bool = True):
+    def exec_train(self, board: GameBoard, state: GameState, seed: int = 0, temp_threshold: int = 1, load_models: bool = True, support_enabled: bool = True):
         """
         This function executes one episode of self-play, starting with RED player.
         As the game is played, each turn is added as a training example to
@@ -114,9 +118,14 @@ class Episode:
         steps: int = 0
         start_time = datetime.now()
         winner: str = None
+        timedout: bool = False
 
         try:
             while not mm.end:
+                if datetime.now() > (start_time + timedelta(self.timeout)):
+                    timedout = True
+                    raise Exception('timeout reached')
+
                 steps += 1
 
                 temp = int(steps < temp_threshold)
@@ -223,6 +232,7 @@ class Episode:
             'winner': winner,
             'steps': steps,
             'completed': completed,
+            'timedout': timedout,
             'num_episodes_red': len(examples[RED]),
             'num_episodes_blue': len(examples[BLUE]),
             'support_enabled': support_enabled,
@@ -234,3 +244,76 @@ class Episode:
             logger.error('meta data of failed episode:\n%s', meta)
 
         return examples[RED], examples[BLUE], meta
+
+    def exec_valid(self, board: GameBoard, state: GameState, pl_red: ELO, pl_blue: ELO, seed: int = 0):
+        """
+        This function executes one episode of self-play, starting with RED player.
+        As the game is played, each turn is added as a training example to
+        trainExamples. The game is played till the game ends. After the game
+        ends, the outcome of the game is used to assign values to each example
+        in trainExamples.
+
+        It uses a temp=1 if episodeStep < tempThreshold, and thereafter
+        uses temp=0.
+
+        Returns:
+            trainExamples: a list of examples of the form (board, current player, pi, v)
+                            pi is the MCTS informed policy vector, v is +1 if
+                            the player eventually won the game, else -1.
+        """
+
+        completed = False
+
+        red: Agent = pl_red.agent(seed)
+        blue: Agent = pl_blue.agent(seed)
+
+        mm: MatchManager = MatchManager('', red, blue, board, deepcopy(state), seed, False)
+
+        steps: int = 0
+        start_time = datetime.now()
+        winner: str = None
+        timedout: bool = False
+
+        try:
+            while not mm.end:
+                if datetime.now() > (start_time + timedelta(self.timeout)):
+                    timedout = True
+                    raise Exception('timeout reached')
+                mm.nextStep()
+
+            winner = mm.winner
+
+            completed = True
+
+        except Exception as e:
+            # clear
+            logger.error(f'Episode failed, reason: {e}')
+            logger.exception(e)
+
+        end_time = datetime.now()
+        duration = end_time - start_time
+
+        logger.debug('elapsed time: %s', duration)
+
+        meta = {
+            'seed': seed,
+            'scenario_seed': board.gen_seed,
+            'red': red.name,
+            'blue': blue.name,
+            'id_red': pl_red.id,
+            'id_blue': pl_blue.id,
+            'score_red': mm.score[RED],
+            'score_blue': mm.score[BLUE],
+            'winner': winner,
+            'start_time': start_time,
+            'end_time': end_time,
+            'duration': duration,
+            'steps': steps,
+            'completed': completed,
+            'timedout': timedout,
+        }
+
+        if not completed:
+            logger.error('meta data of failed episode:\n%s', meta)
+
+        return meta

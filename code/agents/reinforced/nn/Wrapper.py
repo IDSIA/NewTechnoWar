@@ -67,6 +67,11 @@ class ModelWrapper():
         optimizer = optim.Adam(self.nn.parameters())
         n = len(examples)
 
+        x, y_pi, y_v = zip(*examples)
+        x = np.array(x)
+        y_pi = np.array(y_pi)
+        y_v = np.array(y_v)
+
         team = team if team else ''
 
         batch_count = int(n / self.batch_size) + 1
@@ -80,7 +85,11 @@ class ModelWrapper():
 
             for batch in range(batch_count):
                 sample_ids = self.random.choice(n, size=min(n, self.batch_size))
-                features, pi, v = list(zip(*[examples[i] for i in sample_ids]))
+
+                features = x[sample_ids]
+                pi = y_pi[sample_ids]
+                v = y_v[sample_ids]
+
                 features = torch.FloatTensor(np.array(features).astype(np.float64))
                 target_pi = torch.FloatTensor(np.array(pi).astype(np.float64))
                 target_v = torch.FloatTensor(np.array(v).astype(np.float64))
@@ -107,7 +116,7 @@ class ModelWrapper():
                 total_loss.backward()
                 optimizer.step()
 
-                self.history.append((loss_pi, loss_v))
+                self.history.append((loss_pi.item(), loss_v.item(), len(sample_ids)))
 
     def predict(self, features: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """

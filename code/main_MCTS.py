@@ -6,7 +6,7 @@ import pickle
 import json
 
 from datetime import datetime
-from typing import Tuple
+from typing import Dict, Tuple
 
 import numpy as np
 import ray
@@ -21,6 +21,7 @@ from core.templates import buildFigure
 from core.game import GameBoard, GameState, GoalReachPoint, GoalDefendPoint, GoalMaxTurn, GoalEliminateOpponent
 from core.utils.coordinates import Hex
 
+from agents import ELO, GreedyAgent, MCTSAgent
 from agents.reinforced import ModelWrapper, Episode
 
 from utils.setup_logging import setup_logging
@@ -90,6 +91,18 @@ def scenario10x10() -> Tuple[GameBoard, GameState]:
         yield board, state
 
 
+def agent_greedy_builder():
+    def builder(team, seed):
+        return GreedyAgent(team, seed=seed, name=f'{team}-greedy')
+    return builder
+
+
+def agent_mcts_builder(shape, dir):
+    def builder(team, seed):
+        return MCTSAgent(team, shape, dir, seed, name=f'{team}-MCTS')
+    return builder
+
+
 if __name__ == '__main__':
     NOW = datetime.now().strftime('%Y%m%d.%H%M%S')
 
@@ -116,6 +129,8 @@ if __name__ == '__main__':
     SUPPORT_BLUE: str or None = None
     SUPPORT_HELP: float = 1.0
     SUPPORT_BOOST_PROB: float = 1.0
+
+    NUM_VALID_EPISODES: int = 10
 
     # game parameters: TODO: derive by game files
     max_weapon_per_figure: int = 8
@@ -156,6 +171,9 @@ if __name__ == '__main__':
                    help=f'default: {SUPPORT_HELP}\tpercentage of iterations with help (starting from first)')
     p.add_argument('-b', '--support-boost', type=float, default=SUPPORT_BOOST_PROB, dest='boost',
                    help=f'default: {SUPPORT_BOOST_PROB}\tboost probability for support chosen actions')
+    # validation parameters
+    p.add_argument('-v', '--valid-episodes', type=int, default=NUM_VALID_EPISODES, dest='num_valid_episodes',
+                   help=f'default: {NUM_VALID_EPISODES}\t number of episodes to play for validation for each pair of agents')
     args = p.parse_args()
 
     device: str = 'cpu'
@@ -180,15 +198,19 @@ if __name__ == '__main__':
     shape = None
     if args.s5:
         game_generator = scenario5x5()
+        game_validator = scenario5x5()
         shape = (5, 5)
     if args.r5:
         game_generator = scenarioRandom5x5(seed)
+        game_validator = scenario5x5()
         shape = (5, 5)
     if args.s10:
         game_generator = scenario10x10()
+        game_validator = scenario10x10()
         shape = (10, 10)
     if args.r10:
         game_generator = scenarioRandom10x10(seed)
+        game_validator = scenario10x10()
         shape = (10, 10)
 
     if not game_generator:
@@ -210,6 +232,10 @@ if __name__ == '__main__':
     support_help = args.shelp
     support_boost = args.boost
 
+    # validation parameters
+    num_val_eps = args.num_valid_episodes
+
+    # directories
     DIR_CHECKPOINT = args.dir
     DIR_MODELS = os.path.join(DIR_CHECKPOINT, 'models')
     DIR_EPISODES = os.path.join(DIR_CHECKPOINT, 'episodes')
@@ -252,13 +278,16 @@ if __name__ == '__main__':
 
     workers = [Episode.remote(
         DIR_CHECKPOINT, support_red, support_blue, support_boost, max_weapon_per_figure, max_figure_per_scenario,
-        max_move_no_response_size, max_attack_size, num_MCTS_sims, max_depth, cpuct
+        max_move_no_response_size, max_attack_size, num_MCTS_sims, max_depth, cpuct, timeout
     ) for _ in range(args.cpus)]
 
     train_examples = {
         RED: [],
         BLUE: []
     }
+
+    # validation players for ELO ranking
+    players: Dict[str, ELO] = {}
 
     for it in range(num_iters):
         logger.info('Start Iter #%s ...', it)
@@ -277,29 +306,43 @@ if __name__ == '__main__':
         while i < num_eps:
             for w in workers:
                 board, state = next(game_generator)
-                tasks.append(w.execute.remote(board, state, seed+i, temp_threshold, it > 0, support_enabled))
+                tasks.append(w.exec_train.remote(board, state, seed+i, temp_threshold, it > 0, support_enabled))
                 i += 1
                 if i >= num_eps:
                     break
 
-        task_timed_out = 0
         task_failed = 0
-        t = tqdm(tasks, desc="Self Play")
-        for task in t:
-            try:
-                tr_ex_red, tr_ex_blue, tr_ex_meta = ray.get(task, timeout=timeout)
-                tr_red += tr_ex_red
-                tr_blue += tr_ex_blue
-                tr_meta += tr_ex_meta
+        task_timed_out = 0
 
-                if not tr_ex_meta['completed']:
-                    task_failed += 1
+        waiting = tasks
+
+        t = tqdm(tasks, desc="Train Play")
+        while True:
+            ready = []
+            try:
+                ready, waiting = ray.wait(waiting, timeout=timeout)
 
             except GetTimeoutError as _:
                 task_timed_out += 1
 
-            t.set_postfix(Timedout=f'{task_timed_out:3}', Failed=f'{task_failed:3}', tr_blue=len(tr_blue), tr_red=len(tr_red))
-            t.update()
+            for r in ready:
+                tr_ex_red, tr_ex_blue, meta = ray.get(r)
+                tr_red += tr_ex_red
+                tr_blue += tr_ex_blue
+                tr_meta += meta
+
+                if not meta['completed']:
+                    task_failed += 1
+                if not meta['timedout']:
+                    task_timed_out += 1
+
+                t.set_postfix(Timedout=f'{task_timed_out:3}', Failed=f'{task_failed:3}', tr_blue=len(tr_blue), tr_red=len(tr_red))
+                t.update()
+
+            if len(waiting) <= 0:
+                break
+
+        t.update()
 
         # save meta information and training examples
         with open(os.path.join(DIR_EPISODES, f'checkpoint_{it}_meta.json'), 'w') as f:
@@ -343,15 +386,95 @@ if __name__ == '__main__':
             # save metrics history
             filename = os.path.join(DIR_IT, f'checkpoint_metrics_{it}_{team}.tsv')
             with open(filename, 'w', encoding='utf-8') as f:
-                f.write('\t'.join(['i', 'l_pi', 'l_v']))
+                f.write('\t'.join(['i', 'loss_pi', 'loss_v', 'sample_size']))
                 f.write('\n')
                 for x in range(len(model.history)):
-                    l_pi, l_v = model.history[x]
-                    f.write('\t'.join([str(a) for a in [x, l_pi, l_v]]))
+                    loss_pi, loss_v, sample_size = model.history[x]
+                    f.write('\t'.join([str(a) for a in [x, loss_pi, loss_v, sample_size]]))
                     f.write('\n')
 
         # evaluate new models
+        logger.info('validation Iter #%s', it)
+        mcts_red = ELO(agent_mcts_builder(shape, DIR_CHECKPOINT), RED, f'mcts-{it}-red')
+        mcts_blue = ELO(agent_mcts_builder(shape, DIR_CHECKPOINT), BLUE, f'mcts-{it}-blue')
 
-        # TODO:
+        greedy_red = ELO(agent_greedy_builder(), RED, f'greedy-{it}-red')
+        greedy_blue = ELO(agent_greedy_builder(), BLUE, f'greedy-{it}-blue')
 
-    logger.info('Starting the learning process')
+        players[mcts_red.id] = mcts_red
+        players[mcts_blue.id] = mcts_blue
+        players[greedy_red.id] = greedy_red
+        players[greedy_blue.id] = greedy_blue
+
+        val_agents = []
+        for _ in range(num_val_eps):
+            for red in [greedy_red, mcts_red]:
+                for blue in [greedy_blue, mcts_blue]:
+                    val_agents.append((red, blue))
+
+        tasks = []
+        i = 0
+        while i < len(val_agents):
+            for w in workers:
+                # greedy vs greedy
+                board, state = next(game_validator)
+                red, blue = val_agents[i]
+                tasks.append(w.exec_valid.remote(board, state, red, blue, seed+i))
+
+                i += 1
+                if i >= num_val_eps:
+                    break
+
+        task_failed = 0
+        task_timed_out = 0
+
+        val_meta = []
+
+        waiting = tasks
+
+        t = tqdm(tasks, desc='Valid Play')
+        while True:
+            ready = []
+            try:
+                ready, waiting = ray.wait(waiting, timeout=timeout)
+
+            except GetTimeoutError as _:
+                task_timed_out += 1
+
+            for r in ready:
+                meta = ray.get(r)
+                val_meta.append(meta)
+
+                if not meta['completed']:
+                    task_failed += 1
+                    if not meta['timedout']:
+                        task_timed_out += 1
+                else:
+                    p_red = players[meta['id_red']]
+                    p_blue = players[meta['id_blue']]
+
+                    if meta['winner'] == RED:
+                        p_red.win(p_blue)
+                    if meta['winner'] == BLUE:
+                        p_blue.win(p_red)
+
+                t.set_postfix(Timedout=f'{task_timed_out:3}', Failed=f'{task_failed:3}')
+                t.update()
+
+            if len(waiting) <= 0:
+                break
+
+        t.update()
+
+        ladder = sorted(list(players.values()), reverse=True)
+
+        # save ladder
+        filename = os.path.join(DIR_IT, f'ladder_{it}.tsv')
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write('\t'.join(['i', 'name', 'points', 'wins', 'losses']))
+            f.write('\n')
+            for i, p in enumerate(ladder):
+                f.write('\t'.join([str(a) for a in [i, p.name, p.points, p.wins, p.losses]]))
+                f.write('\n')
+
+        logger.info('LADDER Iter #%s:\n%s', it, '\n'.join(str(elo) for elo in ladder))

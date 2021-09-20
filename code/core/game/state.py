@@ -72,7 +72,7 @@ class GameState:
 
         self.initialized: bool = False
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if not other:
             return False
         if not isinstance(other, GameState):

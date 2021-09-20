@@ -66,4 +66,4 @@ class NTWModel(nn.Module):
         pi = self.out_pi(x)
         v = self.out_v(x)
 
-        return pi, v.view(len(x), 1)
+        return pi, v.reshape(-1)

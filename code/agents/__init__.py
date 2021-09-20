@@ -5,6 +5,7 @@ __all__ = [
     'ClassifierAgent', 'RegressionAgent', 'RegressionMultiAgent',
     'Puppet',
     'MCTSAgent',
+    'ELOPlayer'
 ]
 
 from agents.interface import Agent
@@ -19,3 +20,4 @@ from agents.ml.classifier import ClassifierAgent
 from agents.ml.regression import RegressionAgent
 from agents.ml.regressionMulti import RegressionMultiAgent
 from agents.reinforced import MCTSAgent
+from agents.elo import ELO
