@@ -333,7 +333,7 @@ if __name__ == '__main__':
 
                 if not meta['completed']:
                     task_failed += 1
-                if not meta['timedout']:
+                if meta['timedout']:
                     task_timed_out += 1
 
                 t.set_postfix(Timedout=f'{task_timed_out:3}', Failed=f'{task_failed:3}', tr_blue=len(tr_blue), tr_red=len(tr_red))
@@ -447,7 +447,7 @@ if __name__ == '__main__':
 
                 if not meta['completed']:
                     task_failed += 1
-                    if not meta['timedout']:
+                    if meta['timedout']:
                         task_timed_out += 1
                 else:
                     p_red = players[meta['id_red']]
