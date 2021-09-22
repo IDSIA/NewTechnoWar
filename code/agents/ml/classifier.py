@@ -8,6 +8,8 @@ from core.const import BLUE
 from core.game import GameBoard, GameState, vectorState, vectorStateInfo
 from core.vectors import vectorAction, vectorActionInfo, vectorBoard, vectorBoardInfo
 
+# NOTE: deprecated, see agents.ml.__init__.py file
+
 
 class ClassifierAgent(MLAgent):
     """

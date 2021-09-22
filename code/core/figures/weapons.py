@@ -3,6 +3,26 @@ This module contains a description of all weapons and their rules.
 """
 from core.const import INFINITE
 
+import numpy as np
+
+
+def vectorWeaponInfo(meta: str) -> tuple:
+    return (
+        meta + "_max_range",
+        meta + "_atk_normal",
+        meta + "_atk_response",
+        meta + "_ammo",
+        meta + "_ammo_max",
+        meta + "_dices",
+        meta + "_curved",
+        meta + "_damage",
+        meta + "_antitank",
+        meta + "_miss_matrix",
+        meta + "_disabled",
+        meta + "_attack_ground",
+        meta + "_smoke",
+    )
+
 
 class Weapon:
     """
@@ -47,6 +67,26 @@ class Weapon:
     def disable(self):
         self.disabled = True
         self.ammo = 0
+
+    def vector(self) -> np.ndarray:
+        if self.ammo == 0 or self.disabled:
+            return np.zeros(13, np.float64)
+
+        return np.array([
+            self.max_range,
+            self.atk_normal,
+            self.atk_response,
+            self.ammo,
+            self.ammo_max,
+            self.dices,
+            self.curved,
+            self.damage,
+            self.antitank,
+            self.miss_matrix,
+            self.disabled,
+            self.attack_ground,
+            self.smoke
+        ], np.float64)
 
 
 class Cannon(Weapon):

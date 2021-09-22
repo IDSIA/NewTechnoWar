@@ -10,43 +10,24 @@ import torch.optim as optim
 
 from torch.nn import L1Loss, MSELoss
 
-from agents.reinforced.nn.NTWModel import NTWModel
+from agents.reinforced.nn.NTWModel10x10 import NTWModel10x10
 
 logger = logging.getLogger(__name__)
 
 
-class AverageMeter(object):
-    """From https://github.com/pytorch/examples/blob/master/imagenet/main.py"""
-
-    def __init__(self):
-        self.val = 0
-        self.avg = 0
-        self.sum = 0
-        self.count = 0
-
-    def __repr__(self):
-        return f'{self.avg:.2e}'
-
-    def update(self, val, n=1):
-        self.val = val
-        self.sum += val * n
-        self.count += n
-        self.avg = self.sum / self.count
-
-
 class ModelWrapper():
 
-    def __init__(self, shape: Tuple[int], seed: int = 0, epochs: int = 2, batch_size: int = 64, num_channels: int = 512,
+    def __init__(self, shape: Tuple[int], seed: int = 0, epochs: int = 2, batch_size: int = 64,
                  max_move_no_response_size: int = 1351, max_attack_size: int = 288, device: str or None = 'cpu',
-                 lr: float = 0.001, dropout: float = 0.3, board_levels: int = 3
+                 lr: float = 0.001, dropout: float = 0.3
                  ):
         self.board_x, self.board_y = shape
         self.action_size = max_move_no_response_size + max_attack_size + 1
 
-        self.nn = NTWModel(shape, lr, dropout, epochs, batch_size, num_channels, self.action_size, board_levels)
-
         self.epochs: int = epochs
         self.batch_size: int = batch_size
+
+        self.nn = NTWModel10x10(lr=lr, dropout=dropout, action_size=self.action_size)
 
         self.random = np.random.default_rng(seed)
         self.history = []
@@ -67,8 +48,9 @@ class ModelWrapper():
         optimizer = optim.Adam(self.nn.parameters())
         n = len(examples)
 
-        x, y_pi, y_v = zip(*examples)
-        x = np.array(x)
+        x_bd, x_st, y_pi, y_v = zip(*examples)
+        x_bd = np.array(x_bd)
+        x_st = np.array(x_st)
         y_pi = np.array(y_pi)
         y_v = np.array(y_v)
 
@@ -86,21 +68,24 @@ class ModelWrapper():
             for batch in range(batch_count):
                 sample_ids = self.random.choice(n, size=min(n, self.batch_size))
 
-                features = x[sample_ids]
+                f_bd = x_bd[sample_ids]
+                f_st = x_st[sample_ids]
                 pi = y_pi[sample_ids]
                 v = y_v[sample_ids]
 
-                features = torch.FloatTensor(np.array(features).astype(np.float64))
-                target_pi = torch.FloatTensor(np.array(pi).astype(np.float64))
-                target_v = torch.FloatTensor(np.array(v).astype(np.float64))
+                f_bd = torch.FloatTensor(np.array(f_bd))
+                f_st = torch.FloatTensor(np.array(f_st))
+                target_pi = torch.FloatTensor(np.array(pi))
+                target_v = torch.FloatTensor(np.array(v))
 
                 # predict inputs
-                features = features.contiguous().to(self.device)
+                f_bd = f_bd.contiguous().to(self.device)
+                f_st = f_st.contiguous().to(self.device)
                 target_pi = target_pi.contiguous().to(self.device)
                 target_v = target_v.contiguous().to(self.device)
 
                 # compute output
-                out_pi, out_v = self.nn(features)
+                out_pi, out_v = self.nn(f_bd, f_st)
 
                 loss_pi = criterion_pi(out_pi, target_pi)
                 loss_v = criterion_v(out_v, target_v)
@@ -118,19 +103,16 @@ class ModelWrapper():
 
                 self.history.append((loss_pi.item(), loss_v.item(), len(sample_ids)))
 
-    def predict(self, features: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        board: np array with board
-        """
+    def predict(self, features_board: np.ndarray, features_state: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         # preparing input
-        data = torch.FloatTensor(features.astype(np.float64)).contiguous().to(self.device)
+        x_bd = torch.FloatTensor(features_board).to(self.device)
+        x_st = torch.FloatTensor(features_state).to(self.device)
 
-        data = data.view(self.nn.board_levels, self.board_x, self.board_y)
         self.nn = self.nn.to(self.device)
         self.nn.eval()
 
         with torch.no_grad():
-            pi, v = self.nn(data)
+            pi, v = self.nn(x_bd, x_st)
 
         return pi.data.cpu().numpy()[0], v.data.cpu().numpy()[0]
 

@@ -12,6 +12,8 @@ from core.game import GameBoard, GameState
 
 logger = logging.getLogger(__name__)
 
+# NOTE: deprecated, see agents.ml.__init__.py file
+
 
 class MLAgent(Agent):
 

@@ -189,6 +189,8 @@ if __name__ == '__main__':
     if parallel:
         # ray.init(num_cpus=args.cpus, num_gpus=args.gpus)
         ray.init(num_cpus=args.cpus)
+    else:
+        ray.init(num_cpus=0, local_mode=True)
 
     # random seed for repeatability
     seed = args.seed
@@ -228,6 +230,7 @@ if __name__ == '__main__':
     boost = args.boost
     max_depth = args.depth
     train_only = args.train_only
+    accumulate = args.accumulate
 
     support_red = args.sar
     support_blue = args.sab
@@ -273,11 +276,10 @@ if __name__ == '__main__':
             'support_blue': support_blue,
             'boost_probability': support_boost,
             'support_help': support_help,
-            'accumulate': args.accumulate,
+            'accumulate': accumulate,
         }, f)
 
     # workers definition:
-
     workers = [Episode.remote(
         DIR_CHECKPOINT, support_red, support_blue, support_boost, max_weapon_per_figure, max_figure_per_scenario,
         max_move_no_response_size, max_attack_size, num_MCTS_sims, max_depth, cpuct, timeout
@@ -297,7 +299,7 @@ if __name__ == '__main__':
         DIR_IT = os.path.join(DIR_MODELS, str(it))
         os.makedirs(DIR_IT)
 
-        support_enabled = it < num_iters * support_help
+        support_enabled = it < (num_iters * support_help)
         logger.info('support agents for training %s', 'enabled' if support_enabled else 'disabled')
 
         logger.info('start self-play iter #%s', it)
@@ -361,7 +363,7 @@ if __name__ == '__main__':
             continue
 
         # accumulate training data
-        if args.accumulate:
+        if accumulate:
             train_examples[RED] += tr_red
             train_examples[BLUE] += tr_blue
             logging.info('accumulating %s new episodes for red and %s for blue', len(tr_red), len(tr_blue))
@@ -379,7 +381,7 @@ if __name__ == '__main__':
             tr_examples = train_examples[team]
 
             n_ex = len(tr_examples)
-            p_win = sum(1 for e in tr_examples if e[2] > 0)/n_ex
+            p_win = sum(1 for e in tr_examples if e[3] > 0)/n_ex
 
             logger.info('using %s examples (wins: %s) for training %s model', n_ex, p_win, team)
 

@@ -147,7 +147,7 @@ class Episode:
                 valid_indices, valid_actions = mcts.actionIndexMapping(board, state, team, action_type)
                 actions = valid_actions[valid_indices]
 
-                features = mcts.generateFeatures(board, state)
+                x_b, x_s = mcts.generateFeatures(board, state)
 
                 pi, _ = mcts.getActionProb(board, state, team, action_type, temp=temp)
 
@@ -165,7 +165,7 @@ class Episode:
                             pi /= pi.sum()
                             break
 
-                example = [features, pi]
+                example = [x_b, x_s, pi]
 
                 examples[team].append(example)
 
@@ -196,8 +196,8 @@ class Episode:
             r, b = (1, -1) if winner == RED else (-1, 1)
 
             # board, team, pi, winner
-            examples[RED] = [(features, pi, r) for features, pi in examples[RED]]
-            examples[BLUE] = [(features, pi, b) for features, pi in examples[BLUE]]
+            examples[RED] = [(x_b, x_s, pi, r) for x_b, x_s, pi in examples[RED]]
+            examples[BLUE] = [(x_b, x_s, pi, b) for x_b, x_s, pi in examples[BLUE]]
 
             completed = True
 

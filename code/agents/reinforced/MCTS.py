@@ -13,6 +13,7 @@ from core.const import RED, BLUE
 from agents import MatchManager, Puppet
 from agents.reinforced.nn import ModelWrapper
 from agents.reinforced.utils import ACT, RES
+from core.game.state import vectorState
 from utils.copy import deepcopy
 
 logger = logging.getLogger(__name__)
@@ -78,20 +79,47 @@ class MCTS():
 
     def generateFeatures(self, board: GameBoard, state: GameState) -> np.ndarray:
 
+        # build board features
         terrain = board.terrain.copy()
-        goals = np.zeros(board.shape)
-        figures = np.zeros(board.shape)
+        protection = board.protectionLevel.copy()
 
-        for mark in board.getObjectiveMark():
-            goals[mark.tuple()] = 1
+        board_fig = {
+            RED: np.zeros(board.shape),
+            BLUE: np.zeros(board.shape),
+        }
 
-        for f in state.figures[RED]:
-            figures[f.position.tuple()] = int(f.index + 1)
+        for team in [RED, BLUE]:
+            for f in state.figures[team]:
+                board_fig[team][f.position.tuple()] = f.index + 1
 
-        for f in state.figures[BLUE]:
-            figures[f.position.tuple()] = -int(f.index - 1)
+        goals = {
+            RED: np.zeros(board.shape),
+            BLUE: np.zeros(board.shape),
+        }
 
-        return np.stack((figures, goals, terrain))
+        for team in [RED, BLUE]:
+            other = RED if team is BLUE else BLUE
+            team_goals = board.objectives[team]
+
+            if 'GoalReachPoint' in team_goals or 'GoalDefendPoint' in team_goals:
+                for mark in board.getObjectiveMark():
+                    goals[team][mark.tuple()] = 10
+
+            if 'GoalEliminateOpponent' in team_goals:
+                goals[team] += board_fig[team]
+                goals[team] -= board_fig[other]
+
+        feat_board = np.stack([board_fig[RED], board_fig[BLUE], goals[RED], goals[BLUE], protection, terrain])
+
+        max_turn = np.array([board.maxTurn], np.float64)
+
+        # build state features
+        feat_state = np.concatenate([max_turn, state.vector()], axis=0)
+
+        # feat_board.shape: (6, 10, 10)
+        # feat_state.shape: (2828,)
+
+        return feat_board, feat_state
 
     def calculateValidMoves(self, board, state, team, action_type) -> np.ndarray:
         all_valid_actions = []
@@ -311,9 +339,9 @@ class MCTS():
             # leaf node, no probabilities assigned yet
             valid_s, valid_actions = self.actionIndexMapping(board, state, team, action_type)
 
-            features = self.generateFeatures(board, state)
+            x_b, x_s = self.generateFeatures(board, state)
 
-            self.Ps[s], v = self.nnet[team].predict(features)
+            self.Ps[s], v = self.nnet[team].predict([x_b], [x_s])
             self.Ps[s] = self.Ps[s] * valid_s  # masking invalid moves
             sum_Ps_s = np.sum(self.Ps[s])
 
@@ -324,7 +352,7 @@ class MCTS():
 
                 # NB! All valid moves may be masked if either your NNet architecture is insufficient or you've get overfitting or something else.
                 # If you have got dozens or hundreds of these messages you should pay attention to your NNet and/or training process.
-                logger.error("All valid moves were masked, doing a workaround.")
+                # logger.error("All valid moves were masked, doing a workaround.")
 
                 self.Ps[s] = self.Ps[s] + valid_s
                 self.Ps[s] /= np.sum(self.Ps[s])

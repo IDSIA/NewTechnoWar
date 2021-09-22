@@ -72,20 +72,63 @@ class GameState:
 
         self.initialized: bool = False
 
+    def vector(self) -> np.ndarray:
+        data = [np.array([
+            self.turn,
+        ], np.float64)]
+
+        for team in [RED, BLUE]:
+            other = BLUE if team is RED else RED
+
+            # list of vectors for red figures
+            figs = []
+            for f in self.figures[team]:
+                figs.append(f.vector())
+
+            for _ in range(MAX_UNITS_PER_TEAM - len(figs)):
+                figs.append(np.zeros(figs[0].shape))
+
+            figs = np.concatenate(figs, axis=0)
+
+            # distances between figures of same team
+            data_dist = []
+            # los on figures of other team
+            data_los = []
+
+            for i in range(MAX_UNITS_PER_TEAM):
+                for j in range(MAX_UNITS_PER_TEAM):
+                    if i != j:
+                        if i < len(self.figures[team]) and j < len(self.figures[team]):
+                            dist: list = self.figuresDistance[team][j][i]
+                            data_dist.append(len(dist) - 1)
+                        else:
+                            data_dist.append(0)
+
+                    if i < len(self.figures[team]) and j < len(self.figures[other]):
+                        dist: list = self.figuresLOS[team][i][j]
+                        data_los.append(len(dist) - 1)
+                    else:
+                        data_los.append(0)
+
+            data_dist = np.array(data_dist, np.float64)
+            data_los = np.array(data_los, np.float64)
+
+            data += [figs, data_dist, data_los]
+
+        return np.concatenate(data, axis=0)
+
     def __eq__(self, other: object) -> bool:
         if not other:
             return False
         if not isinstance(other, GameState):
             return False
-        v = vectorState(self)
-        v_other = vectorState(other)
-        for i in range(len(v)):
-            if v[i] != v_other[i]:
-                return False
-        return True
+        v = self.vector()
+        v_other = other.vector()
+
+        return np.all(v == v_other)
 
     def __hash__(self):
-        return hash(vectorState(self))
+        return hash(self.vector().tobytes())
 
     def __repr__(self) -> str:
         return f'GameState({self.name}): {self.turn}:\n{self.figures}\n{self.posToFigure}'
