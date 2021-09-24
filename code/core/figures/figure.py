@@ -237,7 +237,7 @@ class Figure:
         return f'{self.team}{self.index}'
 
     def addWeapon(self, w: Weapon) -> None:
-        self.weapons[w.wid] = w
+        self.weapons[w.tag] = w
 
     def __repr__(self) -> str:
         return f'{self.name}{self.position}'

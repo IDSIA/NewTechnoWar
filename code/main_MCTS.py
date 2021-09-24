@@ -97,9 +97,9 @@ def agent_greedy_builder():
     return builder
 
 
-def agent_mcts_builder(shape, dir):
+def agent_mcts_builder(shape, dir, mupt):
     def builder(team, seed):
-        return MCTSAgent(team, shape, dir, seed, name=f'{team}-MCTS')
+        return MCTSAgent(team, shape, dir, seed, name=f'{team}-MCTS', max_unit_per_team=mupt)
     return builder
 
 
@@ -123,7 +123,7 @@ if __name__ == '__main__':
     NUM_EPS: int = 10  # 100,             # Number of complete self-play games to simulate during a new iteration.
     NUM_MCTS_SIMS: int = 30  # 30, #25,   # Number of games moves for MCTS to simulate.
 
-    CHECKPOINT_DIR: str = f'./temp.{NOW}'
+    CHECKPOINT_DIR: str = f'./models/mcts.{NOW}'
 
     SUPPORT_RED: str or None = None
     SUPPORT_BLUE: str or None = None
@@ -133,10 +133,7 @@ if __name__ == '__main__':
     NUM_VALID_EPISODES: int = 10
 
     # game parameters: TODO: derive by game files
-    max_weapon_per_figure: int = 8
-    max_figure_per_scenario: int = 6
-    max_move_no_response_size: int = 1351
-    max_attack_size: int = 288
+    max_units_per_team: int = 4
 
     # unknown parameters...
     cpuct: int = 1
@@ -267,10 +264,7 @@ if __name__ == '__main__':
             'max_depth': max_depth,
             'num_MCTS_sims': num_MCTS_sims,
             'temp_threshold': temp_threshold,
-            'max_weapon_per_figure': max_weapon_per_figure,
-            'max_figure_per_scenario': max_figure_per_scenario,
-            'max_move_no_response_size': max_move_no_response_size,
-            'max_attack_size': max_attack_size,
+            'max_units_per_team': max_units_per_team,
             'checkpoint': DIR_CHECKPOINT,
             'support_red': support_red,
             'support_blue': support_blue,
@@ -281,8 +275,7 @@ if __name__ == '__main__':
 
     # workers definition:
     workers = [Episode.remote(
-        DIR_CHECKPOINT, support_red, support_blue, support_boost, max_weapon_per_figure, max_figure_per_scenario,
-        max_move_no_response_size, max_attack_size, num_MCTS_sims, max_depth, cpuct, timeout
+        DIR_CHECKPOINT, support_red, support_blue, support_boost, num_MCTS_sims, max_depth, cpuct, timeout, max_units_per_team
     ) for _ in range(args.cpus)]
 
     train_examples = {
@@ -376,16 +369,24 @@ if __name__ == '__main__':
         if len(train_examples[BLUE]) > max_tr_examples:
             train_examples[BLUE] = train_examples[BLUE][-max_tr_examples:]
 
+        skip_validation = False
+
         # train models
         for team in [RED, BLUE]:
             tr_examples = train_examples[team]
 
             n_ex = len(tr_examples)
+
+            if n_ex < 1:
+                logger.warning('No episode recorded, skipping train for %s', team)
+                skip_validation = True
+                continue
+
             p_win = sum(1 for e in tr_examples if e[3] > 0)/n_ex
 
             logger.info('using %s examples (wins: %s) for training %s model', n_ex, p_win, team)
 
-            model = ModelWrapper(shape, seed, epochs, device=device, max_move_no_response_size=max_move_no_response_size, max_attack_size=max_attack_size)
+            model = ModelWrapper(seed, epochs, device=device, max_units_per_team=max_units_per_team)
             model.train(tr_examples, team)
 
             # save new model
@@ -403,9 +404,13 @@ if __name__ == '__main__':
                     f.write('\n')
 
         # evaluate new models
+        if skip_validation:
+            logger.warning('skipping validation: no new model trained')
+            continue
+
         logger.info('validation Iter #%s', it)
-        mcts_red = ELO(agent_mcts_builder(shape, DIR_CHECKPOINT), RED, f'mcts-{it}-red')
-        mcts_blue = ELO(agent_mcts_builder(shape, DIR_CHECKPOINT), BLUE, f'mcts-{it}-blue')
+        mcts_red = ELO(agent_mcts_builder(shape, DIR_CHECKPOINT, max_units_per_team), RED, f'mcts-{it}-red')
+        mcts_blue = ELO(agent_mcts_builder(shape, DIR_CHECKPOINT, max_units_per_team), BLUE, f'mcts-{it}-blue')
 
         greedy_red = ELO(agent_greedy_builder(), RED, f'greedy-{it}-red')
         greedy_blue = ELO(agent_greedy_builder(), BLUE, f'greedy-{it}-blue')

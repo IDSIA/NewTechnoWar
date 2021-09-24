@@ -1,35 +1,25 @@
 # MCTS
 
+from core.actions.attacks import AttackFigure, AttackGround
+from core.figures.lists import WEAPON_KEY_LIST
 import logging
 import math
 from typing import Dict, Tuple
 
 import numpy as np
 
-from core.game import GameManager, GameBoard, GameState
-from core.actions import Attack, Move, Action, Response, NoResponse, PassTeam, AttackResponse, PassFigure, Wait, MoveLoadInto
+from core.game import GameManager, GameBoard, GameState, GoalParams, MAX_UNITS_PER_TEAM
+from core.actions import Move, MoveLoadInto, AttackFigure, AttackGround, AttackResponse, NoResponse, PassTeam, PassFigure, Wait
 from core.const import RED, BLUE
 
 from agents import MatchManager, Puppet
 from agents.reinforced.nn import ModelWrapper
 from agents.reinforced.utils import ACT, RES
-from core.game.state import vectorState
 from utils.copy import deepcopy
 
 logger = logging.getLogger(__name__)
 
 EPS: float = 1e-8
-
-WEAPONS_INDICES: Dict[str, int] = {
-    'AT': 0,
-    'AR': 1,
-    'CA': 2,
-    'MT': 3,
-    'GR': 4,
-    'MG': 5,
-    'SG': 6,
-    'SR': 7
-}
 
 
 class MCTS():
@@ -37,10 +27,20 @@ class MCTS():
     This class handles the MCTS tree.
     """
 
-    def __init__(self, model_red: ModelWrapper, model_blue: ModelWrapper,
-                 seed: int, max_weapon_per_figure: int, max_figure_per_scenario: int, max_move_no_response_size: int, max_attack_size: int,
-                 num_MCTS_sims: int, cpuct: float, max_depth: int = 100
-                 ):
+    def __init__(
+        self, shape: Tuple[int, int], model_red: ModelWrapper, model_blue: ModelWrapper, seed: int = -1, num_MCTS_sims: int = 30, cpuct: float = 1.0, max_depth: int = 100, max_units_per_team: int = MAX_UNITS_PER_TEAM
+    ):
+        """
+        shape:                  Board size
+        model_red:              ModelWrapper to use for red (must be compatible with 'shape' and 'max_figures_per_team')
+        model_blue:             ModelWrapper to use for red (must be compatible with 'shape' and 'max_figures_per_team')
+        seed:                   Random seed
+        num_MCTS_sims:          Number of total simulation
+        cpuct:                  Heuristic search parameter
+        max_depth:              Max depth of the search tree
+        max_units_per_team:     Number of units in each team (default: MAX_UNITS_PER_TEAM)
+        """
+        x, y = shape
 
         self.puppet = {
             RED: Puppet(RED),
@@ -72,12 +72,24 @@ class MCTS():
         self.cpuct: float = cpuct
         self.max_depth: int = max_depth
 
-        self.max_weapon_per_figure: int = max_weapon_per_figure
-        self.max_figure_per_scenario: int = max_figure_per_scenario
-        self.max_move_no_response_size: int = max_move_no_response_size
-        self.max_action_size: int = max_move_no_response_size + max_attack_size + 1  # input vector size
+        self.max_units_per_team: int = max_units_per_team
+        self.n_weapons: int = len(WEAPON_KEY_LIST)
 
-    def generateFeatures(self, board: GameBoard, state: GameState) -> np.ndarray:
+        self.action_size = (
+            # moves
+            self.max_units_per_team * x * y
+            # attacks
+            + self.max_units_per_team * self.n_weapons * x * y
+            # response
+            + self.max_units_per_team * self.n_weapons * x * y
+            # pass-figure
+            + self.max_units_per_team
+            # pass-team, wait, no-response
+            + 3
+        )
+
+    def generateFeatures(self, board: GameBoard, state: GameState, is_response: bool) -> np.ndarray:
+        # TODO: consider the features from a team point of view
 
         # build board features
         terrain = board.terrain.copy()
@@ -111,15 +123,15 @@ class MCTS():
 
         feat_board = np.stack([board_fig[RED], board_fig[BLUE], goals[RED], goals[BLUE], protection, terrain])
 
-        max_turn = np.array([board.maxTurn], np.float64)
+        # TODO: personalize
+        params = GoalParams()
+
+        meta = np.array([board.maxTurn, is_response, ], np.float64)
 
         # build state features
-        feat_state = np.concatenate([max_turn, state.vector()], axis=0)
+        feat_state = np.concatenate([meta, state.vector()], axis=0)
 
-        # feat_board.shape: (6, 10, 10)
-        # feat_state.shape: (2828,)
-
-        return feat_board, feat_state
+        return feat_board.astype(np.float64), feat_state.astype(np.float64)
 
     def calculateValidMoves(self, board, state, team, action_type) -> np.ndarray:
         all_valid_actions = []
@@ -135,71 +147,88 @@ class MCTS():
     def actionIndexMapping(self, board, state, team, action_type) -> Tuple[np.ndarray, np.ndarray]:
         all_valid_actions = self.calculateValidMoves(board, state, team, action_type)
 
-        valid_indices = np.array([False] * self.max_action_size)
-        valid_actions = np.array([None] * self.max_action_size)
+        board_x, board_y = board.shape
+
+        move_idx = np.zeros((self.max_units_per_team, board_x, board_y), bool)
+        move_act = np.empty((self.max_units_per_team, board_x, board_y), object)
+        attack_idx = np.zeros((self.max_units_per_team, self.n_weapons, board_x, board_y), bool)
+        attack_act = np.empty((self.max_units_per_team, self.n_weapons, board_x, board_y), object)
+        resp_idx = np.zeros((self.max_units_per_team, self.n_weapons, board_x, board_y), bool)
+        resp_act = np.empty((self.max_units_per_team, self.n_weapons, board_x, board_y), object)
+        pass_idx = np.zeros((self.max_units_per_team), bool)
+        pass_act = np.empty((self.max_units_per_team), object)
+        extra_idx = np.zeros((3), bool)
+        extra_act = np.empty((3), object)
 
         for a in all_valid_actions:
-            idx = -1
 
-            if type(a) == AttackResponse or type(a) == Attack:
+            if type(a) == Move or type(a) == MoveLoadInto:
+                figure_id = a.figure_id
 
-                figure_ind = a.figure_id
-                target_ind = a.target_id
+                x, y = a.destination.tuple()
 
-                weapon_ind = WEAPONS_INDICES[a.weapon_id]
+                move_idx[figure_id, x, y] = 1.0
+                move_act[figure_id, x, y] = a
 
-                idx = (
-                    self.max_move_no_response_size +
-                    weapon_ind +
-                    target_ind * self.max_weapon_per_figure +
-                    figure_ind * self.max_weapon_per_figure * self.max_figure_per_scenario
-                )
+            elif type(a) == AttackGround:
+                figure_id = a.figure_id
 
-            elif type(a) == Wait:
+                x, y = a.ground.tuple()
+                w = a.weapon_idx
 
-                idx = self.max_move_no_response_size - 2
+                resp_idx[figure_id, w, x, y] = 1.0
+                resp_act[figure_id, w, x, y] = a
 
-            elif type(a) == NoResponse:
+            elif type(a) == AttackResponse:
+                figure_id = a.figure_id
 
-                idx = self.max_move_no_response_size - 1
+                x, y = a.target_pos.tuple()
+                w = a.weapon_idx
+
+                resp_idx[figure_id, w, x, y] = 1.0
+                resp_act[figure_id, w, x, y] = a
+
+            elif type(a) == AttackFigure:
+                figure_id = a.figure_id
+
+                x, y = a.target_pos.tuple()
+                w = a.weapon_idx
+
+                attack_idx[figure_id, w, x, y] = 1.0
+                attack_act[figure_id, w, x, y] = a
 
             elif type(a) == PassTeam:
+                extra_idx[0] = 1.0
+                extra_act[0] = a
 
-                idx = self.max_move_no_response_size
+            elif type(a) == Wait:
+                extra_idx[1] = 1.0
+                extra_act[1] = a
 
-            else:
+            elif type(a) == NoResponse:
+                extra_idx[2] = 1.0
+                extra_act[2] = a
 
-                if type(a) == PassFigure:
-                    x = 0
-                    y = 0
+            elif type(a) == PassFigure:
+                figure_id = a.figure_id
 
-                elif type(a) == Move:
+                pass_idx[figure_id] = 1.0
+                pass_act[figure_id] = a
 
-                    start_pos = a.position.tuple()
-                    end_pos = a.destination.tuple()
-
-                    x = end_pos[0] - start_pos[0]
-                    y = end_pos[1] - start_pos[1]
-
-                elif type(a) == MoveLoadInto:
-
-                    start_pos = a.position.tuple()
-                    end_pos = a.destination.tuple()
-
-                    x = end_pos[0] - start_pos[0]
-                    y = end_pos[1] - start_pos[1]
-
-                figure_index = a.figure_id
-
-                if x+y <= 0:
-                    index_shift = ((x+y+(7+7))*(x+y+(7+7+1)))//2+y+7
-                else:
-                    index_shift = 224-(((x+y-(7+7))*(x+y-(7+7+1)))//2-y-7)
-
-                idx = figure_index * 225 + index_shift
-
-            valid_indices[idx] = True
-            valid_actions[idx] = a
+        valid_indices = np.concatenate([
+            move_idx.reshape(-1),
+            attack_idx.reshape(-1),
+            resp_idx.reshape(-1),
+            pass_idx.reshape(-1),
+            extra_idx.reshape(-1)]
+        )
+        valid_actions = np.concatenate([
+            move_act.reshape(-1),
+            attack_act.reshape(-1),
+            resp_act.reshape(-1),
+            pass_act.reshape(-1),
+            extra_act.reshape(-1)]
+        )
 
         return valid_indices, valid_actions
 
@@ -215,7 +244,7 @@ class MCTS():
 
     def getActionProb(self, board, state, team, move_type, temp=1) -> Tuple[np.ndarray, int]:
         """
-        This function performs numMCTSSims simulations of MCTS 
+        This function performs num_MCTS_sims simulations of MCTS.
 
         Returns:
             probs: a policy vector where the probability of the ith action is
@@ -250,7 +279,7 @@ class MCTS():
                 i += 1
 
         logger.debug('getActProb S is: %s and his parent: %s', s, old_s)
-        counts = np.nan_to_num(np.array([self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.max_action_size)])).astype(np.float64)
+        counts = np.nan_to_num(np.array([self.Nsa.get((s, a), 0) for a in range(self.action_size)], bool))
 
         if temp == 0:
             bestAs = (np.argwhere(counts == np.max(counts))).flatten()
@@ -339,7 +368,7 @@ class MCTS():
             # leaf node, no probabilities assigned yet
             valid_s, valid_actions = self.actionIndexMapping(board, state, team, action_type)
 
-            x_b, x_s = self.generateFeatures(board, state)
+            x_b, x_s = self.generateFeatures(board, state, action_type == RES)
 
             self.Ps[s], v = self.nnet[team].predict([x_b], [x_s])
             self.Ps[s] = self.Ps[s] * valid_s  # masking invalid moves
@@ -368,7 +397,7 @@ class MCTS():
         best_act = -1
 
         # pick the action with the highest upper confidence bound
-        for a in range(self.max_action_size):
+        for a in range(self.action_size):
             if valid_s[a]:
                 if (s, a) in self.Qsa:
                     u = self.Qsa[(s, a)] + self.cpuct * self.Ps[s][a] * math.sqrt(self.Ns[s]) / (1 + self.Nsa[(s, a)])

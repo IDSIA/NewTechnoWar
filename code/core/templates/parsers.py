@@ -32,9 +32,9 @@ def parse_terrain():
 def parse_weapons():
     weapon_set = []
     for wData in TMPL_WEAPONS.values():
-        wid = wData['wid']
-        if wid:
-            weapon_set.append(wid)
+        tag = wData['tag']
+        if tag:
+            weapon_set.append(tag)
 
     for k in sorted(list(set(weapon_set))):
         if k not in WEAPON_KEY_LIST:

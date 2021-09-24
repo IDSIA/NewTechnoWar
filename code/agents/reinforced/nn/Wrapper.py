@@ -11,23 +11,20 @@ import torch.optim as optim
 from torch.nn import L1Loss, MSELoss
 
 from agents.reinforced.nn.NTWModel10x10 import NTWModel10x10
+from core.game import MAX_UNITS_PER_TEAM
 
 logger = logging.getLogger(__name__)
 
 
 class ModelWrapper():
 
-    def __init__(self, shape: Tuple[int], seed: int = 0, epochs: int = 2, batch_size: int = 64,
-                 max_move_no_response_size: int = 1351, max_attack_size: int = 288, device: str or None = 'cpu',
-                 lr: float = 0.001, dropout: float = 0.3
+    def __init__(self, seed: int = 0, epochs: int = 2, batch_size: int = 64, device: str or None = 'cpu',
+                 lr: float = 0.001, dropout: float = 0.3, board_levels: int = 6, state_features: int = 2829, max_units_per_team: int = MAX_UNITS_PER_TEAM
                  ):
-        self.board_x, self.board_y = shape
-        self.action_size = max_move_no_response_size + max_attack_size + 1
-
         self.epochs: int = epochs
         self.batch_size: int = batch_size
 
-        self.nn = NTWModel10x10(lr=lr, dropout=dropout, action_size=self.action_size)
+        self.nn = NTWModel10x10(lr=lr, dropout=dropout, board_levels=board_levels, state_features=state_features, max_units_per_team=max_units_per_team)
 
         self.random = np.random.default_rng(seed)
         self.history = []
@@ -102,6 +99,8 @@ class ModelWrapper():
                 optimizer.step()
 
                 self.history.append((loss_pi.item(), loss_v.item(), len(sample_ids)))
+
+        t.update()
 
     def predict(self, features_board: np.ndarray, features_state: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         # preparing input

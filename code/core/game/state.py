@@ -195,7 +195,7 @@ class GameState:
 
     def getWeapon(self, action: Attack or AttackGround) -> Weapon:
         """Given an Attack Action, returns the weapon used."""
-        return self.getFigure(action).weapons[action.weapon_id]
+        return self.getFigure(action).weapons[action.weapon_tag]
 
     def getTransporter(self, action: MoveLoadInto) -> Figure:
         """Given a LoadInto action, return the destination transporter."""

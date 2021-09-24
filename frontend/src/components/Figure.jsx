@@ -17,8 +17,8 @@ export default class Figure extends React.Component {
         return ammo === 0 ? 'empty' : '';
     }
 
-    handleWeaponClick(event, f, wid) {
-        this.props.clickOnWeapon(f, wid)
+    handleWeaponClick(event, f, tag) {
+        this.props.clickOnWeapon(f, tag)
 
         // stop click propagation
         if (!event)

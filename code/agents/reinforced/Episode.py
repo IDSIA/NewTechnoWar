@@ -28,14 +28,11 @@ class Episode:
                  support_red: str = None,
                  support_blue: str = None,
                  support_boost_prob: float = 1.0,
-                 max_weapon_per_figure: int = 8,
-                 max_figure_per_scenario: int = 6,
-                 max_move_no_response_size: int = 1351,
-                 max_attack_size: int = 288,
                  num_MCTS_sims: int = 30,
                  max_depth: int = 100,
-                 cpuct: float = 1,
+                 cpuct: float = 1.0,
                  timeout: int = 60,
+                 max_unit_per_team: int = 4,
                  ) -> None:
 
         self.support = {
@@ -43,16 +40,13 @@ class Episode:
             BLUE: support_blue,
         }
 
-        self.checkpoint = checkpoint
-        self.support_boost_prob = support_boost_prob
-        self.max_weapon_per_figure = max_weapon_per_figure
-        self.max_figure_per_scenario = max_figure_per_scenario
-        self.max_move_no_response_size = max_move_no_response_size
-        self.max_attack_size = max_attack_size
-        self.num_MCTS_sims = num_MCTS_sims
-        self.cpuct = cpuct
-        self.max_depth = max_depth
-        self.timeout = timeout
+        self.checkpoint: str = checkpoint
+        self.support_boost_prob: float = support_boost_prob
+        self.num_MCTS_sims: int = num_MCTS_sims
+        self.cpuct: float = cpuct
+        self.max_depth: int = max_depth
+        self.timeout: int = timeout
+        self.max_unit_per_team: int = max_unit_per_team
 
     def get_support(self, team, seed, enabled):
         if not enabled:
@@ -89,16 +83,15 @@ class Episode:
         }
 
         # setup models
-        red = ModelWrapper(board.shape, seed)
-        blue = ModelWrapper(board.shape, seed)
+        red = ModelWrapper(board.shape, seed, max_units_per_team=self.max_unit_per_team)
+        blue = ModelWrapper(board.shape, seed, max_units_per_team=self.max_unit_per_team)
 
         if load_models:
             red.load_checkpoint(self.checkpoint, f'model_{RED}.pth.tar')
             blue.load_checkpoint(self.checkpoint, f'model_{BLUE}.pth.tar')
 
         # setup MCTS
-        mcts = MCTS(red, blue, seed, self.max_weapon_per_figure, self.max_figure_per_scenario,
-                    self.max_move_no_response_size, self.max_attack_size, self.num_MCTS_sims, self.cpuct, self.max_depth)
+        mcts = MCTS(board.shape, red, blue, seed, self.num_MCTS_sims, self.cpuct, self.max_depth, self.max_unit_per_team)
 
         support = {
             RED: self.get_support(RED, seed, support_enabled),
@@ -147,7 +140,7 @@ class Episode:
                 valid_indices, valid_actions = mcts.actionIndexMapping(board, state, team, action_type)
                 actions = valid_actions[valid_indices]
 
-                x_b, x_s = mcts.generateFeatures(board, state)
+                x_b, x_s = mcts.generateFeatures(board, state, action_type == RES)
 
                 pi, _ = mcts.getActionProb(board, state, team, action_type, temp=temp)
 
@@ -216,10 +209,6 @@ class Episode:
 
         meta = {
             'support_boost_prob': self.support_boost_prob,
-            'max_weapon_per_figure': self.max_weapon_per_figure,
-            'max_figure_per_scenario': self.max_figure_per_scenario,
-            'max_move_no_response_size': self.max_move_no_response_size,
-            'max_attack_size': self.max_attack_size,
             'num_MCTS_sims': self.num_MCTS_sims,
             'cpuct': self.cpuct,
             'max_depth': self.max_depth,
