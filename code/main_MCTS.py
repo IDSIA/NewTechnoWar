@@ -172,6 +172,7 @@ if __name__ == '__main__':
     # validation parameters
     p.add_argument('-v', '--valid-episodes', type=int, default=NUM_VALID_EPISODES, dest='num_valid_episodes',
                    help=f'default: {NUM_VALID_EPISODES}\t number of episodes to play for validation for each pair of agents')
+    p.add_argument('-k', '--skip-validation', dest='skip_validation', default=False, action='store_true', help='Skip validation step')
     args = p.parse_args()
 
     device: str = 'cpu'
@@ -228,6 +229,7 @@ if __name__ == '__main__':
     max_depth = args.depth
     train_only = args.train_only
     accumulate = args.accumulate
+    force_skip_validation = args.skip_validation
 
     support_red = args.sar
     support_blue = args.sab
@@ -404,6 +406,10 @@ if __name__ == '__main__':
                     f.write('\n')
 
         # evaluate new models
+        if force_skip_validation:
+            logger.info('skipping validation')
+            continue
+
         if skip_validation:
             logger.warning('skipping validation: no new model trained')
             continue

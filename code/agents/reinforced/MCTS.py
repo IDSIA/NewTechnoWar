@@ -123,8 +123,8 @@ class MCTS():
 
         feat_board = np.stack([board_fig[RED], board_fig[BLUE], goals[RED], goals[BLUE], protection, terrain])
 
-        # TODO: personalize
-        params = GoalParams()
+        # TODO: personalize paraemters
+        # params = GoalParams()
 
         meta = np.array([board.maxTurn, is_response, ], np.float64)
 
@@ -279,10 +279,14 @@ class MCTS():
                 i += 1
 
         logger.debug('getActProb S is: %s and his parent: %s', s, old_s)
-        counts = np.nan_to_num(np.array([self.Nsa.get((s, a), 0) for a in range(self.action_size)], bool))
+        counts = np.array([self.Nsa.get((s, a), 0) for a in range(self.action_size)])
+
+        if counts.sum() == 0:
+            logger.debug('empty counts array in mcts')
+            counts = np.ones(counts.shape)
 
         if temp == 0:
-            bestAs = (np.argwhere(counts == np.max(counts))).flatten()
+            bestAs = np.argwhere(counts == np.max(counts)).flatten()
             bestA = self.random.choice(bestAs)
             probs = np.zeros(counts.shape)
             probs[bestA] = 1
