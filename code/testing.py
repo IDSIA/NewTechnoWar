@@ -40,7 +40,9 @@ state.addFigure(
     buildFigure('Infantry', (0, 4), BLUE, 'b_inf_1'),
 )
 
-drawState(board, state)
+img = drawState(board, state)
+img.save('game5x5.png')
+img
 
 # %%
 
