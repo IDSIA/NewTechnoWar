@@ -83,11 +83,11 @@ class AlphaBetaFast1Agent(AlphaBetaAgent):
         """
         nextActions = []
         if step == 'response':
-            nextActions += [self.gm.actionNoResponse(team)]
-            for figure in state.getFiguresCanRespond(team):
-                nextActions += self.gm.buildResponses(board, state, figure)
+            nextActions = self.gm.buildResponsesForTeam(board, state, team)
 
         else:
+            nextActions += self.gm.buildWaits(board, state, team)
+
             for figure in state.getFiguresCanBeActivated(team):
                 # RED team can't pass
                 if team == BLUE:
@@ -96,6 +96,7 @@ class AlphaBetaFast1Agent(AlphaBetaAgent):
                 if self.maxDepth - depth == 1:
                     nextActions += self.gm.buildMovements(board, state, figure)
                 nextActions += self.gm.buildAttacks(board, state, figure)
+                nextActions += self.gm.buildSupportAttacks(board, state, figure)
 
             # if we don't have actions available we are forced to pass with the whole team
             if not nextActions:

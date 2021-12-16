@@ -1,7 +1,7 @@
 import numpy as np
 from flask.json import JSONEncoder
 
-from core.actions import Move, Attack, MoveLoadInto, AttackGround, AttackResponse, PassFigure, PassTeam, NoResponse, Wait
+from core.actions import Move, AttackFigure, AttackGround, MoveLoadInto, AttackGround, AttackResponse, PassFigure, PassTeam, NoResponse, Wait
 from core.const import RED, BLUE
 from core.figures import Figure
 from core.figures.weapons import Weapon
@@ -129,7 +129,7 @@ class GameJSONEncoder(JSONEncoder):
 
         if isinstance(obj, Weapon):
             return {
-                'id': obj.wid,
+                'id': obj.tag,
                 'name': obj.name,
                 'max_range': obj.max_range,
                 'atk_normal': obj.atk_normal,
@@ -191,18 +191,18 @@ class GameJSONEncoder(JSONEncoder):
                 'text': str(obj),
             }
 
-        if isinstance(obj, Attack) or isinstance(obj, AttackResponse):
+        if isinstance(obj, AttackFigure) or isinstance(obj, AttackResponse):
             return {
-                'action': 'Respond' if isinstance(obj, AttackResponse) else 'Attack',
+                'action': 'Respond' if isinstance(obj, AttackResponse) else 'AttackFigure',
                 'team': obj.team,
                 'figure_id': obj.figure_id,
                 'figure_name': obj.figure_name,
                 'target_id': obj.target_id,
                 'target_name': obj.target_name,
                 'target_team': obj.target_team,
-                'weapon_id': obj.weapon_id,
                 'guard_id': obj.guard_id,
                 'guard_name': obj.guard_name,
+                'weapon_id': obj.weapon_idx,
                 'weapon_name': obj.weapon_name,
                 'los': [cube_to_xy(h) for h in obj.los],
                 'lof': [cube_to_xy(h) for h in obj.lof],
@@ -216,8 +216,14 @@ class GameJSONEncoder(JSONEncoder):
                 'figure_id': obj.figure_id,
                 'figure_name': obj.figure_name,
                 'ground': obj.ground,
-                'weapon_id': obj.weapon_id,
+                'guard_id': obj.guard_id,
+                'guard_name': obj.guard_name,
+                'weapon_id': obj.weapon_idx,
                 'weapon_name': obj.weapon_name,
+                'weapon_id': obj.weapon_idx,
+                'weapon_name': obj.weapon_name,
+                'los': [cube_to_xy(h) for h in obj.los],
+                'lof': [cube_to_xy(h) for h in obj.lof],
                 'text': str(obj),
             }
 

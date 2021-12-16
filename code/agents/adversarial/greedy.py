@@ -9,7 +9,6 @@ from agents import Agent
 from agents.commons import stateScore
 from agents.utils import entropy, standardD
 from core.actions import Action, Attack, Response
-from core.figures import Figure
 from core.game import GameBoard, GameState, GoalParams
 from core.utils.coordinates import Hex
 from utils.copy import deepcopy
@@ -19,13 +18,13 @@ logger = logging.getLogger(__name__)
 
 class GreedyAgent(Agent):
 
-    def __init__(self, team: str, maximize: bool = True, seed: int = 0):
+    def __init__(self, team: str, maximize: bool = True, seed: int = 0, name: str = 'GreedyAgent'):
         """
         :param team:        color of the team
         :param maximize:    if true optimize for maximize the score, otherwise to minimize
         :param seed:        random seed to use internally
         """
-        super().__init__('GreedyAgent', team, seed=seed)
+        super().__init__(name, team, seed=seed)
 
         self.goal_params: GoalParams = GoalParams()
         self.maximize: bool = maximize
@@ -79,83 +78,12 @@ class GreedyAgent(Agent):
         score = stateScore(self.team, self.goal_params, board, s1)
 
         if isinstance(action, Attack):
-            w = min(1.0, (outcome.hitScore - 1) / 19)
+            w = min(1., (outcome.hitScore - 1.) / 19.)
             score = w * score + (1 - w) * baseScore
 
         return score
 
-    def scorePass(self, board: GameBoard, state: GameState, figure: Figure = None) -> List[Tuple[float, Action]]:
-        """
-        If the figure is given, compute the score for the PassFigure action; otherwise compute the score for the
-        PassTeam action.
-
-        :param board:       board of the game
-        :param state:       current state of the game
-        :param figure:      figure that will perform the action
-        :return: a list with one element composed by the score and the action
-        """
-        if figure:
-            action = self.gm.actionPassFigure(figure)
-        else:
-            action = self.gm.actionPassTeam(self.team)
-        score = self.evaluateState(board, state, action)
-        return [(score, action)]
-
-    def scoreMove(self, board: GameBoard, state: GameState, figure: Figure) -> List[Tuple[float, Action]]:
-        """
-        :param board:       board of the game
-        :param state:       current state of the game
-        :param figure:      figure that will perform the action
-        :return: a list with all the move actions for the given figure and their score
-        """
-        scores = []
-        for action in self.gm.buildMovements(board, state, figure):
-            score = self.evaluateState(board, state, action)
-            scores.append((score, action))
-
-            logger.debug(f'{self.team:5}: Current move score is {score}')
-
-        return scores
-
-    def scoreAttack(self, board: GameBoard, state: GameState, figure: Figure) -> List[Tuple[float, Action]]:
-        """
-        :param board:       board of the game
-        :param state:       current state of the game
-        :param figure:      figure that will perform the action
-        :return: a list with all the attack actions for the given figure and their score
-        """
-        baseScore = stateScore(self.team, self.goal_params, board, state)
-        scores = []
-
-        for action in self.gm.buildAttacks(board, state, figure):
-            score = self.evaluateState(board, state, action, baseScore)
-            scores.append((score, action))
-
-            logger.debug(f'{self.team:5}: Current attack score is {score}')
-
-        return scores
-
-    def scoreResponse(self, board: GameBoard, state: GameState, figure: Figure) -> List[Tuple[float, Action]]:
-        """
-        :param board:       board of the game
-        :param state:       current state of the game
-        :param figure:      figure that will perform the action
-        :return: a list with all the responses for the given figure and their score
-        """
-        baseScore = stateScore(self.team, self.goal_params, board, state)
-        scores = []
-
-        responses = [self.gm.actionNoResponse(self.team)] + self.gm.buildResponses(board, state, figure)
-
-        for action in responses:
-            score = self.evaluateState(board, state, action, baseScore)
-            scores.append((score, action))
-
-            logger.debug(f'{self.team:5}: Current response score is {score}')
-
-        return scores
-
-    def opt(self, scores) -> Tuple[float, Action or Response]:
+    def opt(self, scores: List[Tuple[float, Action or Response]]) -> Tuple[float, Action or Response]:
         """
         Optimization function based on the init parameter maximize.
 
@@ -191,17 +119,17 @@ class GreedyAgent(Agent):
         scores = []
 
         # compute all scores for possible actions for each available unit
-        for figure in state.getFiguresCanBeActivated(self.team):
-            scores += self.scorePass(board, state, figure)
-            scores += self.scoreMove(board, state, figure)
-            scores += self.scoreAttack(board, state, figure)
+        for action in self.gm.buildActionsForTeam(board, state, self.team):
+            score = self.evaluateState(board, state, action)
+            scores.append((score, action))
+            logger.debug(f'{self.team:5}: "{action}" score is {score}')
 
         # search for action with best score
         score, action = self.opt(scores)
 
         self.store(state, score, action, scores)
 
-        logger.debug(f'{self.team:5}: {action} ({score})')
+        logger.debug(f'{self.team:5}: optimal: {action} ({score})')
         return action
 
     def chooseResponse(self, board: GameBoard, state: GameState) -> Action:
@@ -212,18 +140,20 @@ class GreedyAgent(Agent):
         :param state:   the current state
         :return: the next response to apply
         """
-        scores = [] + self.scorePass(board, state)
+        scores = []
 
         # compute all scores for possible responses
-        for figure in state.getFiguresCanBeActivated(self.team):
-            scores += self.scoreResponse(board, state, figure)
+        for action in self.gm.buildResponsesForTeam(board, state, self.team):
+            score = self.evaluateState(board, state, action)
+            scores.append((score, action))
+            logger.debug(f'{self.team:5}: "{action}" score is {score}')
 
         # search for action with best score
         score, action = self.opt(scores)
 
         self.store(state, score, action, scores)
 
-        logger.debug(f'{self.team:5}: {action} ({score})')
+        logger.debug(f'{self.team:5}: optimal: {action} ({score})')
         return action
 
     def placeFigures(self, board: GameBoard, state: GameState) -> None:
@@ -239,7 +169,7 @@ class GreedyAgent(Agent):
         figures = state.getFigures(self.team)
 
         # choose groups of random positions
-        indices = [np.random.choice(len(x), size=len(figures), replace=False) for _ in range(100)]
+        indices = [self.random.choice(len(x), size=len(figures), replace=False) for _ in range(100)]
 
         scores = []
         s = deepcopy(state)

@@ -2,7 +2,7 @@ from typing import Dict, List
 
 import numpy as np
 
-from core.actions import Action, Attack, AttackGround
+from core.actions import Action, Attack, AttackFigure, AttackGround
 from core.actions import ActionFigure, MoveLoadInto
 from core.const import RED, BLUE
 from core.figures import Figure, Weapon
@@ -18,10 +18,11 @@ class GameState:
 
     __slots__ = [
         'name', 'seed', 'turn', 'figures', 'posToFigure', 'smoke', 'figuresLOS', 'figuresDistance', 'lastAction',
-        'has_choice', 'choices', 'has_placement', 'placement_zone', 'initialized'
+        'has_choice', 'choices', 'has_placement', 'placement_zone', 'initialized', 'shape'
     ]
 
     def __init__(self, shape: tuple, name: str = '', seed=0):
+        self.shape: tuple = shape
         self.name: str = name
         self.seed: int = seed
         self.turn: int = -1
@@ -71,20 +72,63 @@ class GameState:
 
         self.initialized: bool = False
 
-    def __eq__(self, other):
+    def vector(self) -> np.ndarray:
+        data = [np.array([
+            self.turn,
+        ], np.float64)]
+
+        for team in [RED, BLUE]:
+            other = BLUE if team is RED else RED
+
+            # list of vectors for red figures
+            figs = []
+            for f in self.figures[team]:
+                figs.append(f.vector())
+
+            for _ in range(MAX_UNITS_PER_TEAM - len(figs)):
+                figs.append(np.zeros(figs[0].shape))
+
+            figs = np.concatenate(figs, axis=0)
+
+            # distances between figures of same team
+            data_dist = []
+            # los on figures of other team
+            data_los = []
+
+            for i in range(MAX_UNITS_PER_TEAM):
+                for j in range(MAX_UNITS_PER_TEAM):
+                    if i != j:
+                        if i < len(self.figures[team]) and j < len(self.figures[team]):
+                            dist: list = self.figuresDistance[team][j][i]
+                            data_dist.append(len(dist) - 1)
+                        else:
+                            data_dist.append(0)
+
+                    if i < len(self.figures[team]) and j < len(self.figures[other]):
+                        dist: list = self.figuresLOS[team][i][j]
+                        data_los.append(len(dist) - 1)
+                    else:
+                        data_los.append(0)
+
+            data_dist = np.array(data_dist, np.float64)
+            data_los = np.array(data_los, np.float64)
+
+            data += [figs, data_dist, data_los]
+
+        return np.concatenate(data, axis=0)
+
+    def __eq__(self, other: object) -> bool:
         if not other:
             return False
         if not isinstance(other, GameState):
             return False
-        v = vectorState(self)
-        v_other = vectorState(other)
-        for i in range(len(v)):
-            if v[i] != v_other[i]:
-                return False
-        return True
+        v = self.vector()
+        v_other = other.vector()
+
+        return np.all(v == v_other)
 
     def __hash__(self):
-        return hash(vectorState(self))
+        return hash(self.vector().tobytes())
 
     def __repr__(self) -> str:
         return f'GameState({self.name}): {self.turn}:\n{self.figures}\n{self.posToFigure}'
@@ -141,13 +185,17 @@ class GameState:
         """Given an action, returns the figure that performs such action."""
         return self.getFigureByIndex(action.team, action.figure_id)
 
-    def getTarget(self, action: Attack) -> Figure:
-        """Given an Attack Action, returns the target figure."""
+    def getTarget(self, action: AttackFigure) -> Figure:
+        """Given an AttackFigure Action, returns the target figure."""
         return self.getFigureByIndex(action.target_team, action.target_id)
+
+    def getGround(self, action: AttackGround) -> Cube:
+        """Giben an AttackGround action, return the target position."""
+        return action.ground
 
     def getWeapon(self, action: Attack or AttackGround) -> Weapon:
         """Given an Attack Action, returns the weapon used."""
-        return self.getFigure(action).weapons[action.weapon_id]
+        return self.getFigure(action).weapons[action.weapon_tag]
 
     def getTransporter(self, action: MoveLoadInto) -> Figure:
         """Given a LoadInto action, return the destination transporter."""
@@ -198,6 +246,15 @@ class GameState:
         """Get all the lines of sight of all hostile figures of the given target."""
         return self.figuresLOS[target.team][target.index]
 
+    def getLOSGround(self, target: Cube, team: str) -> Dict[int, List[Cube]]:
+        """Get all the lines os sight of the given team to the given target location."""
+        loss: Dict[int, List[Cube]] = dict()
+
+        for figure in self.getFigures(team):
+            loss[figure.index] = target.line(figure.position)
+
+        return loss
+
     def getDistances(self, target: Figure) -> Dict[int, List[Cube]]:
         """Get all the lines of sight of all ally figures of the given target."""
         return self.figuresDistance[target.team][target.index]
@@ -220,17 +277,22 @@ class GameState:
             self.figuresDistance[defenders].setdefault(defender.index, {})[target.index] = list(reversed(los))
 
     def isObstacle(self, pos: Cube) -> bool:
-        """Returns if the position is an obstacle (a VEHICLE) to LOS or not."""
+        """Returns if the position is an obstacle (a VEHICLE or covered by SMOKE) to LOS or not."""
         for team in (RED, BLUE):
             for f in self.getFiguresByPos(team, pos):
                 if f.kind == 'vehicle':
                     return True
+        if self.smoke[pos.tuple()] > 0:
+            return True
         return False
 
     def addSmoke(self, smoke: List[Cube]) -> None:
         """Add a cloud of smoke to the status. This cloud is defined by a list of Cubes."""
+        max_x, max_y = self.shape
         for c in smoke:
-            self.smoke[c.tuple()] = MAX_SMOKE
+            x, y = c.tuple()
+            if x >= 0 and x < max_x and y >= 0 and y < max_y:
+                self.smoke[x, y] = MAX_SMOKE
 
     def hasSmoke(self, lof: List[Cube]) -> bool:
         """

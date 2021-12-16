@@ -1,9 +1,14 @@
 import unittest
 
+from os.path import join, dirname
+
 from core.const import RED, BLUE
-from core.figures import buildFigure
 from core.game import GameBoard, GameState, GameManager
+from core.templates import buildFigure
 from core.utils.coordinates import Hex
+from utils.setup_logging import setup_logging
+
+setup_logging(join(dirname(__file__), 'logger.config.yaml'))
 
 GM: GameManager = GameManager()
 
@@ -39,7 +44,7 @@ class TestFigures(unittest.TestCase):
         self.assertFalse(self.inf_2.activated)
         self.assertFalse(self.inf_2.responded)
 
-        a1 = GM.actionAttack(self.board, self.state, self.inf_1, self.target_1, self.inf_1.weapons['AR'])
+        a1 = GM.actionAttackFigure(self.board, self.state, self.inf_1, self.target_1, self.inf_1.weapons['AR'])
         r1 = GM.actionRespond(self.board, self.state, self.inf_1, self.target_2, self.inf_1.weapons['AR'])
         r2 = GM.actionRespond(self.board, self.state, self.inf_2, self.target_3, self.inf_1.weapons['AR'])
 

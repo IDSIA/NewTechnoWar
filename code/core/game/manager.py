@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 class GameManager(object):
     """Utility class that helps in manage the states of the game and build actions."""
 
-    def __init__(self):
-        pass
+    def __init__(self, seed: int = 42):
+        self.random = np.random.default_rng(seed)
 
     def actionPassTeam(self, team: str) -> PassTeam:
         """Creates a PassTeam action where the whole team will do nothing in this step."""
@@ -43,12 +43,18 @@ class GameManager(object):
 
     def buildWaits(self, board: GameBoard, state: GameState, team: str) -> List[Wait]:
         """Build a wait action if both teams have at least one unit that can be activated."""
-        other: str = RED if team == BLUE else BLUE
+        waits = []
+
+        if team == RED:
+            # RED team cannot wait
+            return waits
+
+        other: str = RED
 
         if any(not f.activated for f in state.figures[other]) and any(not f.activated for f in state.figures[team]):
-            return [self.actionWait(team)]
+            waits.append(self.actionWait(team))
 
-        return []
+        return waits
 
     def actionMove(self, board: GameBoard, state: GameState, figure: Figure, path: List[Cube] = None,
                    destination: Cube = None) -> Move:
@@ -128,7 +134,7 @@ class GameManager(object):
         """Returns True if the line is valid (has no obstacles), otherwise False."""
         return not any([state.isObstacle(h) or board.isObstacle(h) for h in line[1:-1]])
 
-    def canShoot(self, board: GameBoard, state: GameState, figure: Figure, target: Figure, weapon: Weapon) -> tuple:
+    def canShoot(self, board: GameBoard, state: GameState, figure: Figure, target: Figure or Cube, weapon: Weapon) -> tuple:
         """Check if the given weapon can shoot against the given target."""
 
         if not weapon.isAvailable():
@@ -138,25 +144,26 @@ class GameManager(object):
             raise ValueError(f'{weapon} does not have enough ammo')
 
         if figure.stat == stat('LOADED'):
-            raise ValueError(f'{weapon} cannot hit {target}: unit is LOADED in a vehicle')
+            raise ValueError(f'{weapon} cannot shoot: {figure} is LOADED in a vehicle')
 
-        if target.stat == stat('LOADED'):
-            raise ValueError(f'{weapon} cannot hit {target}: target is LOADED in a vehicle')
+        if isinstance(target, Figure):
+            if target.stat == stat('LOADED'):
+                raise ValueError(f'{weapon} cannot hit {target}: target is LOADED in a vehicle')
 
-        if target.stat == stat('HIDDEN'):
-            raise ValueError(f'{weapon} cannot hit {target}: target is HIDDEN')
+            if target.stat == stat('HIDDEN'):
+                raise ValueError(f'{weapon} cannot hit {target}: target is HIDDEN')
 
-        if weapon.antitank:
-            # can shoot only against vehicles
-            validTarget = target.kind == 'vehicle'
-        else:
-            # can shoot against infantry and others only
-            validTarget = target.kind != 'vehicle'
+            if weapon.antitank:
+                # can shoot only against vehicles
+                validTarget = target.kind == 'vehicle'
+            else:
+                # can shoot against infantry and others only
+                validTarget = target.kind != 'vehicle'
 
-        if not validTarget:
-            raise ValueError(f'{weapon} cannot hit {target}: target is not valid')
+            if not validTarget:
+                raise ValueError(f'{weapon} cannot hit {target}: target is not valid')
 
-        lines = state.getLOS(target)
+        lines = state.getLOS(target) if isinstance(target, Figure) else state.getLOSGround(target, figure.team)
         lof = lines[figure.index]
 
         if weapon.curved:
@@ -189,8 +196,8 @@ class GameManager(object):
 
         return figure, target, guard, weapon, los, lof
 
-    def actionAttack(self, board: GameBoard, state: GameState, figure: Figure, target: Figure,
-                     weapon: Weapon) -> Attack:
+    def actionAttackFigure(self, board: GameBoard, state: GameState, figure: Figure, target: Figure,
+                           weapon: Weapon) -> Attack:
         """
         Creates an Attack action for a figure given the specified target and weapon. Can raise ValueError if the shot
         is not doable.
@@ -198,8 +205,8 @@ class GameManager(object):
 
         args = self.canShoot(board, state, figure, target, weapon)
         if not args:
-            raise ValueError
-        return Attack(*args)
+            raise ValueError('Cannot shoot to the target')
+        return AttackFigure(*args)
 
     def buildAttacks(self, board: GameBoard, state: GameState, figure: Figure) -> List[Attack]:
         """Returns a list of all the possible shooting actions that can be performed."""
@@ -214,7 +221,7 @@ class GameManager(object):
 
             for _, weapon in figure.weapons.items():
                 try:
-                    attacks.append(self.actionAttack(board, state, figure, target, weapon))
+                    attacks.append(self.actionAttackFigure(board, state, figure, target, weapon))
                 except ValueError as _:
                     pass
 
@@ -233,34 +240,39 @@ class GameManager(object):
         return AttackResponse(*args)
 
     def buildResponses(self, board: GameBoard, state: GameState, figure: Figure, lastAction=None) -> List[Response]:
-        """Returns a list of all possible response action that can be performed."""
+        """Returns a list of all possible response action that can be performed by the given figure."""
 
         responses = []
 
-        if lastAction:
-            target = state.getFigure(lastAction)
-        else:
-            target = state.getFigure(state.lastAction)
-
-        if target.team == figure.team:
+        if figure.killed or figure.responded:
+            # figure is not valid
             return responses
 
-        if not any([figure.responded, figure.killed, target.killed, target.stat == stat('HIDDEN')]):
+        if lastAction is None:
+            lastAction = state.lastAction
 
-            for _, weapon in figure.weapons.items():
-                if weapon.smoke:
-                    # smoke weapons cannot be used as response since they do no damage
-                    continue
-                try:
-                    responses.append(self.actionRespond(board, state, figure, target, weapon))
-                except ValueError as _:
-                    pass
+        if isinstance(lastAction, Pass):
+            return responses
+
+        target = state.getFigure(lastAction)
+
+        if target.team == figure.team or target.killed or target.stat == stat('HIDDEN'):
+            # target is not valid
+            return responses
+
+        for _, weapon in figure.weapons.items():
+            if weapon.smoke:
+                # smoke weapons cannot be used as response since they do no damage
+                continue
+            try:
+                responses.append(self.actionRespond(board, state, figure, target, weapon))
+            except ValueError as _:
+                pass
 
         return responses
 
-    @staticmethod
-    def actionAttackGround(figure: Figure, ground: Cube, weapon: Weapon):
-        """Creates an AttackGround action for a figure given the ground location and the weapon to use."""
+    def actionAttackGround(self, board: GameBoard, state: GameState, figure: Figure, ground: Cube, weapon: Weapon):
+        """Creates an AttackGround action for a figure given the ground position and the weapon to use."""
 
         if not weapon.attack_ground:
             raise ValueError(f'weapon {weapon} cannot attack ground')
@@ -268,7 +280,10 @@ class GameManager(object):
         if figure.position.distance(ground) > weapon.max_range:
             raise ValueError(f'weapon {weapon} cannot reach {ground} from {figure.position}')
 
-        return AttackGround(figure, ground, weapon)
+        args = self.canShoot(board, state, figure, ground, weapon)
+        if not args:
+            raise ValueError('Cannot shoot to the target')
+        return AttackGround(*args)
 
     def buildSupportAttacks(self, board: GameBoard, state: GameState, figure: Figure) -> List[AttackGround]:
         """Returns a list of all possible SupportAttack actions that can be performed."""
@@ -279,7 +294,10 @@ class GameManager(object):
             if weapon.smoke:
                 grounds = board.getRange(figure.position, weapon.max_range)
                 for ground in grounds:
-                    supports.append(self.actionAttackGround(figure, ground, weapon))
+                    try:
+                        supports.append(self.actionAttackGround(board, state, figure, ground, weapon))
+                    except ValueError as _:
+                        pass
 
         return supports
 
@@ -290,42 +308,27 @@ class GameManager(object):
             self.actionPassFigure(figure),
         ]
 
-        for wait in self.buildWaits(board, state, figure.team):
-            actions.append(wait)
-
-        for movement in self.buildMovements(board, state, figure):
-            actions.append(movement)
-
-        for attack in self.buildAttacks(board, state, figure):
-            actions.append(attack)
-
-        for support in self.buildSupportAttacks(board, state, figure):
-            actions.append(support)
+        actions += self.buildWaits(board, state, figure.team)
+        actions += self.buildMovements(board, state, figure)
+        actions += self.buildAttacks(board, state, figure)
+        actions += self.buildSupportAttacks(board, state, figure)
 
         return actions
 
     def buildResponsesForFigure(self, board: GameBoard, state: GameState, figure: Figure) -> List[Response]:
         """Build all possible responses for the given figure."""
 
-        actions = []
-
-        for response in self.buildResponses(board, state, figure):
-            actions.append(response)
-
-        return actions
+        return self.buildResponses(board, state, figure)
 
     def buildActionsForTeam(self, board: GameBoard, state: GameState, team: str) -> List[Action]:
         """
         Build a list with all the possible actions that can be executed by an team with the current status of the board.
         """
 
-        actions = [
-            self.actionPassTeam(team),
-        ]
-
+        actions = [self.actionPassTeam(team)]
         actions += self.buildWaits(board, state, team)
 
-        for figure in state.figures[team]:
+        for figure in state.getFiguresCanBeActivated(team):
             actions += self.buildActionsForFigure(board, state, figure)
 
         return actions
@@ -335,11 +338,9 @@ class GameManager(object):
         Build a list with all the possible actions that can be executed by an team with the current status of the board.
         """
 
-        responses = [
-            self.actionNoResponse(team)
-        ]
+        responses = [self.actionNoResponse(team)]
 
-        for figure in state.figures[team]:
+        for figure in state.getFiguresCanRespond(team):
             responses += self.buildResponsesForFigure(board, state, figure)
 
         return responses
@@ -350,8 +351,7 @@ class GameManager(object):
         outcome = self.step(board, s1, action, forceHit)
         return s1, outcome
 
-    @staticmethod
-    def applyDamage(state: GameState, action: Attack, hitScore: int, score: int, success: int, target: Figure,
+    def applyDamage(self, state: GameState, action: Attack, hitScore: int, score: int, success: int, target: Figure,
                     weapon: Weapon) -> None:
         """Applies the damage of a weapon to the target, if succeeded."""
 
@@ -373,7 +373,7 @@ class GameManager(object):
             logger.debug(f'{action}: ({success} {score}/{hitScore}): HIT!  ({target.hp}/{target.hp_max})')
             # disable a random weapon
             weapons = [x for x in target.weapons if not weapon.disabled]
-            to_disable = np.random.choice(weapons, weapon.damage * success, replace=False)
+            to_disable = self.random.choice(weapons, weapon.damage * success, replace=False)
             for x in to_disable:
                 target.weapons[x].disable()
 
@@ -445,6 +445,7 @@ class GameManager(object):
 
             if w.smoke:
                 cloud = [
+                    x,
                     x + Cube(0, -1, 1),
                     x + Cube(1, -1, 0),
                     x + Cube(1, 0, -1),
@@ -453,10 +454,11 @@ class GameManager(object):
                     x + Cube(-1, 0, 1),
                 ]
 
-                cloud = [(c.distance(f.position), c) for c in cloud]
-                cloud = sorted(cloud, key=lambda y: -y[0])
+                l = x.distance(f.position)
 
-                state.addSmoke([c[1] for c in cloud[1:3]] + [x])
+                cloud = filter(lambda y: y.distance(f.position) == l, cloud)
+
+                state.addSmoke(cloud)
 
                 comment = f'smoke at {x}'
 
@@ -479,7 +481,7 @@ class GameManager(object):
             if forceHit:
                 score = [0] * w.dices
             else:
-                score = np.random.choice(range(1, 21), size=w.dices)
+                score = self.random.choice(range(1, 21), size=w.dices)
 
             # attack/response
             if isinstance(action, Response):
@@ -523,7 +525,7 @@ class GameManager(object):
 
             elif w.curved:
                 # missing with curved weapons
-                v = np.random.choice(range(1, 21), size=1)
+                v = self.random.choice(range(1, 21), size=1)
                 hitLocation = MISS_MATRIX[team](v)
                 missed = state.getFiguresByPos(t.team, hitLocation)
                 missed = [m for m in missed if not m.killed]

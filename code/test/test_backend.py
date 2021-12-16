@@ -1,10 +1,15 @@
 import unittest
 
+from os.path import join, dirname
+
 from core.const import RED, BLUE
-from web.server import create_app
+from web.backend import create_app
+from utils.setup_logging import setup_logging
+
+setup_logging(join(dirname(__file__), 'logger.config.yaml'))
 
 
-class TestWebUI(unittest.TestCase):
+class TestBackend(unittest.TestCase):
     def setUp(self) -> None:
         self.app = create_app()
         self.client = self.app.test_client()

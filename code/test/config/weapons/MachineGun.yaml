@@ -1,7 +1,8 @@
 weapon:
 
   MachineGun:
-    wid: MG
+    tag: MG
+    idx: 2
     name: 'MachineGun'
     max_range: 24
 

@@ -3,7 +3,9 @@ import math
 from time import time
 from typing import Tuple, List, Dict
 
-from agents import Agent, MatchManager, GreedyAgent
+from agents.interface import Agent
+from agents.matchmanager import MatchManager
+from agents.adversarial.greedy import GreedyAgent
 from agents.adversarial.puppets import Puppet
 from agents.commons import stateScore
 from core.actions import Action
@@ -117,16 +119,11 @@ class AlphaBetaAgent(Agent):
         """
         nextActions = []
         if step == 'response':
-            nextActions += [self.gm.actionNoResponse(team)]
-            for figure in state.getFiguresCanRespond(team):
-                nextActions += self.gm.buildResponses(board, state, figure)
-        else:
-            for figure in state.getFiguresCanBeActivated(team):
-                nextActions += [self.gm.actionPassFigure(figure)]
+            nextActions = self.gm.buildResponsesForTeam(board, state, team)
 
-                # standard actions
-                nextActions += self.gm.buildAttacks(board, state, figure)
-                nextActions += self.gm.buildMovements(board, state, figure)
+        else:
+            nextActions = self.gm.buildActionsForTeam(board, state, team)
+
         return nextActions
 
     def apply(self, board: GameBoard, state: GameState, action: Action, step: str, alpha: float, beta: float,

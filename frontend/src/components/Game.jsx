@@ -5,10 +5,10 @@ import Board from "./Board"
 import Panel from "./Panel"
 import Lobby from "./Lobby"
 import Messages from "./Messages"
-import Config from "./Config"
 import { size, middleHeight } from "../model/CellHex"
 
 import '../styles/game.css'
+
 
 const API = process.env.API_URL
 const TIMEOUT = 1000 // milliseconds
@@ -22,8 +22,6 @@ export default class Game extends React.Component {
         this.state = {
             // if true, show the lobby form
             showLobby: true,
-            // if true show the config page (TODO: implement this)
-            showConfig: false,
             // if true, interface initialization completed
             initCompleted: false,
             // if true, game inizialization done
@@ -48,6 +46,8 @@ export default class Game extends React.Component {
             height: 0,
             // all available hexagons in the board
             cells: [],
+            // cells with smoke
+            smoke: [],
             // board zone states
             zones: { red: [], blue: [] },
             // colors of the scenario
@@ -160,10 +160,9 @@ export default class Game extends React.Component {
             height = last_cell.center.y + 5 * middleHeight / 2
 
             // TODO: center on unit or center-map if too small
-
-            const { x, y } = cells[
-                Math.floor(cols * rows / 2) + Math.floor(rows / 2)
-            ].center
+            // const { x, y } = cells[
+            //     Math.floor(cols * rows / 2) + Math.floor(rows / 2)
+            // ].center
         }
 
         let content = `Seed:        ${params.seed}\nScenario:    ${params.scenario}\nPlayer red:  ${params.player.red}\nPlayer blue: ${params.player.blue}`
@@ -292,6 +291,17 @@ export default class Game extends React.Component {
         s.figures = data.state.figures
         s.los = data.state.los
         this.updateFigurePosition(s.cells, s.figures)
+
+        // update smoke values
+        s.smoke = []
+        for (let x = 0; x < this.state.cols; x++) {
+            for (let y = 0; y < this.state.rows; y++) {
+                const value = data.state.smoke[x][y]
+                if (value > 0) {
+                    s.smoke.push({ x: x, y: y, smoke: value })
+                }
+            }
+        }
 
         if (!s.initialized && data.state.initialized) {
             // clear zone
@@ -685,6 +695,7 @@ export default class Game extends React.Component {
 
             if (target !== null) {
                 // attack unit
+                console.log('attack figure')
                 data.x = attacker.x
                 data.y = attacker.y
 
@@ -692,6 +703,8 @@ export default class Game extends React.Component {
                 data.targetTeam = target.team
             } else {
                 // attack hex
+                console.log('attack ground')
+                data.action = 'ground'
                 data.x = sel.target.cell.x
                 data.y = sel.target.cell.y
             }
@@ -748,10 +761,6 @@ export default class Game extends React.Component {
     }
 
     render() {
-        if (this.state.showConfig)
-            return (
-                <Config />
-            )
         if (this.state.showLobby)
             return (
                 <Lobby
@@ -788,6 +797,7 @@ export default class Game extends React.Component {
                     los={this.state.los}
                     zones={this.state.zones}
                     actions={this.state.actions}
+                    smoke={this.state.smoke}
 
                     width={this.state.width}
                     height={this.state.height}

@@ -85,7 +85,7 @@ export default class Lobby extends React.Component {
                     <a id="armasuisse" href="https://www.ar.admin.ch/en/armasuisse-wissenschaft-und-technologie-w-t/home.html">
                         <img className="logo" src={armasuisse} alt="armasuisse" />
                     </a>
-                    <a id="ntw" href="/" a>New Techno War</a>
+                    <a id="ntw" href="/">New Techno War</a>
                 </div>
                 <div className="line"></div>
                 <div className="block">
@@ -147,6 +147,8 @@ export default class Lobby extends React.Component {
                             />
 
                             <input type="submit" value="Play" onClick={(event) => this.handleSubmit(event)} />
+
+                            <a className="guide" href="https://github.com/IDSIA/NewTechnoWar/wiki/Game-Rules">Game Rules</a>
 
                             <a className="guide" href="/config">Templates</a>
 

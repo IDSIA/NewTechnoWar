@@ -1,7 +1,8 @@
 weapon:
 
   AssaultRifle:
-    wid: AR
+    tag: AR
+    idx: 1
     name: 'Assault Rifle'
     max_range: 10
 

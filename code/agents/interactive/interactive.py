@@ -52,7 +52,7 @@ class Human(Agent):
     def chooseFigureGroups(self, board: GameBoard, state: GameState) -> None:
         if self.color == '':
             colors = list(state.choices[self.team].keys())
-            self.color = np.random.choice(colors)
+            self.color = self.random.choice(colors)
 
         state.choose(self.team, self.color)
 
@@ -131,7 +131,13 @@ class Human(Agent):
                 otherTeam = BLUE if self.team == RED else RED
                 target = state.getFiguresByPos(otherTeam, pos)[0]  # TODO: get unit based on index or weapon target type
 
-            self.next_action = self.gm.actionAttack(board, state, figure, target, weapon)
+            self.next_action = self.gm.actionAttackFigure(board, state, figure, target, weapon)
             self.next_response = self.gm.actionRespond(board, state, figure, target, weapon)
+
+        if action == 'ground':
+            w = data['weapon']
+            weapon = figure.weapons[w]
+
+            self.next_action = self.gm.actionAttackGround(board, state, figure, pos, weapon)
 
         # TODO: implement smoke

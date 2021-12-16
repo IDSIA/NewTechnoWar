@@ -4,14 +4,22 @@ This module defines the available figures and their rules.
 import uuid
 from typing import Dict, List
 
+import numpy as np
+
 from core.figures.defenses import DEFENSE_KEY_LIST
-from core.figures.lists import DEFENSE_KEY_LIST, WEAPON_KEY_LIST
+from core.figures.lists import DEFENSE_KEY_LIST, WEAPON_KEY_LIST, STATUS_KEY_LIST
 from core.figures.static import ENDURANCE, INTELLIGENCE_ATTACK, INTELLIGENCE_DEFENSE
 from core.figures.stats import FigureStatus, stat
-from core.figures.status import FigureStatus, STATS_LIST
 from core.figures.types import FigureType
-from core.figures.weapons import Weapon
+from core.figures.weapons import Weapon, vectorWeaponInfo
 from core.utils.coordinates import Cube, Hex
+
+# TODO: this should be something inside the templates
+KIND_MAP: Dict[str, int] = {
+    'infantry': 1,
+    'vehicle': 2,
+    'other': 3,
+}
 
 
 def vectorFigureInfo(meta: str) -> tuple:
@@ -44,11 +52,11 @@ def vectorFigureInfo(meta: str) -> tuple:
         meta + "_stat_value",
     ]
 
-    for s in STATS_LIST:
+    for s in STATUS_KEY_LIST:
         info.append(meta + "_stat_" + s.name.replace(' ', ''))
 
     for w in WEAPON_KEY_LIST:
-        info.append(meta + "_weapon_" + w)
+        info.append(vectorWeaponInfo(meta + "_weapon_" + w))
 
     for d in DEFENSE_KEY_LIST:
         info.append(meta + "_defense_" + d)
@@ -120,11 +128,11 @@ class Figure:
 
         self.updates: list = []
 
-    def vector(self) -> tuple:
+    def vector(self) -> np.ndarray:
         """Data on the figure in vectorized version, used for internal hashing."""
-        data = [
+        data = [np.array([
             self.index,
-            self.kind,
+            KIND_MAP.get(self.kind, 0),
             self.endurance,
             self.int_atk,
             self.int_def,
@@ -149,18 +157,24 @@ class Figure:
             self.position.y,
             self.position.z,
             self.stat.value,
-        ]
+        ], np.float64)]
 
-        for s in STATS_LIST:
-            data.append(self.stat == s)
+        stats = []
+        for s in STATUS_KEY_LIST:
+            stats.append(self.stat == s)
+        data.append(np.array(stats, np.float64))
 
         for w in WEAPON_KEY_LIST:
-            data.append(self.weapons[w].ammo if w in self.weapons else 0)
+            data.append(
+                self.weapons[w].vector() if w in self.weapons else np.zeros(13, np.float64)
+            )
 
+        defenses = []
         for d in DEFENSE_KEY_LIST:
-            data.append(self.defense[d] if d in self.defense else 0)
+            defenses.append(self.defense[d] if d in self.defense else 0)
+        data.append(np.array(defenses, np.float64))
 
-        return tuple(data)
+        return np.concatenate(data, axis=0)
 
     def __eq__(self, other):
         if not isinstance(other, Figure):
@@ -169,13 +183,11 @@ class Figure:
             return False
         v = self.vector()
         v_other = other.vector()
-        for i in range(len(v)):
-            if v[i] != v_other[i]:
-                return False
-        return True
+
+        return np.all(v == v_other)
 
     def __hash__(self):
-        return hash(self.vector())
+        return hash(self.vector().tobytes())
 
     def update(self, turn: int) -> None:
         self.endurance = ENDURANCE[turn]
@@ -225,7 +237,7 @@ class Figure:
         return f'{self.team}{self.index}'
 
     def addWeapon(self, w: Weapon) -> None:
-        self.weapons[w.wid] = w
+        self.weapons[w.tag] = w
 
     def __repr__(self) -> str:
         return f'{self.name}{self.position}'

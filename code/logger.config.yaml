@@ -47,6 +47,11 @@ handlers:
     encoding: utf8
 
 loggers:
+  internal:
+    propagate: false
+    level: ERROR
+    handlers: []
+
   core:
     propagate: false
     level: INFO

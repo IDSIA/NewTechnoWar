@@ -2,8 +2,12 @@ import time
 import unittest
 
 import numpy as np
+from os.path import join, dirname
 
 from agents import buildMatchManager
+from utils.setup_logging import setup_logging
+
+setup_logging(join(dirname(__file__), 'logger.config.yaml'))
 
 
 class TestAttackAction(unittest.TestCase):
@@ -11,13 +15,13 @@ class TestAttackAction(unittest.TestCase):
     @unittest.skip('Used only for profiling')
     def testJunction100(self):
         seed = 42
-        np.random.seed(seed)
+        r = np.random.default_rng(seed)
 
         timings = []
 
         for _ in range(100):
 
-            seed = np.random.randint(1, 1000000000)
+            seed = r.randint(1, 1000000000)
             mm = buildMatchManager('', 'Junction', 'PlayerDummy', 'PlayerDummy', seed=seed)
 
             start = time.time()

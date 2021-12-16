@@ -1,7 +1,8 @@
 weapon:
 
   SniperRifle:
-    wid: SR
+    tag: SR
+    idx: 7
     name: 'Sniper Rifle'
     max_range: 10
 

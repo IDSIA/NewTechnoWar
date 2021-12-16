@@ -3,6 +3,7 @@ import GridHex from './GridHex'
 import Zone from './ZoneHex'
 import Action from './Action'
 import Marker from './Marker'
+import Smoke from './Smoke'
 
 import '../styles/board.css'
 
@@ -214,9 +215,6 @@ export default class Board extends React.Component {
     render() {
         const zones = this.props.zones.red.concat(this.props.zones.blue)
 
-        const loss = []
-        // Object.values(this.props.los).forEach(team => Object.values(team).forEach(i => Object.values(i).forEach(j => loss.push({ team: team, los: j }))))
-
         return (
             <div className='board'
                 ref={e => this.container = e}
@@ -265,18 +263,16 @@ export default class Board extends React.Component {
                                 />
                             )}
                         </g>
-                        {/* <g className="lines">
-                            {loss.map((data, i) =>
-                                <LOS
+                        <g id='smoke'>
+                            {this.props.smoke.map((s, i) => {
+                                return <Smoke
                                     key={i}
-                                    cells={this.props.cells}
-                                    los={data.los}
-                                    team={data.team}
-                                    rows={this.props.rows}
-                                    cols={this.props.cols}
+                                    value={s.smoke}
+                                    cell={this.props.cells[s.x * this.props.rows + s.y]}
                                 />
+                            }
                             )}
-                        </g> */}
+                        </g>
                         <g id='markers'>
                             {this.props.cells.map(cell =>
                                 cell.figures.map(f =>
