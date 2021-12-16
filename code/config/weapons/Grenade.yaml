@@ -1,7 +1,8 @@
 weapon:
 
   Grenade:
-    wid: GR
+    tag: GR
+    idx: 5
     name: 'Grenade'
     max_range: 3
 

@@ -1,7 +1,8 @@
 weapon:
 
   SmokeGrenade:
-    wid: SG
+    tag: SG
+    idx: 6
     name: 'Smoke Grenade'
     max_range: 3
 

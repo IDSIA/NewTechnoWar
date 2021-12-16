@@ -18,13 +18,13 @@ logger = logging.getLogger(__name__)
 
 class GreedyAgent(Agent):
 
-    def __init__(self, team: str, maximize: bool = True, seed: int = 0):
+    def __init__(self, team: str, maximize: bool = True, seed: int = 0, name: str = 'GreedyAgent'):
         """
         :param team:        color of the team
         :param maximize:    if true optimize for maximize the score, otherwise to minimize
         :param seed:        random seed to use internally
         """
-        super().__init__('GreedyAgent', team, seed=seed)
+        super().__init__(name, team, seed=seed)
 
         self.goal_params: GoalParams = GoalParams()
         self.maximize: bool = maximize
@@ -169,7 +169,7 @@ class GreedyAgent(Agent):
         figures = state.getFigures(self.team)
 
         # choose groups of random positions
-        indices = [np.random.choice(len(x), size=len(figures), replace=False) for _ in range(100)]
+        indices = [self.random.choice(len(x), size=len(figures), replace=False) for _ in range(100)]
 
         scores = []
         s = deepcopy(state)

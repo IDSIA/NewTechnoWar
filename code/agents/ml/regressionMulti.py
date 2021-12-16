@@ -9,6 +9,8 @@ from core.actions import Action
 from core.game import GameBoard, GameState, vectorState, vectorStateInfo
 from core.vectors import vectorAction, vectorActionInfo, vectorBoard, vectorBoardInfo
 
+# NOTE: deprecated, see agents.ml.__init__.py file
+
 
 class RegressionMultiAgent(MLAgent):
 
@@ -28,25 +30,25 @@ class RegressionMultiAgent(MLAgent):
         df['action_obj'] = actions
 
         df_m = df.loc[(
-                df['action_type_Move'] |
-                df['action_type_MoveLoadInto']
+            df['action_type_Move'] |
+            df['action_type_MoveLoadInto']
         )].copy()
         df_m_obj = df_m['action_obj']
         df_m.drop('action_obj', 1, inplace=True)
 
         df_a = df.loc[(
-                df['action_type_Attack'] |
-                df['action_type_AttackGround'] |
-                df['action_type_AttackRespond']
+            df['action_type_Attack'] |
+            df['action_type_AttackGround'] |
+            df['action_type_AttackRespond']
         )].copy()
         df_a_obj = df_a['action_obj']
         df_a.drop('action_obj', 1, inplace=True)
 
         df_p = df.loc[(
-                df['action_type_Pass'] |
-                df['action_type_PassFigure'] |
-                df['action_type_PassTeam'] |
-                df['action_type_PassRespond']
+            df['action_type_Pass'] |
+            df['action_type_PassFigure'] |
+            df['action_type_PassTeam'] |
+            df['action_type_PassRespond']
         )].copy()
         df_p_obj = df_p['action_obj']
         df_p.drop('action_obj', 1, inplace=True)

@@ -1,7 +1,8 @@
 weapon:
 
   Cannon:
-    wid: CA
+    tag: CA
+    idx: 0
     name: 'Cannon'
     max_range: 75
 

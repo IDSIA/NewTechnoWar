@@ -1,4 +1,4 @@
-from core.figures import FigureType, WEAPON_KEY_LIST, DEFENSE_KEY_LIST
+from core.figures import FigureType, WEAPON_KEY_LIST, DEFENSE_KEY_LIST, STATUS_KEY_LIST
 from core.figures.stats import FIGURES_STATUS_TYPE, FigureStatus
 from core.game.terrain import TERRAIN_TYPE, TYPE_TERRAIN, Terrain
 from core.templates import TMPL_FIGURES_STATUS_TYPE, TMPL_TERRAIN_TYPE, TMPL_WEAPONS, TMPL_FIGURES
@@ -7,6 +7,8 @@ from core.templates import TMPL_FIGURES_STATUS_TYPE, TMPL_TERRAIN_TYPE, TMPL_WEA
 def parse_figure_status():
     for fName, fData in TMPL_FIGURES_STATUS_TYPE.items():
         FIGURES_STATUS_TYPE[fName] = FigureStatus(fData['name'], fData['value'])
+        if fName not in STATUS_KEY_LIST:
+            STATUS_KEY_LIST.append(fName)
 
 
 def parse_terrain():
@@ -30,12 +32,13 @@ def parse_terrain():
 def parse_weapons():
     weapon_set = []
     for wData in TMPL_WEAPONS.values():
-        wid = wData['wid']
-        if wid:
-            weapon_set.append(wid)
+        tag = wData['tag']
+        if tag:
+            weapon_set.append(tag)
 
     for k in sorted(list(set(weapon_set))):
-        WEAPON_KEY_LIST.append(k)
+        if k not in WEAPON_KEY_LIST:
+            WEAPON_KEY_LIST.append(k)
 
 
 def parse_figures():
@@ -45,4 +48,5 @@ def parse_figures():
             defense_set.append(d)
 
     for k in sorted(list(set(defense_set))):
-        DEFENSE_KEY_LIST.append(k)
+        if k not in DEFENSE_KEY_LIST:
+            DEFENSE_KEY_LIST.append(k)

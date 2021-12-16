@@ -8,7 +8,7 @@ class Attack(ActionFigure):
     """Action to perform an attack."""
 
     __slots__ = [
-        'guard_id', 'guard_name', 'weapon_id', 'weapon_name', 'los', 'lof'
+        'guard_id', 'guard_name', 'guard_pos', 'weapon_tag', 'weapon_idx', 'weapon_name', 'los', 'lof'
     ]
 
     def __init__(self, figure: Figure, guard: Figure, weapon: Weapon, los: list, lof: list):
@@ -22,7 +22,9 @@ class Attack(ActionFigure):
         super().__init__(figure)
         self.guard_id = guard.index
         self.guard_name = guard.name
-        self.weapon_id = weapon.wid
+        self.guard_pos = guard.position
+        self.weapon_tag = weapon.tag
+        self.weapon_idx = weapon.idx
         self.weapon_name = repr(weapon)
         self.los = los
         self.lof = lof
@@ -38,7 +40,7 @@ class AttackFigure(Attack):
     """Action to attack at another Figure."""
 
     __slots__ = [
-        'target_id', 'target_name', 'target_team', 'guard_id', 'guard_name', 'weapon_id', 'weapon_name', 'los', 'lof'
+        'target_id', 'target_name', 'target_team', 'target_pos'
     ]
 
     def __init__(self, figure: Figure, target: Figure, guard: Figure, weapon: Weapon, los: list, lof: list):
@@ -54,6 +56,7 @@ class AttackFigure(Attack):
         self.target_id = target.index
         self.target_name = target.name
         self.target_team = target.team
+        self.target_pos = target.position
 
     def __repr__(self):
         return f'{super().__repr__()}: Attacks figure {self.target_name} with {self.weapon_name}'
@@ -65,7 +68,7 @@ class AttackFigure(Attack):
 class AttackGround(Attack):
     """Similar to Attack, but it aims to the ground."""
 
-    __slots__ = ['ground', 'weapon_id', 'weapon_name']
+    __slots__ = ['ground']
 
     def __init__(self, figure: Figure, ground: Cube, guard: Figure, weapon: Weapon, los: list, lof: list):
         """
@@ -78,8 +81,6 @@ class AttackGround(Attack):
         """
         super().__init__(figure, guard, weapon, los, lof)
         self.ground = ground
-        self.weapon_id = weapon.wid
-        self.weapon_name = repr(weapon)
 
     def __repr__(self):
         return f'{super().__repr__()}: Attacks ground at {self.ground} with {self.weapon_name}'

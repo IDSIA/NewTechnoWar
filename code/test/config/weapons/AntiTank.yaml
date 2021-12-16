@@ -1,7 +1,8 @@
 weapon:
 
   AntiTank:
-    wid: AT
+    tag: AT
+    idx: 3
     name: 'Anti-tank weapon'
     max_range: 18
 

@@ -135,7 +135,11 @@ def drawBoard(board: GameBoard, size: int = None) -> Image:
     img = Image.new('RGB', (size_x, size_y), 'white')
     draw = ImageDraw.Draw(img)
 
-    font = ImageFont.truetype('arial', int(size * .35))
+    try:
+        font = ImageFont.truetype('arial', int(size * .35))
+    except OSError:
+        font = ImageFont.load_default()
+
     font_dh = int(size * SQRT3 * .45)
 
     maxi, maxj = 0, 0
@@ -217,6 +221,10 @@ def drawState(board: GameBoard, state: GameState, show_last_action: bool = False
                 for f in fs:
                     _drawFigure(img, pi, pj, psize, f, decals)
 
+    font_dh = int(size // 4)
+    font_dw = int(size // 4)
+    _drawText(img, font_dw, font_dh, f' T:{state.turn}')
+
     return img
 
 
@@ -234,13 +242,26 @@ def _drawFigure(img: Image, pi, pj, psize, figure, decals) -> None:
         int(pi + psize * .8),
         int(pj + psize * .8),
     )
+    xy_act = (
+        int(.90 * psize + pi - psize * .2),
+        int(.75 * psize + pj - psize * .2),
+        int(.90 * psize + pi + psize * .2),
+        int(.75 * psize + pj + psize * .2),
+    )
+    xy_res = (
+        int(.40 * psize + pi - psize * .2),
+        int(.75 * psize + pj - psize * .2),
+        int(.40 * psize + pi + psize * .2),
+        int(.75 * psize + pj + psize * .2),
+    )
 
     draw = ImageDraw.Draw(img, 'RGBA')
     draw.ellipse(xy_out, fill=COLORS[figure.team + 'dark'])
-    draw.ellipse(xy_in, fill=COLORS[figure.team])
 
     if figure.killed:
         draw.ellipse(xy_in, fill='#555555')
+    else:
+        draw.ellipse(xy_in, fill=COLORS[figure.team])
 
     if figure.stat == stat('HIDDEN'):
         decal = decals['hidden']
@@ -249,6 +270,12 @@ def _drawFigure(img: Image, pi, pj, psize, figure, decals) -> None:
 
     _drawDecal(img, pi, pj, psize, decal)
 
+    act_color = '#555555' if figure.activated else '#FFFF00'
+    res_color = '#555555' if figure.responded else '#00FF00'
+
+    draw.ellipse(xy_act, fill=act_color)
+    draw.ellipse(xy_res, fill=res_color)
+
 
 def _drawDecal(img: Image, pi, pj, psize, decal) -> None:
     """Draws a decal on top of the current image at the given pixel-space coordinates."""
@@ -256,7 +283,18 @@ def _drawDecal(img: Image, pi, pj, psize, decal) -> None:
     img.paste(decal, dxy, mask=decal)
 
 
-def drawAction(img: Image, action: Action, size: int = None) -> None:
+def _drawText(img: Image, pi, pj, text, size: int = None) -> None:
+    if size is None:
+        size = SIZE
+    try:
+        font = ImageFont.truetype('arial', int(size * .35))
+    except OSError:
+        font = ImageFont.load_default()
+    draw = ImageDraw.Draw(img, 'RGBA')
+    draw.text((pi, pj), text, fill='black', anchor='ms', font=font)
+
+
+def drawAction(img: Image, action: Action, size: int = None, direct: bool = True) -> None:
     """
     Draws an action on the given image.
     Movements actions are white-ish lines.
@@ -265,7 +303,7 @@ def drawAction(img: Image, action: Action, size: int = None) -> None:
     if size is None:
         size = SIZE
 
-    w = int(max(1, size * .3))
+    w = int(max(1, size * .2))
 
     draw = ImageDraw.Draw(img, 'RGBA')
 
@@ -276,6 +314,10 @@ def drawAction(img: Image, action: Action, size: int = None) -> None:
     if isinstance(action, Attack) or isinstance(action, AttackGround):
         lof = [_evenqOffsetToPixel(pos=p.tuple(), size=size) for p in action.lof]
         los = [_evenqOffsetToPixel(pos=p.tuple(), size=size) for p in action.los]
+
+        if direct:
+            lof = [lof[0], lof[-1]]
+            los = [los[0], los[-1]]
 
         rgb_los = (255, 0, 0, 128) if action.team == RED else (0, 0, 255, 128)
         rgb_lof = (255, 0, 0, 255) if action.team == RED else (0, 0, 255, 255)

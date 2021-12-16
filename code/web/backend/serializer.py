@@ -129,7 +129,7 @@ class GameJSONEncoder(JSONEncoder):
 
         if isinstance(obj, Weapon):
             return {
-                'id': obj.wid,
+                'id': obj.tag,
                 'name': obj.name,
                 'max_range': obj.max_range,
                 'atk_normal': obj.atk_normal,
@@ -202,7 +202,7 @@ class GameJSONEncoder(JSONEncoder):
                 'target_team': obj.target_team,
                 'guard_id': obj.guard_id,
                 'guard_name': obj.guard_name,
-                'weapon_id': obj.weapon_id,
+                'weapon_id': obj.weapon_idx,
                 'weapon_name': obj.weapon_name,
                 'los': [cube_to_xy(h) for h in obj.los],
                 'lof': [cube_to_xy(h) for h in obj.lof],
@@ -218,9 +218,9 @@ class GameJSONEncoder(JSONEncoder):
                 'ground': obj.ground,
                 'guard_id': obj.guard_id,
                 'guard_name': obj.guard_name,
-                'weapon_id': obj.weapon_id,
+                'weapon_id': obj.weapon_idx,
                 'weapon_name': obj.weapon_name,
-                'weapon_id': obj.weapon_id,
+                'weapon_id': obj.weapon_idx,
                 'weapon_name': obj.weapon_name,
                 'los': [cube_to_xy(h) for h in obj.los],
                 'lof': [cube_to_xy(h) for h in obj.lof],

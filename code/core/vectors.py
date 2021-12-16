@@ -56,7 +56,7 @@ def vectorAction(action: Action) -> tuple:
     action_lof = 0
     action_los = 0
     action_target_index = [False] * MAX_UNITS_PER_TEAM
-    action_weapon_id = [False] * len(WEAPON_KEY_LIST)
+    action_weapon_idx = [False] * len(WEAPON_KEY_LIST)
 
     if isinstance(action, Move):
         action_figure_index[action.figure_id] = True
@@ -71,7 +71,7 @@ def vectorAction(action: Action) -> tuple:
         action_lof = len(action.lof)  # direct line of fire on target (from the attacker)
         action_los = len(action.los)  # direct line of sight on target (from who can see it)
         action_target_index[action.target_id] = True
-        action_weapon_id[WEAPON_KEY_LIST.index(action.weapon_id)] = True
+        action_weapon_idx[action.weapon_idx] = True
 
     if isinstance(action, Response):
         response = True
@@ -88,7 +88,7 @@ def vectorAction(action: Action) -> tuple:
     data.append(action_lof)
     data.append(action_los)
     data += action_target_index
-    data += action_weapon_id
+    data += action_weapon_idx
     data.append(response)
 
     return tuple(data)

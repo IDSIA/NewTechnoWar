@@ -15,11 +15,12 @@ class GameBoard:
     Static parts of the game board.
     """
     __slots__ = ['name', 'shape', 'terrain', 'geography', 'objectives', 'limits', 'obstacles', 'moveCost',
-                 'protectionLevel', 'maxTurn']
+                 'protectionLevel', 'maxTurn', 'gen_seed']
 
-    def __init__(self, shape: Tuple[int, int], name: str = ''):
+    def __init__(self, shape: Tuple[int, int], name: str = '', gen_seed: int or None = None):
         self.name: str = name
         self.shape: Tuple[int, int] = shape
+        self.gen_seed: int = gen_seed
 
         # matrices filled with -1 so we can use 0-based as index
         self.terrain: np.ndarray = np.zeros(shape, dtype='uint8')

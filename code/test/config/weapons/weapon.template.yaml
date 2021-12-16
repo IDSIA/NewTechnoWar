@@ -1,7 +1,8 @@
 weapon:
 
   template:
-    wid: ''
+    tag: ''
+    idx: -1
     name: Weapon
     max_range: inf
 

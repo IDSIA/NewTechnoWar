@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List
 
+import numpy as np
 import pandas as pd
 
 from core.actions import Action
@@ -22,12 +23,13 @@ class Agent:
         self.team: str = team
         self.seed: int = seed
         self.count: int = 0
+        self.random = np.random.default_rng(seed)
 
         # history of registered actions used to build the dataframe of actions performed
         self.history: list = []
 
         # internal game manager
-        self.gm: GameManager = GameManager()
+        self.gm: GameManager = GameManager(seed)
 
     def register(self, state: GameState, data: list) -> None:
         """
@@ -57,7 +59,7 @@ class Agent:
             "time",
             "team",
             "seed",
-            #"turn",
+            # "turn",
             "count",
         ]
 

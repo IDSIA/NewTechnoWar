@@ -15,3 +15,11 @@ pillow==8.2.0
 # required for ml-agents
 joblib==1.0.1
 scikit-learn==0.24.2
+
+# required for NN
+torch==1.9.0+cpu
+torchvision==0.10.0+cpu
+tqdm==4.62
+
+# required for multiprocessing
+ray==1.6.0
