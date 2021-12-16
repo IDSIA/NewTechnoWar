@@ -1,0 +1,26 @@
+figure:
+
+  Drone:
+    type: vehicle
+
+    move: 3
+    load: 0
+    hp: 1
+
+    defense:
+      basic: 0
+
+    weapons:
+      Grenade: 2
+
+    # special rules:
+    # - controlled by an infantry unit
+    # - always hidden, no position showed on map
+    # - position of *previous turn* is known
+    # - when 2 drones are on the same or adjacent hex at the end of the turn, both are destroyed
+    # - OPTIONAL: same rule but with infantry
+    # - ATK: on reaction, it can kill infantry units on the same or adjacent hex
+    # - no limitation in movements or LOS, cannot see inside buildings
+
+    # bonus:
+    # - +2DEF to controlling infantry when the attacking enemy is near 2 hex from the drone, the drone is shown on map if the bonus is used

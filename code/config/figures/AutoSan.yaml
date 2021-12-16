@@ -1,0 +1,26 @@
+figure:
+
+  AutoSan:
+    type: vehicle
+
+    move: 7
+    load: 1
+    hp: 1
+
+    defense:
+      basic: 5
+      smoke: 18
+
+    weapons:
+      SmokeGrenade: 2
+
+    # special rules:
+    # - controlled by an infantry unit
+    # - contact with a unit, reload it
+    # - contact with wounded, load it
+    # - contact with hospital, unload wounded
+
+    # bonus:
+    # - +2INT if LOS on control infantry
+    # - +2INT to figures near 2 hex
+    # - +1DUR (durability?)
